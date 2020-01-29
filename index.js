@@ -11,6 +11,7 @@ import hathorLib from '@hathor/wallet-lib';
 import config from './config';
 import Wallet from './wallet';
 import apiDocs from './api-docs';
+import apiKeyAuth from './api-key-auth';
 
 const humanState = {
   [Wallet.CLOSED]: 'Closed',
@@ -95,6 +96,9 @@ walletRouter.post('/simple-send-tx', (req, res) => {
   });
 });
 
+if (config.http_api_key) {
+  app.use(apiKeyAuth(config.http_api_key));
+}
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/0', walletRouter);

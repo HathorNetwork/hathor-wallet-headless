@@ -8,6 +8,14 @@ It may be used both by mining pools and exchanges.
 
 Copy `config.js.template` to `config.js`, and then fill in the variables. Finally, run `npm start`.
 
+## Authentication
+
+You can enable a simple API Key verification in the `config.js` file. In this case, your requests must include the header `X-API-KEY` with the correct key.
+
+If you are using cURL to test, you can include the header using the `-H` parameter, e.g., `curl -H "X-API-Key: YourKey" http://localhost:8000/0/balance`.
+
+It follows the [Swagger Specification for API Keys](https://swagger.io/docs/specification/authentication/api-keys/).
+
 ## How to use?
 
 Check out the full documentation in the OpenAPI Documentation in `api-docs.js`.

@@ -10,6 +10,18 @@ const apiDoc = {
     version: '0.1.0',
   },
   produces: [ "application/json" ],
+  components: {
+    securitySchemes: {
+      ApiKeyAuth: {
+        type: 'apiKey',
+        'in': 'header',
+        name: 'X-API-KEY',
+      },
+    },
+  },
+  security: {
+    ApiKeyAuth: [],
+  },
   paths: {
     '/status': {
       get: {
