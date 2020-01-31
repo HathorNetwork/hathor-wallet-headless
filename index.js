@@ -9,20 +9,12 @@ import express from 'express';
 import hathorLib from '@hathor/wallet-lib';
 
 import config from './config';
-import Wallet from './wallet';
 import apiDocs from './api-docs';
 import apiKeyAuth from './api-key-auth';
 
-const humanState = {
-  [Wallet.CLOSED]: 'Closed',
-  [Wallet.CONNECTING]: 'Connecting',
-  [Wallet.SYNCING]: 'Syncing',
-  [Wallet.READY]: 'Ready',
-};
-
-const wallet = new Wallet(config);
+const wallet = new hathorLib.Wallet(config);
 wallet.on('state', (state) => {
-  console.log(`State changed to: ${humanState[state]}`);
+  console.log(`State changed to: ${hathorLib.Wallet.getHumanState(state)}`);
 });
 
 wallet.on('new-tx', (tx) => {
@@ -47,7 +39,7 @@ app.get('/docs', (req, res) => {
 app.get('/status', (req, res) => {
   res.send({
     'statusCode': wallet.state,
-    'statusMessage': humanState[wallet.state],
+    'statusMessage': hathorLib.Wallet.getHumanState(wallet.state),
     'network': wallet.network,
     'serverUrl': wallet.server,
     'serverInfo': wallet.serverInfo,
@@ -55,7 +47,7 @@ app.get('/status', (req, res) => {
 });
 
 walletRouter.use((req, res, next) => {
-  if (wallet.state !== Wallet.READY) {
+  if (!wallet.isReady()) {
     res.send({
       success: false,
       errmsg: 'Wallet is not ready.',
@@ -67,7 +59,7 @@ walletRouter.use((req, res, next) => {
 });
 
 walletRouter.get('/balance', (req, res) => {
-  const balance = wallet.getHTRBalance();
+  const balance = wallet.getBalance();
   res.send(balance);
 });
 
@@ -82,14 +74,14 @@ walletRouter.get('/address', (req, res) => {
 });
 
 walletRouter.get('/tx-history', (req, res) => {
+  // TODO Add pagination
   res.send(wallet.getTxHistory());
 });
 
 walletRouter.post('/simple-send-tx', (req, res) => {
   const address = req.body.address;
   const value = parseInt(req.body.value);
-  const tokenUid = Wallet.HTR_TOKEN;
-  wallet.sendTransaction(address, value, tokenUid).then((response) => {
+  wallet.sendTransaction(address, value).then((response) => {
     res.send(response);
   }, (error) => {
     res.send({success: false, error});
