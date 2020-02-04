@@ -6,15 +6,15 @@
  */
 
 import express from 'express';
-import hathorLib from '@hathor/wallet-lib';
+import { Wallet } from '@hathor/wallet-lib';
 
 import config from './config';
 import apiDocs from './api-docs';
 import apiKeyAuth from './api-key-auth';
 
-const wallet = new hathorLib.Wallet(config);
+const wallet = new Wallet(config);
 wallet.on('state', (state) => {
-  console.log(`State changed to: ${hathorLib.Wallet.getHumanState(state)}`);
+  console.log(`State changed to: ${Wallet.getHumanState(state)}`);
 });
 
 wallet.on('new-tx', (tx) => {
@@ -39,7 +39,7 @@ app.get('/docs', (req, res) => {
 app.get('/status', (req, res) => {
   res.send({
     'statusCode': wallet.state,
-    'statusMessage': hathorLib.Wallet.getHumanState(wallet.state),
+    'statusMessage': Wallet.getHumanState(wallet.state),
     'network': wallet.network,
     'serverUrl': wallet.server,
     'serverInfo': wallet.serverInfo,
