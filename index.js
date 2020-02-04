@@ -6,19 +6,19 @@
  */
 
 import express from 'express';
-import { Wallet } from '@hathor/wallet-lib';
+import { HathorWallet } from '@hathor/wallet-lib';
 
 import config from './config';
 import apiDocs from './api-docs';
 import apiKeyAuth from './api-key-auth';
 
-const wallet = new Wallet(config);
+const wallet = new HathorWallet(config);
 
 const humanState = {
-  [Wallet.CLOSED]: 'Closed',
-  [Wallet.CONNECTING]: 'Connecting',
-  [Wallet.SYNCING]: 'Syncing',
-  [Wallet.READY]: 'Ready',
+  [HathorWallet.CLOSED]: 'Closed',
+  [HathorWallet.CONNECTING]: 'Connecting',
+  [HathorWallet.SYNCING]: 'Syncing',
+  [HathorWallet.READY]: 'Ready',
 };
 
 wallet.on('state', (state) => {
