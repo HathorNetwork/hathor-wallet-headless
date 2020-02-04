@@ -13,8 +13,16 @@ import apiDocs from './api-docs';
 import apiKeyAuth from './api-key-auth';
 
 const wallet = new Wallet(config);
+
+const humanState = {
+  [Wallet.CLOSED]: 'Closed',
+  [Wallet.CONNECTING]: 'Connecting',
+  [Wallet.SYNCING]: 'Syncing',
+  [Wallet.READY]: 'Ready',
+};
+
 wallet.on('state', (state) => {
-  console.log(`State changed to: ${Wallet.getHumanState(state)}`);
+  console.log(`State changed to: ${humanState[state]}`);
 });
 
 wallet.on('new-tx', (tx) => {
@@ -39,7 +47,7 @@ app.get('/docs', (req, res) => {
 app.get('/status', (req, res) => {
   res.send({
     'statusCode': wallet.state,
-    'statusMessage': Wallet.getHumanState(wallet.state),
+    'statusMessage': humanState[wallet.state],
     'network': wallet.network,
     'serverUrl': wallet.server,
     'serverInfo': wallet.serverInfo,
