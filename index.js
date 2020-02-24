@@ -6,7 +6,7 @@
  */
 
 import express from 'express';
-import { HathorWallet } from '@hathor/wallet-lib';
+import { HathorWallet, wallet as walletUtils } from '@hathor/wallet-lib';
 
 import config from './config';
 import apiDocs from './api-docs';
@@ -51,6 +51,12 @@ app.get('/status', (req, res) => {
     'network': wallet.network,
     'serverUrl': wallet.server,
     'serverInfo': wallet.serverInfo,
+  });
+});
+
+app.get('/new-seed', (req, res) => {
+  res.send({
+    seed: walletUtils.generateWalletWords(),
   });
 });
 

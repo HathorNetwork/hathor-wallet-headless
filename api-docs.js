@@ -55,6 +55,25 @@ const apiDoc = {
         },
       },
     },
+    '/new-seed': {
+      get: {
+        summary: 'Create a new seed for a wallet.',
+        responses: {
+          200: {
+            description: 'Return newly generated words.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    "seed": "blur drop teach element device achieve rapid crane thank you segment party luxury engage nurse increase inflict behind favorite sail advice lock chuckle chair",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     '/0/balance': {
       get: {
         summary: 'Return the balance of HTR',
