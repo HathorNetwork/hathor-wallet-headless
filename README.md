@@ -247,4 +247,8 @@ $ curl -X POST --data "key=key"  http://localhost:8000/wallet/stop
 
 Generate a new seed (24 words)
 
-`npm run generate_words`
+```bash
+npm run generate_words
+
+work above economy captain advance bread logic paddle copper change maze tongue salon sadness cannon fish debris need make purpose usage worth vault shrug
+```
