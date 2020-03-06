@@ -50,10 +50,9 @@ const apiDoc = {
             name: 'seedKey',
             'in': 'body',
             description: 'Key of the corresponding seed in the config file to create the wallet.',
-            required: false,
+            required: true,
             schema: {
               type: 'string',
-              default: 'default',
             },
           },
         ],

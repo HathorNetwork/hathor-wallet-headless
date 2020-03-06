@@ -26,12 +26,12 @@ Create and start a new wallet.
 
 Parameters:
 
-`key`: key reference of this wallet in the object of created wallets. Used to say which wallet each request is directed to.
-`passphrase`: Optional parameter to start the wallet with a passphrase. If not sent we use empty string.
-`seedKey`: Optional parameter to define which seed (from the object seeds in the config file) will be used to generate the wallet. If not sent we use 'default'.
+`key`: key reference of this wallet in the object of created wallets. Used to say which wallet each request is directed to.  
+`passphrase`: Optional parameter to start the wallet with a passphrase. If not sent we use empty string.  
+`seedKey`: Parameter to define which seed (from the object seeds in the config file) will be used to generate the wallet.
 
 ```bash
-$ curl -X POST --data "key=key"  --data "passphrase=123" --data "seedKey=default" http://localhost:8000/start
+$ curl -X POST --data "key=key" --data "passphrase=123" --data "seedKey=default" http://localhost:8000/start
 {"success":true}
 ```
 
@@ -234,7 +234,7 @@ $ curl http://localhost:8000/wallet/tx-history
 
 ### Stop a wallet
 
-Stop the wallet and its connections and remove it from the store.
+Stop the wallet and its connections and remove it from the available wallets.
 
 ```bash
 $ curl -X POST --data "key=key"  http://localhost:8000/wallet/stop
@@ -245,7 +245,7 @@ $ curl -X POST --data "key=key"  http://localhost:8000/wallet/stop
 
 ### Generate new words
 
-Generate a new seed (24 words)
+This script generates a new seed with 24 words. It is useful when you'd like to start a brand new wallet. The seed is a sensitive data that cannot be shared with anyone else. Remember to clean up your clipboard after copying & pasting.
 
 ```bash
 $ npm run generate_words

@@ -36,8 +36,15 @@ app.get('/docs', (req, res) => {
 
 app.post('/start', (req, res) => {
   // We expect the user to send the seed he wants to use
-  // if not sent, we use the 'default' key
-  const seedKey = req.body.seedKey || 'default';
+  if (!('seedKey' in req.body)) {
+    res.send({
+      success: false,
+      message: 'Parameter \'seedKey\' is required.',
+    });
+    return;
+  }
+
+  const seedKey = req.body.seedKey;
   if (!(seedKey in config.seeds)) {
     res.send({
       success: false,
@@ -76,9 +83,9 @@ app.post('/start', (req, res) => {
   }
 
   const wallet = new HathorWallet(walletConfig);
-  wallets[req.body.key] = wallet;
   wallet.start().then((info) => {
     console.log(`Wallet started with key ${req.body.key}. Full-node info: `, info);
+    wallets[req.body.key] = wallet;
     res.send({
       success: true,
     });
