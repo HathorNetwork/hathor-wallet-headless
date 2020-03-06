@@ -12,7 +12,7 @@ Copy `config.js.template` to `config.js`, and then fill in the variables. Finall
 
 You can enable a simple API Key verification in the `config.js` file. In this case, your requests must include the header `X-API-KEY` with the correct key.
 
-If you are using cURL to test, you can include the header using the `-H` parameter, e.g., `curl -H "X-API-Key: YourKey" http://localhost:8000/0/balance`.
+If you are using cURL to test, you can include the header using the `-H` parameter, e.g., `curl -H "X-API-Key: YourKey" http://localhost:8000/wallet/balance`.
 
 It follows the [Swagger Specification for API Keys](https://swagger.io/docs/specification/authentication/api-keys/).
 
@@ -20,10 +20,53 @@ It follows the [Swagger Specification for API Keys](https://swagger.io/docs/spec
 
 Check out the full documentation in the OpenAPI Documentation in `api-docs.js`.
 
+### Start a wallet
+
+Create and start a new wallet.
+
+Parameters:
+
+`wallet-id`: key reference of this wallet in the object of created wallets. Used to say which wallet each request is directed to.  
+`passphrase`: Optional parameter to start the wallet with a passphrase. If not sent we use empty string.  
+`seedKey`: Parameter to define which seed (from the object seeds in the config file) will be used to generate the wallet.
+
+```bash
+$ curl -X POST --data "wallet-id=id" --data "passphrase=123" --data "seedKey=default" http://localhost:8000/start
+{"success":true}
+```
+
+**All requests below must have a header 'X-Wallet-Id' to indicate which wallet should be used.**
+
+On the examples, replace `{wallet-id}` with the desired id.
+
+### Wallet status
+
+```bash
+$ curl -X GET -H "X-Wallet-Id: {wallet-id}" http://localhost:8000/wallet/status/
+{
+    "statusCode": 3,
+    "statusMessage": "Ready",
+    "network": "testnet",
+    "serverUrl": "http://localhost:8083/v1a/",
+    "serverInfo": {
+        "version": "0.31.1",
+        "network": "testnet-delta",
+        "min_weight": 14,
+        "min_tx_weight": 14,
+        "min_tx_weight_coefficient": 1.6,
+        "min_tx_weight_k": 100,
+        "token_deposit_percentage": 0.01,
+        "reward_spend_min_blocks": 3,
+        "max_number_inputs": 255,
+        "max_number_outputs": 255
+    }
+}
+```
+
 ### Get balance
 
 ```bash
-$ curl http://localhost:8000/0/balance
+$ curl -H "X-Wallet-Id: {wallet-id}" http://localhost:8000/wallet/balance
 {"available":2,"locked":0}
 ```
 
@@ -32,13 +75,13 @@ $ curl http://localhost:8000/0/balance
 You can either mark as used or not. If you don't, it will return the same address until at least one transaction arrives to that address. If you mark as used, it will return a new address in the next call.
 
 ```bash
-$ curl http://localhost:8000/0/address
+$ curl -H "X-Wallet-Id: {wallet-id}" http://localhost:8000/wallet/address
 {"address":"H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt"}
-$ curl http://localhost:8000/0/address
+$ curl -H "X-Wallet-Id: {wallet-id}" http://localhost:8000/wallet/address
 {"address":"H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt"}
-$ curl "http://localhost:8000/0/address?mark_as_used"
+$ curl -H "X-Wallet-Id: {wallet-id}" "http://localhost:8000/wallet/address?mark_as_used"
 {"address":"H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt"}
-] curl http://localhost:8000/0/address
+] curl -H "X-Wallet-Id: {wallet-id}" http://localhost:8000/wallet/address
 {"address":"HCAQb2H5EUqv9AoThwHQcibZe5nvppscMh"}
 ```
 
@@ -47,7 +90,7 @@ $ curl "http://localhost:8000/0/address?mark_as_used"
 Send a transaction to exactly one output. You must provide both the `address` and the `value`. The `value` parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.
 
 ```bash
-$ curl -X POST --data "address=H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt" --data "value=101" http://localhost:8000/0/simple-send-tx
+$ curl -X POST -H "X-Wallet-Id: {wallet-id}" --data "address=H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt" --data "value=101" http://localhost:8000/wallet/simple-send-tx
 {
   "success": true,
   "message": "",
@@ -83,7 +126,7 @@ $ curl -X POST --data "address=H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt" --data "value
 ### Get tx history
 
 ```bash
-$ curl http://localhost:8000/0/tx-history
+$ curl -H "X-Wallet-Id: {wallet-id}" http://localhost:8000/wallet/tx-history
 {
   "0000340349f9342c4e5eda6f818697f6c1748a81e2ff4b67bc2211d7f8761b11": {
     "tx_id": "0000340349f9342c4e5eda6f818697f6c1748a81e2ff4b67bc2211d7f8761b11",
@@ -189,4 +232,25 @@ $ curl http://localhost:8000/0/tx-history
     ]
   }
 }
+```
+
+### Stop a wallet
+
+Stop the wallet and its connections and remove it from the available wallets.
+
+```bash
+$ curl -X POST -H "X-Wallet-Id: {wallet-id}" http://localhost:8000/wallet/stop
+{"success":true}
+```
+
+## Util scripts
+
+### Generate new words
+
+This script generates a new seed with 24 words. It is useful when you'd like to start a brand new wallet. The seed is a sensitive data that cannot be shared with anyone else. Remember to clean up your clipboard after copying & pasting.
+
+```bash
+$ npm run generate_words
+
+work above economy captain advance bread logic paddle copper change maze tongue salon sadness cannon fish debris need make purpose usage worth vault shrug
 ```

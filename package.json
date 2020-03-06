@@ -8,12 +8,13 @@
     "@babel/core": "^7.8.3",
     "@babel/node": "^7.8.3",
     "@babel/preset-env": "^7.8.3",
-    "@hathor/wallet-lib": "^0.10.0",
+    "@hathor/wallet-lib": "^0.10.1",
     "express": "^4.17.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "babel-node index.js"
+    "start": "babel-node index.js",
+    "generate_words": "babel-node utils/generate_words.js"
   },
   "repository": {
     "type": "git",
