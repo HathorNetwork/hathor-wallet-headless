@@ -10,8 +10,10 @@ module.exports = {
   network: 'mainnet',
   server: 'https://node2.mainnet.hathor.network/v1a/',
 
-  // Wallet Config
-  seed: '',
+  // Wallet seeds
+  seeds: {
+      default: '',
+  },
 
   // Optional config so you can set the token you want to use in this wallet
   // If this parameter is set you don't need to pass your token when getting balance or sending tokens

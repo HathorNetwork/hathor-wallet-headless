@@ -23,9 +23,82 @@ const apiDoc = {
     ApiKeyAuth: [],
   },
   paths: {
-    '/status': {
+    '/start': {
+      post: {
+        summary: 'Create and start a wallet and add to store.',
+        parameters: [
+          {
+            name: 'wallet-id',
+            'in': 'body',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'passphrase',
+            'in': 'body',
+            description: 'Passphrase of the wallet that will be created.',
+            required: false,
+            schema: {
+              type: 'string',
+              default: '',
+            },
+          },
+          {
+            name: 'seedKey',
+            'in': 'body',
+            description: 'Key of the corresponding seed in the config file to create the wallet.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Stop a wallet',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {"success":true},
+                  },
+                  'seed-not-found': {
+                    summary: 'Seed key sent does not exist in config file.',
+                    value: {"success":false,"message":"Seed not found."}
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: {"success":false,"message":"Parameter 'wallet-id' is required."}
+                  },
+                  'start-failed': {
+                    summary: 'Wallet failed to start.',
+                    value: {"success":false,"message":"Failed to start wallet with id X"}
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/status': {
       get: {
         summary: 'Return the wallet status',
+        parameters: [
+          {
+            name: 'wallet-id',
+            'in': 'query',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
         responses: {
           200: {
             description: 'A JSON with general wallet info',
@@ -48,6 +121,18 @@ const apiDoc = {
                     summary: 'Wallet is ready',
                     value: {"statusCode":3,"statusMessage":"Ready","network":"mainnet","serverUrl":"https://node2.mainnet.hathor.network/v1a/","serverInfo":{"version":"0.29.0","network":"mainnet","min_weight":14,"min_tx_weight":14,"min_tx_weight_coefficient":1.6,"min_tx_weight_k":100,"token_deposit_percentage":0.01}}
                   },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: {"success":false,"message":"Wallet is not ready.","state":1}
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: {"success":false,"message":"Parameter 'wallet-id' is required."}
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: {"success":false,"message":"Invalid wallet-id parameter."}
+                  },
                 },
               },
             },
@@ -55,9 +140,20 @@ const apiDoc = {
         },
       },
     },
-    '/0/balance': {
+    '/wallet/balance': {
       get: {
         summary: 'Return the balance of HTR',
+        parameters: [
+          {
+            name: 'wallet-id',
+            'in': 'query',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
         responses: {
           200: {
             description: 'Balance of tokens available and locked. To get the total, you must sum them up.',
@@ -70,7 +166,15 @@ const apiDoc = {
                   },
                   'wallet-not-ready': {
                     summary: 'Wallet is not ready yet',
-                    value: {"success":false,"errmsg":"Wallet is not ready.","state":1}
+                    value: {"success":false,"message":"Wallet is not ready.","state":1}
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: {"success":false,"message":"Parameter 'wallet-id' is required."}
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: {"success":false,"message":"Invalid wallet-id parameter."}
                   },
                 },
               },
@@ -79,10 +183,19 @@ const apiDoc = {
         },
       },
     },
-    '/0/address': {
+    '/wallet/address': {
       get: {
         summary: 'Return the current address',
         parameters: [
+          {
+            name: 'wallet-id',
+            'in': 'query',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
           {
             name: 'mark_as_used',
             'in': 'query',
@@ -105,7 +218,15 @@ const apiDoc = {
                   },
                   'wallet-not-ready': {
                     summary: 'Wallet is not ready yet',
-                    value: {"success":false,"errmsg":"Wallet is not ready.","state":1}
+                    value: {"success":false,"message":"Wallet is not ready.","state":1}
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: {"success":false,"message":"Parameter 'wallet-id' is required."}
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: {"success":false,"message":"Invalid wallet-id parameter."}
                   },
                 },
               },
@@ -114,10 +235,19 @@ const apiDoc = {
         },
       },
     },
-    '/0/simple-send-tx': {
+    '/wallet/simple-send-tx': {
       post: {
         summary: 'Send a transaction to exactly one output.',
         parameters: [
+          {
+            name: 'wallet-id',
+            'in': 'body',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
           {
             name: 'address',
             'in': 'formData',
@@ -149,7 +279,15 @@ const apiDoc = {
                   },
                   'wallet-not-ready': {
                     summary: 'Wallet is not ready yet',
-                    value: {"success":false,"errmsg":"Wallet is not ready.","state":1}
+                    value: {"success":false,"message":"Wallet is not ready.","state":1}
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: {"success":false,"message":"Parameter 'wallet-id' is required."}
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: {"success":false,"message":"Invalid wallet-id parameter."}
                   },
                 },
               },
@@ -158,9 +296,20 @@ const apiDoc = {
         },
       },
     },
-    '/0/tx-history': {
+    '/wallet/tx-history': {
       get: {
         summary: 'Return the transaction history',
+        parameters: [
+          {
+            name: 'wallet-id',
+            'in': 'query',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
         responses: {
           200: {
             description: 'Return the transaction history',
@@ -173,7 +322,58 @@ const apiDoc = {
                   },
                   'wallet-not-ready': {
                     summary: 'Wallet is not ready yet',
-                    value: {"success":false,"errmsg":"Wallet is not ready.","state":1}
+                    value: {"success":false,"message":"Wallet is not ready.","state":1}
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: {"success":false,"message":"Parameter 'wallet-id' is required."}
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: {"success":false,"message":"Invalid wallet-id parameter."}
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/stop': {
+      post: {
+        summary: 'Stop a running wallet and remove from store.',
+        parameters: [
+          {
+            name: 'wallet-id',
+            'in': 'body',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Stop a wallet',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {"success":true},
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: {"success":false,"message":"Wallet is not ready.","state":1}
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: {"success":false,"message":"Parameter 'wallet-id' is required."}
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: {"success":false,"message":"Invalid wallet-id parameter."}
                   },
                 },
               },
