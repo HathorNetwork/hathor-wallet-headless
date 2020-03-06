@@ -35,12 +35,14 @@ $ curl -X POST --data "wallet-id=id" --data "passphrase=123" --data "seedKey=def
 {"success":true}
 ```
 
-**All requests below must have a parameter 'wallet-id' in the body which wallet must be used.**
+**All requests below must have a header 'X-Wallet-Id' to indicate which wallet should be used.**
+
+On the examples, replace `{wallet-id}` with the desired id.
 
 ### Wallet status
 
 ```bash
-$ curl -X GET --data "wallet-id=id" http://localhost:8000/wallet/status/
+$ curl -X GET -H "X-Wallet-Id: {wallet-id}" http://localhost:8000/wallet/status/
 {
     "statusCode": 3,
     "statusMessage": "Ready",
@@ -64,7 +66,7 @@ $ curl -X GET --data "wallet-id=id" http://localhost:8000/wallet/status/
 ### Get balance
 
 ```bash
-$ curl http://localhost:8000/wallet/balance
+$ curl -H "X-Wallet-Id: {wallet-id}" http://localhost:8000/wallet/balance
 {"available":2,"locked":0}
 ```
 
@@ -73,13 +75,13 @@ $ curl http://localhost:8000/wallet/balance
 You can either mark as used or not. If you don't, it will return the same address until at least one transaction arrives to that address. If you mark as used, it will return a new address in the next call.
 
 ```bash
-$ curl http://localhost:8000/wallet/address
+$ curl -H "X-Wallet-Id: {wallet-id}" http://localhost:8000/wallet/address
 {"address":"H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt"}
-$ curl http://localhost:8000/wallet/address
+$ curl -H "X-Wallet-Id: {wallet-id}" http://localhost:8000/wallet/address
 {"address":"H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt"}
-$ curl "http://localhost:8000/wallet/address?mark_as_used"
+$ curl -H "X-Wallet-Id: {wallet-id}" "http://localhost:8000/wallet/address?mark_as_used"
 {"address":"H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt"}
-] curl http://localhost:8000/wallet/address
+] curl -H "X-Wallet-Id: {wallet-id}" http://localhost:8000/wallet/address
 {"address":"HCAQb2H5EUqv9AoThwHQcibZe5nvppscMh"}
 ```
 
@@ -88,7 +90,7 @@ $ curl "http://localhost:8000/wallet/address?mark_as_used"
 Send a transaction to exactly one output. You must provide both the `address` and the `value`. The `value` parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.
 
 ```bash
-$ curl -X POST --data "address=H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt" --data "value=101" http://localhost:8000/wallet/simple-send-tx
+$ curl -X POST -H "X-Wallet-Id: {wallet-id}" --data "address=H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt" --data "value=101" http://localhost:8000/wallet/simple-send-tx
 {
   "success": true,
   "message": "",
@@ -124,7 +126,7 @@ $ curl -X POST --data "address=H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt" --data "value
 ### Get tx history
 
 ```bash
-$ curl http://localhost:8000/wallet/tx-history
+$ curl -H "X-Wallet-Id: {wallet-id}" http://localhost:8000/wallet/tx-history
 {
   "0000340349f9342c4e5eda6f818697f6c1748a81e2ff4b67bc2211d7f8761b11": {
     "tx_id": "0000340349f9342c4e5eda6f818697f6c1748a81e2ff4b67bc2211d7f8761b11",
@@ -237,7 +239,7 @@ $ curl http://localhost:8000/wallet/tx-history
 Stop the wallet and its connections and remove it from the available wallets.
 
 ```bash
-$ curl -X POST --data "wallet-id=id"  http://localhost:8000/wallet/stop
+$ curl -X POST -H "X-Wallet-Id: {wallet-id}" http://localhost:8000/wallet/stop
 {"success":true}
 ```
 

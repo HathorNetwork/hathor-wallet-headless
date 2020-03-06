@@ -107,19 +107,13 @@ walletRouter.use((req, res, next) => {
     });
   }
 
-  // Expect wallet-id parameter in the body if it's a POST and in the query if it's a GET
-  if ((req.method === 'POST' && !('wallet-id' in req.body)) || (req.method === 'GET' && !('wallet-id' in req.query))) {
-    sendError('Parameter \'wallet-id\' is required.');
+  // Get X-WALLET-ID header that defines which wallet the request refers to
+  if (!('x-wallet-id' in req.headers)) {
+    sendError('Header \'X-Wallet-Id\' is required.');
     return;
   }
 
-  let walletId = null;
-  if (req.method === 'GET') {
-    walletId = req.query['wallet-id'];
-  } else {
-    walletId = req.body['wallet-id'];
-  }
-
+  const walletId = req.headers['x-wallet-id'];
   if (!(walletId in wallets)) {
     sendError('Invalid wallet id parameter.')
     return;
@@ -133,6 +127,7 @@ walletRouter.use((req, res, next) => {
 
   // Adding to req parameter, so we don't need to get it in all requests
   req.wallet = wallet;
+  req.walletId = walletId;
   next();
 });
 
@@ -182,8 +177,7 @@ walletRouter.post('/stop', (req, res) => {
   const wallet = req.wallet;
   wallet.stop();
 
-  const walletId = req.body['wallet-id'];
-  delete wallets[walletId];
+  delete wallets[req.walletId];
   res.send({success: true});
 });
 
