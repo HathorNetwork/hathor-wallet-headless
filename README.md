@@ -26,21 +26,21 @@ Create and start a new wallet.
 
 Parameters:
 
-`key`: key reference of this wallet in the object of created wallets. Used to say which wallet each request is directed to.  
+`wallet-id`: key reference of this wallet in the object of created wallets. Used to say which wallet each request is directed to.  
 `passphrase`: Optional parameter to start the wallet with a passphrase. If not sent we use empty string.  
 `seedKey`: Parameter to define which seed (from the object seeds in the config file) will be used to generate the wallet.
 
 ```bash
-$ curl -X POST --data "key=key" --data "passphrase=123" --data "seedKey=default" http://localhost:8000/start
+$ curl -X POST --data "wallet-id=id" --data "passphrase=123" --data "seedKey=default" http://localhost:8000/start
 {"success":true}
 ```
 
-**All requests below must have a parameter 'key' in the body which wallet must be used.**
+**All requests below must have a parameter 'wallet-id' in the body which wallet must be used.**
 
 ### Wallet status
 
 ```bash
-$ curl -X GET --data "key=key" http://localhost:8000/wallet/status/
+$ curl -X GET --data "wallet-id=id" http://localhost:8000/wallet/status/
 {
     "statusCode": 3,
     "statusMessage": "Ready",
@@ -237,7 +237,7 @@ $ curl http://localhost:8000/wallet/tx-history
 Stop the wallet and its connections and remove it from the available wallets.
 
 ```bash
-$ curl -X POST --data "key=key"  http://localhost:8000/wallet/stop
+$ curl -X POST --data "wallet-id=id"  http://localhost:8000/wallet/stop
 {"success":true}
 ```
 

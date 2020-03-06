@@ -54,10 +54,10 @@ app.post('/start', (req, res) => {
   }
 
   // The user must send a key to index this wallet
-  if (!('key' in req.body)) {
+  if (!('wallet-id' in req.body)) {
     res.send({
       success: false,
-      message: 'Parameter \'key\' is required.',
+      message: 'Parameter \'wallet-id\' is required.',
     });
     return;
   }
@@ -84,8 +84,8 @@ app.post('/start', (req, res) => {
 
   const wallet = new HathorWallet(walletConfig);
   wallet.start().then((info) => {
-    console.log(`Wallet started with key ${req.body.key}. Full-node info: `, info);
-    wallets[req.body.key] = wallet;
+    console.log(`Wallet started with wallet id ${req.body['wallet-id']}. Full-node info: `, info);
+    wallets[req.body['wallet-id']] = wallet;
     res.send({
       success: true,
     });
@@ -93,7 +93,7 @@ app.post('/start', (req, res) => {
     console.log('Error:', error);
     res.send({
       success: false,
-      message: `Failed to start wallet with key ${req.body.key}`,
+      message: `Failed to start wallet with wallet id ${req.body['wallet-id']}`,
     });
   });
 });
@@ -107,18 +107,25 @@ walletRouter.use((req, res, next) => {
     });
   }
 
-  if (!('key' in req.body)) {
-    sendError('Parameter \'key\' is required.');
+  // Expect wallet-id parameter in the body if it's a POST and in the query if it's a GET
+  if ((req.method === 'POST' && !('wallet-id' in req.body)) || (req.method === 'GET' && !('wallet-id' in req.query))) {
+    sendError('Parameter \'wallet-id\' is required.');
     return;
   }
 
-  const key = req.body.key;
-  if (!(key in wallets)) {
-    sendError('Invalid key parameter.')
+  let walletId = null;
+  if (req.method === 'GET') {
+    walletId = req.query['wallet-id'];
+  } else {
+    walletId = req.body['wallet-id'];
+  }
+
+  if (!(walletId in wallets)) {
+    sendError('Invalid wallet id parameter.')
     return;
   }
 
-  const wallet = wallets[key];
+  const wallet = wallets[walletId];
   if (!wallet.isReady()) {
     sendError('Wallet is not ready.', wallet.state)
     return;
@@ -148,7 +155,7 @@ walletRouter.get('/balance', (req, res) => {
 
 walletRouter.get('/address', (req, res) => {
   const wallet = req.wallet;
-  const markAsUsed = req.body.mark_as_used || false;
+  const markAsUsed = req.query.mark_as_used || false;
   const address = wallet.getCurrentAddress({markAsUsed});
   res.send({ address });
 });
@@ -175,8 +182,8 @@ walletRouter.post('/stop', (req, res) => {
   const wallet = req.wallet;
   wallet.stop();
 
-  const key = req.body.key;
-  delete wallets[key];
+  const walletId = req.body['wallet-id'];
+  delete wallets[walletId];
   res.send({success: true});
 });
 
