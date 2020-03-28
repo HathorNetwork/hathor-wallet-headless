@@ -6,7 +6,7 @@
  */
 
 import express from 'express';
-import { HathorWallet } from '@hathor/wallet-lib';
+import { Connection, HathorWallet } from '@hathor/wallet-lib';
 
 import config from './config';
 import apiDocs from './api-docs';
@@ -63,11 +63,10 @@ app.post('/start', (req, res) => {
   }
 
   const seed = config.seeds[seedKey];
-
+  const connection = new Connection({network: config.network, servers: [config.server]});
   const walletConfig = {
-    network: config.network,
-    server: config.server,
     seed,
+    connection
   }
 
   // tokenUid is optionat but if not passed as parameter
