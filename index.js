@@ -164,11 +164,16 @@ walletRouter.post('/simple-send-tx', (req, res) => {
   const wallet = req.wallet;
   const address = req.body.address;
   const value = parseInt(req.body.value);
-  wallet.sendTransaction(address, value).then((response) => {
-    res.send(response);
-  }, (error) => {
-    res.send({success: false, error});
-  });
+  const ret = wallet.sendTransaction(address, value);
+  if (ret.success) {
+    ret.promise.then((response) => {
+      res.send(response);
+    }, (error) => {
+      res.send({success: false, error});
+    });
+  } else {
+    res.send({success: false, error: ret.message});
+  }
 });
 
 walletRouter.post('/stop', (req, res) => {
