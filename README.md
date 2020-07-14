@@ -31,7 +31,7 @@ Parameters:
 `seedKey`: Parameter to define which seed (from the object seeds in the config file) will be used to generate the wallet.
 
 ```bash
-$ curl -X POST --data "wallet-id=id" --data "passphrase=123" --data "seedKey=default" http://localhost:8000/start
+$ curl -X POST --data "wallet-id=id" --data-urlencode "passphrase=123" --data "seedKey=default" http://localhost:8000/start
 {"success":true}
 ```
 
