@@ -123,6 +123,55 @@ $ curl -X POST -H "X-Wallet-Id: {wallet-id}" --data "address=H8bt9nYhUNJHg7szF32
 }
 ```
 
+### Send transactions with many outputs
+
+Send a transaction with many outputs. You must provide an 'outputs' array in which each element is an object with `address` and `value`. The `value` parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.
+
+```bash
+$ curl -X POST -H "X-Wallet-Id: 123" -H "Content-type: application/json" --data '{"outputs": [{"address": "H9YHCqJNfep3VBMMPZBAL7w1wh9ztRRbGo", "value": 100}, {"address": "HN152wFDgy7ZopSf6PpSFMt8M8r2Mz9fGc", "value": 200}]}' http://localhost:8000/wallet/send-tx
+{
+    "success": true,
+    "message": "",
+    "return_code": "success",
+    "tx": {
+        "hash": "00000000059dfb65633acacc402c881b128cc7f5c04b6cea537ea2136f1b97fb",
+        "nonce": 2455281664,
+        "timestamp": 1594955941,
+        "version": 1,
+        "weight": 18.11897634891149,
+        "parents": [
+            "00000000556bbfee6d37cc099a17747b06f48ca3d9bf4af85c707aa95ad04b3f",
+            "00000000e2e3e304e364edebff1c04c95cc9ef282463295f6e417b85fec361dd"
+        ],
+        "inputs": [
+            {
+                "tx_id": "00000000caaa37ab729805b91af2de8174e3ef24410f4effc4ffda3b610eae65",
+                "index": 1,
+                "data": "RjBEAiAYR8jc+zqY596QyMp+K3Eag3kQB5aXdfYja19Fa17u0wIgCdhBQpjlBiAawP/9WRAqAzW85CJlBpzq+YVhUALg8IUhAueFQuEkAo+s2m7nj/hnh0nyphcUuxa2LoRBjOsEOHRQ"
+            },
+            {
+                "tx_id": "00000000caaa37ab729805b91af2de8174e3ef24410f4effc4ffda3b610eae65",
+                "index": 2,
+                "data": "RzBFAiEAofVXnCKNCEu4GRk7j+wHpQM6qmezRcfxHCe/PcUdbegCIE2nip27ZQtkpkEgNEhycqHM4CkLYMLVUgskphYsd/M9IQLHG6YJxXifQ6eMxPHbINFEJAUvrzKWe9V7AXXW4iywjg=="
+            }
+        ],
+        "outputs": [
+            {
+                "value": 100,
+                "token_data": 0,
+                "script": "dqkUqdK8VisGSJuNItIBRYFfSHfHjPeIrA=="
+            },
+            {
+                "value": 200,
+                "token_data": 0,
+                "script": "dqkUISAnpOn9Vo269QBvOfBeWJTLx82IrA=="
+            }
+        ],
+        "tokens": []
+    }
+}
+```
+
 ### Get tx history
 
 ```bash
