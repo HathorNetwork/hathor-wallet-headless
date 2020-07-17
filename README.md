@@ -128,7 +128,7 @@ $ curl -X POST -H "X-Wallet-Id: {wallet-id}" --data "address=H8bt9nYhUNJHg7szF32
 Send a transaction with many outputs. You must provide an 'outputs' array in which each element is an object with `address` and `value`. The `value` parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.
 
 ```bash
-$ curl -X POST -H "X-Wallet-Id: 123" -H "Content-type: application/json" --data '{"outputs": [{"address": "H9YHCqJNfep3VBMMPZBAL7w1wh9ztRRbGo", "value": 100}, {"address": "HN152wFDgy7ZopSf6PpSFMt8M8r2Mz9fGc", "value": 200}]}' http://localhost:8002/wallet/send-tx
+$ curl -X POST -H "X-Wallet-Id: 123" -H "Content-type: application/json" --data '{"outputs": [{"address": "H9YHCqJNfep3VBMMPZBAL7w1wh9ztRRbGo", "value": 100}, {"address": "HN152wFDgy7ZopSf6PpSFMt8M8r2Mz9fGc", "value": 200}]}' http://localhost:8000/wallet/send-tx
 {
     "success": true,
     "message": "",
