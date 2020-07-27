@@ -90,8 +90,8 @@ const apiDoc = {
         summary: 'Return the wallet status',
         parameters: [
           {
-            name: 'wallet-id',
-            'in': 'query',
+            name: 'x-wallet-id',
+            'in': 'header',
             description: 'Define the key of the corresponding wallet it will be executed the request.',
             required: true,
             schema: {
@@ -145,8 +145,8 @@ const apiDoc = {
         summary: 'Return the balance of HTR',
         parameters: [
           {
-            name: 'wallet-id',
-            'in': 'query',
+            name: 'x-wallet-id',
+            'in': 'header',
             description: 'Define the key of the corresponding wallet it will be executed the request.',
             required: true,
             schema: {
@@ -188,8 +188,8 @@ const apiDoc = {
         summary: 'Return the current address',
         parameters: [
           {
-            name: 'wallet-id',
-            'in': 'query',
+            name: 'x-wallet-id',
+            'in': 'header',
             description: 'Define the key of the corresponding wallet it will be executed the request.',
             required: true,
             schema: {
@@ -240,8 +240,8 @@ const apiDoc = {
         summary: 'Send a transaction to exactly one output.',
         parameters: [
           {
-            name: 'wallet-id',
-            'in': 'body',
+            name: 'x-wallet-id',
+            'in': 'header',
             description: 'Define the key of the corresponding wallet it will be executed the request.',
             required: true,
             schema: {
@@ -276,6 +276,72 @@ const apiDoc = {
                   success: {
                     summary: 'Success',
                     value: {"success":true,"message":"","tx":{"hash":"00001bc7043d0aa910e28aff4b2aad8b4de76c709da4d16a48bf713067245029","nonce":33440807,"timestamp":1579656120,"version":1,"weight":16.827294220302488,"parents":["000036e846dee9f58a724543cf5ee14cf745286e414d8acd9563963643f8dc34","000000fe2da5f4cc462e8ccaac8703a38cd6e4266e227198f003dd5c68092d29"],"inputs":[{"tx_id":"000000fe2da5f4cc462e8ccaac8703a38cd6e4266e227198f003dd5c68092d29","index":0,"data":"RzBFAiEAyKKbtzdH7FjvjUopHFIXBf+vBcH+2CKirp0mEnLjjvMCIA9iSuW4B/UJMQld+c4Ch5lIwAcTbzisNUaCs+JpK8yDIQI2CLavb5spKwIEskxaVu0B2Tp52BXas3yjdX1XeMSGyw=="}],"outputs":[{"value":1,"token_data":0,"script":"dqkUtK1DlS8IDGxtJBtRwBlzFWihbIiIrA=="}],"tokens":[]}}
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: {"success":false,"message":"Wallet is not ready.","state":1}
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: {"success":false,"message":"Parameter 'wallet-id' is required."}
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: {"success":false,"message":"Invalid wallet-id parameter."}
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/send-tx': {
+      post: {
+        summary: 'Send a transaction with many outputs.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            'in': 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'outputs',
+            'in': 'formData',
+            description: 'An array of outputs with objects {address, value}',
+            required: true,
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                address: {
+                  type: 'string',
+                },
+                value: {
+                  type: 'integer',
+                },
+              }
+            }
+
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Send a transaction with many outputs',
+            content: {
+              'application/json': {
+                examples: {
+                  error: {
+                    summary: 'Insuficient amount of tokens',
+                    value: {"success":false,"error":"Token HTR: Insufficient amount of tokens"}
+                  },
+                  success: {
+                    summary: 'Success',
+                    value: {"success": true, "message": "", "return_code": "success", "tx": {"hash": "00000000059dfb65633acacc402c881b128cc7f5c04b6cea537ea2136f1b97fb", "nonce": 2455281664, "timestamp": 1594955941, "version": 1, "weight": 18.11897634891149, "parents": ["00000000556bbfee6d37cc099a17747b06f48ca3d9bf4af85c707aa95ad04b3f", "00000000e2e3e304e364edebff1c04c95cc9ef282463295f6e417b85fec361dd"], "inputs": [{"tx_id": "00000000caaa37ab729805b91af2de8174e3ef24410f4effc4ffda3b610eae65", "index": 1, "data": "RjBEAiAYR8jc+zqY596QyMp+K3Eag3kQB5aXdfYja19Fa17u0wIgCdhBQpjlBiAawP/9WRAqAzW85CJlBpzq+YVhUALg8IUhAueFQuEkAo+s2m7nj/hnh0nyphcUuxa2LoRBjOsEOHRQ"}, {"tx_id": "00000000caaa37ab729805b91af2de8174e3ef24410f4effc4ffda3b610eae65", "index": 2, "data": "RzBFAiEAofVXnCKNCEu4GRk7j+wHpQM6qmezRcfxHCe/PcUdbegCIE2nip27ZQtkpkEgNEhycqHM4CkLYMLVUgskphYsd/M9IQLHG6YJxXifQ6eMxPHbINFEJAUvrzKWe9V7AXXW4iywjg=="}], "outputs": [{"value": 100, "token_data": 0, "script": "dqkUqdK8VisGSJuNItIBRYFfSHfHjPeIrA=="}, {"value": 200, "token_data": 0, "script": "dqkUISAnpOn9Vo269QBvOfBeWJTLx82IrA=="}], "tokens": []}}
                   },
                   'wallet-not-ready': {
                     summary: 'Wallet is not ready yet',

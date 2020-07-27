@@ -176,6 +176,16 @@ walletRouter.post('/simple-send-tx', (req, res) => {
   }
 });
 
+walletRouter.post('/send-tx', (req, res) => {
+  const wallet = req.wallet;
+  const outputs = req.body.outputs;
+  wallet.sendManyOutputsTransaction(outputs).then((response) => {
+    res.send(response);
+  }, (error) => {
+    res.send({success: false, error});
+  });
+});
+
 walletRouter.post('/stop', (req, res) => {
   // Stop wallet and remove from wallets object
   const wallet = req.wallet;
