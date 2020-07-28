@@ -179,11 +179,16 @@ walletRouter.post('/simple-send-tx', (req, res) => {
 walletRouter.post('/send-tx', (req, res) => {
   const wallet = req.wallet;
   const outputs = req.body.outputs;
-  wallet.sendManyOutputsTransaction(outputs).then((response) => {
-    res.send(response);
-  }, (error) => {
-    res.send({success: false, error});
-  });
+  const ret = wallet.sendManyOutputsTransaction(outputs)
+  if (ret.success) {
+    ret.promise.then((response) => {
+      res.send(response);
+    }, (error) => {
+      res.send({success: false, error});
+    });
+  } else {
+    res.send({success: false, error: ret.message});
+  }
 });
 
 walletRouter.post('/stop', (req, res) => {
