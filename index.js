@@ -6,7 +6,7 @@
  */
 
 import express from 'express';
-import { Connection, HathorWallet } from '@hathor/wallet-lib';
+import { Connection, HathorWallet, tokens } from '@hathor/wallet-lib';
 
 import config from './config';
 import apiDocs from './api-docs';
@@ -143,7 +143,8 @@ walletRouter.get('/status', (req, res) => {
 
 walletRouter.get('/balance', (req, res) => {
   const wallet = req.wallet;
-  const balance = wallet.getBalance();
+  const token = req.query.token || null;
+  const balance = wallet.getBalance(token);
   res.send(balance);
 });
 
@@ -164,7 +165,8 @@ walletRouter.post('/simple-send-tx', (req, res) => {
   const wallet = req.wallet;
   const address = req.body.address;
   const value = parseInt(req.body.value);
-  const ret = wallet.sendTransaction(address, value);
+  const token = req.body.token || null;
+  const ret = wallet.sendTransaction(address, value, token);
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
@@ -182,6 +184,27 @@ walletRouter.post('/send-tx', (req, res) => {
   const ret = wallet.sendManyOutputsTransaction(outputs)
   if (ret.success) {
     ret.promise.then((response) => {
+      res.send(response);
+    }, (error) => {
+      res.send({success: false, error});
+    });
+  } else {
+    res.send({success: false, error: ret.message});
+  }
+});
+
+walletRouter.post('/create-token', (req, res) => {
+  const wallet = req.wallet;
+  const name = req.body.name;
+  const symbol = req.body.symbol;
+  const amount = req.body.amount;
+  const address = wallet.getCurrentAddress();
+  // XXX HathorWallet class should have a method to createToken, so we don't need to use the pin hardcoded and handle sendTransaction
+  const ret = tokens.createToken(address, name, symbol, amount, '123')
+  if (ret.success) {
+    const sendTransaction = ret.sendTransaction;
+    sendTransaction.start();
+    sendTransaction.promise.then((response) => {
       res.send(response);
     }, (error) => {
       res.send({success: false, error});
