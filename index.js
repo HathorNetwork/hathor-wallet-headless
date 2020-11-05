@@ -197,10 +197,46 @@ walletRouter.post('/create-token', (req, res) => {
   const wallet = req.wallet;
   const name = req.body.name;
   const symbol = req.body.symbol;
-  const amount = req.body.amount;
+  const amount = parseInt(req.body.amount);
   const address = wallet.getCurrentAddress();
-  // XXX HathorWallet class should have a method to createToken, so we don't need to use the pin hardcoded and handle sendTransaction
-  const ret = tokens.createToken(address, name, symbol, amount, '123')
+  const ret = wallet.createNewToken(name, symbol, amount, address);
+  if (ret.success) {
+    const sendTransaction = ret.sendTransaction;
+    sendTransaction.start();
+    sendTransaction.promise.then((response) => {
+      res.send(response);
+    }, (error) => {
+      res.send({success: false, error});
+    });
+  } else {
+    res.send({success: false, error: ret.message});
+  }
+});
+
+walletRouter.post('/mint-tokens', (req, res) => {
+  const wallet = req.wallet;
+  const token = req.body.token;
+  const amount = parseInt(req.body.amount);
+  const address = req.body.address || null;
+  const ret = wallet.mintTokens(token, amount, address);
+  if (ret.success) {
+    const sendTransaction = ret.sendTransaction;
+    sendTransaction.start();
+    sendTransaction.promise.then((response) => {
+      res.send(response);
+    }, (error) => {
+      res.send({success: false, error});
+    });
+  } else {
+    res.send({success: false, error: ret.message});
+  }
+});
+
+walletRouter.post('/melt-tokens', (req, res) => {
+  const wallet = req.wallet;
+  const token = req.body.token;
+  const amount = parseInt(req.body.amount);
+  const ret = wallet.meltTokens(token, amount);
   if (ret.success) {
     const sendTransaction = ret.sendTransaction;
     sendTransaction.start();
