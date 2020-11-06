@@ -80,6 +80,16 @@ app.post('/start', (req, res) => {
   if (req.body.passphrase) {
     walletConfig['passphrase'] = req.body.passphrase;
   }
+  const walletID = req.body['wallet-id'];
+
+  if (walletID in wallets) {
+    // We already have a wallet for this key
+    // so we stop the old wallet and start the new one
+    const oldWallet = wallets[walletID];
+    oldWallet.stop();
+
+    delete wallets[walletID];
+  }
 
   const wallet = new HathorWallet(walletConfig);
   wallet.start().then((info) => {
@@ -123,6 +133,8 @@ walletRouter.use((req, res, next) => {
     sendError('Wallet is not ready.', wallet.state)
     return;
   }
+
+  console.log('Received request to', req.originalUrl)
 
   // Adding to req parameter, so we don't need to get it in all requests
   req.wallet = wallet;
@@ -201,9 +213,7 @@ walletRouter.post('/create-token', (req, res) => {
   const address = wallet.getCurrentAddress();
   const ret = wallet.createNewToken(name, symbol, amount, address);
   if (ret.success) {
-    const sendTransaction = ret.sendTransaction;
-    sendTransaction.start();
-    sendTransaction.promise.then((response) => {
+    ret.promise.then((response) => {
       res.send(response);
     }, (error) => {
       res.send({success: false, error});
@@ -220,9 +230,7 @@ walletRouter.post('/mint-tokens', (req, res) => {
   const address = req.body.address || null;
   const ret = wallet.mintTokens(token, amount, address);
   if (ret.success) {
-    const sendTransaction = ret.sendTransaction;
-    sendTransaction.start();
-    sendTransaction.promise.then((response) => {
+    ret.promise.then((response) => {
       res.send(response);
     }, (error) => {
       res.send({success: false, error});
@@ -238,9 +246,7 @@ walletRouter.post('/melt-tokens', (req, res) => {
   const amount = parseInt(req.body.amount);
   const ret = wallet.meltTokens(token, amount);
   if (ret.success) {
-    const sendTransaction = ret.sendTransaction;
-    sendTransaction.start();
-    sendTransaction.promise.then((response) => {
+    ret.promise.then((response) => {
       res.send(response);
     }, (error) => {
       res.send({success: false, error});
