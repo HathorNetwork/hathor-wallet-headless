@@ -155,6 +155,7 @@ walletRouter.get('/status', (req, res) => {
 
 walletRouter.get('/balance', (req, res) => {
   const wallet = req.wallet;
+  // Expects token uid
   const token = req.query.token || null;
   const balance = wallet.getBalance(token);
   res.send(balance);
@@ -177,6 +178,7 @@ walletRouter.post('/simple-send-tx', (req, res) => {
   const wallet = req.wallet;
   const address = req.body.address;
   const value = parseInt(req.body.value);
+  // Expects object with {'uid', 'name', 'symbol'}
   const token = req.body.token || null;
   const ret = wallet.sendTransaction(address, value, token);
   if (ret.success) {
@@ -193,7 +195,9 @@ walletRouter.post('/simple-send-tx', (req, res) => {
 walletRouter.post('/send-tx', (req, res) => {
   const wallet = req.wallet;
   const outputs = req.body.outputs;
-  const ret = wallet.sendManyOutputsTransaction(outputs)
+  // Expects object with {'uid', 'name', 'symbol'}
+  const token = req.body.token || null;
+  const ret = wallet.sendManyOutputsTransaction(outputs, token)
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
