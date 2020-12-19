@@ -1,6 +1,6 @@
 {
   "name": "hathor-wallet-headless",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Hathor Wallet Headless, i.e., without graphical user interface",
   "main": "index.js",
   "dependencies": {
@@ -8,7 +8,7 @@
     "@babel/core": "^7.8.4",
     "@babel/node": "^7.8.4",
     "@babel/preset-env": "^7.8.4",
-    "@hathor/wallet-lib": "^0.16.5",
+    "@hathor/wallet-lib": "^0.16.6",
     "express": "^4.17.1"
   },
   "scripts": {
