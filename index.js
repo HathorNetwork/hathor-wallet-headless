@@ -154,6 +154,13 @@ walletRouter.get('/address', (req, res) => {
   res.send({ address });
 });
 
+walletRouter.get('/addresses', (req, res) => {
+  const wallet = req.wallet;
+  // TODO Add pagination
+  const addresses = wallet.getAllAddresses();
+  res.send({ addresses });
+});
+
 walletRouter.get('/tx-history', (req, res) => {
   // TODO Add pagination
   const wallet = req.wallet;
