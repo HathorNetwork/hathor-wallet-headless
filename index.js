@@ -6,7 +6,7 @@
  */
 
 import express from 'express';
-import { Connection, HathorWallet } from '@hathor/wallet-lib';
+import { wallet, Connection, HathorWallet } from '@hathor/wallet-lib';
 
 import config from './config';
 import apiDocs from './api-docs';
@@ -149,8 +149,14 @@ walletRouter.get('/balance', (req, res) => {
 
 walletRouter.get('/address', (req, res) => {
   const wallet = req.wallet;
-  const markAsUsed = req.query.mark_as_used || false;
-  const address = wallet.getCurrentAddress({markAsUsed});
+  const index = req.query.index || null;
+  let address;
+  if (index !== null) {
+    address = wallet.getAddressAtIndex(parseInt(index));
+  } else {
+    const markAsUsed = req.query.mark_as_used || false;
+    address = wallet.getCurrentAddress({markAsUsed});
+  }
   res.send({ address });
 });
 
@@ -196,7 +202,8 @@ walletRouter.post('/simple-send-tx', (req, res) => {
 walletRouter.post('/send-tx', (req, res) => {
   const wallet = req.wallet;
   const outputs = req.body.outputs;
-  const ret = wallet.sendManyOutputsTransaction(outputs)
+  const inputs = req.body.inputs || [];
+  const ret = wallet.sendManyOutputsTransaction(outputs, inputs)
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
@@ -225,4 +232,9 @@ app.use('/wallet', walletRouter);
 app.listen(config.http_port, config.http_bind_address, () => {
   console.log(`Hathor Wallet listening on ${config.http_bind_address}:${config.http_port}...`);
 });
+
+if (config.gapLimit) {
+  console.log(`Set GAP LIMIT to ${config.gapLimit}`);
+  wallet.setGapLimit(config.gapLimit);
+}
 
