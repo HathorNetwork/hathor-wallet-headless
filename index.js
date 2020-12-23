@@ -186,7 +186,8 @@ walletRouter.post('/simple-send-tx', (req, res) => {
 walletRouter.post('/send-tx', (req, res) => {
   const wallet = req.wallet;
   const outputs = req.body.outputs;
-  const ret = wallet.sendManyOutputsTransaction(outputs)
+  const inputs = req.body.inputs || [];
+  const ret = wallet.sendManyOutputsTransaction(outputs, inputs)
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
