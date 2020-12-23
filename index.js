@@ -169,6 +169,8 @@ walletRouter.get('/tx-history', (req, res) => {
   if (limit) {
     const values = Object.values(history);
     const sortedValues = values.sort((a, b) => b.timestamp - a.timestamp);
+    // XXX The default return is an object and with limit we are changing to an array
+    // Should we keep like this for now? Or maybe change the default return to an array as well?
     res.send(sortedValues.slice(0, limit));
   } else {
     res.send(history);
