@@ -6,7 +6,7 @@
  */
 
 import express from 'express';
-import { Connection, HathorWallet } from '@hathor/wallet-lib';
+import { wallet, Connection, HathorWallet } from '@hathor/wallet-lib';
 
 import config from './config';
 import apiDocs from './api-docs';
@@ -222,4 +222,9 @@ app.use('/wallet', walletRouter);
 app.listen(config.http_port, config.http_bind_address, () => {
   console.log(`Hathor Wallet listening on ${config.http_bind_address}:${config.http_port}...`);
 });
+
+if (config.gapLimit) {
+  console.log(`Set GAP LIMIT to ${config.gapLimit}`);
+  wallet.setGapLimit(config.gapLimit);
+}
 
