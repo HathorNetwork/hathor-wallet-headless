@@ -164,7 +164,15 @@ walletRouter.get('/addresses', (req, res) => {
 walletRouter.get('/tx-history', (req, res) => {
   // TODO Add pagination
   const wallet = req.wallet;
-  res.send(wallet.getTxHistory());
+  const limit = req.query.limit || null;
+  const history = wallet.getTxHistory();
+  if (limit) {
+    const values = Object.values(history);
+    const sortedValues = values.sort((a, b) => b.timestamp - a.timestamp);
+    res.send(sortedValues.slice(0, limit));
+  } else {
+    res.send(history);
+  }
 });
 
 walletRouter.post('/simple-send-tx', (req, res) => {
