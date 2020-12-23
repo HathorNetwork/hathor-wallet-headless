@@ -151,7 +151,7 @@ walletRouter.get('/address', (req, res) => {
   const wallet = req.wallet;
   const index = req.query.index || null;
   let address;
-  if (index) {
+  if (index !== null) {
     address = wallet.getAddressAtIndex(parseInt(index));
   } else {
     const markAsUsed = req.query.mark_as_used || false;
