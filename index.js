@@ -149,8 +149,14 @@ walletRouter.get('/balance', (req, res) => {
 
 walletRouter.get('/address', (req, res) => {
   const wallet = req.wallet;
-  const markAsUsed = req.query.mark_as_used || false;
-  const address = wallet.getCurrentAddress({markAsUsed});
+  const index = req.query.index || null;
+  let address;
+  if (index) {
+    address = wallet.getAddressAtIndex(parseInt(index));
+  } else {
+    const markAsUsed = req.query.mark_as_used || false;
+    address = wallet.getCurrentAddress({markAsUsed});
+  }
   res.send({ address });
 });
 
