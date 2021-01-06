@@ -84,11 +84,14 @@ app.post('/start', (req, res) => {
 
   if (walletID in wallets) {
     // We already have a wallet for this key
-    // so we stop the old wallet and start the new one
-    const oldWallet = wallets[walletID];
-    oldWallet.stop();
-
-    delete wallets[walletID];
+    // so we log that it won't start a new one because
+    // it must first stop the old wallet and then start the new
+    console.log('Error starting wallet because this wallet-id is already used. You must stop the wallet using it first.');
+    res.send({
+      success: false,
+      message: `Failed to start wallet with wallet id ${walletID}`,
+    });
+    return;
   }
 
   const wallet = new HathorWallet(walletConfig);
