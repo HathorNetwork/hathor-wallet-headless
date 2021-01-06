@@ -18,4 +18,8 @@ module.exports = {
   // Optional config so you can set the token you want to use in this wallet
   // If this parameter is set you don't need to pass your token when getting balance or sending tokens
   tokenUid: '',
+
+  // Maximum number of addresses to be generated in sequence without usage
+  // if not set will use the default from the lib (20)
+  gapLimit: null,
 };
