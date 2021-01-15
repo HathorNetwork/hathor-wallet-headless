@@ -86,7 +86,7 @@ app.post('/start', (req, res) => {
     // We already have a wallet for this key
     // so we log that it won't start a new one because
     // it must first stop the old wallet and then start the new
-    console.log('Error starting wallet because this wallet-id is already used. You must stop the wallet using it first.');
+    console.log('Error starting wallet because this wallet-id is already in use. You must stop the wallet first.');
     res.send({
       success: false,
       message: `Failed to start wallet with wallet id ${walletID}`,
@@ -219,6 +219,7 @@ walletRouter.post('/simple-send-tx', (req, res) => {
 walletRouter.post('/send-tx', (req, res) => {
   const wallet = req.wallet;
   const outputs = req.body.outputs;
+  // Expects array of objects with {'hash', 'index'}
   const inputs = req.body.inputs || [];
   // Expects object with {'uid', 'name', 'symbol'}
   const token = req.body.token || null;

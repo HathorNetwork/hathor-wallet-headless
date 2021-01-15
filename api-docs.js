@@ -153,6 +153,15 @@ const apiDoc = {
               type: 'string',
             },
           },
+          {
+            name: 'token',
+            'in': 'query',
+            description: 'Token uid. Optional parameter to get the balance from a token different than HTR.',
+            required: false,
+            schema: {
+              type: 'string',
+            },
+          },
         ],
         responses: {
           200: {
@@ -205,6 +214,15 @@ const apiDoc = {
               type: 'boolean',
             },
           },
+          {
+            name: 'index',
+            'in': 'query',
+            description: 'Get the address in this specific derivation path index.',
+            required: false,
+            schema: {
+              type: 'integer',
+            },
+          },
         ],
         responses: {
           200: {
@@ -215,6 +233,49 @@ const apiDoc = {
                   success: {
                     summary: 'Success',
                     value: {"address":"H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt"}
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: {"success":false,"message":"Wallet is not ready.","state":1}
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: {"success":false,"message":"Parameter 'wallet-id' is required."}
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: {"success":false,"message":"Invalid wallet-id parameter."}
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/addresses': {
+      get: {
+        summary: 'Return all generated addresses of the wallet.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            'in': 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        responses: {
+          200: {
+            description: 'Return the addresses',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {"addresses":["H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt", "HPxB4dKccUWbECh1XMWPEgZVZP2EC34BbB"]}
                   },
                   'wallet-not-ready': {
                     summary: 'Wallet is not ready yet',
@@ -326,7 +387,43 @@ const apiDoc = {
                 },
               }
             }
+          },
+          {
+            name: 'inputs',
+            'in': 'formData',
+            description: 'An array of inputs with objects {hash, index}',
+            required: false,
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                hash: {
+                  type: 'string',
+                },
+                index: {
+                  type: 'integer',
+                },
+              }
+            }
 
+          },
+          {
+            name: 'token',
+            'in': 'formData',
+            description: 'Token to send if not HTR.',
+            required: false,
+            type: 'object',
+            properties: {
+              uid: {
+                type: 'string',
+              },
+              name: {
+                type: 'string',
+              },
+              symbol: {
+                type: 'string',
+              },
+            }
           },
         ],
         responses: {
@@ -362,6 +459,203 @@ const apiDoc = {
         },
       },
     },
+    '/wallet/create-token': {
+      post: {
+        summary: 'Create a token.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            'in': 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'name',
+            'in': 'formData',
+            description: 'The name of the token.',
+            required: true,
+            type: 'string',
+          },
+          {
+            name: 'symbol',
+            'in': 'formData',
+            description: 'The symbol of the token.',
+            required: true,
+            type: 'string',
+          },
+          {
+            name: 'amount',
+            'in': 'formData',
+            description: 'The amount of tokens to mint. It must be an integer with the value in cents, i.e., 123 means 1.23.',
+            required: true,
+            type: 'integer',
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Create the token',
+            content: {
+              'application/json': {
+                examples: {
+                  error: {
+                    summary: 'Insuficient amount of tokens',
+                    value: {"success":false,"error": "Don't have enough HTR funds to mint this amount."}
+                  },
+                  success: {
+                    summary: 'Success',
+                    value: {"hash": "00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277","nonce": 200,"timestamp": 1610730485,"version": 2,"weight": 8.000001,"parents": [ "006814ba6ac14d8dc69a888dcf79e3c9ad597b31449edd086a82160698ea229d", "001ac1d7ff68e9bf4bf67b81fee517f08b06be564d7a28b13e41fea158b4cf54" ], "inputs": [ { "tx_id": "00efbc1f99dc50a3c7ff7e7193ebfaa3df28eec467bcd0555eaf703ae773ab5c", "index": 1, "data": "RzBFAiEAxFEPpgauWvPzCoM3zknUdOsWL2RwBu8JSOS6yKGufRICIAOf/mKgLka73wiwXUzVLC/kMYXKmqYSnA2oki6pm9qBIQOyMiKwc3u+O4mBUuN7BFLMwW9hmvUL+KmYPr1N0fl8ww==" } ], "outputs": [ { "value": 6290, "token_data": 0, "script": "dqkUPzRQOMrZ7k25txm/8V0PVr7dGwSIrA==" }, { "value": 1000, "token_data": 1, "script": "dqkUPzRQOMrZ7k25txm/8V0PVr7dGwSIrA==" }, { "value": 1, "token_data": 129, "script": "dqkUL2o1cHLbOQZfj+yVFP0rof9S+WGIrA==" }, { "value": 2, "token_data": 129, "script": "dqkUVawHzE0m6oUvfyzz2cAUdvYlP/SIrA==" } ], "tokens": [], "token_name": "Test", "token_symbol": "TST" }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: {"success":false,"message":"Wallet is not ready.","state":1}
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: {"success":false,"message":"Parameter 'wallet-id' is required."}
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: {"success":false,"message":"Invalid wallet-id parameter."}
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/mint-tokens': {
+      post: {
+        summary: 'Mint tokens.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            'in': 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'token',
+            'in': 'formData',
+            description: 'The uid of the token to mint.',
+            required: true,
+            type: 'string',
+          },
+          {
+            name: 'amount',
+            'in': 'formData',
+            description: 'The amount of tokens to mint. It must be an integer with the value in cents, i.e., 123 means 1.23.',
+            required: true,
+            type: 'integer',
+          },
+          {
+            name: 'address',
+            'in': 'formData',
+            description: 'Destination address of the minted tokens.',
+            required: false,
+            type: 'string',
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Mint tokens.',
+            content: {
+              'application/json': {
+                examples: {
+                  error: {
+                    summary: 'Insuficient amount of tokens',
+                    value: {"success":false,"error": "Don't have enough HTR funds to mint this amount."}
+                  },
+                  success: {
+                    summary: 'Success',
+                    value: {"hash":"0072abb9f3f98aa9d9a4e46d6c4f07c16258dbc963f89213f9f4d03dff5977bc","nonce":2,"timestamp":1610730780,"version":1,"weight":8.000001,"parents":["00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277","006814ba6ac14d8dc69a888dcf79e3c9ad597b31449edd086a82160698ea229d"],"inputs":[{"tx_id":"00c6fe8179e6f93d220707a58b94fa876d81eb0d7caaa713e865ba4a5b24a03e","index":0,"data":"RjBEAiBsR2Yv7g9juMwLjgt+XUbuRGRb9BLyHQVQZSPX4pFToQIgES1EO8QHewCiPTg5T228++eZk8CdzkJ3itvxsVuAcV0hA7IyIrBze747iYFS43sEUszBb2Ga9Qv4qZg+vU3R+XzD"},{"tx_id":"00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277","index":2,"data":"RjBEAiAD3Iq6Uy5y+phl9j6Q2wU+zEqWHXt4YgTvBXkQrBZYAQIgKBXSf8pDZwA6Trl+OVtRRoTNFTbQYK6300aZ0IPNuJEhA9jOwwMvZUEgKSQnarS0hLYt2px6eas4E03c4pJpRGfH"}],"outputs":[{"value":90,"token_data":0,"script":"dqkUeAmBO6S3tT7y/HyCXrqOWXkOETWIrA=="},{"value":1000,"token_data":1,"script":"dqkUeAmBO6S3tT7y/HyCXrqOWXkOETWIrA=="},{"value":1,"token_data":129,"script":"dqkUPqMYv+My2kCjdYqx6nHNxLVtRpSIrA=="}],"tokens":["00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277"]}
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: {"success":false,"message":"Wallet is not ready.","state":1}
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: {"success":false,"message":"Parameter 'wallet-id' is required."}
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: {"success":false,"message":"Invalid wallet-id parameter."}
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/melt-tokens': {
+      post: {
+        summary: 'Melt tokens.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            'in': 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'token',
+            'in': 'formData',
+            description: 'The uid of the token to melt.',
+            required: true,
+            type: 'string',
+          },
+          {
+            name: 'amount',
+            'in': 'formData',
+            description: 'The amount of tokens to melt. It must be an integer with the value in cents, i.e., 123 means 1.23.',
+            required: true,
+            type: 'integer',
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Melt tokens.',
+            content: {
+              'application/json': {
+                examples: {
+                  error: {
+                    summary: 'Insuficient amount of tokens',
+                    value: {"success":false,"error": "There aren't enough inputs to melt."}
+                  },
+                  success: {
+                    summary: 'Success',
+                    value: {{"hash":"00a963872c86978873cce570bbcfc2c40bb8714d5970f80cdc5477c693b01cbf","nonce":256,"timestamp":1610730988,"version":1,"weight":8.000001,"parents":["0072abb9f3f98aa9d9a4e46d6c4f07c16258dbc963f89213f9f4d03dff5977bc","00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277"],"inputs":[{"tx_id":"00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277","index":3,"data":"RjBEAiAQE9pqOo/xlWhv/4gLW6eP5C8s+O/ut4u6Yofg1sbYhQIgQR5KhNrx6SPRij7CbT0dXE3/n3nq9ES13fSZAIBw3+MhAhjIOGT0cwytQmoDCpauM7r3xox0xgzSpfy7MHfYR1Qp"},{"tx_id":"0072abb9f3f98aa9d9a4e46d6c4f07c16258dbc963f89213f9f4d03dff5977bc","index":1,"data":"RjBEAiByaprtd/MjMpwPy3O0xr8LjLdPzVjOV0G54NM/zZ5HsAIgRRFmwxTR1hFg2HOgsYKEA2/BvaUyaPTEEmX7oxCWxMMhA+U12voabjO6b2tdHJvxNs4lYd2vvV7RBmSQiSLqcPhH"},{"tx_id":"00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277","index":1,"data":"RjBEAiBU+XD4Bgm6VHd8H//61aYXDvr7gyZFE2otlbQs+FVpAwIgbZvxSvPUu0EC7aKblP0qsglbsWVzW0KAMIk35acmsKIhA4RC86eRBr2xSH487ramK1DWBOB2ffSeuxVDDnoZPwPp"}],"outputs":[{"value":2,"token_data":129,"script":"dqkUFj/MJhGG+ZGCwDF3BlyeeoP2DymIrA=="},{"value":20,"token_data":0,"script":"dqkUBxW0lxHapoovTTGBVdEo4iNl+gWIrA=="}],"tokens":["00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277"]}}
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: {"success":false,"message":"Wallet is not ready.","state":1}
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: {"success":false,"message":"Parameter 'wallet-id' is required."}
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: {"success":false,"message":"Invalid wallet-id parameter."}
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     '/wallet/tx-history': {
       get: {
         summary: 'Return the transaction history',
@@ -373,6 +667,15 @@ const apiDoc = {
             required: true,
             schema: {
               type: 'string',
+            },
+          },
+          {
+            name: 'limit',
+            'in': 'query',
+            description: 'Sort and return only the quantity in limit.',
+            required: false,
+            schema: {
+              type: 'integer',
             },
           },
         ],
