@@ -6,7 +6,7 @@
  */
 
 import express from 'express';
-import { wallet, Connection, HathorWallet } from '@hathor/wallet-lib';
+import { Connection, HathorWallet, wallet, tokens } from '@hathor/wallet-lib';
 
 import config from './config';
 import apiDocs from './api-docs';
@@ -34,6 +34,10 @@ app.get('/docs', (req, res) => {
   res.send(apiDocs);
 });
 
+/**
+ * POST request to start a new wallet
+ * For the docs, see api-docs.js
+ */
 app.post('/start', (req, res) => {
   // We expect the user to send the seed he wants to use
   if (!('seedKey' in req.body)) {
@@ -80,6 +84,19 @@ app.post('/start', (req, res) => {
   if (req.body.passphrase) {
     walletConfig['passphrase'] = req.body.passphrase;
   }
+  const walletID = req.body['wallet-id'];
+
+  if (walletID in wallets) {
+    // We already have a wallet for this key
+    // so we log that it won't start a new one because
+    // it must first stop the old wallet and then start the new
+    console.log('Error starting wallet because this wallet-id is already in use. You must stop the wallet first.');
+    res.send({
+      success: false,
+      message: `Failed to start wallet with wallet id ${walletID}`,
+    });
+    return;
+  }
 
   const wallet = new HathorWallet(walletConfig);
   wallet.start().then((info) => {
@@ -124,12 +141,18 @@ walletRouter.use((req, res, next) => {
     return;
   }
 
+  console.log('Received request to', req.originalUrl)
+
   // Adding to req parameter, so we don't need to get it in all requests
   req.wallet = wallet;
   req.walletId = walletId;
   next();
 });
 
+/**
+ * GET request to get the status of a wallet
+ * For the docs, see api-docs.js
+ */
 walletRouter.get('/status', (req, res) => {
   const wallet = req.wallet;
   res.send({
@@ -141,12 +164,22 @@ walletRouter.get('/status', (req, res) => {
   });
 });
 
+/**
+ * GET request to get the balance of a wallet
+ * For the docs, see api-docs.js
+ */
 walletRouter.get('/balance', (req, res) => {
   const wallet = req.wallet;
-  const balance = wallet.getBalance();
+  // Expects token uid
+  const token = req.query.token || null;
+  const balance = wallet.getBalance(token);
   res.send(balance);
 });
 
+/**
+ * GET request to get an address of a wallet
+ * For the docs, see api-docs.js
+ */
 walletRouter.get('/address', (req, res) => {
   const wallet = req.wallet;
   const index = req.query.index || null;
@@ -160,6 +193,10 @@ walletRouter.get('/address', (req, res) => {
   res.send({ address });
 });
 
+/**
+ * GET request to get all addresses of a wallet
+ * For the docs, see api-docs.js
+ */
 walletRouter.get('/addresses', (req, res) => {
   const wallet = req.wallet;
   // TODO Add pagination
@@ -167,6 +204,10 @@ walletRouter.get('/addresses', (req, res) => {
   res.send({ addresses });
 });
 
+/**
+ * GET request to get the transaction history of a wallet
+ * For the docs, see api-docs.js
+ */
 walletRouter.get('/tx-history', (req, res) => {
   // TODO Add pagination
   const wallet = req.wallet;
@@ -181,11 +222,17 @@ walletRouter.get('/tx-history', (req, res) => {
   }
 });
 
+/**
+ * POST request to send a transaction with only one output
+ * For the docs, see api-docs.js
+ */
 walletRouter.post('/simple-send-tx', (req, res) => {
   const wallet = req.wallet;
   const address = req.body.address;
   const value = parseInt(req.body.value);
-  const ret = wallet.sendTransaction(address, value);
+  // Expects object with {'uid', 'name', 'symbol'}
+  const token = req.body.token || null;
+  const ret = wallet.sendTransaction(address, value, token);
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
@@ -197,11 +244,18 @@ walletRouter.post('/simple-send-tx', (req, res) => {
   }
 });
 
+/**
+ * POST request to send a transaction with many outputs and inputs selection
+ * For the docs, see api-docs.js
+ */
 walletRouter.post('/send-tx', (req, res) => {
   const wallet = req.wallet;
   const outputs = req.body.outputs;
+  // Expects array of objects with {'hash', 'index'}
   const inputs = req.body.inputs || [];
-  const ret = wallet.sendManyOutputsTransaction(outputs, inputs)
+  // Expects object with {'uid', 'name', 'symbol'}
+  const token = req.body.token || null;
+  const ret = wallet.sendManyOutputsTransaction(outputs, inputs, token)
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
@@ -213,6 +267,73 @@ walletRouter.post('/send-tx', (req, res) => {
   }
 });
 
+/**
+ * POST request to create a token
+ * For the docs, see api-docs.js
+ */
+walletRouter.post('/create-token', (req, res) => {
+  const wallet = req.wallet;
+  const name = req.body.name;
+  const symbol = req.body.symbol;
+  const amount = parseInt(req.body.amount);
+  const address = wallet.getCurrentAddress();
+  const ret = wallet.createNewToken(name, symbol, amount, address);
+  if (ret.success) {
+    ret.promise.then((response) => {
+      res.send(response);
+    }, (error) => {
+      res.send({success: false, error});
+    });
+  } else {
+    res.send({success: false, error: ret.message});
+  }
+});
+
+/**
+ * POST request to mint tokens
+ * For the docs, see api-docs.js
+ */
+walletRouter.post('/mint-tokens', (req, res) => {
+  const wallet = req.wallet;
+  const token = req.body.token;
+  const amount = parseInt(req.body.amount);
+  const address = req.body.address || null;
+  const ret = wallet.mintTokens(token, amount, address);
+  if (ret.success) {
+    ret.promise.then((response) => {
+      res.send(response);
+    }, (error) => {
+      res.send({success: false, error});
+    });
+  } else {
+    res.send({success: false, error: ret.message});
+  }
+});
+
+/**
+ * POST request to melt tokens
+ * For the docs, see api-docs.js
+ */
+walletRouter.post('/melt-tokens', (req, res) => {
+  const wallet = req.wallet;
+  const token = req.body.token;
+  const amount = parseInt(req.body.amount);
+  const ret = wallet.meltTokens(token, amount);
+  if (ret.success) {
+    ret.promise.then((response) => {
+      res.send(response);
+    }, (error) => {
+      res.send({success: false, error});
+    });
+  } else {
+    res.send({success: false, error: ret.message});
+  }
+});
+
+/**
+ * POST request to stop a wallet
+ * For the docs, see api-docs.js
+ */
 walletRouter.post('/stop', (req, res) => {
   // Stop wallet and remove from wallets object
   const wallet = req.wallet;
