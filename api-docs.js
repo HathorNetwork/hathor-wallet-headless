@@ -7,7 +7,7 @@ const apiDoc = {
   info: {
     title: 'Headless Hathor Wallet API',
     description: 'This wallet is fully controlled through an HTTP API.',
-    version: '0.1.0',
+    version: '0.5.6',
   },
   produces: [ "application/json" ],
   components: {
@@ -635,7 +635,7 @@ const apiDoc = {
                   },
                   success: {
                     summary: 'Success',
-                    value: {{"hash":"00a963872c86978873cce570bbcfc2c40bb8714d5970f80cdc5477c693b01cbf","nonce":256,"timestamp":1610730988,"version":1,"weight":8.000001,"parents":["0072abb9f3f98aa9d9a4e46d6c4f07c16258dbc963f89213f9f4d03dff5977bc","00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277"],"inputs":[{"tx_id":"00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277","index":3,"data":"RjBEAiAQE9pqOo/xlWhv/4gLW6eP5C8s+O/ut4u6Yofg1sbYhQIgQR5KhNrx6SPRij7CbT0dXE3/n3nq9ES13fSZAIBw3+MhAhjIOGT0cwytQmoDCpauM7r3xox0xgzSpfy7MHfYR1Qp"},{"tx_id":"0072abb9f3f98aa9d9a4e46d6c4f07c16258dbc963f89213f9f4d03dff5977bc","index":1,"data":"RjBEAiByaprtd/MjMpwPy3O0xr8LjLdPzVjOV0G54NM/zZ5HsAIgRRFmwxTR1hFg2HOgsYKEA2/BvaUyaPTEEmX7oxCWxMMhA+U12voabjO6b2tdHJvxNs4lYd2vvV7RBmSQiSLqcPhH"},{"tx_id":"00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277","index":1,"data":"RjBEAiBU+XD4Bgm6VHd8H//61aYXDvr7gyZFE2otlbQs+FVpAwIgbZvxSvPUu0EC7aKblP0qsglbsWVzW0KAMIk35acmsKIhA4RC86eRBr2xSH487ramK1DWBOB2ffSeuxVDDnoZPwPp"}],"outputs":[{"value":2,"token_data":129,"script":"dqkUFj/MJhGG+ZGCwDF3BlyeeoP2DymIrA=="},{"value":20,"token_data":0,"script":"dqkUBxW0lxHapoovTTGBVdEo4iNl+gWIrA=="}],"tokens":["00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277"]}}
+                    value: {"hash":"00a963872c86978873cce570bbcfc2c40bb8714d5970f80cdc5477c693b01cbf","nonce":256,"timestamp":1610730988,"version":1,"weight":8.000001,"parents":["0072abb9f3f98aa9d9a4e46d6c4f07c16258dbc963f89213f9f4d03dff5977bc","00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277"],"inputs":[{"tx_id":"00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277","index":3,"data":"RjBEAiAQE9pqOo/xlWhv/4gLW6eP5C8s+O/ut4u6Yofg1sbYhQIgQR5KhNrx6SPRij7CbT0dXE3/n3nq9ES13fSZAIBw3+MhAhjIOGT0cwytQmoDCpauM7r3xox0xgzSpfy7MHfYR1Qp"},{"tx_id":"0072abb9f3f98aa9d9a4e46d6c4f07c16258dbc963f89213f9f4d03dff5977bc","index":1,"data":"RjBEAiByaprtd/MjMpwPy3O0xr8LjLdPzVjOV0G54NM/zZ5HsAIgRRFmwxTR1hFg2HOgsYKEA2/BvaUyaPTEEmX7oxCWxMMhA+U12voabjO6b2tdHJvxNs4lYd2vvV7RBmSQiSLqcPhH"},{"tx_id":"00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277","index":1,"data":"RjBEAiBU+XD4Bgm6VHd8H//61aYXDvr7gyZFE2otlbQs+FVpAwIgbZvxSvPUu0EC7aKblP0qsglbsWVzW0KAMIk35acmsKIhA4RC86eRBr2xSH487ramK1DWBOB2ffSeuxVDDnoZPwPp"}],"outputs":[{"value":2,"token_data":129,"script":"dqkUFj/MJhGG+ZGCwDF3BlyeeoP2DymIrA=="},{"value":20,"token_data":0,"script":"dqkUBxW0lxHapoovTTGBVdEo4iNl+gWIrA=="}],"tokens":["00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277"]}
                   },
                   'wallet-not-ready': {
                     summary: 'Wallet is not ready yet',

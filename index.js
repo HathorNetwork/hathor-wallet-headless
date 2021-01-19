@@ -34,6 +34,10 @@ app.get('/docs', (req, res) => {
   res.send(apiDocs);
 });
 
+/**
+ * POST request to start a new wallet
+ * For the docs, see api-docs.js
+ */
 app.post('/start', (req, res) => {
   // We expect the user to send the seed he wants to use
   if (!('seedKey' in req.body)) {
@@ -145,6 +149,10 @@ walletRouter.use((req, res, next) => {
   next();
 });
 
+/**
+ * GET request to get the status of a wallet
+ * For the docs, see api-docs.js
+ */
 walletRouter.get('/status', (req, res) => {
   const wallet = req.wallet;
   res.send({
@@ -156,6 +164,10 @@ walletRouter.get('/status', (req, res) => {
   });
 });
 
+/**
+ * GET request to get the balance of a wallet
+ * For the docs, see api-docs.js
+ */
 walletRouter.get('/balance', (req, res) => {
   const wallet = req.wallet;
   // Expects token uid
@@ -164,6 +176,10 @@ walletRouter.get('/balance', (req, res) => {
   res.send(balance);
 });
 
+/**
+ * GET request to get an address of a wallet
+ * For the docs, see api-docs.js
+ */
 walletRouter.get('/address', (req, res) => {
   const wallet = req.wallet;
   const index = req.query.index || null;
@@ -177,6 +193,10 @@ walletRouter.get('/address', (req, res) => {
   res.send({ address });
 });
 
+/**
+ * GET request to get all addresses of a wallet
+ * For the docs, see api-docs.js
+ */
 walletRouter.get('/addresses', (req, res) => {
   const wallet = req.wallet;
   // TODO Add pagination
@@ -184,6 +204,10 @@ walletRouter.get('/addresses', (req, res) => {
   res.send({ addresses });
 });
 
+/**
+ * GET request to get the transaction history of a wallet
+ * For the docs, see api-docs.js
+ */
 walletRouter.get('/tx-history', (req, res) => {
   // TODO Add pagination
   const wallet = req.wallet;
@@ -198,6 +222,10 @@ walletRouter.get('/tx-history', (req, res) => {
   }
 });
 
+/**
+ * POST request to send a transaction with only one output
+ * For the docs, see api-docs.js
+ */
 walletRouter.post('/simple-send-tx', (req, res) => {
   const wallet = req.wallet;
   const address = req.body.address;
@@ -216,6 +244,10 @@ walletRouter.post('/simple-send-tx', (req, res) => {
   }
 });
 
+/**
+ * POST request to send a transaction with many outputs and inputs selection
+ * For the docs, see api-docs.js
+ */
 walletRouter.post('/send-tx', (req, res) => {
   const wallet = req.wallet;
   const outputs = req.body.outputs;
@@ -223,7 +255,7 @@ walletRouter.post('/send-tx', (req, res) => {
   const inputs = req.body.inputs || [];
   // Expects object with {'uid', 'name', 'symbol'}
   const token = req.body.token || null;
-  const ret = wallet.sendManyOutputsTransaction(outputs, token, inputs)
+  const ret = wallet.sendManyOutputsTransaction(outputs, inputs, token)
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
@@ -235,6 +267,10 @@ walletRouter.post('/send-tx', (req, res) => {
   }
 });
 
+/**
+ * POST request to create a token
+ * For the docs, see api-docs.js
+ */
 walletRouter.post('/create-token', (req, res) => {
   const wallet = req.wallet;
   const name = req.body.name;
@@ -253,6 +289,10 @@ walletRouter.post('/create-token', (req, res) => {
   }
 });
 
+/**
+ * POST request to mint tokens
+ * For the docs, see api-docs.js
+ */
 walletRouter.post('/mint-tokens', (req, res) => {
   const wallet = req.wallet;
   const token = req.body.token;
@@ -270,6 +310,10 @@ walletRouter.post('/mint-tokens', (req, res) => {
   }
 });
 
+/**
+ * POST request to melt tokens
+ * For the docs, see api-docs.js
+ */
 walletRouter.post('/melt-tokens', (req, res) => {
   const wallet = req.wallet;
   const token = req.body.token;
@@ -286,6 +330,10 @@ walletRouter.post('/melt-tokens', (req, res) => {
   }
 });
 
+/**
+ * POST request to stop a wallet
+ * For the docs, see api-docs.js
+ */
 walletRouter.post('/stop', (req, res) => {
   // Stop wallet and remove from wallets object
   const wallet = req.wallet;
