@@ -19,46 +19,54 @@ const apiDoc = {
       },
     },
   },
-  security: {
-    ApiKeyAuth: [],
-  },
+  security: [
+    {
+      ApiKeyAuth: [],
+    }
+  ],
   paths: {
     '/start': {
       post: {
         summary: 'Create and start a wallet and add to store.',
-        parameters: [
-          {
-            name: 'wallet-id',
-            'in': 'body',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
-          {
-            name: 'passphrase',
-            'in': 'body',
-            description: 'Passphrase of the wallet that will be created.',
-            required: false,
-            schema: {
-              type: 'string',
-              default: '',
-            },
-          },
-          {
-            name: 'seedKey',
-            'in': 'body',
-            description: 'Key of the corresponding seed in the config file to create the wallet.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
-        ],
+        requestBody: {
+          description: 'Data to start the wallet',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['wallet-id', 'seedKey'],
+                properties: {
+                  'wallet-id': {
+                    type: 'string',
+                    description: 'Define the key of the corresponding wallet it will be executed the request.'
+                  },
+                  passphrase: {
+                    type: 'string',
+                    description: 'Passphrase of the wallet that will be created.'
+                  },
+                  seedKey: {
+                    type: 'string',
+                    description: 'Key of the corresponding seed in the config file to create the wallet.'
+                  },
+                }
+              },
+              examples: {
+                data: {
+                  summary: 'Data to start the wallet',
+                  value: {
+                    'wallet-id': '123',
+                    passphrase: 'Test',
+                    seedKey: 'default'
+                  }
+                }
+              }
+            }
+          }
+        },
         responses: {
           200: {
-            description: 'Stop a wallet',
+            description: 'Start a wallet',
             content: {
               'application/json': {
                 examples: {
@@ -309,21 +317,62 @@ const apiDoc = {
               type: 'string',
             },
           },
-          {
-            name: 'address',
-            'in': 'formData',
-            description: 'The destination address',
-            required: true,
-            type: 'string',
-          },
-          {
-            name: 'value',
-            'in': 'formData',
-            description: 'The value parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.',
-            required: true,
-            type: 'integer',
-          },
         ],
+        requestBody: {
+          description: 'Data to create the transaction',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['address', 'value'],
+                properties: {
+                  address: {
+                    type: 'string',
+                    description: 'Address to send the tokens.'
+                  },
+                  value: {
+                    type: 'integer',
+                    description: 'The value parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.'
+                  },
+                  token: {
+                    type: 'object',
+                    required: ['uid', 'name', 'symbol'],
+                    description: 'Token to send the transaction, just in case is not HTR.',
+                    properties: {
+                      uid: {
+                        type: 'string',
+                        description: 'UID of the custom token to send the transaction.'
+                      },
+                      name: {
+                        type: 'string',
+                        description: 'Name of the custom token to send the transaction.'
+                      },
+                      symbol: {
+                        type: 'string',
+                        description: 'Symbol of the custom token to send the transaction.'
+                      },
+                    }
+                  },
+                }
+              },
+              examples: {
+                data: {
+                  summary: 'Data to create the transaction',
+                  value: {
+                    address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
+                    value: 100,
+                    token: {
+                      uid: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
+                      name: 'Test Coin',
+                      symbol: 'TSC'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
         responses: {
           200: {
             description: 'Send a transaction',
@@ -369,63 +418,99 @@ const apiDoc = {
             schema: {
               type: 'string',
             },
-          },
-          {
-            name: 'outputs',
-            'in': 'formData',
-            description: 'An array of outputs with objects {address, value}',
-            required: true,
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                address: {
-                  type: 'string',
-                },
-                value: {
-                  type: 'integer',
-                },
-              }
-            }
-          },
-          {
-            name: 'inputs',
-            'in': 'formData',
-            description: 'An array of inputs with objects {hash, index}',
-            required: false,
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                hash: {
-                  type: 'string',
-                },
-                index: {
-                  type: 'integer',
-                },
-              }
-            }
-
-          },
-          {
-            name: 'token',
-            'in': 'formData',
-            description: 'Token to send if not HTR.',
-            required: false,
-            type: 'object',
-            properties: {
-              uid: {
-                type: 'string',
-              },
-              name: {
-                type: 'string',
-              },
-              symbol: {
-                type: 'string',
-              },
-            }
-          },
+          }
         ],
+        requestBody: {
+          description: 'Data to create the transaction',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['outputs'],
+                properties: {
+                  outputs: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        address: {
+                          type: 'string',
+                          description: 'Destination address of the output.'
+                        },
+                        value: {
+                          type: 'integer',
+                          description: 'The value parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.'
+                        },
+                      }
+                    },
+                    description: 'Outputs to create the transaction.'
+                  },
+                  inputs: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        hash: {
+                          type: 'string',
+                          description: 'Hash of the transaction being spent in this input.'
+                        },
+                        index: {
+                          type: 'integer',
+                          description: 'Index of the output being spent in this input.'
+                        },
+                      }
+                    },
+                    description: 'Inputs to create the transaction.'
+                  },
+                  token: {
+                    type: 'object',
+                    required: ['uid', 'name', 'symbol'],
+                    description: 'Token to send the transaction, just in case is not HTR.',
+                    properties: {
+                      uid: {
+                        type: 'string',
+                        description: 'UID of the custom token to send the transaction.'
+                      },
+                      name: {
+                        type: 'string',
+                        description: 'Name of the custom token to send the transaction.'
+                      },
+                      symbol: {
+                        type: 'string',
+                        description: 'Symbol of the custom token to send the transaction.'
+                      },
+                    }
+                  },
+                }
+              },
+              examples: {
+                data: {
+                  summary: 'Data to create the transaction',
+                  value: {
+                    outputs: [
+                      {
+                        address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
+                        value: 100
+                      }
+                    ],
+                    inputs: [
+                      {
+                        hash: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
+                        index: 0,
+                      }
+                    ],
+                    token: {
+                      uid: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
+                      name: 'Test Coin',
+                      symbol: 'TSC'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
         responses: {
           200: {
             description: 'Send a transaction with many outputs',
@@ -471,29 +556,44 @@ const apiDoc = {
             schema: {
               type: 'string',
             },
-          },
-          {
-            name: 'name',
-            'in': 'formData',
-            description: 'The name of the token.',
-            required: true,
-            type: 'string',
-          },
-          {
-            name: 'symbol',
-            'in': 'formData',
-            description: 'The symbol of the token.',
-            required: true,
-            type: 'string',
-          },
-          {
-            name: 'amount',
-            'in': 'formData',
-            description: 'The amount of tokens to mint. It must be an integer with the value in cents, i.e., 123 means 1.23.',
-            required: true,
-            type: 'integer',
-          },
+          }
         ],
+        requestBody: {
+          description: 'Data to create the token.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['name', 'symbol', 'amount'],
+                properties: {
+                  name: {
+                    type: 'string',
+                    description: 'Name of the token.'
+                  },
+                  symbol: {
+                    type: 'string',
+                    description: 'Symbol of the token.'
+                  },
+                  amount: {
+                    type: 'integer',
+                    description: 'The amount of tokens to mint. It must be an integer with the value in cents, i.e., 123 means 1.23.'
+                  },
+                }
+              },
+              examples: {
+                data: {
+                  summary: 'Data to create the token',
+                  value: {
+                    name: 'Test Coin',
+                    symbol: 'TSC',
+                    amount: 100,
+                  }
+                }
+              }
+            }
+          }
+        },
         responses: {
           200: {
             description: 'Create the token',
@@ -539,29 +639,44 @@ const apiDoc = {
             schema: {
               type: 'string',
             },
-          },
-          {
-            name: 'token',
-            'in': 'formData',
-            description: 'The uid of the token to mint.',
-            required: true,
-            type: 'string',
-          },
-          {
-            name: 'amount',
-            'in': 'formData',
-            description: 'The amount of tokens to mint. It must be an integer with the value in cents, i.e., 123 means 1.23.',
-            required: true,
-            type: 'integer',
-          },
-          {
-            name: 'address',
-            'in': 'formData',
-            description: 'Destination address of the minted tokens.',
-            required: false,
-            type: 'string',
-          },
+          }
         ],
+        requestBody: {
+          description: 'Data to mint tokens.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['token', 'amount', 'address'],
+                properties: {
+                  token: {
+                    type: 'string',
+                    description: 'UID of the token to mint.'
+                  },
+                  address: {
+                    type: 'string',
+                    description: 'Destination address of the minted tokens.'
+                  },
+                  amount: {
+                    type: 'integer',
+                    description: 'The amount of tokens to mint. It must be an integer with the value in cents, i.e., 123 means 1.23.'
+                  },
+                }
+              },
+              examples: {
+                data: {
+                  summary: 'Data to mint tokens',
+                  value: {
+                    token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
+                    address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
+                    amount: 100,
+                  }
+                }
+              }
+            }
+          }
+        },
         responses: {
           200: {
             description: 'Mint tokens.',
@@ -623,6 +738,37 @@ const apiDoc = {
             type: 'integer',
           },
         ],
+        requestBody: {
+          description: 'Data to melt tokens.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['token', 'amount'],
+                properties: {
+                  token: {
+                    type: 'string',
+                    description: 'UID of the token to melt.'
+                  },
+                  amount: {
+                    type: 'integer',
+                    description: 'The amount of tokens to melt. It must be an integer with the value in cents, i.e., 123 means 1.23.'
+                  },
+                }
+              },
+              examples: {
+                data: {
+                  summary: 'Data to melt tokens.',
+                  value: {
+                    token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
+                    amount: 100,
+                  }
+                }
+              }
+            }
+          }
+        },
         responses: {
           200: {
             description: 'Melt tokens.',
@@ -661,8 +807,8 @@ const apiDoc = {
         summary: 'Return the transaction history',
         parameters: [
           {
-            name: 'wallet-id',
-            'in': 'query',
+            name: 'x-wallet-id',
+            'in': 'header',
             description: 'Define the key of the corresponding wallet it will be executed the request.',
             required: true,
             schema: {
@@ -713,8 +859,8 @@ const apiDoc = {
         summary: 'Stop a running wallet and remove from store.',
         parameters: [
           {
-            name: 'wallet-id',
-            'in': 'body',
+            name: 'x-wallet-id',
+            'in': 'header',
             description: 'Define the key of the corresponding wallet it will be executed the request.',
             required: true,
             schema: {
