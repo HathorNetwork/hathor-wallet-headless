@@ -26,8 +26,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const walletRouter = express.Router({mergeParams: true})
 
-app.get('/', (req, res) => {
-  res.send('<html><body><h1>Welcome to Hathor Wallet API!</h1><p>See the <a href="docs/">docs</a></p></body></html>');
+app.get('/', (req, res) => {  
+  res.sendFile(__dirname + '/index.html');
 });
 
 app.get('/docs', (req, res) => {
