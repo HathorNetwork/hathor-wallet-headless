@@ -232,7 +232,8 @@ walletRouter.post('/simple-send-tx', (req, res) => {
   const value = parseInt(req.body.value);
   // Expects object with {'uid', 'name', 'symbol'}
   const token = req.body.token || null;
-  const ret = wallet.sendTransaction(address, value, token);
+  const changeAddress = req.body.change_address || null;
+  const ret = wallet.sendTransaction(address, value, token, changeAddress);
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
@@ -255,7 +256,8 @@ walletRouter.post('/send-tx', (req, res) => {
   const inputs = req.body.inputs || [];
   // Expects object with {'uid', 'name', 'symbol'}
   const token = req.body.token || null;
-  const ret = wallet.sendManyOutputsTransaction(outputs, inputs, token)
+  const changeAddress = req.body.change_address || null;
+  const ret = wallet.sendManyOutputsTransaction(outputs, inputs, token, changeAddress)
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);

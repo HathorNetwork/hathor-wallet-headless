@@ -354,6 +354,10 @@ const apiDoc = {
                       },
                     }
                   },
+                  'change_address': {
+                    type: 'string',
+                    description: 'Optional address to send the change amount.'
+                  },
                 }
               },
               examples: {
@@ -481,6 +485,10 @@ const apiDoc = {
                         description: 'Symbol of the custom token to send the transaction.'
                       },
                     }
+                  },
+                  'change_address': {
+                    type: 'string',
+                    description: 'Optional address to send the change amount.'
                   },
                 }
               },
