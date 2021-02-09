@@ -233,7 +233,7 @@ walletRouter.post('/simple-send-tx', (req, res) => {
   // Expects object with {'uid', 'name', 'symbol'}
   const token = req.body.token || null;
   const changeAddress = req.body.change_address || null;
-  const ret = wallet.sendTransaction(address, value, token, changeAddress);
+  const ret = wallet.sendTransaction(address, value, token, { changeAddress });
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
@@ -257,7 +257,7 @@ walletRouter.post('/send-tx', (req, res) => {
   // Expects object with {'uid', 'name', 'symbol'}
   const token = req.body.token || null;
   const changeAddress = req.body.change_address || null;
-  const ret = wallet.sendManyOutputsTransaction(outputs, inputs, token, changeAddress)
+  const ret = wallet.sendManyOutputsTransaction(outputs, inputs, token, { changeAddress })
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
@@ -278,8 +278,9 @@ walletRouter.post('/create-token', (req, res) => {
   const name = req.body.name;
   const symbol = req.body.symbol;
   const amount = parseInt(req.body.amount);
-  const address = wallet.getCurrentAddress();
-  const ret = wallet.createNewToken(name, symbol, amount, address);
+  const address = req.body.address || null;
+  const changeAddress = req.body.change_address || null;
+  const ret = wallet.createNewToken(name, symbol, amount, address, { changeAddress });
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
@@ -300,7 +301,8 @@ walletRouter.post('/mint-tokens', (req, res) => {
   const token = req.body.token;
   const amount = parseInt(req.body.amount);
   const address = req.body.address || null;
-  const ret = wallet.mintTokens(token, amount, address);
+  const changeAddress = req.body.change_address || null;
+  const ret = wallet.mintTokens(token, amount, address, { changeAddress });
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
@@ -320,7 +322,9 @@ walletRouter.post('/melt-tokens', (req, res) => {
   const wallet = req.wallet;
   const token = req.body.token;
   const amount = parseInt(req.body.amount);
-  const ret = wallet.meltTokens(token, amount);
+  const changeAddress = req.body.change_address || null;
+  const depositAddress = req.body.deposit_address || null;
+  const ret = wallet.meltTokens(token, amount, { depositAddress, changeAddress });
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);

@@ -587,6 +587,14 @@ const apiDoc = {
                     type: 'integer',
                     description: 'The amount of tokens to mint. It must be an integer with the value in cents, i.e., 123 means 1.23.'
                   },
+                  address: {
+                    type: 'string',
+                    description: 'Destination address of the minted tokens.'
+                  },
+                  'change_address': {
+                    type: 'string',
+                    description: 'Optional address to send the change amount.'
+                  },
                 }
               },
               examples: {
@@ -670,6 +678,10 @@ const apiDoc = {
                     type: 'integer',
                     description: 'The amount of tokens to mint. It must be an integer with the value in cents, i.e., 123 means 1.23.'
                   },
+                  'change_address': {
+                    type: 'string',
+                    description: 'Optional address to send the change amount.'
+                  },
                 }
               },
               examples: {
@@ -744,6 +756,20 @@ const apiDoc = {
             description: 'The amount of tokens to melt. It must be an integer with the value in cents, i.e., 123 means 1.23.',
             required: true,
             type: 'integer',
+          },
+          {
+            name: 'change_address',
+            'in': 'formData',
+            description: 'Optional address to send the change amount of custom tokens after melt.',
+            required: false,
+            type: 'string',
+          },
+          {
+            name: 'deposit_address',
+            'in': 'formData',
+            description: 'Optional address to send the deposit HTR received after the melt.',
+            required: false,
+            type: 'string',
           },
         ],
         requestBody: {
