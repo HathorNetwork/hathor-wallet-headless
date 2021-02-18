@@ -897,6 +897,210 @@ const apiDoc = {
         },
       },
     },
+    '/wallet/utxo-details': {
+      get: {
+        summary: 'Return utxos and some helpful information regarding it.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            'in': 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'max_utxos',
+            'in': 'query',
+            description: 'Maximum number of utxos to aggregate. Default to MAX_INPUTS (255)',
+            required: false,
+            schema: {
+              type: 'integer',
+            },
+          },
+          {
+            name: 'token',
+            'in': 'query',
+            description: 'Token to filter the utxos. If not sent, we select only HTR utxos.',
+            required: false,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'filter_address',
+            'in': 'query',
+            description: 'Address to filter the utxos.',
+            required: false,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'amount_smaller_than',
+            'in': 'query',
+            description: 'Maximum limit of utxo amount to filter the utxos list. We will consolidate only utxos that have an amount lower than this value. Integer representation of decimals, i.e. 100 = 1.00.',
+            required: false,
+            schema: {
+              type: 'integer',
+            },
+          },
+          {
+            name: 'amount_bigger_than',
+            'in': 'query',
+            description: 'Minimum limit of utxo amount to filter the utxos list. We will consolidate only utxos that have an amount bigger than this value. Integer representation of decimals, i.e. 100 = 1.00.',
+            required: false,
+            schema: {
+              type: 'integer',
+            },
+          },
+          {
+            name: 'maximum_amount',
+            'in': 'query',
+            description: 'Limit the maximum total amount to consolidate summing all utxos. Integer representation of decimals, i.e. 100 = 1.00.',
+            required: false,
+            schema: {
+              type: 'integer',
+            },
+          },
+          {
+            name: 'only_available_utxos',
+            'in': 'query',
+            description: 'Get only available utxos, ignoring locked ones.',
+            default: false,
+            required: false,
+            schema: {
+              type: 'boolean',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Return utxos',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { "total_amount_available": 12000, "total_utxos_available": 2, "total_amount_locked": 6000, "total_utxos_locked": 1, "utxos": [ { "address": "HNnK9wgUVL6Cjzs1K3jpoGgqQTXCqpAnW8", "amount": 6000, "tx_id": "00fff7a3c6eb95ec3343bffcfca9a3a0d3e243462ae7de1f200cdd76716140fb", "locked": false, "index": 0 }, { "address": "WYiD1E8n5oB9weZ8NMyM3KoCjKf1KCjWAZ", "amount": 6000, "tx_id": "0000002e785a6ab7cb9a863f66a862c86ca418025c92ef3bb9a7174d7fa31a20", "locked": true, "index": 0 }, { "address": "WYiD1E8n5oB9weZ8NMyM3KoCjKf1KCjWAZ", "amount": 6000, "tx_id": "0000002940428f55b1bdc9346b6b253e4a904bd45cc129736028b32c1e9e5d23", "locked": false, "index": 0 } ]},
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: {"success":false,"message":"Wallet is not ready.","state":1}
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: {"success":false,"message":"Parameter 'wallet-id' is required."}
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: {"success":false,"message":"Invalid wallet-id parameter."}
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/utxo-consolidation': {
+      post: {
+        summary: 'Consolidates utxos to a given address.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            'in': 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        requestBody: {
+          description: 'Data to consolidate utxos.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['destination_address'],
+                properties: {
+                  destination_address: {
+                    type: 'string',
+                    description: 'Recipient to the consolidated utxos.',
+                  },
+                  max_utxos: {
+                    type: 'integer',
+                    description: 'Maximum number of utxos to aggregate. Default to MAX_INPUTS (255)',
+                  },
+                  token: {
+                    type: 'string',
+                    description: 'Token to filter the utxos. If not sent, we select only HTR utxos.',
+                  },
+                  filter_address: {
+                    type: 'string',
+                    description: 'Address to filter the utxos.',
+                  },
+                  amount_smaller_than: {
+                    type: 'integer',
+                    description: 'Maximum limit of utxo amount to filter the utxos list. We will consolidate only utxos that have an amount lower than this value. Integer representation of decimals, i.e. 100 = 1.00.',
+                  },
+                  amount_bigger_than: {
+                    type: 'integer',
+                    description: 'Minimum limit of utxo amount to filter the utxos list. We will consolidate only utxos that have an amount bigger than this value. Integer representation of decimals, i.e. 100 = 1.00.',
+                  },
+                  maximum_amount: {
+                    type: 'integer',
+                    description: 'Limit the maximum total amount to consolidate summing all utxos. Integer representation of decimals, i.e. 100 = 1.00.',
+                  },
+                }
+              },
+              examples: {
+                data: {
+                  summary: 'Consolidate utxos to address HNnK9wgUVL6Cjzs1K3jpoGgqQTXCqpAnW8',
+                  value: {
+                    destination_address: 'HNnK9wgUVL6Cjzs1K3jpoGgqQTXCqpAnW8',
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Consolidated utxos and consolidation information',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { "success": true, "total_utxos_consolidated": 8, "total_amount": 140800, "utxos": [ { "address": "HNnK9wgUVL6Cjzs1K3jpoGgqQTXCqpAnW8", "amount": 96000, "tx_id": "00dc85e6c5e35525f3e85edebff3905267b48c190c21eaeec6e8e655fcbb5744", "locked": false, "index": 0 }, { "address": "HNnK9wgUVL6Cjzs1K3jpoGgqQTXCqpAnW8", "amount": 6400, "tx_id": "0000000330f14db1af211f5f0210b3ccc4cb69bc1e7fff19b1e96e8f6b93292b", "locked": false, "index": 0 }, { "address": "HNnK9wgUVL6Cjzs1K3jpoGgqQTXCqpAnW8", "amount": 6400, "tx_id": "00000012442813722351ab01bbc79bba992fffd16fa066764e491ffd0dbfe87e", "locked": false, "index": 0 }, { "address": "HNnK9wgUVL6Cjzs1K3jpoGgqQTXCqpAnW8", "amount": 6400, "tx_id": "0000003b34abcb64fcc2999493f66d355bd853110a1a959d35856e598bc80568", "locked": false, "index": 0 }, { "address": "HNnK9wgUVL6Cjzs1K3jpoGgqQTXCqpAnW8", "amount": 6400, "tx_id": "000000233f187b10ba54b093e0b4f391b27ce747e70f01d573d75ea31e8678a8", "locked": false, "index": 0 }, { "address": "HNnK9wgUVL6Cjzs1K3jpoGgqQTXCqpAnW8", "amount": 6400, "tx_id": "0000000097cf83a6937199ece5d3ac96cfad239fcb142acc083789eb0c31d3e6", "locked": false, "index": 0 }, { "address": "HNnK9wgUVL6Cjzs1K3jpoGgqQTXCqpAnW8", "amount": 6400, "tx_id": "0000003b6e6ab2cc751dc736a6a1502eeb2ecca48741f78c52bc27c04bf01412", "locked": false, "index": 0 }, { "address": "HNnK9wgUVL6Cjzs1K3jpoGgqQTXCqpAnW8", "amount": 6400, "tx_id": "0000002b145f03de21c841b8e47c019989e16cafa55754bbea8bde00e5170f80", "locked": false, "index": 0 } ] },
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: {"success":false,"message":"Wallet is not ready.","state":1}
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: {"success":false,"message":"Parameter 'wallet-id' is required."}
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: {"success":false,"message":"Invalid wallet-id parameter."}
+                  },
+                  'no-available-utxos': {
+                    summary: 'No available utxo to consolidate. Check /wallet/utxo-details for available utxos.',
+                    value: { "success": false, "error": "No available utxo to consolidate." }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }
   },
 };
 

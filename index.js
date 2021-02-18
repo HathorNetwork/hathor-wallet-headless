@@ -331,6 +331,36 @@ walletRouter.post('/melt-tokens', (req, res) => {
 });
 
 /**
+ * GET request to get utxo details
+ * For the docs, see api-docs.js
+ */
+walletRouter.get('/utxo-details', (req, res) => {
+  const wallet = req.wallet;
+  const options = req.query || {};
+  const utxoDetails = wallet.getUtxos(options);
+  res.send(utxoDetails);
+});
+
+/**
+ * POST request to consolidate utxos
+ * For the docs, see api-docs.js
+ */
+walletRouter.post('/utxo-consolidation', async (req, res) => {
+  try {
+    const wallet = req.wallet;
+    const { destination_address, ...options } = req.body || {};
+    const result = await wallet.consolidateUtxos(destination_address, options);
+    res.send({
+      success: true,
+      ...result
+    });
+  } catch(error) {
+    const message = typeof error === 'string' ? error : error.message;
+    res.send({success: false, error: message });
+  }
+});
+
+/**
  * POST request to stop a wallet
  * For the docs, see api-docs.js
  */
