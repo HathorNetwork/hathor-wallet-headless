@@ -22,4 +22,7 @@ module.exports = {
   // Maximum number of addresses to be generated in sequence without usage
   // if not set will use the default from the lib (20)
   gapLimit: null,
+  // Timeout of the websocket connection in milliseconds
+  // if not set we use the default from the lib (5000)
+  connectionTimeout: null,
 };
