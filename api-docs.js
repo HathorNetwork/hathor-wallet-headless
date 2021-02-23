@@ -897,7 +897,7 @@ const apiDoc = {
         },
       },
     },
-    '/wallet/utxo-details': {
+    '/wallet/utxo-filter': {
       get: {
         summary: 'Return utxos and some helpful information regarding it.',
         parameters: [
