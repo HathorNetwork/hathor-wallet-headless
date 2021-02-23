@@ -947,7 +947,7 @@ const apiDoc = {
           {
             name: 'max_utxos',
             'in': 'query',
-            description: 'Maximum number of utxos to aggregate. Default to MAX_INPUTS (255)',
+            description: 'Maximum number of utxos to return. Default to MAX_INPUTS (255)',
             required: false,
             schema: {
               type: 'integer',
@@ -974,7 +974,7 @@ const apiDoc = {
           {
             name: 'amount_smaller_than',
             'in': 'query',
-            description: 'Maximum limit of utxo amount to filter the utxos list. We will consolidate only utxos that have an amount lower than this value. Integer representation of decimals, i.e. 100 = 1.00.',
+            description: 'Maximum limit of utxo amount to filter the utxos list. We will return only utxos that have an amount lower than this value. Integer representation of decimals, i.e. 100 = 1.00.',
             required: false,
             schema: {
               type: 'integer',
@@ -983,7 +983,7 @@ const apiDoc = {
           {
             name: 'amount_bigger_than',
             'in': 'query',
-            description: 'Minimum limit of utxo amount to filter the utxos list. We will consolidate only utxos that have an amount bigger than this value. Integer representation of decimals, i.e. 100 = 1.00.',
+            description: 'Minimum limit of utxo amount to filter the utxos list. We will return only utxos that have an amount bigger than this value. Integer representation of decimals, i.e. 100 = 1.00.',
             required: false,
             schema: {
               type: 'integer',
@@ -992,7 +992,7 @@ const apiDoc = {
           {
             name: 'maximum_amount',
             'in': 'query',
-            description: 'Limit the maximum total amount to consolidate summing all utxos. Integer representation of decimals, i.e. 100 = 1.00.',
+            description: 'Limit the maximum total amount to return summing all utxos. Integer representation of decimals, i.e. 100 = 1.00.',
             required: false,
             schema: {
               type: 'integer',

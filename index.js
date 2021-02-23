@@ -351,18 +351,22 @@ walletRouter.get(
   query('maximum_amount').isInt().optional(),
   query('only_available').isBoolean().optional(),
   (req, res) => {
-    // Query parameters validation
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, errors: errors.array() });
-    }
+    try {
+      // Query parameters validation
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, errors: errors.array() });
+      }
 
-    const wallet = req.wallet;
-    const options = matchedData(req, { locations: ['query'] });
-    // TODO Memory usage enhancements are required here as wallet.getUtxos can cause issues on wallets with a huge amount of utxos.
-    // TODO Add pagination
-    const ret = wallet.getUtxos(options);
-    res.send(ret);
+      const wallet = req.wallet;
+      const options = matchedData(req, { locations: ['query'] });
+      // TODO Memory usage enhancements are required here as wallet.getUtxos can cause issues on wallets with a huge amount of utxos.
+      // TODO Add pagination
+      const ret = wallet.getUtxos(options);
+      res.send(ret);
+    } catch(error) {
+      res.send({ success: false, error: error.message || error });
+    }
   }
 );
 
@@ -395,8 +399,7 @@ walletRouter.post(
         ...result
       });
     } catch(error) {
-      const message = typeof error === 'string' ? error : error.message;
-      res.send({success: false, error: message });
+      res.send({ success: false, error: error.message || error });
     }
   }
 );
