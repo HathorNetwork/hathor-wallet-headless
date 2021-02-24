@@ -258,15 +258,30 @@ walletRouter.post('/send-tx', (req, res) => {
   // Expects object with {'uid', 'name', 'symbol'}
   const token = req.body.token || null;
   const changeAddress = req.body.change_address || null;
+  const debug = req.body.debug || false;
+  if (debug) {
+    wallet.enableDebugMode();
+  }
   const ret = wallet.sendManyOutputsTransaction(outputs, inputs, token, { changeAddress })
+  if (debug) {
+    wallet.disableDebugMode();
+  }
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
     }, (error) => {
-      res.send({success: false, error});
+      const response = {success: false, error};
+      if (debug) {
+        response.debug = ret.debug;
+      }
+      res.send(response);
     });
   } else {
-    res.send({success: false, error: ret.message});
+    const response = {success: false, error: ret.message};
+    if (debug) {
+      response.debug = ret.debug;
+    }
+    res.send(response);
   }
 });
 
