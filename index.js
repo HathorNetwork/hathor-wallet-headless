@@ -6,7 +6,8 @@
  */
 
 import express from 'express';
-import { Connection, HathorWallet, wallet, tokens } from '@hathor/wallet-lib';
+import { Connection, HathorWallet, wallet as walletUtils, tokens } from '@hathor/wallet-lib';
+import { body, matchedData, query, validationResult } from 'express-validator';
 
 import config from './config';
 import apiDocs from './api-docs';
@@ -67,7 +68,7 @@ app.post('/start', (req, res) => {
   }
 
   const seed = config.seeds[seedKey];
-  const connection = new Connection({network: config.network, servers: [config.server]});
+  const connection = new Connection({network: config.network, servers: [config.server], connectionTimeout: config.connectionTimeout});
   const walletConfig = {
     seed,
     connection
@@ -232,7 +233,8 @@ walletRouter.post('/simple-send-tx', (req, res) => {
   const value = parseInt(req.body.value);
   // Expects object with {'uid', 'name', 'symbol'}
   const token = req.body.token || null;
-  const ret = wallet.sendTransaction(address, value, token);
+  const changeAddress = req.body.change_address || null;
+  const ret = wallet.sendTransaction(address, value, token, { changeAddress });
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
@@ -255,15 +257,31 @@ walletRouter.post('/send-tx', (req, res) => {
   const inputs = req.body.inputs || [];
   // Expects object with {'uid', 'name', 'symbol'}
   const token = req.body.token || null;
-  const ret = wallet.sendManyOutputsTransaction(outputs, inputs, token)
+  const changeAddress = req.body.change_address || null;
+  const debug = req.body.debug || false;
+  if (debug) {
+    wallet.enableDebugMode();
+  }
+  const ret = wallet.sendManyOutputsTransaction(outputs, inputs, token, { changeAddress })
+  if (debug) {
+    wallet.disableDebugMode();
+  }
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
     }, (error) => {
-      res.send({success: false, error});
+      const response = {success: false, error};
+      if (debug) {
+        response.debug = ret.debug;
+      }
+      res.send(response);
     });
   } else {
-    res.send({success: false, error: ret.message});
+    const response = {success: false, error: ret.message};
+    if (debug) {
+      response.debug = ret.debug;
+    }
+    res.send(response);
   }
 });
 
@@ -276,8 +294,9 @@ walletRouter.post('/create-token', (req, res) => {
   const name = req.body.name;
   const symbol = req.body.symbol;
   const amount = parseInt(req.body.amount);
-  const address = wallet.getCurrentAddress();
-  const ret = wallet.createNewToken(name, symbol, amount, address);
+  const address = req.body.address || null;
+  const changeAddress = req.body.change_address || null;
+  const ret = wallet.createNewToken(name, symbol, amount, address, { changeAddress });
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
@@ -298,7 +317,8 @@ walletRouter.post('/mint-tokens', (req, res) => {
   const token = req.body.token;
   const amount = parseInt(req.body.amount);
   const address = req.body.address || null;
-  const ret = wallet.mintTokens(token, amount, address);
+  const changeAddress = req.body.change_address || null;
+  const ret = wallet.mintTokens(token, amount, address, { changeAddress });
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
@@ -318,7 +338,9 @@ walletRouter.post('/melt-tokens', (req, res) => {
   const wallet = req.wallet;
   const token = req.body.token;
   const amount = parseInt(req.body.amount);
-  const ret = wallet.meltTokens(token, amount);
+  const changeAddress = req.body.change_address || null;
+  const depositAddress = req.body.deposit_address || null;
+  const ret = wallet.meltTokens(token, amount, { depositAddress, changeAddress });
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
@@ -329,6 +351,73 @@ walletRouter.post('/melt-tokens', (req, res) => {
     res.send({success: false, error: ret.message});
   }
 });
+
+/**
+ * GET request to filter utxos before consolidation
+ * For the docs, see api-docs.js
+ */
+walletRouter.get(
+  '/utxo-filter',
+  query('max_utxos').isInt().optional(),
+  query('token').isString().optional(),
+  query('filter_address').isString().optional(),
+  query('amount_smaller_than').isInt().optional(),
+  query('amount_bigger_than').isInt().optional(),
+  query('maximum_amount').isInt().optional(),
+  query('only_available').isBoolean().optional(),
+  (req, res) => {
+    try {
+      // Query parameters validation
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, error: errors.array() });
+      }
+
+      const wallet = req.wallet;
+      const options = matchedData(req, { locations: ['query'] });
+      // TODO Memory usage enhancements are required here as wallet.getUtxos can cause issues on wallets with a huge amount of utxos.
+      // TODO Add pagination
+      const ret = wallet.getUtxos(options);
+      res.send(ret);
+    } catch(error) {
+      res.send({ success: false, error: error.message || error });
+    }
+  }
+);
+
+/**
+ * POST request to consolidate utxos
+ * For the docs, see api-docs.js
+ */
+walletRouter.post(
+  '/utxo-consolidation',
+  body('destination_address').isString(),
+  body('max_utxos').isInt().optional(),
+  body('token').isString().optional(),
+  body('filter_address').isString().optional(),
+  body('amount_smaller_than').isInt().optional(),
+  body('amount_bigger_than').isInt().optional(),
+  body('maximum_amount').isInt().optional(),
+  async (req, res) => {
+    try {
+      // Body parameters validation
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, error: errors.array() });
+      }
+
+      const wallet = req.wallet;
+      const { destination_address, ...options } = matchedData(req, { locations: ['body'] });
+      const result = await wallet.consolidateUtxos(destination_address, options);
+      res.send({
+        success: true,
+        ...result
+      });
+    } catch(error) {
+      res.send({ success: false, error: error.message || error });
+    }
+  }
+);
 
 /**
  * POST request to stop a wallet
@@ -354,6 +443,6 @@ app.listen(config.http_port, config.http_bind_address, () => {
 
 if (config.gapLimit) {
   console.log(`Set GAP LIMIT to ${config.gapLimit}`);
-  wallet.setGapLimit(config.gapLimit);
+  walletUtils.setGapLimit(config.gapLimit);
 }
 
