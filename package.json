@@ -9,7 +9,8 @@
     "@babel/node": "^7.8.4",
     "@babel/preset-env": "^7.8.4",
     "@hathor/wallet-lib": "^0.16.13",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "express-validator": "^6.10.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
