@@ -6,7 +6,7 @@
  */
 
 import express from 'express';
-import { Connection, HathorWallet, wallet, tokens } from '@hathor/wallet-lib';
+import { Connection, HathorWallet, wallet as walletUtils, tokens } from '@hathor/wallet-lib';
 import { body, matchedData, query, validationResult } from 'express-validator';
 
 import config from './config';
@@ -68,7 +68,7 @@ app.post('/start', (req, res) => {
   }
 
   const seed = config.seeds[seedKey];
-  const connection = new Connection({network: config.network, servers: [config.server]});
+  const connection = new Connection({network: config.network, servers: [config.server], connectionTimeout: config.connectionTimeout});
   const walletConfig = {
     seed,
     connection
@@ -428,6 +428,6 @@ app.listen(config.http_port, config.http_bind_address, () => {
 
 if (config.gapLimit) {
   console.log(`Set GAP LIMIT to ${config.gapLimit}`);
-  wallet.setGapLimit(config.gapLimit);
+  walletUtils.setGapLimit(config.gapLimit);
 }
 
