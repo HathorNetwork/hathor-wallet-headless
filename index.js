@@ -355,7 +355,7 @@ walletRouter.get(
       // Query parameters validation
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, errors: errors.array() });
+        return res.status(400).json({ success: false, error: errors.array() });
       }
 
       const wallet = req.wallet;
@@ -388,7 +388,7 @@ walletRouter.post(
       // Body parameters validation
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, errors: errors.array() });
+        return res.status(400).json({ success: false, error: errors.array() });
       }
 
       const wallet = req.wallet;

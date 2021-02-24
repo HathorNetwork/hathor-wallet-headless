@@ -1031,6 +1031,10 @@ const apiDoc = {
                     summary: 'Wallet id parameter is invalid',
                     value: {"success":false,"message":"Invalid wallet-id parameter."}
                   },
+                  'invalid-parameter': {
+                    summary: 'Invalid parameter',
+                    value: { "success": false, "error": [ { "value": "\"1\"", "msg": "Invalid value", "param": "max_utxos", "location": "query" } ] }
+                  }
                 },
               },
             },
@@ -1128,6 +1132,10 @@ const apiDoc = {
                     summary: 'No available utxo to consolidate. Check /wallet/utxo-details for available utxos.',
                     value: { "success": false, "error": "No available utxo to consolidate." }
                   },
+                  'invalid-parameter': {
+                    summary: 'Invalid parameter',
+                    value: { "success": false, "error": [ { "msg": "Invalid value", "param": "destination_address", "location": "body" } ] }
+                  }
                 },
               },
             },
