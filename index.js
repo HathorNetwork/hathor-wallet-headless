@@ -7,6 +7,7 @@
 
 import express from 'express';
 import { Connection, HathorWallet, wallet as walletUtils, tokens } from '@hathor/wallet-lib';
+import { body, matchedData, query, validationResult } from 'express-validator';
 
 import config from './config';
 import apiDocs from './api-docs';
@@ -350,6 +351,73 @@ walletRouter.post('/melt-tokens', (req, res) => {
     res.send({success: false, error: ret.message});
   }
 });
+
+/**
+ * GET request to filter utxos before consolidation
+ * For the docs, see api-docs.js
+ */
+walletRouter.get(
+  '/utxo-filter',
+  query('max_utxos').isInt().optional(),
+  query('token').isString().optional(),
+  query('filter_address').isString().optional(),
+  query('amount_smaller_than').isInt().optional(),
+  query('amount_bigger_than').isInt().optional(),
+  query('maximum_amount').isInt().optional(),
+  query('only_available').isBoolean().optional(),
+  (req, res) => {
+    try {
+      // Query parameters validation
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, error: errors.array() });
+      }
+
+      const wallet = req.wallet;
+      const options = matchedData(req, { locations: ['query'] });
+      // TODO Memory usage enhancements are required here as wallet.getUtxos can cause issues on wallets with a huge amount of utxos.
+      // TODO Add pagination
+      const ret = wallet.getUtxos(options);
+      res.send(ret);
+    } catch(error) {
+      res.send({ success: false, error: error.message || error });
+    }
+  }
+);
+
+/**
+ * POST request to consolidate utxos
+ * For the docs, see api-docs.js
+ */
+walletRouter.post(
+  '/utxo-consolidation',
+  body('destination_address').isString(),
+  body('max_utxos').isInt().optional(),
+  body('token').isString().optional(),
+  body('filter_address').isString().optional(),
+  body('amount_smaller_than').isInt().optional(),
+  body('amount_bigger_than').isInt().optional(),
+  body('maximum_amount').isInt().optional(),
+  async (req, res) => {
+    try {
+      // Body parameters validation
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, error: errors.array() });
+      }
+
+      const wallet = req.wallet;
+      const { destination_address, ...options } = matchedData(req, { locations: ['body'] });
+      const result = await wallet.consolidateUtxos(destination_address, options);
+      res.send({
+        success: true,
+        ...result
+      });
+    } catch(error) {
+      res.send({ success: false, error: error.message || error });
+    }
+  }
+);
 
 /**
  * POST request to stop a wallet
