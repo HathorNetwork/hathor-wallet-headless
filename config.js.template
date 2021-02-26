@@ -15,6 +15,21 @@ module.exports = {
       default: '',
   },
 
+  // Console logging level (default: info).
+  // Levels: error, warn, info, http, verbose, debug, silly.
+  // For further information, see https://github.com/winstonjs/winston#logging-levels.
+  consoleLevel: null,
+
+  // File logging configuration.
+  /*
+  logging: {
+    debug: {
+      filename: 'debug.log',
+      level: 'debug',
+    },
+  },
+  */
+
   // Optional config so you can set the token you want to use in this wallet
   // If this parameter is set you don't need to pass your token when getting balance or sending tokens
   tokenUid: '',
@@ -22,6 +37,7 @@ module.exports = {
   // Maximum number of addresses to be generated in sequence without usage
   // if not set will use the default from the lib (20)
   gapLimit: null,
+
   // Timeout of the websocket connection in milliseconds
   // if not set we use the default from the lib (5000)
   connectionTimeout: null,
