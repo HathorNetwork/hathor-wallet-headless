@@ -27,6 +27,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const walletRouter = express.Router({mergeParams: true})
 
+const parametersValidation = (req) => {
+  // Parameters validation
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return {success: false, error: errors.array()};
+  } else {
+    return {success: true};
+  }
+
+}
+
 app.get('/', (req, res) => {
   res.send('<html><body><h1>Welcome to Hathor Wallet API!</h1><p>See the <a href="docs/">docs</a></p></body></html>');
 });
@@ -169,7 +180,14 @@ walletRouter.get('/status', (req, res) => {
  * GET request to get the balance of a wallet
  * For the docs, see api-docs.js
  */
-walletRouter.get('/balance', (req, res) => {
+walletRouter.get(
+  '/balance',
+  query('token').isString().optional(),
+  (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
   const wallet = req.wallet;
   // Expects token uid
   const token = req.query.token || null;
@@ -181,7 +199,14 @@ walletRouter.get('/balance', (req, res) => {
  * GET request to get an address of a wallet
  * For the docs, see api-docs.js
  */
-walletRouter.get('/address', (req, res) => {
+walletRouter.get('/address',
+  query('index').isInt().optional(),
+  query('mark_as_used').isBoolean().optional(),
+  (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
   const wallet = req.wallet;
   const index = req.query.index || null;
   let address;
@@ -209,8 +234,14 @@ walletRouter.get('/addresses', (req, res) => {
  * GET request to get the transaction history of a wallet
  * For the docs, see api-docs.js
  */
-walletRouter.get('/tx-history', (req, res) => {
+walletRouter.get('/tx-history',
+  query('limit').isInt().optional(),
+  (req, res) => {
   // TODO Add pagination
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
   const wallet = req.wallet;
   const limit = req.query.limit || null;
   const history = wallet.getTxHistory();
@@ -227,7 +258,19 @@ walletRouter.get('/tx-history', (req, res) => {
  * POST request to send a transaction with only one output
  * For the docs, see api-docs.js
  */
-walletRouter.post('/simple-send-tx', (req, res) => {
+walletRouter.post('/simple-send-tx',
+  body('address').isString(),
+  body('value').isInt(),
+  body('change_address').isString().optional(),
+  body('token').isObject().optional(),
+  body('token.name').isString(),
+  body('token.symbol').isString(),
+  body('token.uid').isString(),
+  (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
   const wallet = req.wallet;
   const address = req.body.address;
   const value = parseInt(req.body.value);
@@ -289,7 +332,17 @@ walletRouter.post('/send-tx', (req, res) => {
  * POST request to create a token
  * For the docs, see api-docs.js
  */
-walletRouter.post('/create-token', (req, res) => {
+walletRouter.post('/create-token',
+  body('name').isString(),
+  body('symbol').isString(),
+  body('amount').isInt(),
+  body('address').isString().optional(),
+  body('change_address').isString().optional(),
+  (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
   const wallet = req.wallet;
   const name = req.body.name;
   const symbol = req.body.symbol;
@@ -312,7 +365,16 @@ walletRouter.post('/create-token', (req, res) => {
  * POST request to mint tokens
  * For the docs, see api-docs.js
  */
-walletRouter.post('/mint-tokens', (req, res) => {
+walletRouter.post('/mint-tokens',
+  body('token').isString(),
+  body('amount').isInt(),
+  body('address').isString().optional(),
+  body('change_address').isString().optional(),
+  (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
   const wallet = req.wallet;
   const token = req.body.token;
   const amount = parseInt(req.body.amount);
@@ -334,7 +396,16 @@ walletRouter.post('/mint-tokens', (req, res) => {
  * POST request to melt tokens
  * For the docs, see api-docs.js
  */
-walletRouter.post('/melt-tokens', (req, res) => {
+walletRouter.post('/melt-tokens',
+  body('token').isString(),
+  body('amount').isInt(),
+  body('change_address').isString().optional(),
+  body('deposit_address').isString().optional(),
+  (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
   const wallet = req.wallet;
   const token = req.body.token;
   const amount = parseInt(req.body.amount);
@@ -367,10 +438,9 @@ walletRouter.get(
   query('only_available').isBoolean().optional(),
   (req, res) => {
     try {
-      // Query parameters validation
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, error: errors.array() });
+      const validationResult = parametersValidation(req);
+      if (!validationResult.success) {
+        return res.status(400).json(validationResult);
       }
 
       const wallet = req.wallet;
@@ -401,9 +471,9 @@ walletRouter.post(
   async (req, res) => {
     try {
       // Body parameters validation
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, error: errors.array() });
+      const validationResult = parametersValidation(req);
+      if (!validationResult.success) {
+        return res.status(400).json(validationResult);
       }
 
       const wallet = req.wallet;
