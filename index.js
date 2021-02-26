@@ -6,12 +6,15 @@
  */
 
 import express from 'express';
+import morgan from 'morgan';
 import { Connection, HathorWallet, wallet as walletUtils, tokens } from '@hathor/wallet-lib';
 import { body, matchedData, query, validationResult } from 'express-validator';
 
 import config from './config';
 import apiDocs from './api-docs';
 import apiKeyAuth from './api-key-auth';
+import logger from './logger';
+import version from './version';
 
 const wallets = {};
 
@@ -25,6 +28,7 @@ const humanState = {
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(morgan('combined', { stream: logger.stream }));
 const walletRouter = express.Router({mergeParams: true})
 
 app.get('/', (req, res) => {
@@ -141,8 +145,6 @@ walletRouter.use((req, res, next) => {
     sendError('Wallet is not ready.', wallet.state)
     return;
   }
-
-  console.log('Received request to', req.originalUrl)
 
   // Adding to req parameter, so we don't need to get it in all requests
   req.wallet = wallet;
@@ -273,6 +275,10 @@ walletRouter.post('/send-tx', (req, res) => {
       const response = {success: false, error};
       if (debug) {
         response.debug = ret.debug;
+        logger.debug('/send-tx failed', {
+          body: req.body,
+          response: response,
+        });
       }
       res.send(response);
     });
@@ -280,6 +286,10 @@ walletRouter.post('/send-tx', (req, res) => {
     const response = {success: false, error: ret.message};
     if (debug) {
       response.debug = ret.debug;
+      logger.debug('/send-tx failed', {
+        body: req.body,
+        response: response
+      });
     }
     res.send(response);
   }
@@ -437,8 +447,19 @@ if (config.http_api_key) {
 }
 app.use('/wallet', walletRouter);
 
-app.listen(config.http_port, config.http_bind_address, () => {
-  console.log(`Hathor Wallet listening on ${config.http_bind_address}:${config.http_port}...`);
+console.log('Starting Hathor Wallet...', {
+  wallet: version,
+  version: process.version,
+  platform: process.platform,
+  pid: process.pid,
+});
+
+console.log('Configuration...', {
+  network: config.network,
+  server: config.server,
+  tokenUid: config.tokenUid,
+  gapLimit: config.gapLimit,
+  connectionTimeout: config.connectionTimeout,
 });
 
 if (config.gapLimit) {
@@ -446,3 +467,6 @@ if (config.gapLimit) {
   walletUtils.setGapLimit(config.gapLimit);
 }
 
+app.listen(config.http_port, config.http_bind_address, () => {
+  console.log(`Listening on ${config.http_bind_address}:${config.http_port}...`);
+});
