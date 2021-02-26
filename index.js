@@ -8,7 +8,7 @@
 import express from 'express';
 import morgan from 'morgan';
 import { Connection, HathorWallet, wallet as walletUtils, tokens } from '@hathor/wallet-lib';
-import { body, matchedData, query, validationResult } from 'express-validator';
+import { body, checkSchema, matchedData, query, validationResult } from 'express-validator';
 
 import config from './config';
 import apiDocs from './api-docs';
@@ -261,13 +261,45 @@ walletRouter.get('/tx-history',
  * For the docs, see api-docs.js
  */
 walletRouter.post('/simple-send-tx',
-  body('address').isString(),
-  body('value').isInt(),
-  body('change_address').isString().optional(),
-  body('token').isObject().optional(),
-  body('token.name').isString(),
-  body('token.symbol').isString(),
-  body('token.uid').isString(),
+  checkSchema({
+    address: {
+      in: ['body'],
+      isString: true
+    },
+    value: {
+      in: ['body'],
+      isInt: true
+    },
+    'change_address': {
+      in: ['body'],
+      isString: true,
+      optional: true
+    },
+    token: {
+      in: ['body'],
+      isObject: true,
+      optional: true,
+      custom: {
+        options: (value, { req, location, path }) => {
+          if (!('name' in value) || !(typeof value.name === 'string')) {
+            return false;
+          }
+          if (!('uid' in value) || !(typeof value.uid === 'string')) {
+            return false;
+          }
+          if (!('symbol' in value) || !(typeof value.symbol === 'string')) {
+            return false;
+          }
+          return true;
+        }
+      }
+    },
+    debug: {
+      in: ['body'],
+      isBoolean: true,
+      optional: true,
+    }
+  }),
   (req, res) => {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
