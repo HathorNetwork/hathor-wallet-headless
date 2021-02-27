@@ -268,7 +268,11 @@ walletRouter.post('/simple-send-tx',
     },
     value: {
       in: ['body'],
-      isInt: true
+      isInt: {
+        options: {
+          min: 1
+        }
+      }
     },
     'change_address': {
       in: ['body'],
@@ -288,6 +292,9 @@ walletRouter.post('/simple-send-tx',
             return false;
           }
           if (!('symbol' in value) || !(typeof value.symbol === 'string')) {
+            return false;
+          }
+          if (!value.name || !value.uid || !value.symbol) {
             return false;
           }
           return true;
@@ -327,7 +334,80 @@ walletRouter.post('/simple-send-tx',
  * POST request to send a transaction with many outputs and inputs selection
  * For the docs, see api-docs.js
  */
-walletRouter.post('/send-tx', (req, res) => {
+walletRouter.post('/send-tx',
+  checkSchema({
+    outputs: {
+      in: ['body'],
+      isArray: true,
+    },
+    'outputs.*.address': {
+      in: ['body'],
+      isString: true,
+    },
+    'outputs.*.value': {
+      in: ['body'],
+      isInt: {
+        options: {
+          min: 1
+        }
+      }
+    },
+    inputs: {
+      in: ['body'],
+      isArray: true,
+      optional: true,
+    },
+    'inputs.*': {
+      in: ['body'],
+      custom: {
+        options: (value, { req, location, path }) => {
+          if (!('hash' in value) || !(typeof value.hash === 'string')) {
+            return false;
+          }
+          if (!('index' in value) || !(/^\d+$/.test(value.index))) {
+            return false;
+          }
+          if (!value.hash) {
+            // the regex in value.index already test for empty string
+            return false;
+          }
+          return true;
+        }
+      }
+    },
+    token: {
+      in: ['body'],
+      isObject: true,
+      optional: true,
+      custom: {
+        options: (value, { req, location, path }) => {
+          if (!('name' in value) || !(typeof value.name === 'string')) {
+            return false;
+          }
+          if (!('uid' in value) || !(typeof value.uid === 'string')) {
+            return false;
+          }
+          if (!('symbol' in value) || !(typeof value.symbol === 'string')) {
+            return false;
+          }
+          if (!value.name || !value.uid || !value.symbol) {
+            return false;
+          }
+          return true;
+        }
+      }
+    },
+    debug: {
+      in: ['body'],
+      isBoolean: true,
+      optional: true,
+    }
+  }),
+  (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
   const wallet = req.wallet;
   const outputs = req.body.outputs;
   // Expects array of objects with {'hash', 'index'}
@@ -377,7 +457,7 @@ walletRouter.post('/send-tx', (req, res) => {
 walletRouter.post('/create-token',
   body('name').isString(),
   body('symbol').isString(),
-  body('amount').isInt(),
+  body('amount').isInt({ min: 1 }),
   body('address').isString().optional(),
   body('change_address').isString().optional(),
   (req, res) => {
@@ -409,7 +489,7 @@ walletRouter.post('/create-token',
  */
 walletRouter.post('/mint-tokens',
   body('token').isString(),
-  body('amount').isInt(),
+  body('amount').isInt({ min: 1 }),
   body('address').isString().optional(),
   body('change_address').isString().optional(),
   (req, res) => {
@@ -440,7 +520,7 @@ walletRouter.post('/mint-tokens',
  */
 walletRouter.post('/melt-tokens',
   body('token').isString(),
-  body('amount').isInt(),
+  body('amount').isInt({ min: 1 }),
   body('change_address').isString().optional(),
   body('deposit_address').isString().optional(),
   (req, res) => {
