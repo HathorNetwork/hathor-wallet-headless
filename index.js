@@ -259,6 +259,11 @@ walletRouter.get('/tx-history',
 /**
  * POST request to send a transaction with only one output
  * For the docs, see api-docs.js
+ *
+ * For this API we use checkSchema for parameter validation because we have
+ * objects that are optionals. For those objects, there is no easy way to validate saying that
+ * the objects is optional but if presented, the fields on it must be required.
+ * To achieve this validation we must create a custom validator.
  */
 walletRouter.post('/simple-send-tx',
   checkSchema({
@@ -333,6 +338,11 @@ walletRouter.post('/simple-send-tx',
 /**
  * POST request to send a transaction with many outputs and inputs selection
  * For the docs, see api-docs.js
+ *
+ * For this API we use checkSchema for parameter validation because we have
+ * objects that are optionals. For those objects, there is no easy way to validate saying that
+ * the objects is optional but if presented, the fields on it must be required.
+ * To achieve this validation we must create a custom validator.
  */
 walletRouter.post('/send-tx',
   checkSchema({
