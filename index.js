@@ -226,6 +226,21 @@ walletRouter.get('/tx-history', (req, res) => {
 });
 
 /**
+ * GET request to get a transaction from the wallet
+ * For the docs, see api-docs.js
+ */
+walletRouter.get('/transaction', (req, res) => {
+  const wallet = req.wallet;
+  const id = req.query.id;
+  const tx = wallet.getTx(id);
+  if (tx) {
+    res.send(tx);
+  } else {
+    res.send({success: false, error: `Wallet does not contain transaction with id ${id}`});
+  }
+});
+
+/**
  * POST request to send a transaction with only one output
  * For the docs, see api-docs.js
  */
