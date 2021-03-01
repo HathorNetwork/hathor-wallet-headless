@@ -836,6 +836,58 @@ const apiDoc = {
         },
       },
     },
+    '/wallet/transaction': {
+      get: {
+        summary: 'Return the data of a transaction, if it exists in the wallet',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            'in': 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'id',
+            'in': 'query',
+            description: 'Transaction id (hash) to get data.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Return the transaction data',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {"tx_id":"0000340349f9342c4e5eda6f818697f6c1748a81e2ff4b67bc2211d7f8761b11","version":1,"timestamp":1578430704,"is_voided":false,"inputs":[{"value":1,"token_data":0,"script":"dqkU98E1NAiRn3fV4nBm1S3e5pPssF+IrA==","decoded":{"type":"P2PKH","address":"HV78k3MkUmt6no59cV1kCJzo2CfPXGNmRv","timelock":null},"token":"00","tx_id":"00000a6d244e17e22969f2c2ef339a557bc96540bbbef1350c26c445291e5430","index":1},{"value":2,"token_data":0,"script":"dqkUje1HF10tIOWS36q73Rpbud3BcAyIrA==","decoded":{"type":"P2PKH","address":"HKTZujeJEBeM22UmRWkuKJaDnzbAfFzwRe","timelock":null},"token":"00","tx_id":"0000276ec988df605b56072065f1b9f2395966a3c7c17c692078b2bca43fad8c","index":1}],"outputs":[{"value":3,"token_data":0,"script":"dqkUJdUWQm2UfnCXkwoSj7/2SNmjt5+IrA==","decoded":{"type":"P2PKH","address":"H9yAeyxwA7zbpovZZTkpqWJZYsE4hHnvmP","timelock":null},"token":"00","spent_by":"000008d7e62d394be9b07c0fe9c69b289e44dbe1350e2100c169fc030ac936ff"}],"parents":["0000276ec988df605b56072065f1b9f2395966a3c7c17c692078b2bca43fad8c","00000a6d244e17e22969f2c2ef339a557bc96540bbbef1350c26c445291e5430"]}
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: {"success":false,"message":"Wallet is not ready.","state":1}
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: {"success":false,"message":"Parameter 'wallet-id' is required."}
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: {"success":false,"message":"Invalid wallet-id parameter."}
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     '/wallet/tx-history': {
       get: {
         summary: 'Return the transaction history',
