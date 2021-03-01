@@ -6,12 +6,15 @@
  */
 
 import express from 'express';
+import morgan from 'morgan';
 import { Connection, HathorWallet, wallet as walletUtils, tokens } from '@hathor/wallet-lib';
-import { body, matchedData, query, validationResult } from 'express-validator';
+import { body, checkSchema, matchedData, query, validationResult } from 'express-validator';
 
 import config from './config';
 import apiDocs from './api-docs';
 import apiKeyAuth from './api-key-auth';
+import logger from './logger';
+import version from './version';
 
 const wallets = {};
 
@@ -25,7 +28,19 @@ const humanState = {
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(morgan('combined', { stream: logger.stream }));
 const walletRouter = express.Router({mergeParams: true})
+
+const parametersValidation = (req) => {
+  // Parameters validation
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return {success: false, error: errors.array()};
+  } else {
+    return {success: true};
+  }
+
+}
 
 app.get('/', (req, res) => {
   res.send('<html><body><h1>Welcome to Hathor Wallet API!</h1><p>See the <a href="docs/">docs</a></p></body></html>');
@@ -142,8 +157,6 @@ walletRouter.use((req, res, next) => {
     return;
   }
 
-  console.log('Received request to', req.originalUrl)
-
   // Adding to req parameter, so we don't need to get it in all requests
   req.wallet = wallet;
   req.walletId = walletId;
@@ -169,7 +182,14 @@ walletRouter.get('/status', (req, res) => {
  * GET request to get the balance of a wallet
  * For the docs, see api-docs.js
  */
-walletRouter.get('/balance', (req, res) => {
+walletRouter.get(
+  '/balance',
+  query('token').isString().optional(),
+  (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
   const wallet = req.wallet;
   // Expects token uid
   const token = req.query.token || null;
@@ -181,7 +201,14 @@ walletRouter.get('/balance', (req, res) => {
  * GET request to get an address of a wallet
  * For the docs, see api-docs.js
  */
-walletRouter.get('/address', (req, res) => {
+walletRouter.get('/address',
+  query('index').isInt().optional(),
+  query('mark_as_used').isBoolean().optional(),
+  (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
   const wallet = req.wallet;
   const index = req.query.index || null;
   let address;
@@ -209,8 +236,14 @@ walletRouter.get('/addresses', (req, res) => {
  * GET request to get the transaction history of a wallet
  * For the docs, see api-docs.js
  */
-walletRouter.get('/tx-history', (req, res) => {
+walletRouter.get('/tx-history',
+  query('limit').isInt().optional(),
+  (req, res) => {
   // TODO Add pagination
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
   const wallet = req.wallet;
   const limit = req.query.limit || null;
   const history = wallet.getTxHistory();
@@ -224,10 +257,87 @@ walletRouter.get('/tx-history', (req, res) => {
 });
 
 /**
- * POST request to send a transaction with only one output
+ * GET request to get a transaction from the wallet
  * For the docs, see api-docs.js
  */
-walletRouter.post('/simple-send-tx', (req, res) => {
+walletRouter.get('/transaction',
+  query('id').isString(),
+  (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
+  const wallet = req.wallet;
+  const id = req.query.id;
+  const tx = wallet.getTx(id);
+  if (tx) {
+    res.send(tx);
+  } else {
+    res.send({success: false, error: `Wallet does not contain transaction with id ${id}`});
+  }
+});
+
+/**
+ * POST request to send a transaction with only one output
+ * For the docs, see api-docs.js
+ *
+ * For this API we use checkSchema for parameter validation because we have
+ * objects that are optionals. For those objects, there is no easy way to validate saying that
+ * the objects is optional but if presented, the fields on it must be required.
+ * To achieve this validation we must create a custom validator.
+ */
+walletRouter.post('/simple-send-tx',
+  checkSchema({
+    address: {
+      in: ['body'],
+      isString: true
+    },
+    value: {
+      in: ['body'],
+      isInt: {
+        options: {
+          min: 1
+        }
+      }
+    },
+    'change_address': {
+      in: ['body'],
+      isString: true,
+      optional: true
+    },
+    token: {
+      in: ['body'],
+      isObject: true,
+      optional: true,
+      custom: {
+        options: (value, { req, location, path }) => {
+          if (!('name' in value) || !(typeof value.name === 'string')) {
+            return false;
+          }
+          if (!('uid' in value) || !(typeof value.uid === 'string')) {
+            return false;
+          }
+          if (!('symbol' in value) || !(typeof value.symbol === 'string')) {
+            return false;
+          }
+          if (!value.name || !value.uid || !value.symbol) {
+            return false;
+          }
+          return true;
+        }
+      }
+    },
+    debug: {
+      in: ['body'],
+      isBoolean: true,
+      optional: true,
+    }
+  }),
+  (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
   const wallet = req.wallet;
   const address = req.body.address;
   const value = parseInt(req.body.value);
@@ -249,8 +359,86 @@ walletRouter.post('/simple-send-tx', (req, res) => {
 /**
  * POST request to send a transaction with many outputs and inputs selection
  * For the docs, see api-docs.js
+ *
+ * For this API we use checkSchema for parameter validation because we have
+ * objects that are optionals. For those objects, there is no easy way to validate saying that
+ * the objects is optional but if presented, the fields on it must be required.
+ * To achieve this validation we must create a custom validator.
  */
-walletRouter.post('/send-tx', (req, res) => {
+walletRouter.post('/send-tx',
+  checkSchema({
+    outputs: {
+      in: ['body'],
+      isArray: true,
+    },
+    'outputs.*.address': {
+      in: ['body'],
+      isString: true,
+    },
+    'outputs.*.value': {
+      in: ['body'],
+      isInt: {
+        options: {
+          min: 1
+        }
+      }
+    },
+    inputs: {
+      in: ['body'],
+      isArray: true,
+      optional: true,
+    },
+    'inputs.*': {
+      in: ['body'],
+      custom: {
+        options: (value, { req, location, path }) => {
+          if (!('hash' in value) || !(typeof value.hash === 'string')) {
+            return false;
+          }
+          if (!('index' in value) || !(/^\d+$/.test(value.index))) {
+            return false;
+          }
+          if (!value.hash) {
+            // the regex in value.index already test for empty string
+            return false;
+          }
+          return true;
+        }
+      }
+    },
+    token: {
+      in: ['body'],
+      isObject: true,
+      optional: true,
+      custom: {
+        options: (value, { req, location, path }) => {
+          if (!('name' in value) || !(typeof value.name === 'string')) {
+            return false;
+          }
+          if (!('uid' in value) || !(typeof value.uid === 'string')) {
+            return false;
+          }
+          if (!('symbol' in value) || !(typeof value.symbol === 'string')) {
+            return false;
+          }
+          if (!value.name || !value.uid || !value.symbol) {
+            return false;
+          }
+          return true;
+        }
+      }
+    },
+    debug: {
+      in: ['body'],
+      isBoolean: true,
+      optional: true,
+    }
+  }),
+  (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
   const wallet = req.wallet;
   const outputs = req.body.outputs;
   // Expects array of objects with {'hash', 'index'}
@@ -273,6 +461,10 @@ walletRouter.post('/send-tx', (req, res) => {
       const response = {success: false, error};
       if (debug) {
         response.debug = ret.debug;
+        logger.debug('/send-tx failed', {
+          body: req.body,
+          response: response,
+        });
       }
       res.send(response);
     });
@@ -280,6 +472,10 @@ walletRouter.post('/send-tx', (req, res) => {
     const response = {success: false, error: ret.message};
     if (debug) {
       response.debug = ret.debug;
+      logger.debug('/send-tx failed', {
+        body: req.body,
+        response: response
+      });
     }
     res.send(response);
   }
@@ -289,7 +485,17 @@ walletRouter.post('/send-tx', (req, res) => {
  * POST request to create a token
  * For the docs, see api-docs.js
  */
-walletRouter.post('/create-token', (req, res) => {
+walletRouter.post('/create-token',
+  body('name').isString(),
+  body('symbol').isString(),
+  body('amount').isInt({ min: 1 }),
+  body('address').isString().optional(),
+  body('change_address').isString().optional(),
+  (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
   const wallet = req.wallet;
   const name = req.body.name;
   const symbol = req.body.symbol;
@@ -312,7 +518,16 @@ walletRouter.post('/create-token', (req, res) => {
  * POST request to mint tokens
  * For the docs, see api-docs.js
  */
-walletRouter.post('/mint-tokens', (req, res) => {
+walletRouter.post('/mint-tokens',
+  body('token').isString(),
+  body('amount').isInt({ min: 1 }),
+  body('address').isString().optional(),
+  body('change_address').isString().optional(),
+  (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
   const wallet = req.wallet;
   const token = req.body.token;
   const amount = parseInt(req.body.amount);
@@ -334,7 +549,16 @@ walletRouter.post('/mint-tokens', (req, res) => {
  * POST request to melt tokens
  * For the docs, see api-docs.js
  */
-walletRouter.post('/melt-tokens', (req, res) => {
+walletRouter.post('/melt-tokens',
+  body('token').isString(),
+  body('amount').isInt({ min: 1 }),
+  body('change_address').isString().optional(),
+  body('deposit_address').isString().optional(),
+  (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
   const wallet = req.wallet;
   const token = req.body.token;
   const amount = parseInt(req.body.amount);
@@ -367,10 +591,9 @@ walletRouter.get(
   query('only_available').isBoolean().optional(),
   (req, res) => {
     try {
-      // Query parameters validation
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, error: errors.array() });
+      const validationResult = parametersValidation(req);
+      if (!validationResult.success) {
+        return res.status(400).json(validationResult);
       }
 
       const wallet = req.wallet;
@@ -401,9 +624,9 @@ walletRouter.post(
   async (req, res) => {
     try {
       // Body parameters validation
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, error: errors.array() });
+      const validationResult = parametersValidation(req);
+      if (!validationResult.success) {
+        return res.status(400).json(validationResult);
       }
 
       const wallet = req.wallet;
@@ -437,8 +660,19 @@ if (config.http_api_key) {
 }
 app.use('/wallet', walletRouter);
 
-app.listen(config.http_port, config.http_bind_address, () => {
-  console.log(`Hathor Wallet listening on ${config.http_bind_address}:${config.http_port}...`);
+console.log('Starting Hathor Wallet...', {
+  wallet: version,
+  version: process.version,
+  platform: process.platform,
+  pid: process.pid,
+});
+
+console.log('Configuration...', {
+  network: config.network,
+  server: config.server,
+  tokenUid: config.tokenUid,
+  gapLimit: config.gapLimit,
+  connectionTimeout: config.connectionTimeout,
 });
 
 if (config.gapLimit) {
@@ -446,3 +680,6 @@ if (config.gapLimit) {
   walletUtils.setGapLimit(config.gapLimit);
 }
 
+app.listen(config.http_port, config.http_bind_address, () => {
+  console.log(`Listening on ${config.http_bind_address}:${config.http_port}...`);
+});
