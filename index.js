@@ -260,7 +260,13 @@ walletRouter.get('/tx-history',
  * GET request to get a transaction from the wallet
  * For the docs, see api-docs.js
  */
-walletRouter.get('/transaction', (req, res) => {
+walletRouter.get('/transaction',
+  query('id').isString(),
+  (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
   const wallet = req.wallet;
   const id = req.query.id;
   const tx = wallet.getTx(id);
