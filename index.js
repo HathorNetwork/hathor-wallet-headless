@@ -202,7 +202,7 @@ walletRouter.get(
  * For the docs, see api-docs.js
  */
 walletRouter.get('/address',
-  query('index').isInt().optional(),
+  query('index').isInt().optional().toInt(),
   query('mark_as_used').isBoolean().optional(),
   (req, res) => {
   const validationResult = parametersValidation(req);
@@ -213,7 +213,7 @@ walletRouter.get('/address',
   const index = req.query.index || null;
   let address;
   if (index !== null) {
-    address = wallet.getAddressAtIndex(parseInt(index));
+    address = wallet.getAddressAtIndex(index);
   } else {
     const markAsUsed = req.query.mark_as_used || false;
     address = wallet.getCurrentAddress({markAsUsed});
@@ -237,7 +237,7 @@ walletRouter.get('/addresses', (req, res) => {
  * For the docs, see api-docs.js
  */
 walletRouter.get('/tx-history',
-  query('limit').isInt().optional(),
+  query('limit').isInt().optional().toInt(),
   (req, res) => {
   // TODO Add pagination
   const validationResult = parametersValidation(req);
@@ -298,7 +298,8 @@ walletRouter.post('/simple-send-tx',
         options: {
           min: 1
         }
-      }
+      },
+      toInt: true
     },
     'change_address': {
       in: ['body'],
@@ -340,7 +341,7 @@ walletRouter.post('/simple-send-tx',
   }
   const wallet = req.wallet;
   const address = req.body.address;
-  const value = parseInt(req.body.value);
+  const value = req.body.value;
   // Expects object with {'uid', 'name', 'symbol'}
   const token = req.body.token || null;
   const changeAddress = req.body.change_address || null;
@@ -381,7 +382,8 @@ walletRouter.post('/send-tx',
         options: {
           min: 1
         }
-      }
+      },
+      toInt: true
     },
     inputs: {
       in: ['body'],
@@ -488,7 +490,7 @@ walletRouter.post('/send-tx',
 walletRouter.post('/create-token',
   body('name').isString(),
   body('symbol').isString(),
-  body('amount').isInt({ min: 1 }),
+  body('amount').isInt({ min: 1 }).toInt(),
   body('address').isString().optional(),
   body('change_address').isString().optional(),
   (req, res) => {
@@ -499,7 +501,7 @@ walletRouter.post('/create-token',
   const wallet = req.wallet;
   const name = req.body.name;
   const symbol = req.body.symbol;
-  const amount = parseInt(req.body.amount);
+  const amount = req.body.amount;
   const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
   const ret = wallet.createNewToken(name, symbol, amount, address, { changeAddress });
@@ -520,7 +522,7 @@ walletRouter.post('/create-token',
  */
 walletRouter.post('/mint-tokens',
   body('token').isString(),
-  body('amount').isInt({ min: 1 }),
+  body('amount').isInt({ min: 1 }).toInt(),
   body('address').isString().optional(),
   body('change_address').isString().optional(),
   (req, res) => {
@@ -530,7 +532,7 @@ walletRouter.post('/mint-tokens',
   }
   const wallet = req.wallet;
   const token = req.body.token;
-  const amount = parseInt(req.body.amount);
+  const amount = req.body.amount;
   const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
   const ret = wallet.mintTokens(token, amount, address, { changeAddress });
@@ -551,7 +553,7 @@ walletRouter.post('/mint-tokens',
  */
 walletRouter.post('/melt-tokens',
   body('token').isString(),
-  body('amount').isInt({ min: 1 }),
+  body('amount').isInt({ min: 1 }).toInt(),
   body('change_address').isString().optional(),
   body('deposit_address').isString().optional(),
   (req, res) => {
@@ -561,7 +563,7 @@ walletRouter.post('/melt-tokens',
   }
   const wallet = req.wallet;
   const token = req.body.token;
-  const amount = parseInt(req.body.amount);
+  const amount = req.body.amount;
   const changeAddress = req.body.change_address || null;
   const depositAddress = req.body.deposit_address || null;
   const ret = wallet.meltTokens(token, amount, { depositAddress, changeAddress });
@@ -582,12 +584,12 @@ walletRouter.post('/melt-tokens',
  */
 walletRouter.get(
   '/utxo-filter',
-  query('max_utxos').isInt().optional(),
+  query('max_utxos').isInt().optional().toInt(),
   query('token').isString().optional(),
   query('filter_address').isString().optional(),
-  query('amount_smaller_than').isInt().optional(),
-  query('amount_bigger_than').isInt().optional(),
-  query('maximum_amount').isInt().optional(),
+  query('amount_smaller_than').isInt().optional().toInt(),
+  query('amount_bigger_than').isInt().optional().toInt(),
+  query('maximum_amount').isInt().optional().toInt(),
   query('only_available').isBoolean().optional(),
   (req, res) => {
     try {
@@ -615,12 +617,12 @@ walletRouter.get(
 walletRouter.post(
   '/utxo-consolidation',
   body('destination_address').isString(),
-  body('max_utxos').isInt().optional(),
+  body('max_utxos').isInt().optional().toInt(),
   body('token').isString().optional(),
   body('filter_address').isString().optional(),
-  body('amount_smaller_than').isInt().optional(),
-  body('amount_bigger_than').isInt().optional(),
-  body('maximum_amount').isInt().optional(),
+  body('amount_smaller_than').isInt().optional().toInt(),
+  body('amount_bigger_than').isInt().optional().toInt(),
+  body('maximum_amount').isInt().optional().toInt(),
   async (req, res) => {
     try {
       // Body parameters validation
