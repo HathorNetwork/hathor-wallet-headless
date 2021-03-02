@@ -16,6 +16,38 @@ import apiKeyAuth from './api-key-auth';
 import logger from './logger';
 import version from './version';
 
+let sendingTx = false;
+let unmarkTxAsSending = null;
+
+const UNMARK_SEND_TX_TIMEOUT = 2 * 60 * 1000; // 2 minutes
+
+const unmarkSendTx = () => {
+  sendingTx = false;
+  if (unmarkTxAsSending) {
+    clearTimeout(unmarkTxAsSending);
+    unmarkTxAsSending = null;
+  }
+}
+
+const startSendTx = () => {
+  if (sendingTx) {
+    return false;
+  }
+
+  sendingTx = true;
+
+  if (unmarkTxAsSending) {
+    clearTimeout(unmarkTxAsSending);
+    unmarkTxAsSending = null;
+  }
+
+  unmarkTxAsSending = setTimeout(() => {
+    unmarkSendTx();
+  }, UNMARK_SEND_TX_TIMEOUT);
+
+  return true;
+}
+
 const wallets = {};
 
 const humanState = {
@@ -338,6 +370,13 @@ walletRouter.post('/simple-send-tx',
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
   }
+
+  const canStart = startSendTx();
+  if (!canStart) {
+    res.send({success: false, error: 'You already have a transaction being sent. Please wait until it\'s done to send another.'});
+    return;
+  }
+
   const wallet = req.wallet;
   const address = req.body.address;
   const value = parseInt(req.body.value);
@@ -348,11 +387,14 @@ walletRouter.post('/simple-send-tx',
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
-    }, (error) => {
+    }).catch((error) => {
       res.send({success: false, error});
+    }).finally(() => {
+      unmarkSendTx();
     });
   } else {
     res.send({success: false, error: ret.message});
+    unmarkSendTx();
   }
 });
 
@@ -439,6 +481,13 @@ walletRouter.post('/send-tx',
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
   }
+
+  const canStart = startSendTx();
+  if (!canStart) {
+    res.send({success: false, error: 'You already have a transaction being sent. Please wait until it\'s done to send another.'});
+    return;
+  }
+
   const wallet = req.wallet;
   const outputs = req.body.outputs;
   // Expects array of objects with {'hash', 'index'}
@@ -457,7 +506,7 @@ walletRouter.post('/send-tx',
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
-    }, (error) => {
+    }).catch((error) => {
       const response = {success: false, error};
       if (debug) {
         response.debug = ret.debug;
@@ -467,6 +516,8 @@ walletRouter.post('/send-tx',
         });
       }
       res.send(response);
+    }).finally(() => {
+      unmarkSendTx();
     });
   } else {
     const response = {success: false, error: ret.message};
@@ -478,6 +529,7 @@ walletRouter.post('/send-tx',
       });
     }
     res.send(response);
+    unmarkSendTx();
   }
 });
 
