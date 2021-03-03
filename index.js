@@ -203,7 +203,7 @@ walletRouter.get(
  */
 walletRouter.get('/address',
   query('index').isInt().optional().toInt(),
-  query('mark_as_used').isBoolean().optional(),
+  query('mark_as_used').isBoolean().optional().toBoolean(),
   (req, res) => {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
@@ -327,11 +327,6 @@ walletRouter.post('/simple-send-tx',
           return true;
         }
       }
-    },
-    debug: {
-      in: ['body'],
-      isBoolean: true,
-      optional: true,
     }
   }),
   (req, res) => {
@@ -392,12 +387,14 @@ walletRouter.post('/send-tx',
     },
     'inputs.*': {
       in: ['body'],
+      isObject: true,
       custom: {
         options: (value, { req, location, path }) => {
           if (!('hash' in value) || !(typeof value.hash === 'string')) {
             return false;
           }
           if (!('index' in value) || !(/^\d+$/.test(value.index))) {
+            // Test that index is required and it's an integer
             return false;
           }
           if (!value.hash) {
@@ -405,6 +402,12 @@ walletRouter.post('/send-tx',
             return false;
           }
           return true;
+        }
+      },
+      customSanitizer: {
+        options: (value) => {
+          const sanitizedValue = Object.assign({}, value, {index: parseInt(value.index)});
+          return sanitizedValue;
         }
       }
     },
@@ -433,6 +436,7 @@ walletRouter.post('/send-tx',
     debug: {
       in: ['body'],
       isBoolean: true,
+      toBoolean: true,
       optional: true,
     }
   }),
@@ -590,7 +594,7 @@ walletRouter.get(
   query('amount_smaller_than').isInt().optional().toInt(),
   query('amount_bigger_than').isInt().optional().toInt(),
   query('maximum_amount').isInt().optional().toInt(),
-  query('only_available').isBoolean().optional(),
+  query('only_available').isBoolean().optional().toBoolean(),
   (req, res) => {
     try {
       const validationResult = parametersValidation(req);
