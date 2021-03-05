@@ -15,54 +15,10 @@ import apiDocs from './api-docs';
 import apiKeyAuth from './api-key-auth';
 import logger from './logger';
 import version from './version';
+import lock from './lock';
 
-// Variable that saves when a tx is being sent
-// We don't support sending multiples transactions concurrently
-// so we use this to prevent a user from sending multiples requests
-// while the first was not finished
-let sendingTx = false;
-
-// Variable to store the setTimeout return for unmark sending tx
-let unmarkTxAsSending = null;
-
+// Error message when the user tries to send a transaction while the lock is active
 const cantSendTxErrorMessage = 'You already have a transaction being sent. Please wait until it\'s done to send another.';
-
-// Timeout to unmark the variable sendingTx
-const UNMARK_SEND_TX_TIMEOUT = 2 * 60 * 1000; // 2 minutes
-
-// Set sendingTx to false and clear the setTimeout
-// this method is called when we finish a request the sends a transaction
-const unmarkSendTx = () => {
-  sendingTx = false;
-  if (unmarkTxAsSending) {
-    clearTimeout(unmarkTxAsSending);
-    unmarkTxAsSending = null;
-  }
-}
-
-// Starts a request that sends a transaction
-// If sendingTx is true, we return false, which means that another request
-// that also sends a tx is unfinished
-// Otherwise we set sendingTx = true, clear any old setTimeout variable
-// and create a new setTimeout to clean this sendingTx for extra protection in case of a problem
-const startSendTx = () => {
-  if (sendingTx) {
-    return false;
-  }
-
-  sendingTx = true;
-
-  if (unmarkTxAsSending) {
-    clearTimeout(unmarkTxAsSending);
-    unmarkTxAsSending = null;
-  }
-
-  unmarkTxAsSending = setTimeout(() => {
-    unmarkSendTx();
-  }, UNMARK_SEND_TX_TIMEOUT);
-
-  return true;
-}
 
 const wallets = {};
 
@@ -383,7 +339,7 @@ walletRouter.post('/simple-send-tx',
     return res.status(400).json(validationResult);
   }
 
-  const canStart = startSendTx();
+  const canStart = lock.startLock(lock.SENDING_TX);
   if (!canStart) {
     res.send({success: false, error: cantSendTxErrorMessage});
     return;
@@ -402,11 +358,11 @@ walletRouter.post('/simple-send-tx',
     }).catch((error) => {
       res.send({success: false, error});
     }).finally(() => {
-      unmarkSendTx();
+      lock.unlockStatus(lock.SENDING_TX);
     });
   } else {
     res.send({success: false, error: ret.message});
-    unmarkSendTx();
+    lock.unlockStatus(lock.SENDING_TX);
   }
 });
 
@@ -504,7 +460,7 @@ walletRouter.post('/send-tx',
     return res.status(400).json(validationResult);
   }
 
-  const canStart = startSendTx();
+  const canStart = lock.startLock(lock.SENDING_TX);
   if (!canStart) {
     res.send({success: false, error: cantSendTxErrorMessage});
     return;
@@ -539,7 +495,7 @@ walletRouter.post('/send-tx',
       }
       res.send(response);
     }).finally(() => {
-      unmarkSendTx();
+      lock.unlockStatus(lock.SENDING_TX);
     });
   } else {
     const response = {success: false, error: ret.message};
@@ -551,7 +507,7 @@ walletRouter.post('/send-tx',
       });
     }
     res.send(response);
-    unmarkSendTx();
+    lock.unlockStatus(lock.SENDING_TX);
   }
 });
 
@@ -571,7 +527,7 @@ walletRouter.post('/create-token',
     return res.status(400).json(validationResult);
   }
 
-  const canStart = startSendTx();
+  const canStart = lock.startLock(lock.SENDING_TX);
   if (!canStart) {
     res.send({success: false, error: cantSendTxErrorMessage});
     return;
@@ -590,11 +546,11 @@ walletRouter.post('/create-token',
     }).catch((error) => {
       res.send({success: false, error});
     }).finally(() => {
-      unmarkSendTx();
+      lock.unlockStatus(lock.SENDING_TX);
     });
   } else {
     res.send({success: false, error: ret.message});
-    unmarkSendTx();
+    lock.unlockStatus(lock.SENDING_TX);
   }
 });
 
@@ -613,7 +569,7 @@ walletRouter.post('/mint-tokens',
     return res.status(400).json(validationResult);
   }
 
-  const canStart = startSendTx();
+  const canStart = lock.startLock(lock.SENDING_TX);
   if (!canStart) {
     res.send({success: false, error: cantSendTxErrorMessage});
     return;
@@ -631,11 +587,11 @@ walletRouter.post('/mint-tokens',
     }).catch((error) => {
       res.send({success: false, error});
     }).finally(() => {
-      unmarkSendTx();
+      lock.unlockStatus(lock.SENDING_TX);
     });
   } else {
     res.send({success: false, error: ret.message});
-    unmarkSendTx();
+    lock.unlockStatus(lock.SENDING_TX);
   }
 });
 
@@ -654,7 +610,7 @@ walletRouter.post('/melt-tokens',
     return res.status(400).json(validationResult);
   }
 
-  const canStart = startSendTx();
+  const canStart = lock.startLock(lock.SENDING_TX);
   if (!canStart) {
     res.send({success: false, error: cantSendTxErrorMessage});
     return;
@@ -672,11 +628,11 @@ walletRouter.post('/melt-tokens',
     }).catch((error) => {
       res.send({success: false, error});
     }).finally(() => {
-      unmarkSendTx();
+      lock.unlockStatus(lock.SENDING_TX);
     });
   } else {
     res.send({success: false, error: ret.message});
-    unmarkSendTx();
+    lock.unlockStatus(lock.SENDING_TX);
   }
 });
 
@@ -733,7 +689,7 @@ walletRouter.post(
         return res.status(400).json(validationResult);
       }
 
-      const canStart = startSendTx();
+      const canStart = lock.startLock(lock.SENDING_TX);
       if (!canStart) {
         res.send({success: false, error: cantSendTxErrorMessage});
         return;
@@ -749,7 +705,7 @@ walletRouter.post(
     } catch(error) {
       res.send({ success: false, error: error.message || error });
     } finally {
-      unmarkSendTx();
+      lock.unlockStatus(lock.SENDING_TX);
     }
   }
 );
