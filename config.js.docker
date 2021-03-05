@@ -1,0 +1,48 @@
+import yargs from 'yargs/yargs';
+import { hideBin } from 'yargs/helpers';
+
+const argv = yargs(hideBin(process.argv)).argv;
+
+function getParam(name, _default) {
+  const envname = 'HEADLESS_' + name.toUpperCase();
+  return argv[name] || process.env[envname] || _default;
+}
+
+const config = {
+  // HTTP API Settings
+  http_bind_address: getParam('http_bind', '0.0.0.0'),
+  http_port: parseInt(getParam('http_port', '8000')),
+
+  // Hathor Full-node
+  network: getParam('network', 'mainnet'),
+  server: getParam('server', 'https://node1.mainnet.hathor.network/v1a/'),
+
+  http_api_key: getParam('api_key'),
+
+  // Wallet seeds
+  seeds: {},
+
+  consoleLevel: getParam('console_level', 'info'),
+  logging: {},
+  tokenUid: getParam('token_uid'),
+  gapLimit: getParam('gap_limit'),
+  connectionTimeout: getParam('connection_timeout'),
+};
+
+const seeds = getParam('seeds', 'default').split(' ');
+for (const x of seeds) {
+  config.seeds[x] = getParam(`seed_${x}`);
+  if (!config.seeds[x]) {
+    throw `Missing parameter --seed_${x} or envvar HEADLESS_SEED_${x.toUpperCase()}`;
+  }
+}
+
+const debugPath = getParam('debug');
+if (debugPath) {
+  config.logging.debug = {
+    filename: debugPath,
+    level: 'debug',
+  };
+}
+
+export default config;

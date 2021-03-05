@@ -677,6 +677,7 @@ console.log('Configuration...', {
   network: config.network,
   server: config.server,
   tokenUid: config.tokenUid,
+  apiKey: config.http_api_key,
   gapLimit: config.gapLimit,
   connectionTimeout: config.connectionTimeout,
 });
