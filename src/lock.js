@@ -1,5 +1,5 @@
 /*
- * Lock class as a singleton to handle memory locks
+ * Lock class to handle memory locks
  * The lock is local and only works with one thread and no balance between multiple instances.
  * In those cases, we would need to add support for a distributed lock (e.g. using redis).
  */
@@ -61,6 +61,4 @@ class Lock {
 // while the first was not finished
 Lock.SENDING_TX = 0
 
-const instance = new Lock();
-
-export default instance;
+export default Lock;
