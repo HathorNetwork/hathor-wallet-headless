@@ -12,12 +12,13 @@
     "express": "^4.17.1",
     "express-validator": "^6.10.0",
     "morgan": "^1.10.0",
-    "winston": "^3.3.3"
+    "winston": "^3.3.3",
+    "yargs": "^16.2.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --exec babel-node index.js",
-    "start": "babel-node index.js",
+    "start": "babel-node src/index.js",
     "generate_words": "babel-node utils/generate_words.js"
   },
   "repository": {
