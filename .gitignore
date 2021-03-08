@@ -3,3 +3,7 @@
 config.js
 
 node_modules/
+
+coverage
+
+.DS_Store

@@ -1,16 +1,20 @@
-import app from "./server";
+/**
+ * Copyright (c) Hathor Labs and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+import express from 'express';
+import morgan from 'morgan';
+import { Connection, HathorWallet, wallet as walletUtils, tokens } from '@hathor/wallet-lib';
+import { body, checkSchema, matchedData, query, validationResult } from 'express-validator';
+
 import config from './config';
 import apiDocs from './api-docs';
 import apiKeyAuth from './api-key-auth';
 import logger from './logger';
 import version from './version';
-import { lock, lockTypes } from './lock';
-
-// Error message when the user tries to send a transaction while the lock is active
-const cantSendTxErrorMessage = 'You already have a transaction being sent. Please wait until it\'s done to send another.';
-
-// If config explicitly allows the /start endpoint to have a passphrase
-const allowPassphrase = config.allowPassphrase || false;
 
 const wallets = {};
 
@@ -19,13 +23,12 @@ const humanState = {
   [HathorWallet.CONNECTING]: 'Connecting',
   [HathorWallet.SYNCING]: 'Syncing',
   [HathorWallet.READY]: 'Ready',
-  [HathorWallet.ERROR]: 'Error',
 };
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan(config.httpLogFormat || 'combined', { stream: logger.stream }));
+app.use(morgan('combined', { stream: logger.stream }));
 const walletRouter = express.Router({mergeParams: true})
 
 const parametersValidation = (req) => {
@@ -95,15 +98,6 @@ app.post('/start', (req, res) => {
   // Passphrase is optional but if not passed as parameter
   // the wallet will use empty string
   if (req.body.passphrase) {
-    if (!allowPassphrase) {
-      // To use a passphrase on /start POST request the configuration of the headless must explicitly allow it
-      console.log('Failed to start wallet because using a passphrase is not allowed by the current config. See allowPassphrase.');
-      res.send({
-        success: false,
-        message: 'Failed to start wallet. To use a passphrase you must explicitly allow it in the configuration file. Using a passphrase completely changes the addresses of your wallet, only use it if you know what you are doing.',
-      });
-      return;
-    }
     walletConfig['passphrase'] = req.body.passphrase;
   }
   const walletID = req.body['wallet-id'];
@@ -141,8 +135,7 @@ walletRouter.use((req, res, next) => {
     res.send({
       success: false,
       message,
-      'statusCode': state,
-      'statusMessage': (state ? humanState[state] : ''),
+      state,
     });
   }
 
@@ -154,13 +147,13 @@ walletRouter.use((req, res, next) => {
 
   const walletId = req.headers['x-wallet-id'];
   if (!(walletId in wallets)) {
-    sendError('Invalid wallet id parameter.');
+    sendError('Invalid wallet id parameter.')
     return;
   }
 
   const wallet = wallets[walletId];
   if (!wallet.isReady()) {
-    sendError('Wallet is not ready.', wallet.state);
+    sendError('Wallet is not ready.', wallet.state)
     return;
   }
 
@@ -209,7 +202,7 @@ walletRouter.get(
  * For the docs, see api-docs.js
  */
 walletRouter.get('/address',
-  query('index').isInt({ min: 0 }).optional().toInt(),
+  query('index').isInt().optional().toInt(),
   query('mark_as_used').isBoolean().optional().toBoolean(),
   (req, res) => {
   const validationResult = parametersValidation(req);
@@ -217,38 +210,15 @@ walletRouter.get('/address',
     return res.status(400).json(validationResult);
   }
   const wallet = req.wallet;
-  const index = req.query.index;
+  const index = req.query.index || null;
   let address;
-  if (index !== undefined) {
-    // Because of isInt and toInt, it's safe to assume that index is now an integer >= 0
+  if (index !== null) {
     address = wallet.getAddressAtIndex(index);
   } else {
     const markAsUsed = req.query.mark_as_used || false;
     address = wallet.getCurrentAddress({markAsUsed});
   }
   res.send({ address });
-});
-
-/**
- * GET request to get an address index
- * For the docs, see api-docs.js
- */
-walletRouter.get('/address-index',
-  query('address').isString(),
-  (req, res) => {
-  const validationResult = parametersValidation(req);
-  if (!validationResult.success) {
-    return res.status(400).json(validationResult);
-  }
-  const wallet = req.wallet;
-  const address = req.query.address;
-  const index = wallet.getAddressIndex(address);
-  if (index === null) {
-    // Address does not belong to the wallet
-    res.send({ success: false });
-  } else {
-    res.send({ success: true, index });
-  }
 });
 
 /**
@@ -364,13 +334,6 @@ walletRouter.post('/simple-send-tx',
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
   }
-
-  const canStart = lock.lock(lockTypes.SEND_TX);
-  if (!canStart) {
-    res.send({success: false, error: cantSendTxErrorMessage});
-    return;
-  }
-
   const wallet = req.wallet;
   const address = req.body.address;
   const value = req.body.value;
@@ -381,14 +344,11 @@ walletRouter.post('/simple-send-tx',
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
-    }).catch((error) => {
+    }, (error) => {
       res.send({success: false, error});
-    }).finally(() => {
-      lock.unlock(lockTypes.SEND_TX);
     });
   } else {
     res.send({success: false, error: ret.message});
-    lock.unlock(lockTypes.SEND_TX);
   }
 });
 
@@ -485,13 +445,6 @@ walletRouter.post('/send-tx',
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
   }
-
-  const canStart = lock.lock(lockTypes.SEND_TX);
-  if (!canStart) {
-    res.send({success: false, error: cantSendTxErrorMessage});
-    return;
-  }
-
   const wallet = req.wallet;
   const outputs = req.body.outputs;
   // Expects array of objects with {'hash', 'index'}
@@ -510,7 +463,7 @@ walletRouter.post('/send-tx',
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
-    }).catch((error) => {
+    }, (error) => {
       const response = {success: false, error};
       if (debug) {
         response.debug = ret.debug;
@@ -520,8 +473,6 @@ walletRouter.post('/send-tx',
         });
       }
       res.send(response);
-    }).finally(() => {
-      lock.unlock(lockTypes.SEND_TX);
     });
   } else {
     const response = {success: false, error: ret.message};
@@ -533,7 +484,6 @@ walletRouter.post('/send-tx',
       });
     }
     res.send(response);
-    lock.unlock(lockTypes.SEND_TX);
   }
 });
 
@@ -552,13 +502,6 @@ walletRouter.post('/create-token',
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
   }
-
-  const canStart = lock.lock(lockTypes.SEND_TX);
-  if (!canStart) {
-    res.send({success: false, error: cantSendTxErrorMessage});
-    return;
-  }
-
   const wallet = req.wallet;
   const name = req.body.name;
   const symbol = req.body.symbol;
@@ -569,14 +512,11 @@ walletRouter.post('/create-token',
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
-    }).catch((error) => {
+    }, (error) => {
       res.send({success: false, error});
-    }).finally(() => {
-      lock.unlock(lockTypes.SEND_TX);
     });
   } else {
     res.send({success: false, error: ret.message});
-    lock.unlock(lockTypes.SEND_TX);
   }
 });
 
@@ -594,13 +534,6 @@ walletRouter.post('/mint-tokens',
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
   }
-
-  const canStart = lock.lock(lockTypes.SEND_TX);
-  if (!canStart) {
-    res.send({success: false, error: cantSendTxErrorMessage});
-    return;
-  }
-
   const wallet = req.wallet;
   const token = req.body.token;
   const amount = req.body.amount;
@@ -610,14 +543,11 @@ walletRouter.post('/mint-tokens',
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
-    }).catch((error) => {
+    }, (error) => {
       res.send({success: false, error});
-    }).finally(() => {
-      lock.unlock(lockTypes.SEND_TX);
     });
   } else {
     res.send({success: false, error: ret.message});
-    lock.unlock(lockTypes.SEND_TX);
   }
 });
 
@@ -635,13 +565,6 @@ walletRouter.post('/melt-tokens',
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
   }
-
-  const canStart = lock.lock(lockTypes.SEND_TX);
-  if (!canStart) {
-    res.send({success: false, error: cantSendTxErrorMessage});
-    return;
-  }
-
   const wallet = req.wallet;
   const token = req.body.token;
   const amount = req.body.amount;
@@ -651,14 +574,11 @@ walletRouter.post('/melt-tokens',
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
-    }).catch((error) => {
+    }, (error) => {
       res.send({success: false, error});
-    }).finally(() => {
-      lock.unlock(lockTypes.SEND_TX);
     });
   } else {
     res.send({success: false, error: ret.message});
-    lock.unlock(lockTypes.SEND_TX);
   }
 });
 
@@ -715,12 +635,6 @@ walletRouter.post(
         return res.status(400).json(validationResult);
       }
 
-      const canStart = lock.lock(lockTypes.SEND_TX);
-      if (!canStart) {
-        res.send({success: false, error: cantSendTxErrorMessage});
-        return;
-      }
-
       const wallet = req.wallet;
       const { destination_address, ...options } = matchedData(req, { locations: ['body'] });
       const result = await wallet.consolidateUtxos(destination_address, options);
@@ -730,8 +644,6 @@ walletRouter.post(
       });
     } catch(error) {
       res.send({ success: false, error: error.message || error });
-    } finally {
-      lock.unlock(lockTypes.SEND_TX);
     }
   }
 );
@@ -765,7 +677,6 @@ console.log('Configuration...', {
   network: config.network,
   server: config.server,
   tokenUid: config.tokenUid,
-  apiKey: config.http_api_key,
   gapLimit: config.gapLimit,
   connectionTimeout: config.connectionTimeout,
 });
@@ -775,8 +686,4 @@ if (config.gapLimit) {
   walletUtils.setGapLimit(config.gapLimit);
 }
 
-app.listen(config.http_port, config.http_bind_address, () => {
-  console.log(
-    `Listening on ${config.http_bind_address}:${config.http_port}...`
-  );
-});
+export default app;
