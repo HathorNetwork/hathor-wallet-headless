@@ -4,7 +4,7 @@ export default {
   network: "testnet",
   server: "http://fakehost:8083/v1a/",
   seeds: {
-    "stub-seed":
+    stub_seed:
       "upon tennis increase embark dismiss diamond monitor face magnet jungle scout salute rural master shoulder cry juice jeans radar present close meat antenna mind",
   },
   tokenUid: "",

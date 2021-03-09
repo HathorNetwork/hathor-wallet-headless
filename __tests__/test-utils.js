@@ -8,7 +8,7 @@ import wsFixtures from "./__fixtures__/ws-fixtures";
 import { Server } from "mock-socket";
 
 const WALLET_ID = "stub-wallet";
-const SEED_KEY = "stub-seed";
+const SEED_KEY = "stub_seed";
 
 const request = supertest(app);
 
@@ -18,11 +18,18 @@ const wsUrl = config.server.replace(/https?/, "ws").replace("/v1a", "/v1a/ws");
 const wsMock = new Server(wsUrl);
 
 class TestUtils {
+  walletId = WALLET_ID;
+
   static get request() {
     return request;
   }
 
-  static async startWallet({ seedKey = SEED_KEY, walletId = WALLET_ID } = {}) {
+  static async startWallet({
+    seedKey = SEED_KEY,
+    walletId = TestUtils.walletId,
+  } = {}) {
+    TestUtils.walletId = walletId;
+
     TestUtils.startMocks();
 
     const response = await request
@@ -43,11 +50,11 @@ class TestUtils {
       if (res.body && res.body.success !== false) {
         break;
       }
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
   }
 
-  static async stopWallet({ walletId = WALLET_ID } = {}) {
+  static async stopWallet({ walletId = TestUtils.walletId } = {}) {
     await request.post("/wallet/stop").set({ "x-wallet-id": walletId });
     await TestUtils.stopMocks();
   }
@@ -84,7 +91,7 @@ class TestUtils {
 
   static stopMocks() {
     httpMock.reset();
-    return new Promise(resolve => wsMock.stop(resolve));
+    return new Promise((resolve) => wsMock.stop(resolve));
   }
 }
 

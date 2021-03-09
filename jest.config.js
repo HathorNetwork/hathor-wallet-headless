@@ -7,6 +7,6 @@ module.exports = {
   testMatch: ["<rootDir>/__tests__/**/*.test.js"],
   coverageDirectory: "coverage",
   coverageReporters: ["text-summary", "lcov"],
-  testTimeout: 30000,
+  testTimeout: 180000,
   setupFilesAfterEnv: ["<rootDir>/setupTests.js"],
 };
