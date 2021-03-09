@@ -1,8 +1,8 @@
 import supertest from "supertest";
 import axios from "axios";
 import MockAdapter from "axios-mock-adapter";
-import app from "../server";
-import config from "../config";
+import app from "../src/index";
+import config from "../src/config";
 import httpFixtures from "./__fixtures__/http-fixtures";
 import wsFixtures from "./__fixtures__/ws-fixtures";
 import { Server } from "mock-socket";

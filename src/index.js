@@ -1,4 +1,15 @@
-import app from "./server";
+/**
+ * Copyright (c) Hathor Labs and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+import express from 'express';
+import morgan from 'morgan';
+import { Connection, HathorWallet, wallet as walletUtils, tokens } from '@hathor/wallet-lib';
+import { body, checkSchema, matchedData, query, validationResult } from 'express-validator';
+
 import config from './config';
 import apiDocs from './api-docs';
 import apiKeyAuth from './api-key-auth';
@@ -775,8 +786,10 @@ if (config.gapLimit) {
   walletUtils.setGapLimit(config.gapLimit);
 }
 
-app.listen(config.http_port, config.http_bind_address, () => {
-  console.log(
-    `Listening on ${config.http_bind_address}:${config.http_port}...`
-  );
-});
+if (process.env.JEST_WORKER_ID === undefined) {
+  app.listen(config.http_port, config.http_bind_address, () => {
+    console.log(`Listening on ${config.http_bind_address}:${config.http_port}...`);
+  });
+}
+
+export default app;
