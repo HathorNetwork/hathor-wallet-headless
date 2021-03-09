@@ -27,6 +27,7 @@ const humanState = {
   [HathorWallet.CONNECTING]: 'Connecting',
   [HathorWallet.SYNCING]: 'Syncing',
   [HathorWallet.READY]: 'Ready',
+  [HathorWallet.ERROR]: 'Error',
 };
 
 const app = express();
@@ -139,7 +140,8 @@ walletRouter.use((req, res, next) => {
     res.send({
       success: false,
       message,
-      state,
+      'statusCode': state,
+      'statusMessage': (state ? humanState[state] : ''),
     });
   }
 
@@ -151,13 +153,13 @@ walletRouter.use((req, res, next) => {
 
   const walletId = req.headers['x-wallet-id'];
   if (!(walletId in wallets)) {
-    sendError('Invalid wallet id parameter.')
+    sendError('Invalid wallet id parameter.');
     return;
   }
 
   const wallet = wallets[walletId];
   if (!wallet.isReady()) {
-    sendError('Wallet is not ready.', wallet.state)
+    sendError('Wallet is not ready.', wallet.state);
     return;
   }
 
