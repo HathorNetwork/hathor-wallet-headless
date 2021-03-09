@@ -32,7 +32,7 @@ const humanState = {
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan('combined', { stream: logger.stream }));
+app.use(morgan(config.httpLogFormat || 'combined', { stream: logger.stream }));
 const walletRouter = express.Router({mergeParams: true})
 
 const parametersValidation = (req) => {
