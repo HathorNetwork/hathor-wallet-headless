@@ -14,10 +14,12 @@ jest.mock(
 
 // Start the stub wallet
 beforeAll(async () => {
+  TestUtils.startMocks();
   await TestUtils.startWallet({ walletId: WALLET_ID });
 });
 
 // Stop the stub wallet
 afterAll(async () => {
   await TestUtils.stopWallet({ walletId: WALLET_ID });
+  await TestUtils.stopMocks();
 });

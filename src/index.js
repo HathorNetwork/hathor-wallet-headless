@@ -394,7 +394,7 @@ walletRouter.post('/simple-send-tx',
       res.send(response);
     }).catch((error) => {
       res.send({success: false, error});
-    }).finally(() => {
+    }).then(() => {
       lock.unlock(lockTypes.SEND_TX);
     });
   } else {

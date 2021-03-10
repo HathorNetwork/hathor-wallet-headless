@@ -30,8 +30,6 @@ class TestUtils {
   } = {}) {
     TestUtils.walletId = walletId;
 
-    TestUtils.startMocks();
-
     const response = await request
       .post("/start")
       .send({ seedKey: seedKey, "wallet-id": walletId });
@@ -56,7 +54,6 @@ class TestUtils {
 
   static async stopWallet({ walletId = TestUtils.walletId } = {}) {
     await request.post("/wallet/stop").set({ "x-wallet-id": walletId });
-    await TestUtils.stopMocks();
   }
 
   static startMocks() {
