@@ -15,6 +15,11 @@ module.exports = {
       default: '',
   },
 
+  // Log format for HTTP Requests (default: combined)
+  // Common choices: combined, common, dev, short, tiny
+  // For further information, see https://github.com/expressjs/morgan#predefined-formats
+  httpLogFormat: null,
+
   // Console logging level (default: info).
   // Levels: error, warn, info, http, verbose, debug, silly.
   // For further information, see https://github.com/winstonjs/winston#logging-levels.

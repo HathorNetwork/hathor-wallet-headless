@@ -15,6 +15,10 @@ import apiDocs from './api-docs';
 import apiKeyAuth from './api-key-auth';
 import logger from './logger';
 import version from './version';
+import { lock, lockTypes } from './lock';
+
+// Error message when the user tries to send a transaction while the lock is active
+const cantSendTxErrorMessage = 'You already have a transaction being sent. Please wait until it\'s done to send another.';
 
 const wallets = {};
 
@@ -23,12 +27,13 @@ const humanState = {
   [HathorWallet.CONNECTING]: 'Connecting',
   [HathorWallet.SYNCING]: 'Syncing',
   [HathorWallet.READY]: 'Ready',
+  [HathorWallet.ERROR]: 'Error',
 };
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan('combined', { stream: logger.stream }));
+app.use(morgan(config.httpLogFormat || 'combined', { stream: logger.stream }));
 const walletRouter = express.Router({mergeParams: true})
 
 const parametersValidation = (req) => {
@@ -135,7 +140,8 @@ walletRouter.use((req, res, next) => {
     res.send({
       success: false,
       message,
-      state,
+      'statusCode': state,
+      'statusMessage': (state ? humanState[state] : ''),
     });
   }
 
@@ -147,13 +153,13 @@ walletRouter.use((req, res, next) => {
 
   const walletId = req.headers['x-wallet-id'];
   if (!(walletId in wallets)) {
-    sendError('Invalid wallet id parameter.')
+    sendError('Invalid wallet id parameter.');
     return;
   }
 
   const wallet = wallets[walletId];
   if (!wallet.isReady()) {
-    sendError('Wallet is not ready.', wallet.state)
+    sendError('Wallet is not ready.', wallet.state);
     return;
   }
 
@@ -202,8 +208,8 @@ walletRouter.get(
  * For the docs, see api-docs.js
  */
 walletRouter.get('/address',
-  query('index').isInt().optional(),
-  query('mark_as_used').isBoolean().optional(),
+  query('index').isInt({ min: 0 }).optional().toInt(),
+  query('mark_as_used').isBoolean().optional().toBoolean(),
   (req, res) => {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
@@ -213,7 +219,7 @@ walletRouter.get('/address',
   const index = req.query.index || null;
   let address;
   if (index !== null) {
-    address = wallet.getAddressAtIndex(parseInt(index));
+    address = wallet.getAddressAtIndex(index);
   } else {
     const markAsUsed = req.query.mark_as_used || false;
     address = wallet.getCurrentAddress({markAsUsed});
@@ -237,7 +243,7 @@ walletRouter.get('/addresses', (req, res) => {
  * For the docs, see api-docs.js
  */
 walletRouter.get('/tx-history',
-  query('limit').isInt().optional(),
+  query('limit').isInt().optional().toInt(),
   (req, res) => {
   // TODO Add pagination
   const validationResult = parametersValidation(req);
@@ -298,7 +304,8 @@ walletRouter.post('/simple-send-tx',
         options: {
           min: 1
         }
-      }
+      },
+      toInt: true
     },
     'change_address': {
       in: ['body'],
@@ -326,11 +333,6 @@ walletRouter.post('/simple-send-tx',
           return true;
         }
       }
-    },
-    debug: {
-      in: ['body'],
-      isBoolean: true,
-      optional: true,
     }
   }),
   (req, res) => {
@@ -338,9 +340,16 @@ walletRouter.post('/simple-send-tx',
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
   }
+
+  const canStart = lock.lock(lockTypes.SEND_TX);
+  if (!canStart) {
+    res.send({success: false, error: cantSendTxErrorMessage});
+    return;
+  }
+
   const wallet = req.wallet;
   const address = req.body.address;
-  const value = parseInt(req.body.value);
+  const value = req.body.value;
   // Expects object with {'uid', 'name', 'symbol'}
   const token = req.body.token || null;
   const changeAddress = req.body.change_address || null;
@@ -348,11 +357,14 @@ walletRouter.post('/simple-send-tx',
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
-    }, (error) => {
+    }).catch((error) => {
       res.send({success: false, error});
+    }).finally(() => {
+      lock.unlock(lockTypes.SEND_TX);
     });
   } else {
     res.send({success: false, error: ret.message});
+    lock.unlock(lockTypes.SEND_TX);
   }
 });
 
@@ -381,7 +393,8 @@ walletRouter.post('/send-tx',
         options: {
           min: 1
         }
-      }
+      },
+      toInt: true
     },
     inputs: {
       in: ['body'],
@@ -390,12 +403,14 @@ walletRouter.post('/send-tx',
     },
     'inputs.*': {
       in: ['body'],
+      isObject: true,
       custom: {
         options: (value, { req, location, path }) => {
           if (!('hash' in value) || !(typeof value.hash === 'string')) {
             return false;
           }
           if (!('index' in value) || !(/^\d+$/.test(value.index))) {
+            // Test that index is required and it's an integer
             return false;
           }
           if (!value.hash) {
@@ -403,6 +418,12 @@ walletRouter.post('/send-tx',
             return false;
           }
           return true;
+        }
+      },
+      customSanitizer: {
+        options: (value) => {
+          const sanitizedValue = Object.assign({}, value, {index: parseInt(value.index)});
+          return sanitizedValue;
         }
       }
     },
@@ -431,6 +452,7 @@ walletRouter.post('/send-tx',
     debug: {
       in: ['body'],
       isBoolean: true,
+      toBoolean: true,
       optional: true,
     }
   }),
@@ -439,6 +461,13 @@ walletRouter.post('/send-tx',
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
   }
+
+  const canStart = lock.lock(lockTypes.SEND_TX);
+  if (!canStart) {
+    res.send({success: false, error: cantSendTxErrorMessage});
+    return;
+  }
+
   const wallet = req.wallet;
   const outputs = req.body.outputs;
   // Expects array of objects with {'hash', 'index'}
@@ -457,7 +486,7 @@ walletRouter.post('/send-tx',
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
-    }, (error) => {
+    }).catch((error) => {
       const response = {success: false, error};
       if (debug) {
         response.debug = ret.debug;
@@ -467,6 +496,8 @@ walletRouter.post('/send-tx',
         });
       }
       res.send(response);
+    }).finally(() => {
+      lock.unlock(lockTypes.SEND_TX);
     });
   } else {
     const response = {success: false, error: ret.message};
@@ -478,6 +509,7 @@ walletRouter.post('/send-tx',
       });
     }
     res.send(response);
+    lock.unlock(lockTypes.SEND_TX);
   }
 });
 
@@ -488,7 +520,7 @@ walletRouter.post('/send-tx',
 walletRouter.post('/create-token',
   body('name').isString(),
   body('symbol').isString(),
-  body('amount').isInt({ min: 1 }),
+  body('amount').isInt({ min: 1 }).toInt(),
   body('address').isString().optional(),
   body('change_address').isString().optional(),
   (req, res) => {
@@ -496,21 +528,31 @@ walletRouter.post('/create-token',
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
   }
+
+  const canStart = lock.lock(lockTypes.SEND_TX);
+  if (!canStart) {
+    res.send({success: false, error: cantSendTxErrorMessage});
+    return;
+  }
+
   const wallet = req.wallet;
   const name = req.body.name;
   const symbol = req.body.symbol;
-  const amount = parseInt(req.body.amount);
+  const amount = req.body.amount;
   const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
   const ret = wallet.createNewToken(name, symbol, amount, address, { changeAddress });
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
-    }, (error) => {
+    }).catch((error) => {
       res.send({success: false, error});
+    }).finally(() => {
+      lock.unlock(lockTypes.SEND_TX);
     });
   } else {
     res.send({success: false, error: ret.message});
+    lock.unlock(lockTypes.SEND_TX);
   }
 });
 
@@ -520,7 +562,7 @@ walletRouter.post('/create-token',
  */
 walletRouter.post('/mint-tokens',
   body('token').isString(),
-  body('amount').isInt({ min: 1 }),
+  body('amount').isInt({ min: 1 }).toInt(),
   body('address').isString().optional(),
   body('change_address').isString().optional(),
   (req, res) => {
@@ -528,20 +570,30 @@ walletRouter.post('/mint-tokens',
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
   }
+
+  const canStart = lock.lock(lockTypes.SEND_TX);
+  if (!canStart) {
+    res.send({success: false, error: cantSendTxErrorMessage});
+    return;
+  }
+
   const wallet = req.wallet;
   const token = req.body.token;
-  const amount = parseInt(req.body.amount);
+  const amount = req.body.amount;
   const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
   const ret = wallet.mintTokens(token, amount, address, { changeAddress });
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
-    }, (error) => {
+    }).catch((error) => {
       res.send({success: false, error});
+    }).finally(() => {
+      lock.unlock(lockTypes.SEND_TX);
     });
   } else {
     res.send({success: false, error: ret.message});
+    lock.unlock(lockTypes.SEND_TX);
   }
 });
 
@@ -551,7 +603,7 @@ walletRouter.post('/mint-tokens',
  */
 walletRouter.post('/melt-tokens',
   body('token').isString(),
-  body('amount').isInt({ min: 1 }),
+  body('amount').isInt({ min: 1 }).toInt(),
   body('change_address').isString().optional(),
   body('deposit_address').isString().optional(),
   (req, res) => {
@@ -559,20 +611,30 @@ walletRouter.post('/melt-tokens',
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
   }
+
+  const canStart = lock.lock(lockTypes.SEND_TX);
+  if (!canStart) {
+    res.send({success: false, error: cantSendTxErrorMessage});
+    return;
+  }
+
   const wallet = req.wallet;
   const token = req.body.token;
-  const amount = parseInt(req.body.amount);
+  const amount = req.body.amount;
   const changeAddress = req.body.change_address || null;
   const depositAddress = req.body.deposit_address || null;
   const ret = wallet.meltTokens(token, amount, { depositAddress, changeAddress });
   if (ret.success) {
     ret.promise.then((response) => {
       res.send(response);
-    }, (error) => {
+    }).catch((error) => {
       res.send({success: false, error});
+    }).finally(() => {
+      lock.unlock(lockTypes.SEND_TX);
     });
   } else {
     res.send({success: false, error: ret.message});
+    lock.unlock(lockTypes.SEND_TX);
   }
 });
 
@@ -582,13 +644,13 @@ walletRouter.post('/melt-tokens',
  */
 walletRouter.get(
   '/utxo-filter',
-  query('max_utxos').isInt().optional(),
+  query('max_utxos').isInt().optional().toInt(),
   query('token').isString().optional(),
   query('filter_address').isString().optional(),
-  query('amount_smaller_than').isInt().optional(),
-  query('amount_bigger_than').isInt().optional(),
-  query('maximum_amount').isInt().optional(),
-  query('only_available').isBoolean().optional(),
+  query('amount_smaller_than').isInt().optional().toInt(),
+  query('amount_bigger_than').isInt().optional().toInt(),
+  query('maximum_amount').isInt().optional().toInt(),
+  query('only_available').isBoolean().optional().toBoolean(),
   (req, res) => {
     try {
       const validationResult = parametersValidation(req);
@@ -615,18 +677,24 @@ walletRouter.get(
 walletRouter.post(
   '/utxo-consolidation',
   body('destination_address').isString(),
-  body('max_utxos').isInt().optional(),
+  body('max_utxos').isInt().optional().toInt(),
   body('token').isString().optional(),
   body('filter_address').isString().optional(),
-  body('amount_smaller_than').isInt().optional(),
-  body('amount_bigger_than').isInt().optional(),
-  body('maximum_amount').isInt().optional(),
+  body('amount_smaller_than').isInt().optional().toInt(),
+  body('amount_bigger_than').isInt().optional().toInt(),
+  body('maximum_amount').isInt().optional().toInt(),
   async (req, res) => {
     try {
       // Body parameters validation
       const validationResult = parametersValidation(req);
       if (!validationResult.success) {
         return res.status(400).json(validationResult);
+      }
+
+      const canStart = lock.lock(lockTypes.SEND_TX);
+      if (!canStart) {
+        res.send({success: false, error: cantSendTxErrorMessage});
+        return;
       }
 
       const wallet = req.wallet;
@@ -638,6 +706,8 @@ walletRouter.post(
       });
     } catch(error) {
       res.send({ success: false, error: error.message || error });
+    } finally {
+      lock.unlock(lockTypes.SEND_TX);
     }
   }
 );
@@ -671,6 +741,7 @@ console.log('Configuration...', {
   network: config.network,
   server: config.server,
   tokenUid: config.tokenUid,
+  apiKey: config.http_api_key,
   gapLimit: config.gapLimit,
   connectionTimeout: config.connectionTimeout,
 });
