@@ -5,12 +5,24 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import util from 'util';
 import winston from 'winston';
 
 import config from './config';
 
 const myFormat = winston.format.printf(({ level, message, service, timestamp, ...args }) => {
-  return `${timestamp} [${service}] ${level}: ${message} ${Object.keys(args).length > 0 ? JSON.stringify(args) : ''}`;
+  let argsStr = '';
+  if (Object.keys(args).length > 0) {
+    // Adapted from https://github.com/winstonjs/logform/blob/master/pretty-print.js
+    const stripped = Object.assign({}, args);
+
+    delete stripped[Symbol.for('level')];
+    delete stripped[Symbol.for('message')];
+    delete stripped[Symbol.for('splat')];
+
+    argsStr = util.inspect(stripped, {compact: true, breakLength: Infinity});
+  }
+  return `${timestamp} [${service}] ${level}: ${message} ${argsStr}`;
 });
 
 const transports = [
