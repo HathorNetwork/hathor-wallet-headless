@@ -394,7 +394,7 @@ walletRouter.post('/simple-send-tx',
       res.send(response);
     }).catch((error) => {
       res.send({success: false, error});
-    }).then(() => {
+    }).finally(() => {
       lock.unlock(lockTypes.SEND_TX);
     });
   } else {
@@ -786,7 +786,7 @@ if (config.gapLimit) {
   walletUtils.setGapLimit(config.gapLimit);
 }
 
-if (process.env.JEST_WORKER_ID === undefined) {
+if (process.env.NODE_ENV !== 'test') {
   app.listen(config.http_port, config.http_bind_address, () => {
     console.log(`Listening on ${config.http_bind_address}:${config.http_port}...`);
   });

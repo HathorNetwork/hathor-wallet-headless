@@ -404,6 +404,36 @@ export default {
         ],
         height: 4,
       },
+      {
+        tx_id:
+          "0000063b972162f70061f61cf0082b7a47263cc1659a05976aca5cd01b3351eb",
+        version: 0,
+        weight: 21,
+        timestamp: 1615257215,
+        is_voided: false,
+        inputs: [],
+        outputs: [
+          {
+            value: 6400,
+            token_data: 0,
+            script: "dqkUsmE9zshkgB58piBD7ETUV0e/NgmIrA==",
+            decoded: {
+              type: "P2PKH",
+              address: "WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN",
+              timelock: null,
+            },
+            token: "01",
+            spent_by: null,
+            selected_as_input: false,
+          },
+        ],
+        parents: [
+          "000003e31d32f699cc4d4cda8a31037f2197f2e18b2192f4f9225bf0fbb3760c",
+          "00875897028ceb037307327c953f5e7ad4d3f42402d71bd3d11ecb63ac39f01a",
+          "00f161a6b0bee1781ea9300680913fb76fd0fac4acab527cd9626cc1514abdc9",
+        ],
+        height: 5,
+      }
     ],
   },
   "/v1a/push_tx": {

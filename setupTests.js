@@ -1,5 +1,9 @@
 import TestUtils from "./__tests__/test-utils";
 
+// Override Promise finally to avoid node 8 errors
+Promise.prototype.finally = Promise.prototype.then;
+
+// Default wallet id
 const WALLET_ID = "stub_wallet";
 
 // Mock Websockets

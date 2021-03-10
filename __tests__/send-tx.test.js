@@ -1,44 +1,45 @@
 import TestUtils from "./test-utils";
 
-describe("simple-send-tx api", () => {
+describe.only("send-tx api", () => {
   it("should return 200 with a valid body", async () => {
     const response = await TestUtils.request
-      .post("/wallet/simple-send-tx")
+      .post("/wallet/send-tx")
       .send({
-        address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc",
-        value: 1,
+        outputs: [{ address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 }],
       })
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
-    expect(response.body.hash).toBeTruthy();
+    expect(response.body.hash).toBeDefined();
   });
 
   it("should accept value as string", async () => {
     const response = await TestUtils.request
-      .post("/wallet/simple-send-tx")
+      .post("/wallet/send-tx")
       .send({
-        address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc",
-        value: "1",
+        outputs: [
+          { address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 },
+          { address: "WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN", value: "1" },
+        ],
       })
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
-    expect(response.body.hash).toBeTruthy();
+    expect(response.body.hash).toBeDefined();
   });
 
   it("should not accept transactions without address or value", async () => {
     let response = await TestUtils.request
-      .post("/wallet/simple-send-tx")
+      .post("/wallet/send-tx")
       .send({
-        value: 1,
+        outputs: [{ address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc" }],
       })
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(400);
     expect(response.body.succes).toBeFalsy();
 
     response = await TestUtils.request
-      .post("/wallet/simple-send-tx")
+      .post("/wallet/send-tx")
       .send({
-        address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc",
+        outputs: [{ value: 1 }],
       })
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(400);
@@ -47,17 +48,15 @@ describe("simple-send-tx api", () => {
 
   it("should receive an error when trying to do concurrent transactions (lock/unlock behavior)", async () => {
     const promise1 = TestUtils.request
-      .post("/wallet/simple-send-tx")
+      .post("/wallet/send-tx")
       .send({
-        address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc",
-        value: 1,
+        outputs: [{ address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 }],
       })
       .set({ "x-wallet-id": TestUtils.walletId });
     const promise2 = TestUtils.request
-      .post("/wallet/simple-send-tx")
+      .post("/wallet/send-tx")
       .send({
-        address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc",
-        value: 1,
+        outputs: [{ address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 }],
       })
       .set({ "x-wallet-id": TestUtils.walletId });
 
@@ -70,10 +69,9 @@ describe("simple-send-tx api", () => {
 
   it("should accept a custom token transaction", async () => {
     const response = await TestUtils.request
-      .post("/wallet/simple-send-tx")
+      .post("/wallet/send-tx")
       .send({
-        address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc",
-        value: 1,
+        outputs: [{ address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 }],
         token: {
           name: "stub_token",
           uid: "01",
@@ -87,10 +85,9 @@ describe("simple-send-tx api", () => {
 
   it("should not accept a custom token transaction without funds to cover it", async () => {
     const response = await TestUtils.request
-      .post("/wallet/simple-send-tx")
+      .post("/wallet/send-tx")
       .send({
-        address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc",
-        value: 1,
+        outputs: [{ address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 }],
         token: {
           name: "stub_token_2",
           uid: "02",
@@ -111,10 +108,9 @@ describe("simple-send-tx api", () => {
       };
       delete token[field];
       const response = await TestUtils.request
-        .post("/wallet/simple-send-tx")
+        .post("/wallet/send-tx")
         .send({
-          address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc",
-          value: 1,
+          outputs: [{ address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 }],
           token: token,
         })
         .set({ "x-wallet-id": TestUtils.walletId });
