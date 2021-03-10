@@ -208,7 +208,7 @@ walletRouter.get(
  * For the docs, see api-docs.js
  */
 walletRouter.get('/address',
-  query('index').isInt().optional().toInt(),
+  query('index').isInt({ min: 0 }).optional().toInt(),
   query('mark_as_used').isBoolean().optional().toBoolean(),
   (req, res) => {
   const validationResult = parametersValidation(req);
