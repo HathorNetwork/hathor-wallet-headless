@@ -372,7 +372,10 @@ export default {
           "00975897028ceb037307327c953f5e7ad4d3f42402d71bd3d11ecb63ac39f01a",
           "00e161a6b0bee1781ea9300680913fb76fd0fac4acab527cd9626cc1514abdc9",
         ],
+        tokens: [],
         height: 9,
+        token_name: "09",
+        token_symbol: "09",
       },
       {
         tx_id:
@@ -406,13 +409,12 @@ export default {
       },
       {
         tx_id:
-          "0000063b972162f70061f61cf0082b7a47263cc1659a05976aca5cd01b3351eb",
-        version: 0,
-        weight: 21,
-        timestamp: 1615257215,
+          "00da712d64e04866c8c9aa8fceca70e80d1693864176b6b443220cf29adab5ed",
+        version: 2,
+        weight: 8.000001,
+        timestamp: 1615493636,
         is_voided: false,
-        inputs: [],
-        outputs: [
+        inputs: [
           {
             value: 6400,
             token_data: 0,
@@ -422,18 +424,77 @@ export default {
               address: "WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN",
               timelock: null,
             },
-            token: "01",
+            token: "00",
+            tx_id:
+              "0000000205391d95eda5c347f7c382be598ba4dfe3d8c0bf1e1f111fde478109",
+            index: 0,
+          },
+        ],
+        outputs: [
+          {
+            value: 6399,
+            token_data: 0,
+            script: "dqkU/qcZVmiK7oEMzDyVX9kwfldkR8CIrA==",
+            decoded: {
+              type: "P2PKH",
+              address: "WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN",
+              timelock: null,
+            },
+            token: "00",
+            spent_by: null,
+            selected_as_input: false,
+          },
+          {
+            value: 2,
+            token_data: 1,
+            script: "dqkU/qcZVmiK7oEMzDyVX9kwfldkR8CIrA==",
+            decoded: {
+              type: "P2PKH",
+              address: "WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN",
+              timelock: null,
+            },
+            token:
+              "00da712d64e04866c8c9aa8fceca70e80d1693864176b6b443220cf29adab5ed",
+            spent_by: null,
+            selected_as_input: false,
+          },
+          {
+            value: 1,
+            token_data: 129,
+            script: "dqkUDlPrlqwNSzACTYkmsre5+Wgs6yaIrA==",
+            decoded: {
+              type: "P2PKH",
+              address: "WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN",
+              timelock: null,
+            },
+            token:
+              "00da712d64e04866c8c9aa8fceca70e80d1693864176b6b443220cf29adab5ed",
+            spent_by: null,
+            selected_as_input: false,
+          },
+          {
+            value: 2,
+            token_data: 129,
+            script: "dqkUaGEUP33GsvnIUlMV7+b82hYKeVyIrA==",
+            decoded: {
+              type: "P2PKH",
+              address: "WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN",
+              timelock: null,
+            },
+            token:
+              "00da712d64e04866c8c9aa8fceca70e80d1693864176b6b443220cf29adab5ed",
             spent_by: null,
             selected_as_input: false,
           },
         ],
         parents: [
-          "000003e31d32f699cc4d4cda8a31037f2197f2e18b2192f4f9225bf0fbb3760c",
-          "00875897028ceb037307327c953f5e7ad4d3f42402d71bd3d11ecb63ac39f01a",
-          "00f161a6b0bee1781ea9300680913fb76fd0fac4acab527cd9626cc1514abdc9",
+          "00e161a6b0bee1781ea9300680913fb76fd0fac4acab527cd9626cc1514abdc9",
+          "00975897028ceb037307327c953f5e7ad4d3f42402d71bd3d11ecb63ac39f01a",
         ],
-        height: 5,
-      }
+        token_name: "01",
+        token_symbol: "01",
+        tokens: [],
+      },
     ],
   },
   "/v1a/push_tx": {

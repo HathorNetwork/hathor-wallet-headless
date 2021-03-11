@@ -6,8 +6,8 @@ describe("utxo api", () => {
       .get("/wallet/utxo-filter")
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
-    expect(response.body.utxos).toHaveLength(12);
-    expect(response.body.total_amount_available).toBe(76800);
+    expect(response.body.utxos).toHaveLength(13);
+    expect(response.body.total_amount_available).toBe(83199);
     expect(response.body.total_amount_locked).toBe(0);
   });
 
@@ -19,8 +19,8 @@ describe("utxo api", () => {
       })
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
-    expect(response.body.total_utxos_consolidated).toBe(12);
-    expect(response.body.total_amount).toBe(76800);
-    expect(response.body.utxos).toHaveLength(12);
+    expect(response.body.total_utxos_consolidated).toBe(13);
+    expect(response.body.total_amount).toBe(83199);
+    expect(response.body.utxos).toHaveLength(13);
   });
 });

@@ -1,6 +1,6 @@
 import TestUtils from "./test-utils";
 
-describe.only("send-tx api", () => {
+describe("send-tx api", () => {
   it("should return 200 with a valid body", async () => {
     const response = await TestUtils.request
       .post("/wallet/send-tx")
@@ -74,7 +74,7 @@ describe.only("send-tx api", () => {
         outputs: [{ address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 }],
         token: {
           name: "stub_token",
-          uid: "01",
+          uid: "09",
           symbol: "stub_token",
         },
       })

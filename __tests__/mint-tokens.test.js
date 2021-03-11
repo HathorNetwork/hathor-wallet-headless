@@ -1,12 +1,11 @@
 import TestUtils from "./test-utils";
 
-describe("create-token api", () => {
+describe("mint-tokens api", () => {
   it("should return 200 with a valid body", async () => {
     const response = await TestUtils.request
-      .post("/wallet/create-token")
+      .post("/wallet/mint-tokens")
       .send({
-        name: "stub_token",
-        symbol: "03",
+        token: "03",
         amount: 1,
       })
       .set({ "x-wallet-id": TestUtils.walletId });
@@ -16,10 +15,9 @@ describe("create-token api", () => {
 
   it("should create a token with amount as string", async () => {
     const response = await TestUtils.request
-      .post("/wallet/create-token")
+      .post("/wallet/mint-tokens")
       .send({
-        name: "stub_token",
-        symbol: "03",
+        token: "03",
         amount: "1",
       })
       .set({ "x-wallet-id": TestUtils.walletId });
@@ -27,16 +25,15 @@ describe("create-token api", () => {
     expect(response.body.hash).toBeDefined();
   });
 
-  it("should not create a token without the required parameters", async () => {
-    ["name", "symbol", "amount"].forEach(async (field) => {
+  it("should not mint a token without the required parameters", async () => {
+    ["token", "amount"].forEach(async (field) => {
       const token = {
-        name: "stub_token",
-        symbol: "03",
+        token: "03",
         amount: 1,
       };
       delete token[field];
       const response = await TestUtils.request
-        .post("/wallet/create-token")
+        .post("/wallet/mint-tokens")
         .send(token)
         .set({ "x-wallet-id": TestUtils.walletId });
       expect(response.status).toBe(400);
@@ -44,20 +41,18 @@ describe("create-token api", () => {
     });
   });
 
-  it("should receive an error when trying to do concurrent create-token (lock/unlock behavior)", async () => {
+  it("should receive an error when trying to do concurrent mint-tokens (lock/unlock behavior)", async () => {
     const promise1 = TestUtils.request
-      .post("/wallet/create-token")
+      .post("/wallet/mint-tokens")
       .send({
-        name: "stub_token",
-        symbol: "03",
+        token: "03",
         amount: 1,
       })
       .set({ "x-wallet-id": TestUtils.walletId });
     const promise2 = TestUtils.request
-      .post("/wallet/create-token")
+      .post("/wallet/mint-tokens")
       .send({
-        name: "stub_token",
-        symbol: "03",
+        token: "03",
         amount: 1,
       })
       .set({ "x-wallet-id": TestUtils.walletId });

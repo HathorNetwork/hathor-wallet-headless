@@ -6,6 +6,6 @@ describe("addresses api", () => {
       .get("/wallet/addresses")
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
-    expect(response.body.addresses.length).toBeGreaterThan(0);
+    expect(response.body.addresses.length).toBeGreaterThan(20);
   });
 });

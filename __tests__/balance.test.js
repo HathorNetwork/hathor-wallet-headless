@@ -6,7 +6,7 @@ describe("balance api", () => {
       .get("/wallet/balance")
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
-    expect(response.body.available).toBe(76800);
+    expect(response.body.available).toBe(83199);
     expect(response.body.locked).toBe(0);
   });
 

@@ -76,7 +76,7 @@ describe("simple-send-tx api", () => {
         value: 1,
         token: {
           name: "stub_token",
-          uid: "01",
+          uid: "09",
           symbol: "stub_token",
         },
       })
