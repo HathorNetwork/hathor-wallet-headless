@@ -10,6 +10,7 @@ describe("send-tx api", () => {
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
+    expect(response.body.success).toBeTruthy();
   });
 
   it("should accept value as string", async () => {
@@ -24,6 +25,7 @@ describe("send-tx api", () => {
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
+    expect(response.body.success).toBeTruthy();
   });
 
   it("should not accept transactions without address or value", async () => {
@@ -40,6 +42,17 @@ describe("send-tx api", () => {
       .post("/wallet/send-tx")
       .send({
         outputs: [{ value: 1 }],
+      })
+      .set({ "x-wallet-id": TestUtils.walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.succes).toBeFalsy();
+  });
+
+  it("should not accept transactions with 0 value", async () => {
+    const response = await TestUtils.request
+      .post("/wallet/send-tx")
+      .send({
+        outputs: [{ address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 0 }],
       })
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(400);
@@ -81,6 +94,7 @@ describe("send-tx api", () => {
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeTruthy();
+    expect(response.body.success).toBeTruthy();
   });
 
   it("should not accept a custom token transaction without funds to cover it", async () => {
@@ -117,5 +131,29 @@ describe("send-tx api", () => {
       expect(response.status).toBe(400);
       expect(response.body.success).toBeFalsy();
     });
+  });
+
+  it("should accept a transaction with a change_address that does belong to the wallet", async () => {
+    const response = await TestUtils.request
+      .post("/wallet/send-tx")
+      .send({
+        outputs: [{ address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 }],
+        change_address: "Wc5YHn861241iLY42mFT8z1dT1UdsNWkfs",
+      })
+      .set({ "x-wallet-id": TestUtils.walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBeTruthy();
+  });
+
+  it("should not accept a transaction with a change_address that does not belong to the wallet", async () => {
+    const response = await TestUtils.request
+      .post("/wallet/send-tx")
+      .send({
+        outputs: [{ address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 }],
+        change_address: "WVGxdgZMHkWo2Hdrb1sEFedNdjTXzjvjPg",
+      })
+      .set({ "x-wallet-id": TestUtils.walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBeFalsy();
   });
 });

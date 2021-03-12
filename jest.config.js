@@ -6,7 +6,7 @@ module.exports = {
   collectCoverageFrom: ["<rootDir>/src/**/*.js"],
   testMatch: ["<rootDir>/__tests__/**/*.test.js"],
   coverageDirectory: "coverage",
-  coverageReporters: ["text-summary", "lcov"],
+  coverageReporters: ["text-summary", "lcov", "clover"],
   testTimeout: 180000,
   setupFilesAfterEnv: ["<rootDir>/setupTests.js"],
 };

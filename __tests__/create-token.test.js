@@ -1,4 +1,5 @@
 import TestUtils from "./test-utils";
+import httpFixtures from "./__fixtures__/http-fixtures";
 
 describe("create-token api", () => {
   it("should return 200 with a valid body", async () => {
@@ -11,6 +12,7 @@ describe("create-token api", () => {
       })
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
+    expect(response.body.success).toBeTruthy();
     expect(response.body.hash).toBeDefined();
   });
 
@@ -24,6 +26,7 @@ describe("create-token api", () => {
       })
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
+    expect(response.body.success).toBeTruthy();
     expect(response.body.hash).toBeDefined();
   });
 
@@ -42,6 +45,19 @@ describe("create-token api", () => {
       expect(response.status).toBe(400);
       expect(response.body.success).toBeFalsy();
     });
+  });
+
+  it("should not create a token without the required funds to cover it", async () => {
+    const response = await TestUtils.request
+      .post("/wallet/create-token")
+      .send({
+        name: "stub_token",
+        symbol: "03",
+        amount: 10**9,
+      })
+      .set({ "x-wallet-id": TestUtils.walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBeFalsy();
   });
 
   it("should receive an error when trying to do concurrent create-token (lock/unlock behavior)", async () => {
@@ -67,5 +83,21 @@ describe("create-token api", () => {
     expect(response1.body.hash).toBeTruthy();
     expect(response2.status).toBe(200);
     expect(response2.body.success).toBeFalsy();
+  });
+
+  // TODO: fix this test case crashing when mocking push_tx with status 400
+  it.skip("should not create a token with symbol HTR ", async () => {
+    TestUtils.httpMock.onPost('push_tx').replyOnce(400);
+    TestUtils.reorderHandlers();
+    const response = await TestUtils.request
+      .post("/wallet/create-token")
+      .send({
+        name: "Hathor",
+        symbol: "HTR",
+        amount: 1,
+      })
+      .set({ "x-wallet-id": TestUtils.walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBeFalsy();
   });
 });

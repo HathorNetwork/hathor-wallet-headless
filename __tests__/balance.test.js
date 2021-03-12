@@ -6,8 +6,8 @@ describe("balance api", () => {
       .get("/wallet/balance")
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
-    expect(response.body.available).toBe(83199);
-    expect(response.body.locked).toBe(0);
+    expect(response.body.available).toBe(76799);
+    expect(response.body.locked).toBe(6400);
   });
 
   it("should return balance for custom token", async () => {

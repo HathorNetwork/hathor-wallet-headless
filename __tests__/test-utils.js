@@ -7,7 +7,7 @@ import httpFixtures from "./__fixtures__/http-fixtures";
 import wsFixtures from "./__fixtures__/ws-fixtures";
 import { Server } from "mock-socket";
 
-const WALLET_ID = "stub-wallet";
+const WALLET_ID = "stub_wallet";
 const SEED_KEY = "stub_seed";
 
 const request = supertest(app);
@@ -18,7 +18,35 @@ const wsUrl = config.server.replace(/https?/, "ws").replace("/v1a", "/v1a/ws");
 const wsMock = new Server(wsUrl);
 
 class TestUtils {
-  walletId = WALLET_ID;
+  static socket = null;
+  static httpMock = httpMock;
+  static wsMock = wsMock;
+
+  static walletId = WALLET_ID;
+
+  static addresses = [
+    "WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN",
+    "WmtWgtk5GxdcDKwjNwmXXn74nQWTPWhKfx",
+    "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc",
+    "WYBwT3xLpDnHNtYZiU52oanupVeDKhAvNp",
+    "WVGxdgZMHkWo2Hdrb1sEFedNdjTXzjvjPi",
+    "Wc4dKp6hBgr5PU9gBmzJofc93XZGAEEUXD",
+    "WUujvZnk3LMbFWUW7CnZbjn5JZzALaqLfm",
+    "WYiD1E8n5oB9weZ8NMyM3KoCjKf1KCjWAZ",
+    "WXN7sf6WzhpESgUuRCBrjzjzHtWTCfV8Cq",
+    "WYaMN32qQ9CAUNsDnbtwi1U41JY9prYhvR",
+    "WWbt2ww4W45YLUAumnumZiyWrABYDzCTdN",
+    "WgpRs9NxhkBPxe7ptm9RcuLdABb7DdVUA5",
+    "WPzpVP34vx6X5Krj4jeiQz9VW87F4LEZnV",
+    "WSn9Bn6EDPSWZqNQdpV3FxGjpTEMsqQHYQ",
+    "WmYnieT3vzzY83eHphQHs6HJ5mYyPwcKSE",
+    "WZfcHjgkfK9UroTzpiricB6gtg99QKraG1",
+    "WiHovoQ5ZLKPpQjZYkLVeoVgP7LoVLK518",
+    "Wi5AvNTnh4mZft65kzsRbDYEPGbTRhd5q3",
+    "Weg6WEncAEJs5qDbGUxcLTR3iycM3hrt4C",
+    "WSVarF73e6UVccGwb44FvTtqFWsHQmjKCt",
+    "Wc5YHn861241iLY42mFT8z1dT1UdsNWkfs",
+  ];
 
   static get request() {
     return request;
@@ -68,6 +96,7 @@ class TestUtils {
 
     // websocket mocks
     wsMock.on("connection", (socket) => {
+      TestUtils.socket = socket;
       socket.send(JSON.stringify(wsFixtures["dashboard"]));
       socket.on("message", (data) => {
         let jsonData = JSON.parse(data);
@@ -89,6 +118,10 @@ class TestUtils {
   static stopMocks() {
     httpMock.reset();
     return new Promise((resolve) => wsMock.stop(resolve));
+  }
+
+  static reorderHandlers() {
+    Object.values(httpMock.handlers).forEach(handler => handler.reverse());
   }
 }
 

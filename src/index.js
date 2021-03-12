@@ -391,7 +391,7 @@ walletRouter.post('/simple-send-tx',
   const ret = wallet.sendTransaction(address, value, token, { changeAddress });
   if (ret.success) {
     ret.promise.then((response) => {
-      res.send(response);
+      res.send({ success: true, ...response });
     }).catch((error) => {
       res.send({success: false, error});
     }).finally(() => {
@@ -520,7 +520,7 @@ walletRouter.post('/send-tx',
   }
   if (ret.success) {
     ret.promise.then((response) => {
-      res.send(response);
+      res.send({ success: true, ...response });
     }).catch((error) => {
       const response = {success: false, error};
       if (debug) {
@@ -579,7 +579,7 @@ walletRouter.post('/create-token',
   const ret = wallet.createNewToken(name, symbol, amount, address, { changeAddress });
   if (ret.success) {
     ret.promise.then((response) => {
-      res.send(response);
+      res.send({ success: true, ...response });
     }).catch((error) => {
       res.send({success: false, error});
     }).finally(() => {
@@ -735,10 +735,7 @@ walletRouter.post(
       const wallet = req.wallet;
       const { destination_address, ...options } = matchedData(req, { locations: ['body'] });
       const result = await wallet.consolidateUtxos(destination_address, options);
-      res.send({
-        success: true,
-        ...result
-      });
+      res.send({ success: true, ...result });
     } catch(error) {
       res.send({ success: false, error: error.message || error });
     } finally {
