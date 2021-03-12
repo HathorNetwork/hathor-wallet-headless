@@ -261,6 +261,62 @@ const apiDoc = {
         },
       },
     },
+    '/wallet/address-index': {
+      get: {
+        summary: 'Get the index of an address',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            'in': 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'address',
+            'in': 'query',
+            description: 'Address to get the index.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Return the index of the address.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {"index": 2, "success": true},
+                  },
+                  error: {
+                    summary: 'Address does not belong to the wallet',
+                    value: {"success": false},
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: {"success":false,"message":"Wallet is not ready.","state":1}
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: {"success":false,"message":"Parameter 'wallet-id' is required."}
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: {"success":false,"message":"Invalid wallet-id parameter."}
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     '/wallet/addresses': {
       get: {
         summary: 'Return all generated addresses of the wallet.',
