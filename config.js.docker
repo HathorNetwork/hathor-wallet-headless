@@ -28,6 +28,7 @@ const config = {
   tokenUid: getParam('token_uid'),
   gapLimit: getParam('gap_limit'),
   connectionTimeout: getParam('connection_timeout'),
+  allowPassphrase: getParam('allow_passphrase'),
 };
 
 const seeds = getParam('seeds', 'default').split(' ');
