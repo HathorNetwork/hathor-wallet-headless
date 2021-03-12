@@ -9,6 +9,15 @@ describe("address api", () => {
     expect(response.body.address).toBe("WmtWgtk5GxdcDKwjNwmXXn74nQWTPWhKfx");
   });
 
+  it("should return 200 with a valid body for index = 0", async () => {
+    const response = await TestUtils.request
+      .get("/wallet/address")
+      .query({ index: 0 })
+      .set({ "x-wallet-id": TestUtils.walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.address).toBe("WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN");
+  });
+
   it("should return 200 for a custom index (number or string)", async () => {
     let response = await TestUtils.request
       .get("/wallet/address")
