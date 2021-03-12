@@ -228,6 +228,27 @@ walletRouter.get('/address',
 });
 
 /**
+ * GET request to get an address index
+ * For the docs, see api-docs.js
+ */
+walletRouter.get('/address-index',
+  query('address').isString(),
+  (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
+  const wallet = req.wallet;
+  const address = req.query.address;
+  const index = wallet.getAddressIndex(address);
+  if (index) {
+    res.send({ success: true, index });
+  } else {
+    res.send({ success: false });
+  }
+});
+
+/**
  * GET request to get all addresses of a wallet
  * For the docs, see api-docs.js
  */
