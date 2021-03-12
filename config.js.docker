@@ -8,6 +8,29 @@ function getParam(name, _default) {
   return argv[name] || process.env[envname] || _default;
 }
 
+function getIntParam(name, _default) {
+  const param = getParam(name, _default);
+  const parsedParam = parseInt(param);
+  if (Number.isInteger(parsedParam)) {
+    return parsedParam;
+  } else {
+    return _default;
+  }
+}
+
+function getBooleanParam(name, _default) {
+  const param = getParam(name, _default);
+  if (param === 'true' || param === '1') {
+    // Should we allow more representations?
+    return true;
+  } else if (param === 'false' || param === '0') {
+    // Should we allow more representations?
+    return false;
+  } else {
+    return _default;
+  }
+}
+
 const config = {
   // HTTP API Settings
   http_bind_address: getParam('http_bind', '0.0.0.0'),
@@ -26,9 +49,9 @@ const config = {
   consoleLevel: getParam('console_level', 'info'),
   logging: {},
   tokenUid: getParam('token_uid'),
-  gapLimit: getParam('gap_limit'),
-  connectionTimeout: getParam('connection_timeout'),
-  allowPassphrase: getParam('allow_passphrase'),
+  gapLimit: getIntParam('gap_limit'),
+  connectionTimeout: getIntParam('connection_timeout'),
+  allowPassphrase: getBooleanParam('allow_passphrase'),
 };
 
 const seeds = getParam('seeds', 'default').split(' ');
