@@ -12,6 +12,11 @@ function getIntParam(name, _default) {
   const param = getParam(name, _default);
   const parsedParam = parseInt(param);
   if (Number.isInteger(parsedParam)) {
+    if (parsedParam != param) {
+      // parseInt('123a') = 123, then it would enter this if
+      // it means that we have a bad integer, even though parseInt returns a valid one
+      throw new Error(`Wrong integer parameter for ${name}. Received ${param}.`);
+    }
     return parsedParam;
   } else {
     return _default;
