@@ -8,6 +8,44 @@ function getParam(name, _default) {
   return argv[name] || process.env[envname] || _default;
 }
 
+function getIntParam(name, _default) {
+  const param = getParam(name, _default);
+
+  if (param === undefined || param === null) {
+    return param;
+  }
+
+  const parsedParam = parseInt(param);
+  if (Number.isInteger(parsedParam)) {
+    if (parsedParam != param) {
+      // parseInt('123a') = 123, then it would enter this if
+      // it means that we have a bad integer, even though parseInt returns a valid one
+      throw new Error(`Invalid integer parameter for ${name}. Received ${param}.`);
+    }
+    return parsedParam;
+  }
+
+  throw new Error(`Invalid integer parameter for ${name}. Received ${param}.`);
+}
+
+function getBooleanParam(name, _default) {
+  const param = getParam(name, _default);
+
+  if (param === undefined || param === null) {
+    return param;
+  }
+
+  if (param === 'true' || param === '1') {
+    // Should we allow more representations?
+    return true;
+  } else if (param === 'false' || param === '0') {
+    // Should we allow more representations?
+    return false;
+  }
+
+  throw new Error(`Invalid boolean parameter for ${name}. Received ${param}.`);
+}
+
 const config = {
   // HTTP API Settings
   http_bind_address: getParam('http_bind', '0.0.0.0'),
@@ -26,8 +64,9 @@ const config = {
   consoleLevel: getParam('console_level', 'info'),
   logging: {},
   tokenUid: getParam('token_uid'),
-  gapLimit: getParam('gap_limit'),
-  connectionTimeout: getParam('connection_timeout'),
+  gapLimit: getIntParam('gap_limit'),
+  connectionTimeout: getIntParam('connection_timeout'),
+  allowPassphrase: getBooleanParam('allow_passphrase'),
 };
 
 const seeds = getParam('seeds', 'default').split(' ');

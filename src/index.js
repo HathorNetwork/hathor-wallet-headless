@@ -20,6 +20,9 @@ import { lock, lockTypes } from './lock';
 // Error message when the user tries to send a transaction while the lock is active
 const cantSendTxErrorMessage = 'You already have a transaction being sent. Please wait until it\'s done to send another.';
 
+// If config explicitly allows the /start endpoint to have a passphrase
+const allowPassphrase = config.allowPassphrase || false;
+
 const wallets = {};
 
 const humanState = {
@@ -103,6 +106,15 @@ app.post('/start', (req, res) => {
   // Passphrase is optional but if not passed as parameter
   // the wallet will use empty string
   if (req.body.passphrase) {
+    if (!allowPassphrase) {
+      // To use a passphrase on /start POST request the configuration of the headless must explicitly allow it
+      console.log('Failed to start wallet because using a passphrase is not allowed by the current config. See allowPassphrase.');
+      res.send({
+        success: false,
+        message: 'Failed to start wallet. To use a passphrase you must explicitly allow it in the configuration file. Using a passphrase completely changes the addresses of your wallet, only use it if you know what you are doing.',
+      });
+      return;
+    }
     walletConfig['passphrase'] = req.body.passphrase;
   }
   const walletID = req.body['wallet-id'];
@@ -216,15 +228,38 @@ walletRouter.get('/address',
     return res.status(400).json(validationResult);
   }
   const wallet = req.wallet;
-  const index = req.query.index || null;
+  const index = req.query.index;
   let address;
-  if (index !== null) {
+  if (index !== undefined) {
+    // Because of isInt and toInt, it's safe to assume that index is now an integer >= 0
     address = wallet.getAddressAtIndex(index);
   } else {
     const markAsUsed = req.query.mark_as_used || false;
     address = wallet.getCurrentAddress({markAsUsed});
   }
   res.send({ address });
+});
+
+/**
+ * GET request to get an address index
+ * For the docs, see api-docs.js
+ */
+walletRouter.get('/address-index',
+  query('address').isString(),
+  (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
+  const wallet = req.wallet;
+  const address = req.query.address;
+  const index = wallet.getAddressIndex(address);
+  if (index === null) {
+    // Address does not belong to the wallet
+    res.send({ success: false });
+  } else {
+    res.send({ success: true, index });
+  }
 });
 
 /**
