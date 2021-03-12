@@ -228,9 +228,10 @@ walletRouter.get('/address',
     return res.status(400).json(validationResult);
   }
   const wallet = req.wallet;
-  const index = req.query.index || null;
+  const index = req.query.index;
   let address;
-  if (index !== null) {
+  if (index !== undefined) {
+    // Because of isInt and toInt, it's safe to assume that index is now an integer >= 0
     address = wallet.getAddressAtIndex(index);
   } else {
     const markAsUsed = req.query.mark_as_used || false;
