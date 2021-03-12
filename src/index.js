@@ -108,10 +108,10 @@ app.post('/start', (req, res) => {
   if (req.body.passphrase) {
     if (!allowPassphrase) {
       // To use a passphrase on /start POST request the configuration of the headless must explicitly allow it
-      console.log('Error starting wallet because the request tried to set a passphrase and the config is not allowing it.');
+      console.log('Failed to start wallet because using a passphrase is not allowed by the current config. See allowPassphrase.');
       res.send({
         success: false,
-        message: 'Failed to start wallet. To use a passphrase you must explicitly allow it in the configuration file. Using a passphrase completely changes the addresses of your wallet, just use it if you know what you are doing.',
+        message: 'Failed to start wallet. To use a passphrase you must explicitly allow it in the configuration file. Using a passphrase completely changes the addresses of your wallet, only use it if you know what you are doing.',
       });
       return;
     }
