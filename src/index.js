@@ -241,10 +241,11 @@ walletRouter.get('/address-index',
   const wallet = req.wallet;
   const address = req.query.address;
   const index = wallet.getAddressIndex(address);
-  if (index) {
-    res.send({ success: true, index });
-  } else {
+  if (index === null) {
+    // Address does not belong to the wallet
     res.send({ success: false });
+  } else {
+    res.send({ success: true, index });
   }
 });
 
