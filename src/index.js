@@ -20,6 +20,9 @@ import { lock, lockTypes } from './lock';
 // Error message when the user tries to send a transaction while the lock is active
 const cantSendTxErrorMessage = 'You already have a transaction being sent. Please wait until it\'s done to send another.';
 
+// If config explicitly allows the /start endpoint to have a passphrase
+const allowPassphrase = config.allowPassphrase || false;
+
 const wallets = {};
 
 const humanState = {
@@ -103,6 +106,15 @@ app.post('/start', (req, res) => {
   // Passphrase is optional but if not passed as parameter
   // the wallet will use empty string
   if (req.body.passphrase) {
+    if (!allowPassphrase) {
+      // To use a passphrase on /start POST request the configuration of the headless must explicitly allow it
+      console.log('Error starting wallet because the request tried to set a passphrase and the config is not allowing it.');
+      res.send({
+        success: false,
+        message: 'Failed to start wallet. To use a passphrase you must explicitly allow it in the configuration file. Using a passphrase completely changes the addresses of your wallet, just use it if you know what you are doing.',
+      });
+      return;
+    }
     walletConfig['passphrase'] = req.body.passphrase;
   }
   const walletID = req.body['wallet-id'];

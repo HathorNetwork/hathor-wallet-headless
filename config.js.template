@@ -46,4 +46,9 @@ module.exports = {
   // Timeout of the websocket connection in milliseconds
   // if not set we use the default from the lib (5000)
   connectionTimeout: null,
+
+  // This allows the user to set a passphrase when starting the wallet
+  // This value is false by default and, starting a wallet with passphrase
+  // will only be allowed if it's set to true in the config.js file
+  allowPassphrase: false,
 };
