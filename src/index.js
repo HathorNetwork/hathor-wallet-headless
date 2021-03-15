@@ -7,7 +7,7 @@
 
 import express from 'express';
 import morgan from 'morgan';
-import { Connection, HathorWallet, wallet as walletUtils, tokens } from '@hathor/wallet-lib';
+import { Connection, HathorWallet, wallet as walletUtils, tokens, errors } from '@hathor/wallet-lib';
 import { body, checkSchema, matchedData, query, validationResult } from 'express-validator';
 
 import config from './config';
@@ -752,6 +752,39 @@ walletRouter.post(
       res.send({ success: false, error: error.message || error });
     } finally {
       lock.unlock(lockTypes.SEND_TX);
+    }
+  }
+);
+
+/**
+ * GET request to obtain adress information
+ * For the docs, see api-docs.js
+ */
+ walletRouter.get(
+  '/address-info',
+  query('address').isString(),
+  query('token').isString().optional(),
+  (req, res) => {
+    // Query parameters validation
+    const validationResult = parametersValidation(req);
+    if (!validationResult.success) {
+      return res.status(400).json(validationResult);
+    }
+
+    const wallet = req.wallet;
+    const { address, token } = matchedData(req, { locations: ['query'] });
+    try {
+      const result = wallet.getAddressInfo(address, { token });
+      res.send({
+        success: true,
+        ...result
+      });
+    } catch(error) {
+      if (error instanceof errors.AddressError) {
+        res.send({ success: false, error: error.message });
+      } else {
+        throw error;
+      }
     }
   }
 );
