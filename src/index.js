@@ -37,6 +37,9 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan(config.httpLogFormat || 'combined', { stream: logger.stream }));
+if (config.http_api_key) {
+  app.use(apiKeyAuth(config.http_api_key));
+}
 const walletRouter = express.Router({mergeParams: true})
 
 const parametersValidation = (req) => {
@@ -760,9 +763,6 @@ walletRouter.post('/stop', (req, res) => {
   res.send({success: true});
 });
 
-if (config.http_api_key) {
-  app.use(apiKeyAuth(config.http_api_key));
-}
 app.use('/wallet', walletRouter);
 
 console.log('Starting Hathor Wallet...', {
