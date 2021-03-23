@@ -171,8 +171,17 @@ walletRouter.use((req, res, next) => {
     sendError('Invalid wallet id parameter.');
     return;
   }
-
   const wallet = wallets[walletId];
+
+  if (config.confirmFirstAddress) {
+    const firstAddressHeader = req.headers['x-first-address'];
+    const firstAddress = wallet.getAddressAtIndex(0);
+    if (firstAddress !== firstAddressHeader) {
+      sendError(`Wrong first address. This wallet's first address is: ${firstAddress}`);
+      return;
+    }
+  }
+
   if (!wallet.isReady()) {
     sendError('Wallet is not ready.', wallet.state);
     return;
