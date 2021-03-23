@@ -19,5 +19,5 @@ docker: Dockerfile package.json
 
 .PHONY: docker-push
 docker-push: docker
-	docker tag $(docker_tag) hathornetwork/hathor-wallet-service:$(docker_subtag)
-	docker push hathornetwork/hathor-wallet-service:$(docker_subtag)
+	docker tag $(docker_tag) hathornetwork/hathor-wallet-headless:$(docker_subtag)
+	docker push hathornetwork/hathor-wallet-headless:$(docker_subtag)
