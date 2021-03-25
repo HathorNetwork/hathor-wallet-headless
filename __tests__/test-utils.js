@@ -22,6 +22,7 @@ class TestUtils {
   static httpMock = httpMock;
   static wsMock = wsMock;
 
+  static seedKey = SEED_KEY;
   static walletId = WALLET_ID;
 
   static addresses = [
