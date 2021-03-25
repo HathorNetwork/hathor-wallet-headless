@@ -1,3 +1,4 @@
+[![codecov](https://codecov.io/gh/HathorNetwork/hathor-wallet-headless/branch/master/graph/badge.svg?token=NZ3BPUX9V7)](https://codecov.io/gh/HathorNetwork/hathor-wallet-headless)
 # Hathor Wallet Headless
 
 This is a headless Hathor Wallet, i.e., without a graphical user interface. It is controlled by its HTTP API.
