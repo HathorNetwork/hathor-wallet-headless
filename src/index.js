@@ -7,7 +7,7 @@
 
 import express from 'express';
 import morgan from 'morgan';
-import { Connection, HathorWallet, wallet as walletUtils, tokens } from '@hathor/wallet-lib';
+import { Connection, HathorWallet, wallet as walletUtils, tokens, errors } from '@hathor/wallet-lib';
 import { body, checkSchema, matchedData, query, validationResult } from 'express-validator';
 
 import config from './config';
@@ -37,6 +37,9 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan(config.httpLogFormat || 'combined', { stream: logger.stream }));
+if (config.http_api_key) {
+  app.use(apiKeyAuth(config.http_api_key));
+}
 const walletRouter = express.Router({mergeParams: true})
 
 const parametersValidation = (req) => {
@@ -168,8 +171,17 @@ walletRouter.use((req, res, next) => {
     sendError('Invalid wallet id parameter.');
     return;
   }
-
   const wallet = wallets[walletId];
+
+  if (config.confirmFirstAddress) {
+    const firstAddressHeader = req.headers['x-first-address'];
+    const firstAddress = wallet.getAddressAtIndex(0);
+    if (firstAddress !== firstAddressHeader) {
+      sendError(`Wrong first address. This wallet's first address is: ${firstAddress}`);
+      return;
+    }
+  }
+
   if (!wallet.isReady()) {
     sendError('Wallet is not ready.', wallet.state);
     return;
@@ -391,7 +403,7 @@ walletRouter.post('/simple-send-tx',
   const ret = wallet.sendTransaction(address, value, token, { changeAddress });
   if (ret.success) {
     ret.promise.then((response) => {
-      res.send(response);
+      res.send({ success: true, ...response });
     }).catch((error) => {
       res.send({success: false, error});
     }).finally(() => {
@@ -520,7 +532,7 @@ walletRouter.post('/send-tx',
   }
   if (ret.success) {
     ret.promise.then((response) => {
-      res.send(response);
+      res.send({ success: true, ...response });
     }).catch((error) => {
       const response = {success: false, error};
       if (debug) {
@@ -579,7 +591,7 @@ walletRouter.post('/create-token',
   const ret = wallet.createNewToken(name, symbol, amount, address, { changeAddress });
   if (ret.success) {
     ret.promise.then((response) => {
-      res.send(response);
+      res.send({ success: true, ...response });
     }).catch((error) => {
       res.send({success: false, error});
     }).finally(() => {
@@ -735,14 +747,44 @@ walletRouter.post(
       const wallet = req.wallet;
       const { destination_address, ...options } = matchedData(req, { locations: ['body'] });
       const result = await wallet.consolidateUtxos(destination_address, options);
+      res.send({ success: true, ...result });
+    } catch(error) {
+      res.send({ success: false, error: error.message || error });
+    } finally {
+      lock.unlock(lockTypes.SEND_TX);
+    }
+  }
+);
+
+/**
+ * GET request to obtain adress information
+ * For the docs, see api-docs.js
+ */
+ walletRouter.get(
+  '/address-info',
+  query('address').isString(),
+  query('token').isString().optional(),
+  (req, res) => {
+    // Query parameters validation
+    const validationResult = parametersValidation(req);
+    if (!validationResult.success) {
+      return res.status(400).json(validationResult);
+    }
+
+    const wallet = req.wallet;
+    const { address, token } = matchedData(req, { locations: ['query'] });
+    try {
+      const result = wallet.getAddressInfo(address, { token });
       res.send({
         success: true,
         ...result
       });
     } catch(error) {
-      res.send({ success: false, error: error.message || error });
-    } finally {
-      lock.unlock(lockTypes.SEND_TX);
+      if (error instanceof errors.AddressError) {
+        res.send({ success: false, error: error.message });
+      } else {
+        throw error;
+      }
     }
   }
 );
@@ -760,9 +802,6 @@ walletRouter.post('/stop', (req, res) => {
   res.send({success: true});
 });
 
-if (config.http_api_key) {
-  app.use(apiKeyAuth(config.http_api_key));
-}
 app.use('/wallet', walletRouter);
 
 console.log('Starting Hathor Wallet...', {
@@ -786,6 +825,10 @@ if (config.gapLimit) {
   walletUtils.setGapLimit(config.gapLimit);
 }
 
-app.listen(config.http_port, config.http_bind_address, () => {
-  console.log(`Listening on ${config.http_bind_address}:${config.http_port}...`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(config.http_port, config.http_bind_address, () => {
+    console.log(`Listening on ${config.http_bind_address}:${config.http_port}...`);
+  });
+}
+
+export default app;

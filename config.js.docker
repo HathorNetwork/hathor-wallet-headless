@@ -67,6 +67,7 @@ const config = {
   gapLimit: getIntParam('gap_limit'),
   connectionTimeout: getIntParam('connection_timeout'),
   allowPassphrase: getBooleanParam('allow_passphrase'),
+  confirmFirstAddress: getBooleanParam('confirm_first_address'),
 };
 
 const seeds = getParam('seeds', 'default').split(' ');

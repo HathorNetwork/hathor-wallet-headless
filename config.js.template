@@ -51,4 +51,9 @@ module.exports = {
   // This value is false by default and, starting a wallet with passphrase
   // will only be allowed if it's set to true in the config.js file
   allowPassphrase: false,
+
+  // Enabling this requires all requests to have the X-First-Address header
+  // to confirm that the client is connected to the right wallet. The primary
+  // purpose of this parameter is to avoid operational mistakes and loss of funds.
+  confirmFirstAddress: false,
 };

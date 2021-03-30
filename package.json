@@ -1,14 +1,15 @@
 {
   "name": "hathor-wallet-headless",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "description": "Hathor Wallet Headless, i.e., without graphical user interface",
   "main": "index.js",
   "dependencies": {
     "@babel/cli": "^7.13.0",
     "@babel/core": "^7.13.1",
     "@babel/node": "^7.13.0",
+    "@babel/plugin-proposal-class-properties": "^7.13.0",
     "@babel/preset-env": "^7.13.5",
-    "@hathor/wallet-lib": "^0.17.2",
+    "@hathor/wallet-lib": "^0.18.0",
     "express": "^4.17.1",
     "express-validator": "^6.10.0",
     "morgan": "^1.10.0",
@@ -16,7 +17,7 @@
     "yargs": "^16.2.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "dev": "nodemon --exec babel-node index.js",
     "start": "babel-node src/index.js",
     "generate_words": "babel-node utils/generate_words.js"
@@ -32,6 +33,11 @@
   },
   "homepage": "https://github.com/HathorNetwork/hathor-wallet-headless#readme",
   "devDependencies": {
-    "nodemon": "^2.0.7"
+    "axios-mock-adapter": "^1.19.0",
+    "babel-jest": "^26.6.3",
+    "jest": "^24.8.0",
+    "mock-socket": "^9.0.3",
+    "nodemon": "^2.0.7",
+    "supertest": "^6.1.3"
   }
 }
