@@ -1250,7 +1250,72 @@ const apiDoc = {
           },
         },
       },
-    }
+    },
+    '/wallet/address-info': {
+      get: {
+        summary: 'Get information of a given address.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            'in': 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'address',
+            'in': 'query',
+            description: 'Address to get information of',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'token',
+            'in': 'query',
+            description: 'Filter the information to a custom token or HTR (default: HTR)',
+            required: false,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Address information or handled error',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { "success": true, "total_amount_received": 9299200, "total_amount_sent": 6400, "total_amount_available": 9292800, "total_amount_locked": 0, "token": "00", "index": 0},
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: {"success":false,"message":"Wallet is not ready.","state":1}
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: {"success":false,"message":"Parameter 'wallet-id' is required."}
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: {"success":false,"message":"Invalid wallet-id parameter."}
+                  },
+                  'invalid-parameter': {
+                    summary: 'Invalid parameter',
+                    value: { "success": false, "error": [ { "value": "\"1\"", "msg": "Invalid value", "param": "address", "location": "query" } ] }
+                  }
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
 };
 

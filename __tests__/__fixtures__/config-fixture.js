@@ -1,4 +1,4 @@
-export default {
+const config = {
   http_bind_address: "fakehost",
   http_port: 8001,
   network: "testnet",
@@ -9,4 +9,10 @@ export default {
   },
   tokenUid: "",
   gapLimit: null,
+  confirmFirstAddress: null,
 };
+
+// Allow change config at runtime
+global.config = config;
+
+export default config;
