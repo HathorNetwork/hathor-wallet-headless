@@ -1,6 +1,6 @@
 {
   "name": "hathor-wallet-headless",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "description": "Hathor Wallet Headless, i.e., without graphical user interface",
   "main": "index.js",
   "dependencies": {
