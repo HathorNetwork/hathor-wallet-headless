@@ -7,7 +7,7 @@
 
 import express from 'express';
 import morgan from 'morgan';
-import { Connection, HathorWallet, wallet as walletUtils, tokens, errors } from '@hathor/wallet-lib';
+import { Connection, HathorWallet, Network, wallet as walletUtils, tokens, errors } from '@hathor/wallet-lib';
 import { body, checkSchema, matchedData, query, validationResult } from 'express-validator';
 
 import config from './config';
@@ -134,7 +134,7 @@ app.post('/start', (req, res) => {
     return;
   }
 
-  const wallet = new HathorWallet(walletConfig);
+  const wallet = new HathorWallet(seed, new Network(config.network));
   wallet.start().then((info) => {
     console.log(`Wallet started with wallet id ${req.body['wallet-id']}. Full-node info: `, info);
     wallets[req.body['wallet-id']] = wallet;
@@ -215,16 +215,20 @@ walletRouter.get('/status', (req, res) => {
 walletRouter.get(
   '/balance',
   query('token').isString().optional(),
-  (req, res) => {
+  async (req, res) => {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
   }
   const wallet = req.wallet;
-  // Expects token uid
-  const token = req.query.token || null;
-  const balance = wallet.getBalance(token);
-  res.send(balance);
+  // Expects token uid, default is HTR
+  const token = req.query.token || '00';
+  try {
+    const balance = await wallet.getBalance(token);
+    res.send(balance);
+  } catch (err) {
+    res.send({success: false, error: err.message });
+  }
 });
 
 /**
@@ -278,11 +282,15 @@ walletRouter.get('/address-index',
  * GET request to get all addresses of a wallet
  * For the docs, see api-docs.js
  */
-walletRouter.get('/addresses', (req, res) => {
+walletRouter.get('/addresses', async (req, res) => {
   const wallet = req.wallet;
   // TODO Add pagination
-  const addresses = wallet.getAllAddresses();
-  res.send({ addresses });
+  try {
+    const addresses = await wallet.getAllAddresses();
+    res.send({ addresses });
+  } catch (err) {
+    res.send({ success: false, error: err.message });
+  }
 });
 
 /**
@@ -290,22 +298,20 @@ walletRouter.get('/addresses', (req, res) => {
  * For the docs, see api-docs.js
  */
 walletRouter.get('/tx-history',
-  query('limit').isInt().optional().toInt(),
-  (req, res) => {
+  query('token').isString().optional(),
+  async (req, res) => {
   // TODO Add pagination
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
   }
   const wallet = req.wallet;
-  const limit = req.query.limit || null;
-  const history = wallet.getTxHistory();
-  if (limit) {
-    const values = Object.values(history);
-    const sortedValues = values.sort((a, b) => b.timestamp - a.timestamp);
-    res.send(sortedValues.slice(0, limit));
-  } else {
-    res.send(Object.values(history));
+  const token = req.query.token || null;
+  try {
+    const history = await wallet.getTxHistory({ token });
+    res.send({ history });
+  } catch (err) {
+    res.send({success: false, error: err.message });
   }
 });
 
@@ -361,28 +367,11 @@ walletRouter.post('/simple-send-tx',
     },
     token: {
       in: ['body'],
-      isObject: true,
-      optional: true,
-      custom: {
-        options: (value, { req, location, path }) => {
-          if (!('name' in value) || !(typeof value.name === 'string')) {
-            return false;
-          }
-          if (!('uid' in value) || !(typeof value.uid === 'string')) {
-            return false;
-          }
-          if (!('symbol' in value) || !(typeof value.symbol === 'string')) {
-            return false;
-          }
-          if (!value.name || !value.uid || !value.symbol) {
-            return false;
-          }
-          return true;
-        }
-      }
+      isString: true,
+      optional: true
     }
   }),
-  (req, res) => {
+  async (req, res) => {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
@@ -397,20 +386,20 @@ walletRouter.post('/simple-send-tx',
   const wallet = req.wallet;
   const address = req.body.address;
   const value = req.body.value;
-  // Expects object with {'uid', 'name', 'symbol'}
-  const token = req.body.token || null;
+  const token = req.body.token || '00';
   const changeAddress = req.body.change_address || null;
-  const ret = wallet.sendTransaction(address, value, token, { changeAddress });
-  if (ret.success) {
-    ret.promise.then((response) => {
-      res.send({ success: true, ...response });
-    }).catch((error) => {
-      res.send({success: false, error});
-    }).finally(() => {
-      lock.unlock(lockTypes.SEND_TX);
-    });
-  } else {
-    res.send({success: false, error: ret.message});
+  try {
+    const response = await wallet.sendTransaction(address, value, { token, changeAddress });
+    res.send({ success: true, ...response });
+  } catch (err) {
+    console.log('Deu erro aqui');
+    console.log(err);
+    const ret = {success: false, error: err.message };
+    if (err.response && err.response.data && err.response.data.error) {
+      ret['code'] = err.response.data.error;
+    }
+    res.send(ret);
+  } finally {
     lock.unlock(lockTypes.SEND_TX);
   }
 });
@@ -453,14 +442,14 @@ walletRouter.post('/send-tx',
       isObject: true,
       custom: {
         options: (value, { req, location, path }) => {
-          if (!('hash' in value) || !(typeof value.hash === 'string')) {
+          if (!('txId' in value) || !(typeof value.txId === 'string')) {
             return false;
           }
           if (!('index' in value) || !(/^\d+$/.test(value.index))) {
             // Test that index is required and it's an integer
             return false;
           }
-          if (!value.hash) {
+          if (!value.txId) {
             // the regex in value.index already test for empty string
             return false;
           }
@@ -495,15 +484,9 @@ walletRouter.post('/send-tx',
           return true;
         }
       }
-    },
-    debug: {
-      in: ['body'],
-      isBoolean: true,
-      toBoolean: true,
-      optional: true,
     }
   }),
-  (req, res) => {
+  async (req, res) => {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
@@ -517,45 +500,24 @@ walletRouter.post('/send-tx',
 
   const wallet = req.wallet;
   const outputs = req.body.outputs;
-  // Expects array of objects with {'hash', 'index'}
+  // Expects array of objects with {'txId', 'index'}
   const inputs = req.body.inputs || [];
   // Expects object with {'uid', 'name', 'symbol'}
-  const token = req.body.token || null;
+  const token = req.body.token || '00';
   const changeAddress = req.body.change_address || null;
-  const debug = req.body.debug || false;
-  if (debug) {
-    wallet.enableDebugMode();
-  }
-  const ret = wallet.sendManyOutputsTransaction(outputs, inputs, token, { changeAddress })
-  if (debug) {
-    wallet.disableDebugMode();
-  }
-  if (ret.success) {
-    ret.promise.then((response) => {
-      res.send({ success: true, ...response });
-    }).catch((error) => {
-      const response = {success: false, error};
-      if (debug) {
-        response.debug = ret.debug;
-        logger.debug('/send-tx failed', {
-          body: req.body,
-          response: response,
-        });
-      }
-      res.send(response);
-    }).finally(() => {
-      lock.unlock(lockTypes.SEND_TX);
-    });
-  } else {
-    const response = {success: false, error: ret.message};
-    if (debug) {
-      response.debug = ret.debug;
-      logger.debug('/send-tx failed', {
-        body: req.body,
-        response: response
-      });
+
+  try {
+    const response = await wallet.sendManyOutputsTransaction(outputs, { inputs, changeAddress });
+    res.send({ success: true, ...response });
+  } catch (err) {
+    console.log('Deu erro aqui');
+    console.log(err);
+    const ret = {success: false, error: err.message };
+    if (err.response && err.response.data && err.response.data.error) {
+      ret['code'] = err.response.data.error;
     }
-    res.send(response);
+    res.send(ret);
+  } finally {
     lock.unlock(lockTypes.SEND_TX);
   }
 });
