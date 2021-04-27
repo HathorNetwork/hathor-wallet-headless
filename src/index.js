@@ -474,6 +474,11 @@ walletRouter.post('/send-tx',
         }
       }
     },
+    'change_address': {
+      in: ['body'],
+      isString: true,
+      optional: true
+    },
     token: {
       in: ['body'],
       isObject: true,

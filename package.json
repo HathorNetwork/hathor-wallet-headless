@@ -20,7 +20,7 @@
     "test": "jest",
     "dev": "nodemon --exec babel-node index.js",
     "start": "babel-node src/index.js",
-    "generate_words": "babel-node utils/generate_words.js"
+    "generate_words": "babel-node src/utils/generate_words.js"
   },
   "repository": {
     "type": "git",
