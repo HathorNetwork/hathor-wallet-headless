@@ -415,6 +415,70 @@ walletRouter.post('/simple-send-tx',
   }
 });
 
+
+/**
+ * Method that select utxos to be used in a transaction
+ * following the filter query sent in the request
+ *
+ * XXX this method should be created in the lib itself
+ * however the current version of the lib is already incompatible with
+ * the method calls we have right now after some refactors were done
+ * to use the facada in the wallets mobile/desktop.
+ * Because of that I decided to create this method here for now,
+ * not only because it would require more changes to fix the incompatibilities but
+ * we will change even more in the following weeks when we finish the integration
+ * of the lib with the wallet service and the signature methods alignment.
+ * Then part of the work here would be lost anyway in the following weeks.
+ *
+ * I leave this comment here because, as soon as we finish the wallet service integration in the lib
+ * and align the methods signatures, we will fix the incompatibilities in the headless and then we
+ * can add this method in the lib
+ *
+ * @param {HathorWallet} wallet The wallet object
+ * @param {number} sumOutputs The sum of outputs of the transaction I need to fill
+ * @param {Object} options The options to filter the utxos (see utxo-filter API to see the possibilities)
+ */
+const getUtxosToFillTx = (wallet, sumOutputs, options) => {
+  const utxosDetails = wallet.getUtxos(options);
+  // If I can't fill all the amount with the returned utxos, then return null
+  if (utxosDetails.total_amount_available < sumOutputs) {
+    return null;
+  }
+
+  const utxos = utxosDetails.utxos;
+  // Sort utxos with larger amounts first
+  utxos.sort((a, b) => b.amount - a.amount);
+
+  if (utxos[0].amount > sumOutputs) {
+    // If I have a single utxo capable of providing the full amount
+    // then I find the smallest utxos that can fill the full amount
+
+    // This is the index of the first utxo that does not fill the full amount
+    // if this is -1, then all utxos fill the full amount and I should get the last one
+    const firstSmallerIndex = utxos.findIndex((obj) => obj.amount < sumOutputs);
+
+    if (firstSmallerIndex === -1) {
+      // Return the last element of the array (the one with smaller amount)
+      return [utxos.pop()];
+    } else {
+      // Return the element right before the first element that does not provide the full amount
+      return [utxos[firstSmallerIndex - 1]];
+    }
+  } else {
+    // Else I get the utxos in order until the full amount is filled
+    let total = 0;
+    const retUtxos = [];
+    for (const utxo of utxos) {
+      retUtxos.push(utxo);
+      total += utxo.amount;
+
+      if (total >= sumOutputs) {
+        return retUtxos;
+      }
+    }
+  }
+}
+
 /**
  * POST request to send a transaction with many outputs and inputs selection
  * For the docs, see api-docs.js
@@ -453,18 +517,24 @@ walletRouter.post('/send-tx',
       isObject: true,
       custom: {
         options: (value, { req, location, path }) => {
-          if (!('hash' in value) || !(typeof value.hash === 'string')) {
-            return false;
+          if ('type' in value && value.type === 'query') {
+            // It's a query input and all fields are optionals
+            return true;
+          } else {
+            // It's a normal input
+            if (!('hash' in value) || !(typeof value.hash === 'string')) {
+              return false;
+            }
+            if (!('index' in value) || !(/^\d+$/.test(value.index))) {
+              // Test that index is required and it's an integer
+              return false;
+            }
+            if (!value.hash) {
+              // the regex in value.index already test for empty string
+              return false;
+            }
+            return true;
           }
-          if (!('index' in value) || !(/^\d+$/.test(value.index))) {
-            // Test that index is required and it's an integer
-            return false;
-          }
-          if (!value.hash) {
-            // the regex in value.index already test for empty string
-            return false;
-          }
-          return true;
         }
       },
       customSanitizer: {
@@ -523,13 +593,28 @@ walletRouter.post('/send-tx',
   const wallet = req.wallet;
   const outputs = req.body.outputs;
   // Expects array of objects with {'hash', 'index'}
-  const inputs = req.body.inputs || [];
+  let inputs = req.body.inputs || [];
   // Expects object with {'uid', 'name', 'symbol'}
   const token = req.body.token || null;
   const changeAddress = req.body.change_address || null;
   const debug = req.body.debug || false;
   if (debug) {
     wallet.enableDebugMode();
+  }
+
+  if (inputs.length > 0 && inputs[0].type === 'query') {
+    // First get sum of all outputs
+    const sumOutputs = outputs.reduce((acc, obj) => obj.value + acc, 0);
+    const utxos = getUtxosToFillTx(wallet, sumOutputs, inputs[0]);
+    if (!utxos) {
+      const response = {success: false, error: 'No utxos available for the query filter for this amount.'};
+      res.send(response);
+      lock.unlock(lockTypes.SEND_TX);
+      return;
+    }
+    inputs = utxos.map((utxo) => {
+      return {hash: utxo.tx_id, index: utxo.index};
+    });
   }
   const ret = wallet.sendManyOutputsTransaction(outputs, inputs, token, { changeAddress })
   if (debug) {
