@@ -67,21 +67,36 @@ app.get('/docs', (req, res) => {
  */
 app.post('/start', (req, res) => {
   // We expect the user to send the seed he wants to use
-  if (!('seedKey' in req.body)) {
+  if (!('seedKey' in req.body) && !('seed' in req.body)) {
     res.send({
       success: false,
-      message: 'Parameter \'seedKey\' is required.',
+      message: 'Parameter \'seedKey\' or \'seed\' is required.',
     });
     return;
   }
 
-  const seedKey = req.body.seedKey;
-  if (!(seedKey in config.seeds)) {
+  if (('seedKey' in req.body) && ('seed' in req.body)) {
     res.send({
       success: false,
-      message: 'Seed not found.',
+      message: 'You can\'t have both \'seedKey\' and \'seed\' in the body.',
     });
     return;
+  }
+
+  let seed;
+  if ('seedKey' in req.body) {
+    const seedKey = req.body.seedKey;
+    if (!(seedKey in config.seeds)) {
+      res.send({
+        success: false,
+        message: 'Seed not found.',
+      });
+      return;
+    }
+
+    seed = config.seeds[seedKey];
+  } else {
+    seed = req.body.seed;
   }
 
   // The user must send a key to index this wallet
@@ -93,7 +108,6 @@ app.post('/start', (req, res) => {
     return;
   }
 
-  const seed = config.seeds[seedKey];
   const connection = new Connection({network: config.network, servers: [config.server], connectionTimeout: config.connectionTimeout});
   const walletConfig = {
     seed,
