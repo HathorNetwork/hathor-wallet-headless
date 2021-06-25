@@ -107,7 +107,7 @@ app.post('/start', (req, res) => {
     if (e instanceof errors.InvalidWords) {
       res.send({
         success: false,
-        message: `Seed error: ${e.message}`,
+        message: `Invalid seed: ${e.message}`,
       });
       return;
     } else {
