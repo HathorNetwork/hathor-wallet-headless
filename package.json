@@ -1,6 +1,6 @@
 {
   "name": "hathor-wallet-headless",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Hathor Wallet Headless, i.e., without graphical user interface",
   "main": "index.js",
   "dependencies": {
@@ -20,7 +20,7 @@
     "test": "jest",
     "dev": "nodemon --exec babel-node index.js",
     "start": "babel-node src/index.js",
-    "generate_words": "babel-node utils/generate_words.js"
+    "generate_words": "babel-node src/utils/generate_words.js"
   },
   "repository": {
     "type": "git",

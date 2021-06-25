@@ -7,7 +7,7 @@
 
 import express from 'express';
 import morgan from 'morgan';
-import { Connection, HathorWallet, wallet as walletUtils, tokens, errors } from '@hathor/wallet-lib';
+import { Connection, HathorWallet, wallet as oldWalletUtils, walletUtils, tokens, errors } from '@hathor/wallet-lib';
 import { body, checkSchema, matchedData, query, validationResult } from 'express-validator';
 
 import config from './config';
@@ -67,21 +67,53 @@ app.get('/docs', (req, res) => {
  */
 app.post('/start', (req, res) => {
   // We expect the user to send the seed he wants to use
-  if (!('seedKey' in req.body)) {
+  if (!('seedKey' in req.body) && !('seed' in req.body)) {
     res.send({
       success: false,
-      message: 'Parameter \'seedKey\' is required.',
+      message: 'Parameter \'seedKey\' or \'seed\' is required.',
     });
     return;
   }
 
-  const seedKey = req.body.seedKey;
-  if (!(seedKey in config.seeds)) {
+  if (('seedKey' in req.body) && ('seed' in req.body)) {
     res.send({
       success: false,
-      message: 'Seed not found.',
+      message: 'You can\'t have both \'seedKey\' and \'seed\' in the body.',
     });
     return;
+  }
+
+  let seed;
+  if ('seedKey' in req.body) {
+    const seedKey = req.body.seedKey;
+    if (!(seedKey in config.seeds)) {
+      res.send({
+        success: false,
+        message: 'Seed not found.',
+      });
+      return;
+    }
+
+    seed = config.seeds[seedKey];
+  } else {
+    seed = req.body.seed;
+  }
+
+  // Seed validation
+  try {
+    const ret = walletUtils.wordsValid(seed);
+    seed = ret.words;
+  } catch (e) {
+    if (e instanceof errors.InvalidWords) {
+      res.send({
+        success: false,
+        message: `Invalid seed: ${e.message}`,
+      });
+      return;
+    } else {
+      // Unhandled error
+      throw e;
+    }
   }
 
   // The user must send a key to index this wallet
@@ -93,7 +125,6 @@ app.post('/start', (req, res) => {
     return;
   }
 
-  const seed = config.seeds[seedKey];
   const connection = new Connection({network: config.network, servers: [config.server], connectionTimeout: config.connectionTimeout});
   const walletConfig = {
     seed,
@@ -474,6 +505,11 @@ walletRouter.post('/send-tx',
         }
       }
     },
+    'change_address': {
+      in: ['body'],
+      isString: true,
+      optional: true
+    },
     token: {
       in: ['body'],
       isObject: true,
@@ -822,7 +858,7 @@ console.log('Configuration...', {
 
 if (config.gapLimit) {
   console.log(`Set GAP LIMIT to ${config.gapLimit}`);
-  walletUtils.setGapLimit(config.gapLimit);
+  oldWalletUtils.setGapLimit(config.gapLimit);
 }
 
 if (process.env.NODE_ENV !== 'test') {
