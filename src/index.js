@@ -7,7 +7,7 @@
 
 import express from 'express';
 import morgan from 'morgan';
-import { Connection, HathorWallet, wallet as walletUtils, tokens, errors } from '@hathor/wallet-lib';
+import { Connection, HathorWallet, wallet as oldWalletUtils, walletUtils, tokens, errors } from '@hathor/wallet-lib';
 import { body, checkSchema, matchedData, query, validationResult } from 'express-validator';
 
 import config from './config';
@@ -97,6 +97,23 @@ app.post('/start', (req, res) => {
     seed = config.seeds[seedKey];
   } else {
     seed = req.body.seed;
+  }
+
+  // Seed validation
+  try {
+    const ret = walletUtils.wordsValid(seed);
+    seed = ret.words;
+  } catch (e) {
+    if (e instanceof errors.InvalidWords) {
+      res.send({
+        success: false,
+        message: `Seed error: ${e.message}`,
+      });
+      return;
+    } else {
+      // Unhandled error
+      throw e;
+    }
   }
 
   // The user must send a key to index this wallet
@@ -841,7 +858,7 @@ console.log('Configuration...', {
 
 if (config.gapLimit) {
   console.log(`Set GAP LIMIT to ${config.gapLimit}`);
-  walletUtils.setGapLimit(config.gapLimit);
+  oldWalletUtils.setGapLimit(config.gapLimit);
 }
 
 if (process.env.NODE_ENV !== 'test') {
