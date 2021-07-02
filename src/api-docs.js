@@ -595,6 +595,30 @@ const apiDoc = {
                     }
                   }
                 }
+                dataQuery: {
+                  summary: 'Data to create the transaction with query input',
+                  value: {
+                    outputs: [
+                      {
+                        address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
+                        value: 100
+                      }
+                    ],
+                    inputs: [
+                      {
+                        type: 'query',
+                        'filter_address': 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
+                        token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d'
+                      }
+                    ],
+                    token: {
+                      uid: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
+                      name: 'Test Coin',
+                      symbol: 'TSC'
+                    }
+                  }
+                }
+              }
               }
             }
           }
