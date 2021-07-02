@@ -594,7 +594,7 @@ const apiDoc = {
                       symbol: 'TSC'
                     }
                   }
-                }
+                },
                 dataQuery: {
                   summary: 'Data to create the transaction with query input',
                   value: {
@@ -618,7 +618,6 @@ const apiDoc = {
                     }
                   }
                 }
-              }
               }
             }
           }
