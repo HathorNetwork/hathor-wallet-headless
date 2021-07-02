@@ -439,6 +439,8 @@ walletRouter.post('/simple-send-tx',
  * @param {Object} options The options to filter the utxos (see utxo-filter API to see the possibilities)
  */
 const getUtxosToFillTx = (wallet, sumOutputs, options) => {
+  // We want to find only utxos to use in the tx, so we must filter by available only
+  options['only_available_utxos'] = true;
   const utxosDetails = wallet.getUtxos(options);
   // If I can't fill all the amount with the returned utxos, then return null
   if (utxosDetails.total_amount_available < sumOutputs) {
