@@ -7,7 +7,7 @@ const apiDoc = {
   info: {
     title: 'Headless Hathor Wallet API',
     description: 'This wallet is fully controlled through an HTTP API.',
-    version: '0.8.1',
+    version: '0.8.2',
   },
   produces: [ "application/json" ],
   components: {
@@ -513,11 +513,35 @@ const apiDoc = {
                       properties: {
                         hash: {
                           type: 'string',
-                          description: 'Hash of the transaction being spent in this input.'
+                          description: 'Hash of the transaction being spent in this input. Used if not type query.'
                         },
                         index: {
                           type: 'integer',
-                          description: 'Index of the output being spent in this input.'
+                          description: 'Index of the output being spent in this input. Used if not type query.'
+                        },
+                        type: {
+                          type: 'string',
+                          description: 'Type of input object. Can be \'query\' only for now.'
+                        },
+                        'max_utxos': {
+                          type: 'integer',
+                          description: 'Maximum number of utxos to filter in the query. Optional query parameter when using type query.'
+                        },
+                        token: {
+                          type: 'string',
+                          description: 'Token uid to filter utxos in the query. Optional query parameter when using type query.'
+                        },
+                        'filter_address': {
+                          type: 'string',
+                          description: 'Address to filter utxos in the query. Optional query parameter when using type query.'
+                        },
+                        'amount_smaller_than': {
+                          type: 'integer',
+                          description: 'Filter only utxos with value smaller than this. Optional query parameter when using type query.'
+                        },
+                        'amount_bigger_than': {
+                          type: 'integer',
+                          description: 'Filter only utxos with value bigger than this. Optional query parameter when using type query.'
                         },
                       }
                     },
@@ -562,6 +586,29 @@ const apiDoc = {
                       {
                         hash: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
                         index: 0,
+                      }
+                    ],
+                    token: {
+                      uid: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
+                      name: 'Test Coin',
+                      symbol: 'TSC'
+                    }
+                  }
+                },
+                dataQuery: {
+                  summary: 'Data to create the transaction with query input',
+                  value: {
+                    outputs: [
+                      {
+                        address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
+                        value: 100
+                      }
+                    ],
+                    inputs: [
+                      {
+                        type: 'query',
+                        'filter_address': 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
+                        token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d'
                       }
                     ],
                     token: {
