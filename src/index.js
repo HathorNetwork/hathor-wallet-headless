@@ -7,7 +7,7 @@
 
 import express from 'express';
 import morgan from 'morgan';
-import { Connection, HathorWallet, Network, wallet as walletUtils, tokens, errors } from '@hathor/wallet-lib';
+import { Connection, HathorWallet, HathorWalletServiceWallet, Network, wallet as walletUtils, tokens, errors } from '@hathor/wallet-lib';
 import { body, checkSchema, matchedData, query, validationResult } from 'express-validator';
 
 import config from './config';
@@ -26,11 +26,11 @@ const allowPassphrase = config.allowPassphrase || false;
 const wallets = {};
 
 const humanState = {
-  [HathorWallet.CLOSED]: 'Closed',
-  [HathorWallet.CONNECTING]: 'Connecting',
-  [HathorWallet.SYNCING]: 'Syncing',
-  [HathorWallet.READY]: 'Ready',
-  [HathorWallet.ERROR]: 'Error',
+  [HathorWalletServiceWallet.CLOSED]: 'Closed',
+  [HathorWalletServiceWallet.CONNECTING]: 'Connecting',
+  [HathorWalletServiceWallet.SYNCING]: 'Syncing',
+  [HathorWalletServiceWallet.READY]: 'Ready',
+  [HathorWalletServiceWallet.ERROR]: 'Error',
 };
 
 const app = express();
@@ -97,7 +97,9 @@ app.post('/start', (req, res) => {
   const connection = new Connection({network: config.network, servers: [config.server], connectionTimeout: config.connectionTimeout});
   const walletConfig = {
     seed,
-    connection
+    connection,
+    pinCode: '123',
+    password: '123'
   }
 
   // tokenUid is optionat but if not passed as parameter
@@ -134,7 +136,8 @@ app.post('/start', (req, res) => {
     return;
   }
 
-  const wallet = new HathorWallet(seed, new Network(config.network));
+  const wallet = new HathorWallet(walletConfig);
+  //const wallet = new HathorWalletServiceWallet(seed, new Network(config.network));
   wallet.start().then((info) => {
     console.log(`Wallet started with wallet id ${req.body['wallet-id']}. Full-node info: `, info);
     wallets[req.body['wallet-id']] = wallet;
@@ -311,6 +314,8 @@ walletRouter.get('/tx-history',
     const history = await wallet.getTxHistory({ token });
     res.send({ history });
   } catch (err) {
+    console.log('Deu erro aqui');
+    console.log(err);
     res.send({success: false, error: err.message });
   }
 });
@@ -537,7 +542,7 @@ walletRouter.post('/create-token',
   body('amount').isInt({ min: 1 }).toInt(),
   body('address').isString().optional(),
   body('change_address').isString().optional(),
-  (req, res) => {
+  async (req, res) => {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
@@ -555,17 +560,19 @@ walletRouter.post('/create-token',
   const amount = req.body.amount;
   const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
-  const ret = wallet.createNewToken(name, symbol, amount, address, { changeAddress });
-  if (ret.success) {
-    ret.promise.then((response) => {
-      res.send({ success: true, ...response });
-    }).catch((error) => {
-      res.send({success: false, error});
-    }).finally(() => {
-      lock.unlock(lockTypes.SEND_TX);
-    });
-  } else {
-    res.send({success: false, error: ret.message});
+
+  try {
+    const response = await wallet.createNewToken(name, symbol, amount, { address, changeAddress });
+    res.send({ success: true, ...response });
+  } catch (err) {
+    console.log('Deu erro aqui');
+    console.log(err);
+    const ret = {success: false, error: err.message };
+    if (err.response && err.response.data && err.response.data.error) {
+      ret['code'] = err.response.data.error;
+    }
+    res.send(ret);
+  } finally {
     lock.unlock(lockTypes.SEND_TX);
   }
 });
@@ -579,7 +586,7 @@ walletRouter.post('/mint-tokens',
   body('amount').isInt({ min: 1 }).toInt(),
   body('address').isString().optional(),
   body('change_address').isString().optional(),
-  (req, res) => {
+  async (req, res) => {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
@@ -596,17 +603,19 @@ walletRouter.post('/mint-tokens',
   const amount = req.body.amount;
   const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
-  const ret = wallet.mintTokens(token, amount, address, { changeAddress });
-  if (ret.success) {
-    ret.promise.then((response) => {
-      res.send(response);
-    }).catch((error) => {
-      res.send({success: false, error});
-    }).finally(() => {
-      lock.unlock(lockTypes.SEND_TX);
-    });
-  } else {
-    res.send({success: false, error: ret.message});
+
+  try {
+    const response = await wallet.mintTokens(token, amount, { address, changeAddress });
+    res.send({ success: true, ...response });
+  } catch (err) {
+    console.log('Deu erro aqui');
+    console.log(err);
+    const ret = {success: false, error: err.message };
+    if (err.response && err.response.data && err.response.data.error) {
+      ret['code'] = err.response.data.error;
+    }
+    res.send(ret);
+  } finally {
     lock.unlock(lockTypes.SEND_TX);
   }
 });
@@ -618,9 +627,9 @@ walletRouter.post('/mint-tokens',
 walletRouter.post('/melt-tokens',
   body('token').isString(),
   body('amount').isInt({ min: 1 }).toInt(),
+  body('address').isString().optional(),
   body('change_address').isString().optional(),
-  body('deposit_address').isString().optional(),
-  (req, res) => {
+  async (req, res) => {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
@@ -635,19 +644,105 @@ walletRouter.post('/melt-tokens',
   const wallet = req.wallet;
   const token = req.body.token;
   const amount = req.body.amount;
+  const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
-  const depositAddress = req.body.deposit_address || null;
-  const ret = wallet.meltTokens(token, amount, { depositAddress, changeAddress });
-  if (ret.success) {
-    ret.promise.then((response) => {
-      res.send(response);
-    }).catch((error) => {
-      res.send({success: false, error});
-    }).finally(() => {
-      lock.unlock(lockTypes.SEND_TX);
-    });
-  } else {
-    res.send({success: false, error: ret.message});
+
+  try {
+    const response = await wallet.meltTokens(token, amount, { address, changeAddress });
+    res.send({ success: true, ...response });
+  } catch (err) {
+    console.log('Deu erro aqui');
+    console.log(err);
+    const ret = {success: false, error: err.message };
+    if (err.response && err.response.data && err.response.data.error) {
+      ret['code'] = err.response.data.error;
+    }
+    res.send(ret);
+  } finally {
+    lock.unlock(lockTypes.SEND_TX);
+  }
+});
+
+/**
+ * POST request to delegate authority
+ * For the docs, see api-docs.js
+ */
+walletRouter.post('/delegate-authority',
+  body('token').isString(),
+  body('type').isString(),
+  body('address').isString(),
+  body('another_address').isString().optional(),
+  async (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
+
+  const canStart = lock.lock(lockTypes.SEND_TX);
+  if (!canStart) {
+    res.send({success: false, error: cantSendTxErrorMessage});
+    return;
+  }
+
+  const wallet = req.wallet;
+  const token = req.body.token;
+  const type = req.body.type;
+  const address = req.body.address || null;
+  const anotherAddress = req.body.another_address || null;
+
+  try {
+    const response = await wallet.delegateAuthority(token, type, address, { anotherAuthorityAddress: anotherAddress });
+    res.send({ success: true, ...response });
+  } catch (err) {
+    console.log('Deu erro aqui');
+    console.log(err);
+    const ret = {success: false, error: err.message };
+    if (err.response && err.response.data && err.response.data.error) {
+      ret['code'] = err.response.data.error;
+    }
+    res.send(ret);
+  } finally {
+    lock.unlock(lockTypes.SEND_TX);
+  }
+});
+
+/**
+ * POST request to destroy authority
+ * For the docs, see api-docs.js
+ */
+walletRouter.post('/destroy-authority',
+  body('token').isString(),
+  body('type').isString(),
+  body('count').isInt({min: 1}),
+  async (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
+
+  const canStart = lock.lock(lockTypes.SEND_TX);
+  if (!canStart) {
+    res.send({success: false, error: cantSendTxErrorMessage});
+    return;
+  }
+
+  const wallet = req.wallet;
+  const token = req.body.token;
+  const type = req.body.type;
+  const count = req.body.count;
+
+  try {
+    const response = await wallet.destroyAuthority(token, type, count);
+    res.send({ success: true, ...response });
+  } catch (err) {
+    console.log('Deu erro aqui');
+    console.log(err);
+    const ret = {success: false, error: err.message };
+    if (err.response && err.response.data && err.response.data.error) {
+      ret['code'] = err.response.data.error;
+    }
+    res.send(ret);
+  } finally {
     lock.unlock(lockTypes.SEND_TX);
   }
 });
