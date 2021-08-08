@@ -126,9 +126,13 @@ app.post('/start', (req, res) => {
   }
 
   const connection = new Connection({network: config.network, servers: [config.server], connectionTimeout: config.connectionTimeout});
+  // Previous versions of the lib would have password and pin default as '123'
+  // We currently need something to be defined, otherwise we get an error when starting the wallet
   const walletConfig = {
     seed,
-    connection
+    connection,
+    password: '123',
+    pinCode: '123',
   }
 
   // tokenUid is optionat but if not passed as parameter
@@ -555,7 +559,7 @@ walletRouter.post('/send-tx',
             return true;
           } else {
             // It's a normal input
-            if (!('hash' in value) || !(typeof value.hash === 'string')) {
+            if (!('tx_id' in value) || !(typeof value.hash === 'string')) {
               return false;
             }
             if (!('index' in value) || !(/^\d+$/.test(value.index))) {
