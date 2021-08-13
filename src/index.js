@@ -559,7 +559,7 @@ walletRouter.post('/send-tx',
             return true;
           } else {
             // It's a normal input
-            if (!('tx_id' in value) || !(typeof value.hash === 'string')) {
+            if (!('hash' in value) || !(typeof value.hash === 'string')) {
               return false;
             }
             if (!('index' in value) || !(/^\d+$/.test(value.index))) {
@@ -639,19 +639,26 @@ walletRouter.post('/send-tx',
     wallet.enableDebugMode();
   }
 
-  if (inputs.length > 0 && inputs[0].type === 'query') {
-    // First get sum of all outputs
-    const sumOutputs = outputs.reduce((acc, obj) => obj.value + acc, 0);
-    const utxos = getUtxosToFillTx(wallet, sumOutputs, inputs[0]);
-    if (!utxos) {
-      const response = {success: false, error: 'No utxos available for the query filter for this amount.'};
-      res.send(response);
-      lock.unlock(lockTypes.SEND_TX);
-      return;
+  if (inputs.length > 0) {
+    if (inputs[0].type === 'query') {
+      // First get sum of all outputs
+      const sumOutputs = outputs.reduce((acc, obj) => obj.value + acc, 0);
+      const utxos = getUtxosToFillTx(wallet, sumOutputs, inputs[0]);
+      if (!utxos) {
+        const response = {success: false, error: 'No utxos available for the query filter for this amount.'};
+        res.send(response);
+        lock.unlock(lockTypes.SEND_TX);
+        return;
+      }
+      inputs = utxos.map((utxo) => {
+        return {tx_id: utxo.tx_id, index: utxo.index};
+      });
+    } else {
+      // The new lib version expects input to have tx_id and not hash
+      inputs = inputs.map((input) => {
+        return {tx_id: input.hash, index: input.index};
+      });
     }
-    inputs = utxos.map((utxo) => {
-      return {hash: utxo.tx_id, index: utxo.index};
-    });
   }
   const ret = wallet.sendManyOutputsTransaction(outputs, inputs, token, { changeAddress })
   if (debug) {
