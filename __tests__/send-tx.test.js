@@ -13,6 +13,34 @@ describe("send-tx api", () => {
     expect(response.body.success).toBeTruthy();
   });
 
+  it("should return 200 with a valid body selecting inputs", async () => {
+    const response = await TestUtils.request
+      .post("/wallet/send-tx")
+      .send({
+        inputs: [{ hash: "00000008707722cde59ac9e7f4d44efbd3a5bd5f244223816ee676d328943b1b", index: 0 }],
+        outputs: [{ address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 }],
+      })
+      .set({ "x-wallet-id": TestUtils.walletId });
+    expect(response.status).toBe(200);
+    // It will try to find an input with specific tx id in the storage and then will fail
+    // this test validates that the code until the wallet execution is working fine
+    expect(response.body.success).toBeFalsy();
+  });
+
+  it("should return 200 with a valid body selecting inputs by query", async () => {
+    const response = await TestUtils.request
+      .post("/wallet/send-tx")
+      .send({
+        inputs: [{ type: "query", address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc" }],
+        outputs: [{ address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 }],
+      })
+      .set({ "x-wallet-id": TestUtils.walletId });
+    expect(response.status).toBe(200);
+    // It will try to find an input with specific tx id in the storage and then will fail
+    // this test validates that the code until the wallet execution is working fine
+    expect(response.body.success).toBeFalsy();
+  });
+
   it("should accept value as string", async () => {
     const response = await TestUtils.request
       .post("/wallet/send-tx")
