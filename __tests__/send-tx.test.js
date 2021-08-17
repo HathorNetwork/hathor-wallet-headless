@@ -1,6 +1,19 @@
 import TestUtils from "./test-utils";
 
 describe("send-tx api", () => {
+  it("should return 200 with a valid body selecting inputs by query", async () => {
+    const response = await TestUtils.request
+      .post("/wallet/send-tx")
+      .send({
+        inputs: [{ type: "query", filter_address: "WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN" }],
+        outputs: [{ address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 }],
+      })
+      .set({ "x-wallet-id": TestUtils.walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeDefined();
+    expect(response.body.success).toBeTruthy();
+  });
+
   it("should return 200 with a valid body", async () => {
     const response = await TestUtils.request
       .post("/wallet/send-tx")
@@ -17,29 +30,15 @@ describe("send-tx api", () => {
     const response = await TestUtils.request
       .post("/wallet/send-tx")
       .send({
-        inputs: [{ hash: "00000008707722cde59ac9e7f4d44efbd3a5bd5f244223816ee676d328943b1b", index: 0 }],
+        inputs: [{ hash: "0000034e42c9f2a7a7ab720e2f34bc6701679bb70437e7b7d53b6328aa3a88ca", index: 0 }],
         outputs: [{ address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 }],
       })
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
-    // It will try to find an input with specific tx id in the storage and then will fail
-    // this test validates that the code until the wallet execution is working fine
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.hash).toBeDefined();
+    expect(response.body.success).toBeTruthy();
   });
 
-  it("should return 200 with a valid body selecting inputs by query", async () => {
-    const response = await TestUtils.request
-      .post("/wallet/send-tx")
-      .send({
-        inputs: [{ type: "query", address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc" }],
-        outputs: [{ address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 }],
-      })
-      .set({ "x-wallet-id": TestUtils.walletId });
-    expect(response.status).toBe(200);
-    // It will try to find an input with specific tx id in the storage and then will fail
-    // this test validates that the code until the wallet execution is working fine
-    expect(response.body.success).toBeFalsy();
-  });
 
   it("should accept value as string", async () => {
     const response = await TestUtils.request
