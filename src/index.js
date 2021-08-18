@@ -126,9 +126,13 @@ app.post('/start', (req, res) => {
   }
 
   const connection = new Connection({network: config.network, servers: [config.server], connectionTimeout: config.connectionTimeout});
+  // Previous versions of the lib would have password and pin default as '123'
+  // We currently need something to be defined, otherwise we get an error when starting the wallet
   const walletConfig = {
     seed,
-    connection
+    connection,
+    password: '123',
+    pinCode: '123',
   }
 
   // tokenUid is optionat but if not passed as parameter
@@ -635,19 +639,26 @@ walletRouter.post('/send-tx',
     wallet.enableDebugMode();
   }
 
-  if (inputs.length > 0 && inputs[0].type === 'query') {
-    // First get sum of all outputs
-    const sumOutputs = outputs.reduce((acc, obj) => obj.value + acc, 0);
-    const utxos = getUtxosToFillTx(wallet, sumOutputs, inputs[0]);
-    if (!utxos) {
-      const response = {success: false, error: 'No utxos available for the query filter for this amount.'};
-      res.send(response);
-      lock.unlock(lockTypes.SEND_TX);
-      return;
+  if (inputs.length > 0) {
+    if (inputs[0].type === 'query') {
+      // First get sum of all outputs
+      const sumOutputs = outputs.reduce((acc, obj) => obj.value + acc, 0);
+      const utxos = getUtxosToFillTx(wallet, sumOutputs, inputs[0]);
+      if (!utxos) {
+        const response = {success: false, error: 'No utxos available for the query filter for this amount.'};
+        res.send(response);
+        lock.unlock(lockTypes.SEND_TX);
+        return;
+      }
+      inputs = utxos.map((utxo) => {
+        return {tx_id: utxo.tx_id, index: utxo.index};
+      });
+    } else {
+      // The new lib version expects input to have tx_id and not hash
+      inputs = inputs.map((input) => {
+        return {tx_id: input.hash, index: input.index};
+      });
     }
-    inputs = utxos.map((utxo) => {
-      return {hash: utxo.tx_id, index: utxo.index};
-    });
   }
   const ret = wallet.sendManyOutputsTransaction(outputs, inputs, token, { changeAddress })
   if (debug) {

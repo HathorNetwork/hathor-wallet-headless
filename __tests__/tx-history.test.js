@@ -6,7 +6,7 @@ describe("tx-history api", () => {
       .get("/wallet/tx-history")
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
-    expect(response.body).toHaveLength(14);
+    expect(response.body).toHaveLength(15);
   });
 
   it("should return limit (string or number) the transactions returned", async () => {
