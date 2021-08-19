@@ -924,6 +924,50 @@ walletRouter.post(
 );
 
 /**
+ * POST request to create an NFT
+ * For the docs, see api-docs.js
+ */
+walletRouter.post('/create-nft',
+  body('name').isString(),
+  body('symbol').isString(),
+  body('amount').isInt({ min: 1 }).toInt(),
+  body('data').isString(),
+  body('address').isString().optional(),
+  body('change_address').isString().optional(),
+  body('create_mint').isBoolean().optional().toBoolean(),
+  body('create_melt').isBoolean().optional().toBoolean(),
+  async (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
+
+  const canStart = lock.lock(lockTypes.SEND_TX);
+  if (!canStart) {
+    res.send({success: false, error: cantSendTxErrorMessage});
+    return;
+  }
+
+  const wallet = req.wallet;
+  const name = req.body.name;
+  const symbol = req.body.symbol;
+  const amount = req.body.amount;
+  const data = req.body.data;
+  const address = req.body.address || null;
+  const changeAddress = req.body.change_address || null;
+  const createMint = req.body.create_mint || false;
+  const createMelt = req.body.create_melt || false;
+  try {
+    const response = await wallet.createNFT(name, symbol, amount, data, { address, changeAddress, createMint, createMelt });
+    res.send({ success: true, ...response });
+  } catch (err) {
+    res.send({success: false, error: err.message });
+  } finally {
+    lock.unlock(lockTypes.SEND_TX);
+  }
+});
+
+/**
  * POST request to stop a wallet
  * For the docs, see api-docs.js
  */
