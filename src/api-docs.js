@@ -392,23 +392,8 @@ const apiDoc = {
                     description: 'The value parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.'
                   },
                   token: {
-                    type: 'object',
-                    required: ['uid', 'name', 'symbol'],
-                    description: 'Token to send the transaction, just in case is not HTR.',
-                    properties: {
-                      uid: {
-                        type: 'string',
-                        description: 'UID of the custom token to send the transaction.'
-                      },
-                      name: {
-                        type: 'string',
-                        description: 'Name of the custom token to send the transaction.'
-                      },
-                      symbol: {
-                        type: 'string',
-                        description: 'Symbol of the custom token to send the transaction.'
-                      },
-                    }
+                    type: 'string',
+                    description: 'Token of the output. If not sent, HTR will be chosen.'
                   },
                   'change_address': {
                     type: 'string',
@@ -422,11 +407,7 @@ const apiDoc = {
                   value: {
                     address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
                     value: 100,
-                    token: {
-                      uid: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
-                      name: 'Test Coin',
-                      symbol: 'TSC'
-                    }
+                    token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d'
                   }
                 }
               }
@@ -493,6 +474,7 @@ const apiDoc = {
                     type: 'array',
                     items: {
                       type: 'object',
+                      required: ['address', 'value'],
                       properties: {
                         address: {
                           type: 'string',
@@ -501,6 +483,10 @@ const apiDoc = {
                         value: {
                           type: 'integer',
                           description: 'The value parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.'
+                        },
+                        token: {
+                          type: 'string',
+                          description: 'Token of the output. If not sent, HTR will be chosen.'
                         },
                       }
                     },
@@ -546,25 +532,6 @@ const apiDoc = {
                       }
                     },
                     description: 'Inputs to create the transaction.'
-                  },
-                  token: {
-                    type: 'object',
-                    required: ['uid', 'name', 'symbol'],
-                    description: 'Token to send the transaction, just in case is not HTR.',
-                    properties: {
-                      uid: {
-                        type: 'string',
-                        description: 'UID of the custom token to send the transaction.'
-                      },
-                      name: {
-                        type: 'string',
-                        description: 'Name of the custom token to send the transaction.'
-                      },
-                      symbol: {
-                        type: 'string',
-                        description: 'Symbol of the custom token to send the transaction.'
-                      },
-                    }
                   },
                   'change_address': {
                     type: 'string',
