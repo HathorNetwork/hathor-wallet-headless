@@ -393,7 +393,7 @@ const apiDoc = {
                   },
                   token: {
                     type: 'string',
-                    description: 'Token of the output. If not sent, HTR will be chosen.'
+                    description: 'Token id of the output. If not sent, HTR will be chosen.'
                   },
                   'change_address': {
                     type: 'string',
@@ -486,7 +486,7 @@ const apiDoc = {
                         },
                         token: {
                           type: 'string',
-                          description: 'Token of the output. If not sent, HTR will be chosen.'
+                          description: 'Token id of the output. If not sent, HTR will be chosen.'
                         },
                       }
                     },
