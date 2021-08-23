@@ -392,8 +392,8 @@ const apiDoc = {
                     description: 'The value parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.'
                   },
                   token: {
-                    type: 'string',
-                    description: 'Token id of the output. If not sent, HTR will be chosen.'
+                    type: 'string | object',
+                    description: 'Token to send the transaction, just in case is not HTR. This parameter accepts a string with the token_uid (preferably) or the old format which is the full token object with {uid, name, symbol}. Support for the full token object is deprecated and will be removed soon.',
                   },
                   'change_address': {
                     type: 'string',
@@ -532,6 +532,25 @@ const apiDoc = {
                       }
                     },
                     description: 'Inputs to create the transaction.'
+                  },
+                  token: {
+                    type: 'object',
+                    required: ['uid', 'name', 'symbol'],
+                    description: 'Token to send the transaction, just in case is not HTR. This parameter is old and will be deprecated soon, you must preferably use the token_uid in the output object.',
+                    properties: {
+                      uid: {
+                        type: 'string',
+                        description: 'UID of the custom token to send the transaction.'
+                      },
+                      name: {
+                        type: 'string',
+                        description: 'Name of the custom token to send the transaction.'
+                      },
+                      symbol: {
+                        type: 'string',
+                        description: 'Symbol of the custom token to send the transaction.'
+                      },
+                    }
                   },
                   'change_address': {
                     type: 'string',

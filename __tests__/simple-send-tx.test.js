@@ -114,6 +114,24 @@ describe("simple-send-tx api", () => {
       .send({
         address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc",
         value: 1,
+        token: {
+          name: "stub_token",
+          uid: "09",
+          symbol: "stub_token",
+        },
+      })
+      .set({ "x-wallet-id": TestUtils.walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeDefined();
+    expect(response.body.success).toBeTruthy();
+  });
+
+  it("should accept a custom token transaction (token as string)", async () => {
+    const response = await TestUtils.request
+      .post("/wallet/simple-send-tx")
+      .send({
+        address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc",
+        value: 1,
         token: "09",
       })
       .set({ "x-wallet-id": TestUtils.walletId });
@@ -123,6 +141,23 @@ describe("simple-send-tx api", () => {
   });
 
   it("should not accept a custom token transaction without funds to cover it", async () => {
+    const response = await TestUtils.request
+      .post("/wallet/simple-send-tx")
+      .send({
+        address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc",
+        value: 1,
+        token: {
+          name: "stub_token_2",
+          uid: "02",
+          symbol: "stub_token_2",
+        },
+      })
+      .set({ "x-wallet-id": TestUtils.walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBeFalsy();
+  });
+
+  it("should not accept a custom token transaction without funds to cover it (token as string)", async () => {
     const response = await TestUtils.request
       .post("/wallet/simple-send-tx")
       .send({
@@ -146,6 +181,27 @@ describe("simple-send-tx api", () => {
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeTruthy();
+  });
+
+  it("should not accept a custom token transaction without all token properties", async () => {
+    ["name", "uid", "symbol"].forEach(async (field) => {
+      const token = {
+        name: "stub_token",
+        uid: "01",
+        symbol: "stub_token",
+      };
+      delete token[field];
+      const response = await TestUtils.request
+        .post("/wallet/simple-send-tx")
+        .send({
+          address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc",
+          value: 1,
+          token: token,
+        })
+        .set({ "x-wallet-id": TestUtils.walletId });
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBeFalsy();
+    });
   });
 
   it("should not accept a transaction with a change_address that does not belong to the wallet", async () => {
