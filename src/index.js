@@ -250,16 +250,16 @@ walletRouter.get('/status', (req, res) => {
 walletRouter.get(
   '/balance',
   query('token').isString().optional(),
-  (req, res) => {
+  async (req, res) => {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     return res.status(400).json(validationResult);
   }
   const wallet = req.wallet;
   // Expects token uid
-  const token = req.query.token || null;
-  const balance = wallet._getBalanceRaw(token);
-  res.send(balance);
+  const token = req.query.token || hathorLibConstants.HATHOR_TOKEN_CONFIG.uid;
+  const balanceObj = await wallet.getBalance(token);
+  res.send({ available: balanceObj[0].balance.unlocked, locked: balanceObj[0].balance.locked });
 });
 
 /**
@@ -314,10 +314,13 @@ walletRouter.get('/address-index',
  * GET request to get all addresses of a wallet
  * For the docs, see api-docs.js
  */
-walletRouter.get('/addresses', (req, res) => {
+walletRouter.get('/addresses', async (req, res) => {
   const wallet = req.wallet;
   // TODO Add pagination
-  const addresses = wallet._getAllAddressesRaw();
+  const addresses = [];
+  for await (const addressObj of wallet.getAllAddresses()) {
+    addresses.push(addressObj.address);
+  }
   res.send({ addresses });
 });
 
@@ -335,7 +338,7 @@ walletRouter.get('/tx-history',
   }
   const wallet = req.wallet;
   const limit = req.query.limit || null;
-  const history = wallet._getHistoryRaw();
+  const history = wallet.getFullHistory();
   if (limit) {
     const values = Object.values(history);
     const sortedValues = values.sort((a, b) => b.timestamp - a.timestamp);
