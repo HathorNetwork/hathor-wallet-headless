@@ -400,8 +400,33 @@ walletRouter.post('/simple-send-tx',
     },
     token: {
       in: ['body'],
-      isString: true,
       optional: true,
+      custom: {
+        options: (value, { req, location, path }) => {
+          console.log('AA ')
+          console.log(value)
+          console.log(typeof value)
+          if (typeof value === 'string') {
+            return true;
+          } else if (typeof value === 'object') {
+            if (!('name' in value) || !(typeof value.name === 'string')) {
+              return false;
+            }
+            if (!('uid' in value) || !(typeof value.uid === 'string')) {
+              return false;
+            }
+            if (!('symbol' in value) || !(typeof value.symbol === 'string')) {
+              return false;
+            }
+            if (!value.name || !value.uid || !value.symbol) {
+              return false;
+            }
+            return true;
+          } else {
+            return false;
+          }
+        }
+      }
     }
   }),
   async (req, res) => {
@@ -419,10 +444,20 @@ walletRouter.post('/simple-send-tx',
   const wallet = req.wallet;
   const address = req.body.address;
   const value = req.body.value;
-  const token = req.body.token || hathorLibConstants.HATHOR_TOKEN_CONFIG.uid;
+  const token = req.body.token;
+  let token_id;
+  if (token) {
+    if (typeof token === 'string') {
+      token_id = token;
+    } else {
+      token_id = token.uid;
+    }
+  } else {
+   token_id = hathorLibConstants.HATHOR_TOKEN_CONFIG.uid;
+  }
   const changeAddress = req.body.change_address || null;
   try {
-    const response = await wallet.sendTransaction(address, value, { token, changeAddress });
+    const response = await wallet.sendTransaction(address, value, { token: token_id, changeAddress });
     res.send({ success: true, ...response });
   } catch (err) {
     res.send({success: false, error: err.message });
@@ -567,6 +602,28 @@ walletRouter.post('/send-tx',
         }
       }
     },
+    token: {
+      in: ['body'],
+      isObject: true,
+      optional: true,
+      custom: {
+        options: (value, { req, location, path }) => {
+          if (!('name' in value) || !(typeof value.name === 'string')) {
+            return false;
+          }
+          if (!('uid' in value) || !(typeof value.uid === 'string')) {
+            return false;
+          }
+          if (!('symbol' in value) || !(typeof value.symbol === 'string')) {
+            return false;
+          }
+          if (!value.name || !value.uid || !value.symbol) {
+            return false;
+          }
+          return true;
+        }
+      }
+    },
     'change_address': {
       in: ['body'],
       isString: true,
@@ -597,8 +654,12 @@ walletRouter.post('/send-tx',
   // I tried to use the default schema with express validator to set the default token as HTR
   // but apparently is not possible https://github.com/express-validator/express-validator/issues/682
   for (const output of outputs) {
+    // If sent the new token parameter inside output, we use it
+    // otherwise we try to get from old parameter in token object
+    // if none exist we use default as HTR
     if (!output.token) {
-      output.token = hathorLibConstants.HATHOR_TOKEN_CONFIG.uid;
+      const tokenObj = req.body.token || hathorLibConstants.HATHOR_TOKEN_CONFIG;
+      output.token = tokenObj.uid;
     }
   }
 
