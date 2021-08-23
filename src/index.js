@@ -318,8 +318,16 @@ walletRouter.get('/addresses', async (req, res) => {
   const wallet = req.wallet;
   // TODO Add pagination
   const addresses = [];
-  for await (const addressObj of wallet.getAllAddresses()) {
-    addresses.push(addressObj.address);
+  const iterator = wallet.getAllAddresses();
+  for (;;) {
+    const addressObj = await iterator.next();
+    const { value, done } = addressObj;
+
+    if (done) {
+      break;
+    }
+
+    addresses.push(value.address);
   }
   res.send({ addresses });
 });
@@ -403,9 +411,6 @@ walletRouter.post('/simple-send-tx',
       optional: true,
       custom: {
         options: (value, { req, location, path }) => {
-          console.log('AA ')
-          console.log(value)
-          console.log(typeof value)
           if (typeof value === 'string') {
             return true;
           } else if (typeof value === 'object') {
