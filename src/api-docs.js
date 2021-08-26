@@ -972,7 +972,7 @@ const apiDoc = {
                   },
                   amount: {
                     type: 'integer',
-                    description: 'The amount of tokens to mint. It must be an integer with the value in cents, i.e., 123 means 1.23.'
+                    description: 'The amount of tokens to mint. It must be an integer.'
                   },
                   data: {
                     type: 'string',
@@ -1003,6 +1003,7 @@ const apiDoc = {
                     name: 'Test Coin',
                     symbol: 'TSC',
                     amount: 100,
+                    data: 'ipfs://ipfs/myNFTHash/filename',
                   }
                 }
               }
