@@ -392,9 +392,13 @@ const apiDoc = {
                     description: 'The value parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.'
                   },
                   token: {
+                    type: 'string',
+                    description: 'Token uid to send the transaction, just in case is not HTR.',
+                  },
+                  'token [DEPRECATED]': {
                     type: 'object',
                     required: ['uid', 'name', 'symbol'],
-                    description: 'Token to send the transaction, just in case is not HTR.',
+                    description: '[DEPRECATED] Token to send the transaction, just in case is not HTR. This parameter is old and still works for compatibility reasons but will be removed soon, you should use the string format.',
                     properties: {
                       uid: {
                         type: 'string',
@@ -422,11 +426,7 @@ const apiDoc = {
                   value: {
                     address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
                     value: 100,
-                    token: {
-                      uid: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
-                      name: 'Test Coin',
-                      symbol: 'TSC'
-                    }
+                    token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d'
                   }
                 }
               }
@@ -493,6 +493,7 @@ const apiDoc = {
                     type: 'array',
                     items: {
                       type: 'object',
+                      required: ['address', 'value'],
                       properties: {
                         address: {
                           type: 'string',
@@ -501,6 +502,10 @@ const apiDoc = {
                         value: {
                           type: 'integer',
                           description: 'The value parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.'
+                        },
+                        token: {
+                          type: 'string',
+                          description: 'Token id of the output. If not sent, HTR will be chosen.'
                         },
                       }
                     },
@@ -547,10 +552,10 @@ const apiDoc = {
                     },
                     description: 'Inputs to create the transaction.'
                   },
-                  token: {
+                  'token [DEPRECATED]': {
                     type: 'object',
                     required: ['uid', 'name', 'symbol'],
-                    description: 'Token to send the transaction, just in case is not HTR.',
+                    description: '[DEPRECATED] Token to send the transaction, just in case is not HTR. This parameter is old and will be deprecated soon, you must preferably use the token parameter in the output object.',
                     properties: {
                       uid: {
                         type: 'string',
@@ -579,7 +584,8 @@ const apiDoc = {
                     outputs: [
                       {
                         address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
-                        value: 100
+                        value: 100,
+                        token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d'
                       }
                     ],
                     inputs: [
@@ -587,12 +593,7 @@ const apiDoc = {
                         hash: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
                         index: 0,
                       }
-                    ],
-                    token: {
-                      uid: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
-                      name: 'Test Coin',
-                      symbol: 'TSC'
-                    }
+                    ]
                   }
                 },
                 dataQuery: {
