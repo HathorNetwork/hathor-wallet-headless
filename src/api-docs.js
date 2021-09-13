@@ -940,6 +940,110 @@ const apiDoc = {
         },
       },
     },
+    '/wallet/create-nft': {
+      post: {
+        summary: 'Create an NFT.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            'in': 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        requestBody: {
+          description: 'Data to create the token.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['name', 'symbol', 'amount', 'data'],
+                properties: {
+                  name: {
+                    type: 'string',
+                    description: 'Name of the token.'
+                  },
+                  symbol: {
+                    type: 'string',
+                    description: 'Symbol of the token.'
+                  },
+                  amount: {
+                    type: 'integer',
+                    description: 'The amount of tokens to mint. It must be an integer.'
+                  },
+                  data: {
+                    type: 'string',
+                    description: 'NFT data for the first output of the transaction.'
+                  },
+                  address: {
+                    type: 'string',
+                    description: 'Destination address of the minted tokens.'
+                  },
+                  'change_address': {
+                    type: 'string',
+                    description: 'Optional address to send the change amount.'
+                  },
+                  'create_mint': {
+                    type: 'boolean',
+                    description: 'If should create mint authority for the created NFT. Default is false.'
+                  },
+                  'create_melt': {
+                    type: 'boolean',
+                    description: 'If should create melt authority for the created NFT. Default is false.'
+                  },
+                }
+              },
+              examples: {
+                data: {
+                  summary: 'Data to create the token',
+                  value: {
+                    name: 'Test Coin',
+                    symbol: 'TSC',
+                    amount: 100,
+                    data: 'ipfs://ipfs/myNFTHash/filename',
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Create the token',
+            content: {
+              'application/json': {
+                examples: {
+                  error: {
+                    summary: 'Insuficient amount of tokens',
+                    value: {"success":false,"error": "Don't have enough HTR funds to mint this amount."}
+                  },
+                  success: {
+                    summary: 'Success',
+                    value: {"hash": "00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277","nonce": 200,"timestamp": 1610730485,"version": 2,"weight": 8.000001,"parents": [ "006814ba6ac14d8dc69a888dcf79e3c9ad597b31449edd086a82160698ea229d", "001ac1d7ff68e9bf4bf67b81fee517f08b06be564d7a28b13e41fea158b4cf54" ], "inputs": [ { "tx_id": "00efbc1f99dc50a3c7ff7e7193ebfaa3df28eec467bcd0555eaf703ae773ab5c", "index": 1, "data": "RzBFAiEAxFEPpgauWvPzCoM3zknUdOsWL2RwBu8JSOS6yKGufRICIAOf/mKgLka73wiwXUzVLC/kMYXKmqYSnA2oki6pm9qBIQOyMiKwc3u+O4mBUuN7BFLMwW9hmvUL+KmYPr1N0fl8ww==" } ], "outputs": [ { "value": 6290, "token_data": 0, "script": "dqkUPzRQOMrZ7k25txm/8V0PVr7dGwSIrA==" }, { "value": 1000, "token_data": 1, "script": "dqkUPzRQOMrZ7k25txm/8V0PVr7dGwSIrA==" }, { "value": 1, "token_data": 129, "script": "dqkUL2o1cHLbOQZfj+yVFP0rof9S+WGIrA==" }, { "value": 2, "token_data": 129, "script": "dqkUVawHzE0m6oUvfyzz2cAUdvYlP/SIrA==" } ], "tokens": [], "token_name": "Test", "token_symbol": "TST" }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: {"success":false,"message":"Wallet is not ready.","state":1}
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: {"success":false,"message":"Parameter 'wallet-id' is required."}
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: {"success":false,"message":"Invalid wallet-id parameter."}
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     '/wallet/transaction': {
       get: {
         summary: 'Return the data of a transaction, if it exists in the wallet',
