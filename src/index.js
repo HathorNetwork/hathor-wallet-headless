@@ -17,6 +17,24 @@ import logger from './logger';
 import version from './version';
 import { lock, lockTypes } from './lock';
 
+/**
+ * The endpoints that return a created tx must keep compatibility
+ * The library has changed some keys and we must map the return to continue returning the same keys
+ * Inputs: 'tx_id' now is 'hash'
+ * Outputs: 'token_data' now is 'tokenData'
+ */
+const mapTxReturn = (tx) => {
+  for (const input of tx.inputs) {
+    input['tx_id'] = input['hash'];
+  }
+
+  for (const output of tx.outputs) {
+    output['token_data'] = output['tokenData'];
+  }
+
+  return tx;
+}
+
 // Error message when the user tries to send a transaction while the lock is active
 const cantSendTxErrorMessage = 'You already have a transaction being sent. Please wait until it\'s done to send another.';
 
@@ -463,7 +481,7 @@ walletRouter.post('/simple-send-tx',
   const changeAddress = req.body.change_address || null;
   try {
     const response = await wallet.sendTransaction(address, value, { token: token_id, changeAddress });
-    res.send({ success: true, ...response });
+    res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
     res.send({success: false, error: err.message });
   } finally {
@@ -700,7 +718,7 @@ walletRouter.post('/send-tx',
 
   try {
     const response = await wallet.sendManyOutputsTransaction(outputs, { inputs, changeAddress });
-    res.send({ success: true, ...response });
+    res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
     const ret = {success: false, error: err.message };
     if (debug) {
@@ -748,7 +766,7 @@ walletRouter.post('/create-token',
   const changeAddress = req.body.change_address || null;
   try {
     const response = await wallet.createNewToken(name, symbol, amount, { changeAddress, address });
-    res.send({ success: true, ...response });
+    res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
     res.send({success: false, error: err.message });
   } finally {
@@ -784,7 +802,7 @@ walletRouter.post('/mint-tokens',
   const changeAddress = req.body.change_address || null;
   try {
     const response = await wallet.mintTokens(token, amount, { address, changeAddress });
-    res.send({ success: true, ...response });
+    res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
     res.send({success: false, error: err.message });
   } finally {
@@ -820,7 +838,7 @@ walletRouter.post('/melt-tokens',
   const depositAddress = req.body.deposit_address || null;
   try {
     const response = await wallet.meltTokens(token, amount, { address: depositAddress, changeAddress });
-    res.send({ success: true, ...response });
+    res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
     res.send({success: false, error: err.message });
   } finally {
@@ -969,7 +987,7 @@ walletRouter.post('/create-nft',
   const createMelt = req.body.create_melt || false;
   try {
     const response = await wallet.createNFT(name, symbol, amount, data, { address, changeAddress, createMint, createMelt });
-    res.send({ success: true, ...response });
+    res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
     res.send({success: false, error: err.message });
   } finally {
