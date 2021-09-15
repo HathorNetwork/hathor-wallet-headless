@@ -392,9 +392,13 @@ const apiDoc = {
                     description: 'The value parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.'
                   },
                   token: {
+                    type: 'string',
+                    description: 'Token uid to send the transaction, just in case is not HTR.',
+                  },
+                  'token [DEPRECATED]': {
                     type: 'object',
                     required: ['uid', 'name', 'symbol'],
-                    description: 'Token to send the transaction, just in case is not HTR.',
+                    description: '[DEPRECATED] Token to send the transaction, just in case is not HTR. This parameter is old and still works for compatibility reasons but will be removed soon, you should use the string format.',
                     properties: {
                       uid: {
                         type: 'string',
@@ -422,11 +426,7 @@ const apiDoc = {
                   value: {
                     address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
                     value: 100,
-                    token: {
-                      uid: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
-                      name: 'Test Coin',
-                      symbol: 'TSC'
-                    }
+                    token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d'
                   }
                 }
               }
@@ -493,6 +493,7 @@ const apiDoc = {
                     type: 'array',
                     items: {
                       type: 'object',
+                      required: ['address', 'value'],
                       properties: {
                         address: {
                           type: 'string',
@@ -501,6 +502,10 @@ const apiDoc = {
                         value: {
                           type: 'integer',
                           description: 'The value parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.'
+                        },
+                        token: {
+                          type: 'string',
+                          description: 'Token id of the output. If not sent, HTR will be chosen.'
                         },
                       }
                     },
@@ -547,10 +552,10 @@ const apiDoc = {
                     },
                     description: 'Inputs to create the transaction.'
                   },
-                  token: {
+                  'token [DEPRECATED]': {
                     type: 'object',
                     required: ['uid', 'name', 'symbol'],
-                    description: 'Token to send the transaction, just in case is not HTR.',
+                    description: '[DEPRECATED] Token to send the transaction, just in case is not HTR. This parameter is old and will be deprecated soon, you must preferably use the token parameter in the output object.',
                     properties: {
                       uid: {
                         type: 'string',
@@ -579,7 +584,8 @@ const apiDoc = {
                     outputs: [
                       {
                         address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
-                        value: 100
+                        value: 100,
+                        token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d'
                       }
                     ],
                     inputs: [
@@ -587,12 +593,7 @@ const apiDoc = {
                         hash: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
                         index: 0,
                       }
-                    ],
-                    token: {
-                      uid: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
-                      name: 'Test Coin',
-                      symbol: 'TSC'
-                    }
+                    ]
                   }
                 },
                 dataQuery: {
@@ -919,6 +920,110 @@ const apiDoc = {
                   success: {
                     summary: 'Success',
                     value: {"hash":"00a963872c86978873cce570bbcfc2c40bb8714d5970f80cdc5477c693b01cbf","nonce":256,"timestamp":1610730988,"version":1,"weight":8.000001,"parents":["0072abb9f3f98aa9d9a4e46d6c4f07c16258dbc963f89213f9f4d03dff5977bc","00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277"],"inputs":[{"tx_id":"00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277","index":3,"data":"RjBEAiAQE9pqOo/xlWhv/4gLW6eP5C8s+O/ut4u6Yofg1sbYhQIgQR5KhNrx6SPRij7CbT0dXE3/n3nq9ES13fSZAIBw3+MhAhjIOGT0cwytQmoDCpauM7r3xox0xgzSpfy7MHfYR1Qp"},{"tx_id":"0072abb9f3f98aa9d9a4e46d6c4f07c16258dbc963f89213f9f4d03dff5977bc","index":1,"data":"RjBEAiByaprtd/MjMpwPy3O0xr8LjLdPzVjOV0G54NM/zZ5HsAIgRRFmwxTR1hFg2HOgsYKEA2/BvaUyaPTEEmX7oxCWxMMhA+U12voabjO6b2tdHJvxNs4lYd2vvV7RBmSQiSLqcPhH"},{"tx_id":"00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277","index":1,"data":"RjBEAiBU+XD4Bgm6VHd8H//61aYXDvr7gyZFE2otlbQs+FVpAwIgbZvxSvPUu0EC7aKblP0qsglbsWVzW0KAMIk35acmsKIhA4RC86eRBr2xSH487ramK1DWBOB2ffSeuxVDDnoZPwPp"}],"outputs":[{"value":2,"token_data":129,"script":"dqkUFj/MJhGG+ZGCwDF3BlyeeoP2DymIrA=="},{"value":20,"token_data":0,"script":"dqkUBxW0lxHapoovTTGBVdEo4iNl+gWIrA=="}],"tokens":["00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277"]}
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: {"success":false,"message":"Wallet is not ready.","state":1}
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: {"success":false,"message":"Parameter 'wallet-id' is required."}
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: {"success":false,"message":"Invalid wallet-id parameter."}
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/create-nft': {
+      post: {
+        summary: 'Create an NFT.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            'in': 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        requestBody: {
+          description: 'Data to create the token.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['name', 'symbol', 'amount', 'data'],
+                properties: {
+                  name: {
+                    type: 'string',
+                    description: 'Name of the token.'
+                  },
+                  symbol: {
+                    type: 'string',
+                    description: 'Symbol of the token.'
+                  },
+                  amount: {
+                    type: 'integer',
+                    description: 'The amount of tokens to mint. It must be an integer.'
+                  },
+                  data: {
+                    type: 'string',
+                    description: 'NFT data for the first output of the transaction.'
+                  },
+                  address: {
+                    type: 'string',
+                    description: 'Destination address of the minted tokens.'
+                  },
+                  'change_address': {
+                    type: 'string',
+                    description: 'Optional address to send the change amount.'
+                  },
+                  'create_mint': {
+                    type: 'boolean',
+                    description: 'If should create mint authority for the created NFT. Default is false.'
+                  },
+                  'create_melt': {
+                    type: 'boolean',
+                    description: 'If should create melt authority for the created NFT. Default is false.'
+                  },
+                }
+              },
+              examples: {
+                data: {
+                  summary: 'Data to create the token',
+                  value: {
+                    name: 'Test Coin',
+                    symbol: 'TSC',
+                    amount: 100,
+                    data: 'ipfs://ipfs/myNFTHash/filename',
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Create the token',
+            content: {
+              'application/json': {
+                examples: {
+                  error: {
+                    summary: 'Insuficient amount of tokens',
+                    value: {"success":false,"error": "Don't have enough HTR funds to mint this amount."}
+                  },
+                  success: {
+                    summary: 'Success',
+                    value: {"hash": "00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277","nonce": 200,"timestamp": 1610730485,"version": 2,"weight": 8.000001,"parents": [ "006814ba6ac14d8dc69a888dcf79e3c9ad597b31449edd086a82160698ea229d", "001ac1d7ff68e9bf4bf67b81fee517f08b06be564d7a28b13e41fea158b4cf54" ], "inputs": [ { "tx_id": "00efbc1f99dc50a3c7ff7e7193ebfaa3df28eec467bcd0555eaf703ae773ab5c", "index": 1, "data": "RzBFAiEAxFEPpgauWvPzCoM3zknUdOsWL2RwBu8JSOS6yKGufRICIAOf/mKgLka73wiwXUzVLC/kMYXKmqYSnA2oki6pm9qBIQOyMiKwc3u+O4mBUuN7BFLMwW9hmvUL+KmYPr1N0fl8ww==" } ], "outputs": [ { "value": 6290, "token_data": 0, "script": "dqkUPzRQOMrZ7k25txm/8V0PVr7dGwSIrA==" }, { "value": 1000, "token_data": 1, "script": "dqkUPzRQOMrZ7k25txm/8V0PVr7dGwSIrA==" }, { "value": 1, "token_data": 129, "script": "dqkUL2o1cHLbOQZfj+yVFP0rof9S+WGIrA==" }, { "value": 2, "token_data": 129, "script": "dqkUVawHzE0m6oUvfyzz2cAUdvYlP/SIrA==" } ], "tokens": [], "token_name": "Test", "token_symbol": "TST" }
                   },
                   'wallet-not-ready': {
                     summary: 'Wallet is not ready yet',
