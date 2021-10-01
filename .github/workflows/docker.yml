@@ -23,7 +23,7 @@ jobs:
       uses: docker/build-push-action@a66e35b9cbcf4ad0ea91ffcaf7bbad63ad9e0229
       with:
         push: true
-        tags: luislhl/hathor-wallet-headless:latest,luislhl/hathor-wallet-headless:${{ steps.vars.outputs.tag }}
+        tags: hathornetwork/hathor-wallet-headless:latest,hathornetwork/hathor-wallet-headless:${{ steps.vars.outputs.tag }}
         platforms: linux/amd64,linux/arm64
         cache-from: type=gha
         cache-to: type=gha,mode=max
