@@ -71,6 +71,12 @@ $ curl -H "X-Wallet-Id: {wallet-id}" http://localhost:8000/wallet/balance
 {"available":2,"locked":0}
 ```
 
+To get the balance of a custom token:
+```bash
+$ curl -H "X-Wallet-Id: {wallet-id}" http://localhost:8000/wallet/balance?token=<token_uid>
+{"available":2,"locked":0}
+```
+
 ### Get an address
 
 You can either mark as used or not. If you don't, it will return the same address until at least one transaction arrives to that address. If you mark as used, it will return a new address in the next call.
