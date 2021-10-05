@@ -7,7 +7,7 @@ It may be used both by mining pools and exchanges.
 
 ## How to run?
 
-Copy `config.js.template` to `config.js`, and then fill in the variables. Finally, run `npm start`.
+Copy `config.js.template` to `src/config.js`, and then fill in the variables. Finally, run `npm start`.
 
 ## Authentication
 

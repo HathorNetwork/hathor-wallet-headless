@@ -10,6 +10,9 @@ module.exports = {
   network: 'mainnet',
   server: 'https://node2.mainnet.hathor.network/v1a/',
 
+  // Tx Mining Service
+  txMiningUrl: 'https://txmining.mainnet.hathor.network/',
+
   // Wallet seeds
   seeds: {
       default: '',
