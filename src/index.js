@@ -255,8 +255,8 @@ walletRouter.get('/status', (req, res) => {
   res.send({
     'statusCode': wallet.state,
     'statusMessage': humanState[wallet.state],
-    'network': wallet.network,
-    'serverUrl': wallet.server,
+    'network': wallet.getNetwork(),
+    'serverUrl': wallet.getServerUrl(),
     'serverInfo': wallet.serverInfo,
   });
 });
