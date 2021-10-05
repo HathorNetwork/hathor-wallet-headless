@@ -9,7 +9,6 @@
     "@babel/node": "^7.13.0",
     "@babel/plugin-proposal-class-properties": "^7.13.0",
     "@babel/preset-env": "^7.13.5",
-    // TODO Run npm install to update package-lock
     "@hathor/wallet-lib": "^0.25.0",
     "express": "^4.17.1",
     "express-validator": "^6.10.0",
