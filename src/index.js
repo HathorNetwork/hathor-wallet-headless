@@ -7,7 +7,7 @@
 
 import express from 'express';
 import morgan from 'morgan';
-import { Connection, HathorWallet, wallet as oldWalletUtils, walletUtils, tokens, errors, constants as hathorLibConstants } from '@hathor/wallet-lib';
+import { Connection, HathorWallet, wallet as oldWalletUtils, walletUtils, tokens, errors, constants as hathorLibConstants, config as hathorLibConfig } from '@hathor/wallet-lib';
 import { body, checkSchema, matchedData, query, validationResult } from 'express-validator';
 
 import config from './config';
@@ -34,6 +34,14 @@ const mapTxReturn = (tx) => {
 
   return tx;
 }
+
+const initHathorLib = () => {
+  if (config['txMiningUrl']) {
+    hathorLibConfig.setTxMiningUrl(config['txMiningUrl']);
+  }
+}
+
+initHathorLib();
 
 // Error message when the user tries to send a transaction while the lock is active
 const cantSendTxErrorMessage = 'You already have a transaction being sent. Please wait until it\'s done to send another.';
@@ -255,8 +263,8 @@ walletRouter.get('/status', (req, res) => {
   res.send({
     'statusCode': wallet.state,
     'statusMessage': humanState[wallet.state],
-    'network': wallet.network,
-    'serverUrl': wallet.server,
+    'network': wallet.getNetwork(),
+    'serverUrl': wallet.getServerUrl(),
     'serverInfo': wallet.serverInfo,
   });
 });
@@ -1020,6 +1028,7 @@ console.log('Starting Hathor Wallet...', {
 console.log('Configuration...', {
   network: config.network,
   server: config.server,
+  txMiningUrl: hathorLibConfig.getTxMiningUrl(),
   tokenUid: config.tokenUid,
   apiKey: config.http_api_key,
   gapLimit: config.gapLimit,
