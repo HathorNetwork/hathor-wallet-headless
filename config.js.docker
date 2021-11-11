@@ -55,6 +55,8 @@ const config = {
   network: getParam('network', 'mainnet'),
   server: getParam('server', 'https://node1.mainnet.hathor.network/v1a/'),
 
+  txMiningUrl: getParam('tx_mining_url', 'https://txmining.mainnet.hathor.network'),
+
   http_api_key: getParam('api_key'),
   httpLogFormat: getParam('http_log_format'),
 
