@@ -12,7 +12,8 @@ module.exports = {
 
   // Tx Mining Service
   // This is optional. If you do not set, the hathor-wallet-lib's default will be used.
-  txMiningUrl: 'https://txmining.mainnet.hathor.network/',
+  // Use it only if you want to use your own tx mining service, e.g. 'https://mytxmining.domain/'
+  txMiningUrl: null,
 
   // Wallet seeds
   seeds: {
