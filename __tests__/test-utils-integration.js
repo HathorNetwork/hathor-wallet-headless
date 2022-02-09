@@ -20,15 +20,34 @@ const request = supertest(app);
 export const WALLET_CONSTANTS = {
   genesis: {
     walletId: 'genesiswallet',
-    words: 'avocado spot town typical traffic vault danger century property shallow divorce festival spend attack anchor afford rotate green audit adjust fade wagon depart level'
+    words: 'avocado spot town typical traffic vault danger century property shallow divorce festival spend attack anchor afford rotate green audit adjust fade wagon depart level',
+    addresses: [
+      'WY1URKUnqCTyiixW1Dw29vmeG99hNN4EW6', // Genesis funds
+      'WRTFYzhTHkfYwub8EWVtAcUgbdUpsYMBpb', // Miner rewards
+      'WhpJeUtBLrDHbKDoMC9ffMxwHqvsrNzTFV', // First without transactions
+    ]
   },
   second: {
     walletId: 'secondwallet',
-    words: 'scare more mobile text erupt flush paper snack despair goddess route solar keep search result author bounce pulp shine next butter unknown frozen trap'
+    words: 'scare more mobile text erupt flush paper snack despair goddess route solar keep search result author bounce pulp shine next butter unknown frozen trap',
+    addresses: [
+      'WTjhJXzQJETVx7BVXdyZmvk396DRRsubdw',
+      'Wdf7xQtKDNefhd6KTS68Vna1u4wUAyHjLQ',
+      'WaQf5igKpbdNyxTBzc3Nv8a8n4DRkcbpmX',
+    ]
+  },
+  third: {
+    walletId: 'thirdwallet',
+    words: 'route grab truth degree ketchup scene alone bulk usage pumpkin radio silk replace legal excuse cube pudding blush document nature used rough steak immune',
+    addresses: []
   }
 }
 
 export class TestUtils {
+  static async delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms))
+  }
+
   static get request() {
     return request;
   }
