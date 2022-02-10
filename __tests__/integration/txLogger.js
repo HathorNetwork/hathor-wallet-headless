@@ -21,22 +21,28 @@ export class TxLogger {
     return this.#instanceFilename;
   }
 
-  constructor() {
+  /**
+   * Builds the log filename based on current time and an optional title
+   * @param {string} [title] Optional title. Keep it short and simple for readability
+   */
+  constructor(title) {
     const date = new Date();
     const timestamp = date.toISOString()
       .replace(/-/g,'') // Remove date separator
       .replace(/:/g,'') // Remove hour separator
       .split('.')[0] // Get only the seconds integer
-    const filename = `${timestamp}_integrationTest.log`;
+    const additionalTitle = `-${title}` || ''
+    const filename = `${timestamp}${additionalTitle}-integrationTest.log`;
     this.#instanceFilename = filename;
   }
 
   /**
    * Initializes the log file on a specified folder
    * @param {string} rootFolder
+   * @param {string} [testName] Optional title to include in the filename
    * @returns {Promise<void>}
    */
-  async init(rootFolder) {
+  async init(rootFolder, testName) {
     if (!rootFolder) throw new Error(`Root folder is mandatory`)
 
     // Create the temporary files directory, if it does not exist

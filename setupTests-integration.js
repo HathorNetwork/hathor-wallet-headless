@@ -1,5 +1,6 @@
 import {TestUtils, WALLET_CONSTANTS} from "./__tests__/integration/test-utils-integration";
-import {TxLogger, loggers} from "./__tests__/integration/txLogger";
+import {loggers, TxLogger} from "./__tests__/integration/txLogger";
+import * as Path from 'path';
 
 // const {WebSocket} = require("mock-socket");
 // const jest = require('jest')
@@ -7,9 +8,18 @@ import {TxLogger, loggers} from "./__tests__/integration/txLogger";
 // Mock Websockets
 // jest.mock("isomorphic-ws", () => WebSocket);
 
+function getTestNameFromGlobalJasmineInstance() {
+  const testPath = jasmine.testPath
+  const testFileName = Path.parse(testPath).name
+  return testFileName.indexOf('.') > -1
+    ? testFileName.split('.')[0]
+    : testFileName
+}
+
 // Start the stub wallet
 beforeAll(async () => {
-  const testLogger = new TxLogger();
+  const testName = getTestNameFromGlobalJasmineInstance()
+  const testLogger = new TxLogger(testName);
   await testLogger.init(__dirname);
   loggers.test = testLogger;
 

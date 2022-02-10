@@ -12,8 +12,10 @@ describe('balance routes', () => {
 
       wallet2 = new WalletHelper('balance2');
       await wallet2.start();
-      await TestUtils.injectFundsIntoAddress(await wallet2.getAddressAt(0), wallet2Balance);
-      await TestUtils.delay(1000);
+      await TestUtils.injectFundsIntoAddress(
+        await wallet2.getAddressAt(0),
+        wallet2Balance,
+        wallet2.walletId);
     } catch (err) {
       console.error(err.stack);
     }
