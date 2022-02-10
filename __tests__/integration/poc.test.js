@@ -1,5 +1,5 @@
-import {TestUtils, WALLET_CONSTANTS} from './test-utils-integration';
-import testUtils from "./test-utils";
+import {TestUtils, WALLET_CONSTANTS} from '../test-utils-integration';
+import testUtils from "../test-utils";
 
 const GENESIS_BLOCK_BALANCE = 100000000000;
 

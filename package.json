@@ -18,7 +18,7 @@
   },
   "scripts": {
     "test": "jest",
-    "test_integration": "jest --setupFilesAfterEnv=./setupTests-integration.js --runInBand --runTestsByPath __tests__/poc.test.js",
+    "test_integration": "jest --config jest-integration.config.js --runInBand",
     "dev": "nodemon --exec babel-node index.js",
     "start": "babel-node src/index.js",
     "generate_words": "babel-node src/utils/generate_words.js"
