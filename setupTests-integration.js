@@ -1,4 +1,6 @@
-import TestUtils from "./__tests__/test-utils-integration";
+import {TestUtils, WALLET_CONSTANTS} from "./__tests__/integration/test-utils-integration";
+import {TxLogger, loggers} from "./__tests__/integration/txLogger";
+
 // const {WebSocket} = require("mock-socket");
 // const jest = require('jest')
 
@@ -7,12 +9,16 @@ import TestUtils from "./__tests__/test-utils-integration";
 
 // Start the stub wallet
 beforeAll(async () => {
-  // TestUtils.startMocks();
-  // await TestUtils.startWallet({ walletId: WALLET_ID });
+  const testLogger = new TxLogger();
+  await testLogger.init(__dirname);
+  loggers.test = testLogger;
+
+  await TestUtils.startWallet(WALLET_CONSTANTS.genesis);
+  await TestUtils.startWallet(WALLET_CONSTANTS.second);
 });
 
 // Stop the stub wallet
 afterAll(async () => {
-  // await TestUtils.stopWallet({ walletId: WALLET_ID });
-  // await TestUtils.stopMocks();
+  await TestUtils.stopWallet(WALLET_CONSTANTS.genesis.walletId);
+  await TestUtils.stopWallet(WALLET_CONSTANTS.second.walletId);
 });
