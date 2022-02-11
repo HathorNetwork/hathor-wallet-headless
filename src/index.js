@@ -7,7 +7,7 @@
 
 import express from 'express';
 import morgan from 'morgan';
-import { Connection, HathorWallet, wallet as oldWalletUtils, walletUtils, tokens, errors, constants as hathorLibConstants, config as hathorLibConfig } from '@hathor/wallet-lib';
+import { Connection, HathorWallet, SendTransaction, helpersUtils, transaction as txUtils, wallet as oldWalletUtils, walletUtils, tokens, errors, constants as hathorLibConstants, config as hathorLibConfig } from '@hathor/wallet-lib';
 import { body, checkSchema, matchedData, query, validationResult } from 'express-validator';
 
 import config from './config';
@@ -151,6 +151,14 @@ app.post('/start', (req, res) => {
     return;
   }
 
+  const pubkeys = [
+    // TODO add pubkeys string list
+  ];
+  const multisig = {
+    total: 3,
+    minimumSignatures: 2,
+    pubkeys
+  }
   const connection = new Connection({network: config.network, servers: [config.server], connectionTimeout: config.connectionTimeout});
   // Previous versions of the lib would have password and pin default as '123'
   // We currently need something to be defined, otherwise we get an error when starting the wallet
@@ -159,6 +167,7 @@ app.post('/start', (req, res) => {
     connection,
     password: '123',
     pinCode: '123',
+    multisig,
   }
 
   // tokenUid is optionat but if not passed as parameter
@@ -196,6 +205,8 @@ app.post('/start', (req, res) => {
   }
 
   const wallet = new HathorWallet(walletConfig);
+  console.log('Xpub')
+  console.log(wallet.getMultisigPublicKey());
   wallet.start().then((info) => {
     console.log(`Wallet started with wallet id ${req.body['wallet-id']}. Full-node info: `, info);
     wallets[req.body['wallet-id']] = wallet;
@@ -494,6 +505,130 @@ walletRouter.post('/simple-send-tx',
     res.send({success: false, error: err.message });
   } finally {
     lock.unlock(lockTypes.SEND_TX);
+  }
+});
+
+
+walletRouter.post('/partial-tx',
+  checkSchema({
+    address: {
+      in: ['body'],
+      isString: true
+    },
+    value: {
+      in: ['body'],
+      isInt: {
+        options: {
+          min: 1
+        }
+      },
+      toInt: true
+    },
+    'change_address': {
+      in: ['body'],
+      isString: true,
+      optional: true
+    },
+    token: {
+      in: ['body'],
+      optional: true,
+      custom: {
+        options: (value, { req, location, path }) => {
+          if (typeof value === 'string') {
+            return true;
+          } else if (typeof value === 'object') {
+            if (!('name' in value) || !(typeof value.name === 'string')) {
+              return false;
+            }
+            if (!('uid' in value) || !(typeof value.uid === 'string')) {
+              return false;
+            }
+            if (!('symbol' in value) || !(typeof value.symbol === 'string')) {
+              return false;
+            }
+            if (!value.name || !value.uid || !value.symbol) {
+              return false;
+            }
+            return true;
+          } else {
+            return false;
+          }
+        }
+      }
+    }
+  }),
+  async (req, res) => {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
+
+  const canStart = lock.lock(lockTypes.SEND_TX);
+  if (!canStart) {
+    res.send({success: false, error: cantSendTxErrorMessage});
+    return;
+  }
+
+  const wallet = req.wallet;
+  const address = req.body.address;
+  const value = req.body.value;
+  const token = req.body.token;
+  let token_id;
+  if (token) {
+    if (typeof token === 'string') {
+      token_id = token;
+    } else {
+      token_id = token.uid;
+    }
+  } else {
+   token_id = hathorLibConstants.HATHOR_TOKEN_CONFIG.uid;
+  }
+  const changeAddress = req.body.change_address || null;
+  try {
+    const outputs = [{ address, value, token: token_id }];
+    const sendTransaction = new SendTransaction({ outputs, inputs: [], network: wallet.getNetworkObject() });
+    const partialData = sendTransaction.prepareTxData();
+    const tx = helpersUtils.createTxFromData({version: 1, ...partialData}, wallet.getNetworkObject());
+
+    res.send({ success: true, partialTx: tx.toHex() });
+  } catch (err) {
+    res.send({success: false, error: err.message });
+  } finally {
+    lock.unlock(lockTypes.SEND_TX);
+  }
+});
+
+
+walletRouter.post('/signature', async (req, res) => {
+  const wallet = req.wallet;
+  const txHex = req.body.txHex;
+  try {
+    const sig = txUtils.getAllSignatures(txHex, wallet.getNetworkObject(), '123');
+    res.send({ success: true, sig });
+  } catch(err) {
+    res.send({success: false, error: err.message });
+  }
+});
+
+walletRouter.post('/assemble-and-send', async (req, res) => {
+  const wallet = req.wallet;
+  const txHex = req.body.txHex;
+  const signatures = req.body.signatures;
+  const tx = helpersUtils.createTxFromHex(txHex, wallet.getNetworkObject());
+  const pubkeys = [
+    // add xpub string list
+  ];
+  try {
+    const redeemScript = walletUtils.createP2SHRedeemScript(pubkeys, 2, 0);
+    const inputData = walletUtils.getP2SHInputData(signatures, redeemScript);
+    tx.inputs[0].data = inputData;
+    tx.prepareToSend();
+
+    const sendTransaction = new SendTransaction({ transaction: tx, network: wallet.getNetworkObject() });
+    const response = await sendTransaction.runFromMining();
+    res.send({ success: true, ...mapTxReturn(response) });
+  } catch (err) {
+    res.send({success: false, error: err.message });
   }
 });
 
