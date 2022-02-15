@@ -1,5 +1,6 @@
 version: "3.9"
 services:
+
   fullnode:
     image: hathornetwork/hathor-core
     command: [
@@ -23,6 +24,7 @@ services:
         target: /privnet/conf
     networks:
       - hathor-privnet
+
   tx-mining-service:
     image: hathornetwork/tx-mining-service
     depends_on:
@@ -37,8 +39,21 @@ services:
     ]
     networks:
       - hathor-privnet
-#  cpuminer:
-#    image: hathornetwork/cpuminer
+
+  cpuminer:
+    image: hathornetwork/cpuminer
+    depends_on:
+      - tx-mining-service
+    command: [
+      "-a", "sha256d",
+      "--coinbase-addr", "WRTFYzhTHkfYwub8EWVtAcUgbdUpsYMBpb",
+      "-o", "stratum+tcp://tx-mining-service:8034",
+      "--retry-pause", "5", # 5 seconds between retries
+      "-t", "1" # Number of threads used to mine
+    ]
+    networks:
+      - hathor-privnet
+
 networks:
   hathor-privnet:
 

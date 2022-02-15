@@ -1,5 +1,10 @@
 from hathor.conf.settings import HathorSettings
 
+# This file is the Private Network Configuration for the Fullnode
+# It is consumed by the docker-compose.yml file on the integration folder.
+# For more information, refer to:
+# https://github.com/HathorNetwork/rfcs/blob/master/text/0033-private-network-guide.md
+
 # This genesis adds the funds to the following wallet seed:
 # avocado spot town typical traffic vault danger century property shallow divorce festival spend attack anchor afford rotate green audit adjust fade wagon depart level
 
