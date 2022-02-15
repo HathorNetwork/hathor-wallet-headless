@@ -1,0 +1,44 @@
+version: "3.9"
+services:
+  fullnode:
+    image: hathornetwork/hathor-core
+    command: [
+      "run_node",
+      "--listen", "tcp:40404",
+      "--status", "8080",
+      "--test-mode-tx-weight",
+      "--wallet-index",
+      "--allow-mining-without-peers",
+      "--unsafe-mode", "privatenet",
+      "--memory-storage",
+    ]
+    environment:
+      HATHOR_CONFIG_FILE: privnet.conf.privnet
+    ports:
+      - "8083:8080"
+      - "40404:40404"
+    volumes:
+      - type: bind
+        source: ./configuration/
+        target: /privnet/conf
+    networks:
+      - hathor-privnet
+  tx-mining-service:
+    image: hathornetwork/tx-mining-service
+    depends_on:
+      - fullnode
+    ports:
+      - "8034:8034"
+      - "8035:8035"
+    command: [
+      "http://fullnode:8080",
+      "--stratum-port=8034",
+      "--api-port=8035"
+    ]
+    networks:
+      - hathor-privnet
+#  cpuminer:
+#    image: hathornetwork/cpuminer
+networks:
+  hathor-privnet:
+
