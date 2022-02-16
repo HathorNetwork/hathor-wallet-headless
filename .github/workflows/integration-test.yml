@@ -33,6 +33,7 @@ jobs:
         run: npm run test_integration
 
       - name: Upload transaction logs
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test-transacion-logs
