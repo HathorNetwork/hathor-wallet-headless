@@ -129,13 +129,16 @@ export class TestUtils {
   }
 
   /**
-   *
+   * Transfers funds to a destination address.
+   * By default, this method pools the fullnode and waits for a transaction validation before returning.
    * @param {string} address Destination address
    * @param {number} value Amount of tokens, in cents
    * @param {string} [destinationWalletId] walletId of the destination address. Useful for debugging.
+   * @param [options]
+   * @param {boolean} [options.doNotWait] If true,
    // * @returns {Promise<void>}
    */
-  static async injectFundsIntoAddress(address, value, destinationWalletId) {
+  static async injectFundsIntoAddress(address, value, destinationWalletId, options = {}) {
     const response = await TestUtils.request
       .post('/wallet/simple-send-tx')
       .send({address,value})
@@ -156,6 +159,16 @@ export class TestUtils {
       destinationWallet: destinationWalletId,
       id: transaction.hash
     })
+
+    // If there's no need to wait for confirmation, just return the response transaction
+    if (options.doNotWait) return transaction
+
+    /*
+     * Sometimes the fullnode may have a delay updating the balance index. A simple wait is built here to
+     * allow for the indexes to update.
+     */
+    await this.delay(1000)
+
     return transaction
   }
 }
