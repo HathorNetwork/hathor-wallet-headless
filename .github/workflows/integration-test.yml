@@ -30,7 +30,7 @@ jobs:
         run: docker-compose -f ./__tests__/integration/docker-compose.yml up -d
 
       - name: Run the tests
-        run: npm run test_integration
+        run: npm run test_network_integration
 
       - name: Upload transaction logs
         if: always()
