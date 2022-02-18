@@ -20,6 +20,11 @@ function generateHeader(walletId) {
  */
 
 /**
+ * @typedef FundInjectionOptions
+ * @property {boolean} [doNotWait] If true, will not wait a while for the transaction to "settle" on the fullnode
+ */
+
+/**
  * @type {Record<string,WalletData>}
  */
 export const WALLET_CONSTANTS = {
@@ -48,8 +53,8 @@ export const WALLET_CONSTANTS = {
   }
 }
 
-export function getRandomInt(max) {
-  return Math.floor(Math.random() * max);
+export function getRandomInt(max, min = 0) {
+  return Math.floor(Math.random() * max) + min;
 }
 
 export class TestUtils {
@@ -67,6 +72,11 @@ export class TestUtils {
 
   static generateHeader(walletId) {
     return generateHeader(walletId)
+  }
+
+  static logTx(message) {
+    loggers.test.insertLineToLog(message)
+      .catch(err => console.error(err.stack))
   }
 
   /**
@@ -134,9 +144,8 @@ export class TestUtils {
    * @param {string} address Destination address
    * @param {number} value Amount of tokens, in cents
    * @param {string} [destinationWalletId] walletId of the destination address. Useful for debugging.
-   * @param [options]
-   * @param {boolean} [options.doNotWait] If true,
-   // * @returns {Promise<void>}
+   * @param {FundInjectionOptions} [options]
+   * @returns {Promise<unknown>}
    */
   static async injectFundsIntoAddress(address, value, destinationWalletId, options = {}) {
     const response = await TestUtils.request
@@ -171,6 +180,7 @@ export class TestUtils {
 
     return transaction
   }
+
 }
 
 /**
@@ -244,11 +254,23 @@ export class WalletHelper {
    * @param {number} index Address index
    * @returns {Promise<string>}
    */
-  getAddressAt(index) {
+  async getAddressAt(index) {
     if (this.#addresses[index] !== undefined) {
       console.info(`Cache hit! ${this.#walletId}[${index}]: ${this.#addresses[index]}`)
       return this.#addresses[index]
     }
     return TestUtils.getAddressAt(this.#walletId,index)
+  }
+
+  /**
+   * Retrieves funds from the Genesis wallet and injects into this wallet.
+   * @param {number} value Value to be transferred
+   * @param {number} [addressIndex=0]
+   * @param {FundInjectionOptions} [options]
+   * @returns {Promise<{success}|*>}
+   */
+  async injectFunds(value, addressIndex = 0, options) {
+    const destinationAddress = await this.getAddressAt(addressIndex)
+    return TestUtils.injectFundsIntoAddress(destinationAddress, value, this.#walletId, options)
   }
 }
