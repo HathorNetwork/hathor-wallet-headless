@@ -255,11 +255,15 @@ export class WalletHelper {
    * @returns {Promise<string>}
    */
   async getAddressAt(index) {
+    // If this address was already cached, return it
     if (this.#addresses[index] !== undefined) {
-      console.info(`Cache hit! ${this.#walletId}[${index}]: ${this.#addresses[index]}`)
       return this.#addresses[index]
     }
-    return TestUtils.getAddressAt(this.#walletId,index)
+
+    // Update the local cache and return results
+    const addressAt = await TestUtils.getAddressAt(this.#walletId,index)
+    this.#addresses[index] = addressAt
+    return addressAt
   }
 
   /**
