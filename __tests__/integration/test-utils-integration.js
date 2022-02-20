@@ -277,4 +277,44 @@ export class WalletHelper {
     const destinationAddress = await this.getAddressAt(addressIndex)
     return TestUtils.injectFundsIntoAddress(destinationAddress, value, this.#walletId, options)
   }
+
+  /**
+   *
+   * @param params
+   * @param {number} params.amount Amount of tokens to generate
+   * @param {string} params.name Long name of the token
+   * @param {string} params.symbol Token symbol
+   * @param {string} [params.address] Destination address for the custom token
+   * @param {string} [params.change_address] Destination address for the HTR change
+   * @returns {Promise<unknown>} Token creation transaction
+   */
+  async createToken(params) {
+    const { amount, name, symbol } = params
+
+    const tokenCreationBody = {name, symbol, amount};
+    if (params.address) tokenCreationBody.address = params.address
+    if (params.change_address) tokenCreationBody.change_address = params.change_address
+
+    const newTokenResponse = await TestUtils.request
+      .post("/wallet/create-token")
+      .set({ "x-wallet-id": this.#walletId })
+      .send(tokenCreationBody)
+
+    const tokenHash = newTokenResponse.body.hash
+    let destination = ''
+    if (tokenCreationBody.address) destination += ` destination: ${tokenCreationBody.address}`
+    if (tokenCreationBody.change_address) destination += ` change: ${tokenCreationBody.change_address}`
+    TestUtils.logTx(`Created ${amount} tokens ${symbol} on ${this.#walletId} - Hash ${tokenHash}`)
+    await TestUtils.delay(1000)
+
+    const transaction = newTokenResponse.body
+
+    if (!transaction.success) {
+      const injectError = new Error(transaction.message)
+      injectError.innerError = newTokenResponse
+      throw injectError
+    }
+
+    return transaction
+  }
 }
