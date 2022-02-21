@@ -5,7 +5,7 @@ describe("transaction routes", () => {
 
   beforeAll(async () => {
     try {
-      // A random HTR value for the first wallet
+      // An empty wallet
       wallet1 = new WalletHelper('transaction-1');
       await wallet1.start();
     } catch (err) {
@@ -31,18 +31,21 @@ describe("transaction routes", () => {
   });
 
   it('should return success for a valid transaction', async done => {
+    // Generates a transaction
     const tx = await wallet1.injectFunds(1);
+    const tx_id = tx.hash;
 
+    // Queries for this transaction
     const response = await TestUtils.request
       .get("/wallet/transaction")
       .query({
-        id: tx.hash
+        id: tx_id
       })
       .set({"x-wallet-id": wallet1.walletId});
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('is_voided', false);
-    expect(response.body).toHaveProperty('tx_id', tx.hash);
+    expect(response.body).toHaveProperty('tx_id', tx_id);
     expect(response.body).toHaveProperty('version', tx.version);
     done();
   });

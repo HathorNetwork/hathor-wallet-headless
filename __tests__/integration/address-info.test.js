@@ -1,4 +1,4 @@
-import {getRandomInt, TestUtils, WalletHelper} from "./test-utils-integration";
+import {getRandomInt, HATHOR_TOKEN_ID, TestUtils, WalletHelper} from "./test-utils-integration";
 
 describe("address-info routes", () => {
   let wallet1, wallet2
@@ -41,7 +41,7 @@ describe("address-info routes", () => {
     await wallet2.stop();
   })
 
-  it("should return results for an empty address", async done => {
+  it("should return results for an address (empty)", async done => {
     const response = await TestUtils.request
       .get("/wallet/address-info")
       .query({address: await wallet1.getAddressAt(0)})
@@ -51,7 +51,7 @@ describe("address-info routes", () => {
 
     const results = response.body;
     expect(results.success).toBeTruthy();
-    expect(results.token).toBe("00") // HTR
+    expect(results.token).toBe(HATHOR_TOKEN_ID)
     expect(results.index).toBe(0);
     expect(results.total_amount_received).toBe(0)
     expect(results.total_amount_sent).toBe(0)
@@ -70,7 +70,7 @@ describe("address-info routes", () => {
 
     const results = response.body;
     expect(results.success).toBeTruthy();
-    expect(results.token).toBe("00") // HTR
+    expect(results.token).toBe(HATHOR_TOKEN_ID)
     expect(results.index).toBe(1);
     expect(results.total_amount_received).toBe(address1balance)
     expect(results.total_amount_sent).toBe(0)
@@ -79,7 +79,7 @@ describe("address-info routes", () => {
     done();
   });
 
-  it("should return results for an address with a receiving and sending transactions", async done => {
+  it("should return results for an address with send/receive transactions", async done => {
     const response = await TestUtils.request
       .get("/wallet/address-info")
       .query({address: await wallet2.getAddressAt(0)})
@@ -89,7 +89,7 @@ describe("address-info routes", () => {
 
     const results = response.body;
     expect(results.success).toBeTruthy();
-    expect(results.token).toBe("00")
+    expect(results.token).toBe(HATHOR_TOKEN_ID)
     expect(results.index).toBe(0);
     expect(results.total_amount_received).toBe(15) // 10 from genesis, 5 from token creation change
     expect(results.total_amount_sent).toBe(10) // token creation tx
@@ -98,7 +98,7 @@ describe("address-info routes", () => {
     done();
   });
 
-  it("should return results for custom token on an empty address", async done => {
+  it("should return results for custom token for an address (empty)", async done => {
     const response = await TestUtils.request
       .get("/wallet/address-info")
       .query({

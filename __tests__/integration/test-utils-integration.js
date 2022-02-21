@@ -5,10 +5,6 @@ import {loggers} from "./txLogger";
 
 const request = supertest(app);
 
-function generateHeader(walletId) {
-  return { "x-wallet-id": walletId }
-}
-
 
 // const wsUrl = config.server.replace(/https?/, "ws").replace("/v1a", "/v1a/ws");
 
@@ -46,52 +42,74 @@ export const WALLET_CONSTANTS = {
       'WaQf5igKpbdNyxTBzc3Nv8a8n4DRkcbpmX',
     ]
   },
-  third: {
-    walletId: 'thirdwallet',
-    words: 'route grab truth degree ketchup scene alone bulk usage pumpkin radio silk replace legal excuse cube pudding blush document nature used rough steak immune',
-    addresses: []
-  }
 }
+
+export const HATHOR_TOKEN_ID = "00"
 
 export function getRandomInt(max, min = 0) {
   return Math.floor(Math.random() * max) + min;
 }
 
 export class TestUtils {
+  /**
+   * Simple way to wait asynchronously before continuing the funcion. Does not block the JS thread.
+   * @param {number} ms Amount of milisseconds to delay
+   * @returns {Promise<unknown>}
+   */
   static async delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
 
+  /**
+   * Returns the Supertest `request` object for this application
+   * @returns {Test}
+   */
   static get request() {
     return request;
   }
 
+  /**
+   * Generates seed words for a new wallet
+   * @returns {string|*}
+   */
   static generateWords() {
     return wallet.generateWalletWords()
   }
 
+  /**
+   * Generates the header for requesting a protected route on the wallet headless
+   *
+   * @see TestUtils.stopWallet
+   * @param {string} walletId
+   * @returns {{"x-wallet-id"}}
+   */
   static generateHeader(walletId) {
-    return generateHeader(walletId)
+    return { "x-wallet-id": walletId }
   }
 
+  /**
+   * Adds a message to the Transaction Log for a test
+   * @param message
+   */
   static logTx(message) {
     loggers.test.insertLineToLog(message)
       .catch(err => console.error(err.stack))
   }
 
   /**
-   *
+   * Starts a wallet. Prefer instantiating a WalletHelper instead.
    * @param {WalletData} walletObj
    * @returns {Promise<{start:unknown,status:unknown}>}
    */
   static async startWallet(walletObj) {
     let start, status
 
-    // Start the wallet
+    // Request the Wallet start
     const response = await request
       .post("/start")
       .send({ seed: walletObj.words, "wallet-id": walletObj.walletId });
 
+    // Handle errors
     if (response.status !== 200) {
       throw new Error(`Unable to start the wallet: ${walletObj.walletId}`);
     }
@@ -105,42 +123,48 @@ export class TestUtils {
     while (true) {
       const res = await request
         .get("/wallet/status")
-        .set(generateHeader(walletObj.walletId));
+        .set(TestUtils.generateHeader(walletObj.walletId));
       if (res.body && res.body.success !== false) {
         status = res.body
         break;
       }
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await TestUtils.delay(500);
     }
 
+    // Log the success and return
     loggers.test.informNewWallet(walletObj.walletId, walletObj.words)
       .catch(err => console.error(err.stack))
 
     return { start, status }
   }
 
+  /**
+   * Stops a wallet. Prefer using the WalletHelper instead.
+   * @param {string} walletId
+   * @returns {Promise<void>}
+   */
   static async stopWallet(walletId) {
-    await request.post("/wallet/stop").set(generateHeader(walletId));
+    await request.post("/wallet/stop").set(TestUtils.generateHeader(walletId));
   }
 
   /**
-   *
-   * @param walletId
-   * @param index
+   * Gets the address from a walletId and an index, using the Wallet Headless endpoint
+   * @param {string} walletId
+   * @param {number} index
    * @returns {Promise<string>}
    */
   static async getAddressAt(walletId, index) {
     const response = await TestUtils.request
       .get("/wallet/address")
       .query({ index })
-      .set(generateHeader(walletId));
+      .set(TestUtils.generateHeader(walletId));
 
     return response.body.address
   }
 
   /**
    * Transfers funds to a destination address.
-   * By default, this method pools the fullnode and waits for a transaction validation before returning.
+   * By default, this method also waits for a second to let the indexes build before returning.
    * @param {string} address Destination address
    * @param {number} value Amount of tokens, in cents
    * @param {string} [destinationWalletId] walletId of the destination address. Useful for debugging.
@@ -148,11 +172,13 @@ export class TestUtils {
    * @returns {Promise<unknown>}
    */
   static async injectFundsIntoAddress(address, value, destinationWalletId, options = {}) {
+    // Requests the transaction
     const response = await TestUtils.request
       .post('/wallet/simple-send-tx')
       .send({address,value})
-      .set(generateHeader(WALLET_CONSTANTS.genesis.walletId));
+      .set(TestUtils.generateHeader(WALLET_CONSTANTS.genesis.walletId));
 
+    // Error handling
     const transaction = response.body;
     if (!transaction.success) {
       const injectError = new Error(transaction.message)
@@ -160,6 +186,7 @@ export class TestUtils {
       throw injectError
     }
 
+    // Logs the results
     await loggers.test.informSimpleTransaction({
       title: `Injecting funds`,
       originWallet: WALLET_CONSTANTS.genesis.walletId,
@@ -169,14 +196,14 @@ export class TestUtils {
       id: transaction.hash
     })
 
-    // If there's no need to wait for confirmation, just return the response transaction
-    if (options.doNotWait) return transaction
-
     /*
-     * Sometimes the fullnode may have a delay updating the balance index. A simple wait is built here to
-     * allow for the indexes to update.
+     * Sometimes there is a delay before updating the balance index. A simple wait is built here to
+     * allow for the indexes to update before continuing.
+     *
+     * In case there is a need to do multliple transactions before any assertion is executed, please use
+     * the `doNotWait` option and explicitly insert the delay only once. This will improve the test speed.
      */
-    await this.delay(1000)
+    if (!options.doNotWait) await TestUtils.delay(1000)
 
     return transaction
   }
@@ -260,16 +287,16 @@ export class WalletHelper {
       return this.#addresses[index]
     }
 
-    // Update the local cache and return results
+    // Fetch data from the Headless endpoint, update the local cache and return results
     const addressAt = await TestUtils.getAddressAt(this.#walletId,index)
     this.#addresses[index] = addressAt
     return addressAt
   }
 
   /**
-   * Retrieves funds from the Genesis wallet and injects into this wallet.
+   * Retrieves funds from the Genesis wallet and injects into this wallet at a specified address.
    * @param {number} value Value to be transferred
-   * @param {number} [addressIndex=0]
+   * @param {number} [addressIndex=0] Address index. Defaults to 0
    * @param {FundInjectionOptions} [options]
    * @returns {Promise<{success}|*>}
    */
@@ -279,13 +306,14 @@ export class WalletHelper {
   }
 
   /**
-   *
+   * Creates a custom token on this wallet
    * @param params
    * @param {number} params.amount Amount of tokens to generate
    * @param {string} params.name Long name of the token
    * @param {string} params.symbol Token symbol
    * @param {string} [params.address] Destination address for the custom token
    * @param {string} [params.change_address] Destination address for the HTR change
+   * @param {boolean} [params.doNotWait] Skip waiting after the transaction
    * @returns {Promise<unknown>} Token creation transaction
    */
   async createToken(params) {
@@ -302,10 +330,9 @@ export class WalletHelper {
 
     const tokenHash = newTokenResponse.body.hash
     let destination = ''
-    if (tokenCreationBody.address) destination += ` destination: ${tokenCreationBody.address}`
+    if (tokenCreationBody.address) destination += ` - destination: ${tokenCreationBody.address}`
     if (tokenCreationBody.change_address) destination += ` change: ${tokenCreationBody.change_address}`
-    TestUtils.logTx(`Created ${amount} tokens ${symbol} on ${this.#walletId} - Hash ${tokenHash}`)
-    await TestUtils.delay(1000)
+    TestUtils.logTx(`Created ${amount} tokens ${symbol} on ${this.#walletId} - Hash ${tokenHash}${destination}`)
 
     const transaction = newTokenResponse.body
 
@@ -314,6 +341,8 @@ export class WalletHelper {
       injectError.innerError = newTokenResponse
       throw injectError
     }
+
+    if (!params.doNotWait) await TestUtils.delay(1000)
 
     return transaction
   }

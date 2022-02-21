@@ -1,6 +1,9 @@
 version: "3.9"
 services:
 
+  # For more information on these configs, refer to:
+  # https://github.com/HathorNetwork/rfcs/blob/master/text/0033-private-network-guide.md
+
   fullnode:
     image: hathornetwork/hathor-core
     command: [
@@ -30,7 +33,7 @@ services:
     depends_on:
       - fullnode
     ports:
-      - "8034:8034"
+      - "8034:8034" # Not mandatory to keep these ports open, but helpful for developer machine debugging
       - "8035:8035"
     command: [
       "http://fullnode:8080",
@@ -46,7 +49,7 @@ services:
       - tx-mining-service
     command: [
       "-a", "sha256d",
-      "--coinbase-addr", "WRTFYzhTHkfYwub8EWVtAcUgbdUpsYMBpb",
+      "--coinbase-addr", "WRTFYzhTHkfYwub8EWVtAcUgbdUpsYMBpb", # Refer to test-utils-integration.js, WALLET_CONSTANTS
       "-o", "stratum+tcp://tx-mining-service:8034",
       "--retry-pause", "5", # 5 seconds between retries
       "-t", "1" # Number of threads used to mine

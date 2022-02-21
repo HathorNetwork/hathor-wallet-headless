@@ -4,9 +4,11 @@ const GENESIS_BLOCK_BALANCE = 100000000000;
 
 describe.skip("proof of concept tests", () => {
   beforeAll(async () => {
+    await TestUtils.startWallet(WALLET_CONSTANTS.second);
   })
 
   afterAll(async () => {
+    await TestUtils.stopWallet(WALLET_CONSTANTS.second.walletId);
   })
 
   it('should return the value of the genesis block', async done => {

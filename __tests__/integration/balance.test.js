@@ -1,6 +1,4 @@
 import {getRandomInt, TestUtils, WalletHelper} from "./test-utils-integration";
-import axios from "axios"
-import MockAdapter from "axios-mock-adapter";
 
 describe('balance routes', () => {
   /** @type WalletHelper */
@@ -9,13 +7,16 @@ describe('balance routes', () => {
 
   beforeAll(async () => {
     try {
+      // First wallet, no balance
       wallet1 = new WalletHelper('balance1');
       await wallet1.start();
 
+      // Second wallet, random balance
       wallet2 = new WalletHelper('balance2');
       await wallet2.start();
       await wallet2.injectFunds(wallet2Balance)
 
+      // Third wallet, balance to be used for custom tokens
       wallet3 = new WalletHelper('custom3')
       await wallet3.start();
       await wallet3.injectFunds(100);
@@ -82,20 +83,6 @@ describe('balance routes', () => {
 
     expect(balanceResult.body.available).toBe(tokenAmount);
     expect(balanceResult.body.locked).toBe(0);
-    done();
-  })
-
-  it.skip('should return a treated error for a connection failure with the fullnode', async done => {
-    const httpMock = new MockAdapter(axios)
-    httpMock.onGet('wallet/balances')
-      .reply(500, { success: false, message: 'Fake error message' })
-
-    const balanceResult = await TestUtils.request
-      .get('/wallet/balance')
-      .set({"x-wallet-id": wallet1.walletId});
-
-    httpMock.reset()
-    expect(balanceResult.status).toBe(500)
     done();
   })
 

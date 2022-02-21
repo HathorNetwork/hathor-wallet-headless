@@ -12,9 +12,11 @@ describe('tx-history routes', () => {
 
   beforeAll(async () => {
     try {
+      // An empty wallet
       wallet1 = new WalletHelper('txHistory1');
       await wallet1.start();
 
+      // A wallet with 5 transactions containing 10, 20, 30, 40 and 50 HTR each
       wallet2 = new WalletHelper('txHistory2');
       await wallet2.start();
       for (let amount = 10; amount < 60; amount = amount + 10) {
@@ -31,6 +33,16 @@ describe('tx-history routes', () => {
   afterAll(async () => {
     await wallet1.stop();
     await wallet2.stop();
+  });
+
+  it('should return an empty array of transactions for an empty wallet', async done => {
+    const balanceResult = await TestUtils.request
+      .get('/wallet/tx-history')
+      .set({"x-wallet-id": wallet1.walletId});
+
+    expect(balanceResult.status).toBe(200);
+    expect(balanceResult.body).toHaveLength(0);
+    done();
   });
 
   it('should return transactions for a wallet', async done => {
@@ -66,18 +78,10 @@ describe('tx-history routes', () => {
     for (const txIndex in transactions) {
       const transaction = transactions[txIndex];
       const fundTx = fundTransactions[transaction.tx_id]
+
+      // If we found the transaction it is evidence enough that it worked, since it is a hash of every other data there.
       expect(fundTx).toBeTruthy()
     }
-    done();
-  });
-
-  it('should not return transactions for an empty wallet', async done => {
-    const balanceResult = await TestUtils.request
-      .get('/wallet/tx-history')
-      .set({"x-wallet-id": wallet1.walletId});
-
-    expect(balanceResult.status).toBe(200);
-    expect(balanceResult.body).toHaveLength(0);
     done();
   });
 

@@ -33,13 +33,10 @@ jobs:
       - name: Copy config file
         run: cp ./__tests__/integration/configuration/config.js.template ./src/config.js
 
-      - name: Start the Private Network
-        run: docker-compose -f ./__tests__/integration/docker-compose.yml up -d
-
       - name: Run the tests
-        run: npm run test_network_integration
+        run: npm run test_integration
 
-      - name: Upload transaction logs
+      - name: Upload debug transaction logs
         if: always()
         uses: actions/upload-artifact@v2
         with:

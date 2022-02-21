@@ -74,15 +74,32 @@ export class TxLogger {
     await this.insertLineToLog(`Log initialized`)
   }
 
+  /**
+   * Most common interaction: append a log message into the file
+   * @param {string} input Log Message
+   * @returns {Promise<void>}
+   */
   async insertLineToLog(input) {
     const message = `\n[${new Date().toISOString()}] ${input}`;
     await fs.appendFile(this.#fileFullPath, message);
   }
 
+  /**
+   * Wrapper for adding a "New Wallet" message
+   * @param {string} walletId
+   * @param {string} walletWords
+   * @returns {Promise<void>}
+   */
   async informNewWallet(walletId, walletWords) {
     return this.insertLineToLog(`New wallet: ${walletId} , words: ${walletWords}`);
   }
 
+  /**
+   * Wrapper for adding a "Wallet Addresses" message
+   * @param {string} walletId
+   * @param {string} addresses
+   * @returns {Promise<void>}
+   */
   async informWalletAddresses(walletId, addresses) {
     let strAddresses = addresses
       .map((address, index) => {
@@ -94,7 +111,7 @@ export class TxLogger {
   }
 
   /**
-   *
+   * Wrapper for adding a "New Transaction" message
    * @param transactionObject
    * @param {string} transactionObject.id Transaction identification for debugging on the explorer
    * @param {string} transactionObject.originWallet

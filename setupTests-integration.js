@@ -8,6 +8,10 @@ import * as Path from 'path';
 // Mock Websockets
 // jest.mock("isomorphic-ws", () => WebSocket);
 
+/**
+ * Gets the name of the test being executed from a Jasmine's global variable.
+ * @returns {string} Test name
+ */
 function getTestNameFromGlobalJasmineInstance() {
   const testPath = jasmine.testPath
   const testFileName = Path.parse(testPath).name
@@ -16,19 +20,18 @@ function getTestNameFromGlobalJasmineInstance() {
     : testFileName
 }
 
-// Start the stub wallet
+// This function will run before each test file is executed
 beforeAll(async () => {
+  // Initializing the Transaction Logger with the test name
   const testName = getTestNameFromGlobalJasmineInstance()
   const testLogger = new TxLogger(testName);
   await testLogger.init(__dirname);
   loggers.test = testLogger;
 
   await TestUtils.startWallet(WALLET_CONSTANTS.genesis);
-  await TestUtils.startWallet(WALLET_CONSTANTS.second);
 });
 
-// Stop the stub wallet
+// This function will run after each test file is executed
 afterAll(async () => {
   await TestUtils.stopWallet(WALLET_CONSTANTS.genesis.walletId);
-  await TestUtils.stopWallet(WALLET_CONSTANTS.second.walletId);
 });
