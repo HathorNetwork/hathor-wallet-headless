@@ -38,6 +38,7 @@ describe("address-info routes", () => {
 
   afterAll(async () => {
     await wallet1.stop();
+    await wallet2.stop();
   })
 
   it("should return results for an empty address", async done => {
@@ -50,12 +51,12 @@ describe("address-info routes", () => {
 
     const results = response.body;
     expect(results.success).toBeTruthy();
+    expect(results.token).toBe("00") // HTR
+    expect(results.index).toBe(0);
     expect(results.total_amount_received).toBe(0)
     expect(results.total_amount_sent).toBe(0)
     expect(results.total_amount_available).toBe(0)
     expect(results.total_amount_locked).toBe(0)
-    expect(results.token).toBe("00")
-    expect(results.index).toBe(0);
     done();
   });
 
@@ -69,12 +70,12 @@ describe("address-info routes", () => {
 
     const results = response.body;
     expect(results.success).toBeTruthy();
+    expect(results.token).toBe("00") // HTR
+    expect(results.index).toBe(1);
     expect(results.total_amount_received).toBe(address1balance)
     expect(results.total_amount_sent).toBe(0)
     expect(results.total_amount_available).toBe(address1balance)
     expect(results.total_amount_locked).toBe(0)
-    expect(results.token).toBe("00")
-    expect(results.index).toBe(1);
     done();
   });
 
@@ -88,12 +89,12 @@ describe("address-info routes", () => {
 
     const results = response.body;
     expect(results.success).toBeTruthy();
-    expect(results.total_amount_received).toBe(15) // 10 from genesis, 5 from token creation change
-    expect(results.total_amount_sent).toBe(10) // token creation
-    expect(results.total_amount_available).toBe(5) // change
-    expect(results.total_amount_locked).toBe(0)
     expect(results.token).toBe("00")
     expect(results.index).toBe(0);
+    expect(results.total_amount_received).toBe(15) // 10 from genesis, 5 from token creation change
+    expect(results.total_amount_sent).toBe(10) // token creation tx
+    expect(results.total_amount_available).toBe(5) // change
+    expect(results.total_amount_locked).toBe(0)
     done();
   });
 
@@ -110,12 +111,12 @@ describe("address-info routes", () => {
 
     const results = response.body;
     expect(results.success).toBeTruthy();
+    expect(results.token).toBe(customTokenHash);
+    expect(results.index).toBe(0);
     expect(results.total_amount_received).toBe(0)
     expect(results.total_amount_sent).toBe(0)
     expect(results.total_amount_available).toBe(0)
     expect(results.total_amount_locked).toBe(0)
-    expect(results.token).toBe(customTokenHash)
-    expect(results.index).toBe(0);
     done();
   });
 
@@ -132,12 +133,12 @@ describe("address-info routes", () => {
 
     const results = response.body;
     expect(results.success).toBeTruthy();
+    expect(results.token).toBe(customTokenHash)
+    expect(results.index).toBe(1);
     expect(results.total_amount_received).toBe(500)
     expect(results.total_amount_sent).toBe(0)
     expect(results.total_amount_available).toBe(500)
     expect(results.total_amount_locked).toBe(0)
-    expect(results.token).toBe(customTokenHash)
-    expect(results.index).toBe(1);
     done();
   });
 
