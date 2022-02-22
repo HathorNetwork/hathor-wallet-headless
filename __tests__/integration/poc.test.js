@@ -33,7 +33,7 @@ describe.skip("proof of concept tests", () => {
   it('should make a transaction from genesis address to second wallet', async done => {
     // Transfer 1.01 HTR to the second wallet
     const transactionAmount = 101;
-    const transfer = await TestUtils.request
+    await TestUtils.request
       .post('/wallet/simple-send-tx')
       .send({
         address: WALLET_CONSTANTS.second.addresses[0],
