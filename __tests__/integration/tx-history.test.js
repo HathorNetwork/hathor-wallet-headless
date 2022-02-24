@@ -13,6 +13,13 @@ describe('tx-history routes', () => {
    */
   const fundTransactions = {};
 
+  /**
+   * A map of transactions, where the key is in the format "tx{value}"
+   * @example { tx10: "hash-10", tx20: "hash-20" }
+   * @type {Record<string,unknown>}
+   */
+  const fundHashes = {};
+
   beforeAll(async () => {
     try {
       // An empty wallet
@@ -25,6 +32,7 @@ describe('tx-history routes', () => {
       for (let amount = 10; amount < 60; amount += 10) {
         const fundTx = await wallet2.injectFunds(amount, 1);
         fundTransactions[fundTx.hash] = fundTx;
+        fundHashes[`tx${amount}`] = fundTx.hash;
       }
     } catch (err) {
       TestUtils.logError(err.stack);
@@ -67,6 +75,13 @@ describe('tx-history routes', () => {
       expect(transaction.outputs[0].value).toEqual(fundTx.outputs[0].value);
       expect(transaction.outputs[1].value).toEqual(fundTx.outputs[1].value);
     }
+
+    // Validating the transactions' order: chronological ASCENDING
+    expect(transactions[0].tx_id).toEqual(fundHashes.tx10);
+    expect(transactions[1].tx_id).toEqual(fundHashes.tx20);
+    expect(transactions[2].tx_id).toEqual(fundHashes.tx30);
+    expect(transactions[3].tx_id).toEqual(fundHashes.tx40);
+    expect(transactions[4].tx_id).toEqual(fundHashes.tx50);
     done();
   });
 
@@ -79,14 +94,12 @@ describe('tx-history routes', () => {
     expect(balanceResult.status).toBe(200);
     const transactions = balanceResult.body;
     expect(transactions).toHaveLength(3);
-    for (const txIndex in transactions) {
-      const transaction = transactions[txIndex];
-      const fundTx = fundTransactions[transaction.tx_id];
 
-      // If we found the transaction it is evidence enough that it worked,
-      // since it is a hash of every other data there.
-      expect(fundTx).toBeTruthy();
-    }
+    // The transactions must be the latest ones, in DESCENDING chronological order
+    expect(transactions[0].tx_id).toEqual(fundHashes.tx50);
+    expect(transactions[1].tx_id).toEqual(fundHashes.tx40);
+    expect(transactions[2].tx_id).toEqual(fundHashes.tx30);
+
     done();
   });
 });
