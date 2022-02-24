@@ -48,8 +48,7 @@ export class WalletHelper {
     if (!walletId) throw new Error(`Wallet must have a walletId`);
     this.#walletId = walletId;
 
-    if (words) this.#words = words;
-    else this.#words = TestUtils.generateWords();
+    this.#words = words || TestUtils.generateWords();
   }
 
   /**
@@ -154,7 +153,7 @@ export class WalletHelper {
       destination += ` - destination: ${tokenCreationBody.address}`;
     }
     if (tokenCreationBody.change_address) {
-      destination += ` change: ${tokenCreationBody.change_address}`;
+      destination += ` - change: ${tokenCreationBody.change_address}`;
     }
     TestUtils.logTx(`Created ${amount} tokens ${symbol} on ${this.#walletId} `
       + `- Hash ${tokenHash}${destination}`);
@@ -170,7 +169,6 @@ export class WalletHelper {
 
     // Returning the Create Token transaction
     if (!params.doNotWait) await TestUtils.delay(1000);
-
     return transaction;
   }
 }

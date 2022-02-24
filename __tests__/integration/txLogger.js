@@ -35,12 +35,12 @@ export class TxLogger {
    */
   constructor(title) {
     const date = new Date();
-    const timestamp = date.toISOString()
+    const humanReadableTimestamp = date.toISOString()
       .replace(/-/g, '') // Remove date separator
       .replace(/:/g, '') // Remove hour separator
       .split('.')[0]; // Get only the seconds integer
-    const additionalTitle = `-${title}` || '';
-    const filename = `${timestamp}${additionalTitle}-integrationTest.log`;
+    const additionalTitle = title ? `-${title}` : '';
+    const filename = `${humanReadableTimestamp}${additionalTitle}-integrationTest.log`;
     this.#instanceFilename = filename;
   }
 
@@ -60,21 +60,22 @@ export class TxLogger {
      * The promisified version of fs.assign is incompatible with our babel-node setup
      * for some reason. Reverting back to using the old callback solution for compatibility.
      */
-    const dirPromise = new Promise((resolve) => {
+    const dirPromise = new Promise((resolve, reject) => {
       try {
         fsold.access(tmpDir, async (err, results) => {
           if (err) {
             fs.mkdir(tmpDir)
               .catch((err2) => {
-                console.error(`Now that's an error: ${err2.stack}`);
+                console.error(`Could not create the directory for the log files: ${err2.stack}`);
+                reject(err2);
               });
           }
         });
       } catch (err) {
         console.error('Untreated error on fs.access: ', err.stack);
-      } finally {
-        resolve();
+        reject(err);
       }
+      resolve();
     });
 
     await dirPromise;
