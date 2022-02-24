@@ -34,7 +34,7 @@ describe('balance routes', () => {
     await wallet3.stop();
   });
 
-  it('should return zero for an empty wallet', async (done) => {
+  it('should return zero for an empty wallet', async done => {
     const balanceResult = await TestUtils.request
       .get('/wallet/balance')
       .set({ 'x-wallet-id': wallet1.walletId });
@@ -44,7 +44,7 @@ describe('balance routes', () => {
     done();
   });
 
-  it('should return correct balance for a wallet with one transaction', async (done) => {
+  it('should return correct balance for a wallet with one transaction', async done => {
     const balanceResult = await TestUtils.request
       .get('/wallet/balance')
       .set({ 'x-wallet-id': wallet2.walletId });
@@ -54,7 +54,7 @@ describe('balance routes', () => {
     done();
   });
 
-  it('should return some locked balance for the miner wallet', async (done) => {
+  it('should return some locked balance for the miner wallet', async done => {
     const balanceResult = await TestUtils.request
       .get('/wallet/balance')
       .set({ 'x-wallet-id': WALLET_CONSTANTS.genesis.walletId });
@@ -70,7 +70,7 @@ describe('balance routes', () => {
     done();
   });
 
-  it('should return correct balance for a custom token (empty)', async (done) => {
+  it('should return correct balance for a custom token (empty)', async done => {
     const balanceResult = await TestUtils.request
       .get('/wallet/balance')
       .query({ token: 'TST' })
@@ -81,7 +81,7 @@ describe('balance routes', () => {
     done();
   });
 
-  it('should return correct balance for a custom token', async (done) => {
+  it('should return correct balance for a custom token', async done => {
     const tokenAmount = getRandomInt(200, 100);
     const newTokenResponse = await TestUtils.request
       .post('/wallet/create-token')

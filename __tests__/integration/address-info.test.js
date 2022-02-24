@@ -48,7 +48,7 @@ describe('address-info routes', () => {
     await wallet2.stop();
   });
 
-  it('should return results for an address (empty)', async (done) => {
+  it('should return results for an address (empty)', async done => {
     const response = await TestUtils.request
       .get('/wallet/address-info')
       .query({ address: await wallet1.getAddressAt(0) })
@@ -67,7 +67,7 @@ describe('address-info routes', () => {
     done();
   });
 
-  it('should return results for an address with a single receiving transaction', async (done) => {
+  it('should return results for an address with a single receiving transaction', async done => {
     const response = await TestUtils.request
       .get('/wallet/address-info')
       .query({ address: await wallet1.getAddressAt(1) })
@@ -86,7 +86,7 @@ describe('address-info routes', () => {
     done();
   });
 
-  it('should return correct locked balance for an address with miner rewards', async (done) => {
+  it('should return correct locked balance for an address with miner rewards', async done => {
     const response = await TestUtils.request
       .get('/wallet/address-info')
       .query({ address: WALLET_CONSTANTS.genesis.addresses[1] }) // Miner rewards address
@@ -111,7 +111,7 @@ describe('address-info routes', () => {
     done();
   });
 
-  it('should return results for an address with send/receive transactions', async (done) => {
+  it('should return results for an address with send/receive transactions', async done => {
     const response = await TestUtils.request
       .get('/wallet/address-info')
       .query({ address: await wallet2.getAddressAt(0) })
@@ -130,7 +130,7 @@ describe('address-info routes', () => {
     done();
   });
 
-  it('should return results for custom token for an address (empty)', async (done) => {
+  it('should return results for custom token for an address (empty)', async done => {
     const response = await TestUtils.request
       .get('/wallet/address-info')
       .query({
@@ -152,7 +152,7 @@ describe('address-info routes', () => {
     done();
   });
 
-  it('should return results for custom token on an address with a single transaction', async (done) => {
+  it('should return results for custom token on an address with a single transaction', async done => {
     const response = await TestUtils.request
       .get('/wallet/address-info')
       .query({

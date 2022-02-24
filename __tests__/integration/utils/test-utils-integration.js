@@ -66,7 +66,7 @@ export class TestUtils {
    * @returns {Promise<unknown>}
    */
   static async delay(ms) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       setTimeout(resolve, ms);
     });
   }
@@ -104,7 +104,7 @@ export class TestUtils {
    */
   static logTx(message) {
     loggers.test.insertLineToLog(message)
-      .catch((err) => console.error(err.stack));
+      .catch(err => console.error(err.stack));
   }
 
   /**
@@ -152,7 +152,7 @@ export class TestUtils {
 
     // Log the success and return
     loggers.test.informNewWallet(walletObj.walletId, walletObj.words)
-      .catch((err) => console.error(err.stack));
+      .catch(err => console.error(err.stack));
 
     return { start, status };
   }

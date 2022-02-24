@@ -73,7 +73,7 @@ export class WalletHelper {
         this.#addresses.push(address);
       }
       loggers.test.informWalletAddresses(this.#walletId, this.#addresses)
-        .catch((e) => TestUtils.logError(e.stack));
+        .catch(e => TestUtils.logError(e.stack));
     }
 
     return {

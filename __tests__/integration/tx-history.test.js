@@ -44,7 +44,7 @@ describe('tx-history routes', () => {
     await wallet2.stop();
   });
 
-  it('should return an empty array of transactions for an empty wallet', async (done) => {
+  it('should return an empty array of transactions for an empty wallet', async done => {
     const balanceResult = await TestUtils.request
       .get('/wallet/tx-history')
       .set({ 'x-wallet-id': wallet1.walletId });
@@ -54,7 +54,7 @@ describe('tx-history routes', () => {
     done();
   });
 
-  it('should return transactions for a wallet', async (done) => {
+  it('should return transactions for a wallet', async done => {
     const balanceResult = await TestUtils.request
       .get('/wallet/tx-history')
       .set({ 'x-wallet-id': wallet2.walletId });
@@ -85,7 +85,7 @@ describe('tx-history routes', () => {
     done();
   });
 
-  it('should return transactions for a wallet with query limit', async (done) => {
+  it('should return transactions for a wallet with query limit', async done => {
     const balanceResult = await TestUtils.request
       .get('/wallet/tx-history')
       .query({ limit: 3 })

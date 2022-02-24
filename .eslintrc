@@ -2,7 +2,7 @@
   "extends": "airbnb-base",
   "parser": "@babel/eslint-parser",
   "rules": {
-    "arrow-parens": ["error", "always"],
+    "arrow-parens": ["error", "as-needed"],
     "import/no-named-as-default": 0,
     "import/prefer-default-export": 0,
     "quotes": ["error", "single", { "avoidEscape": true, "allowTemplateLiterals": true }],

@@ -65,7 +65,7 @@ export class TxLogger {
         fsold.access(tmpDir, async (err, results) => {
           if (err) {
             fs.mkdir(tmpDir)
-              .catch((err2) => {
+              .catch(err2 => {
                 console.error(`Could not create the directory for the log files: ${err2.stack}`);
                 reject(err2);
               });

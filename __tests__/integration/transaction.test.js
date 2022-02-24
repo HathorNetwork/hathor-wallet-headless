@@ -18,7 +18,7 @@ describe('transaction routes', () => {
     await wallet1.stop();
   });
 
-  it('should return an error for an invalid transaction', async (done) => {
+  it('should return an error for an invalid transaction', async done => {
     const response = await TestUtils.request
       .get('/wallet/transaction')
       .query({
@@ -31,7 +31,7 @@ describe('transaction routes', () => {
     done();
   });
 
-  it('should return success for a valid transaction', async (done) => {
+  it('should return success for a valid transaction', async done => {
     // Generates a transaction
     const tx = await wallet1.injectFunds(1);
     const txId = tx.hash;
