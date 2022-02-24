@@ -1,4 +1,9 @@
-import { getRandomInt, HATHOR_TOKEN_ID, TestUtils } from './utils/test-utils-integration';
+import {
+  getRandomInt,
+  HATHOR_TOKEN_ID,
+  TestUtils,
+  WALLET_CONSTANTS
+} from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
 
 describe('address-info routes', () => {
@@ -78,6 +83,31 @@ describe('address-info routes', () => {
     expect(results.total_amount_sent).toBe(0);
     expect(results.total_amount_available).toBe(address1balance);
     expect(results.total_amount_locked).toBe(0);
+    done();
+  });
+
+  it('should return correct locked balance for an address with miner rewards', async (done) => {
+    const response = await TestUtils.request
+      .get('/wallet/address-info')
+      .query({ address: WALLET_CONSTANTS.genesis.addresses[1] }) // Miner rewards address
+      .set({ 'x-wallet-id': WALLET_CONSTANTS.genesis.walletId });
+
+    expect(response.status).toBe(200);
+
+    const results = response.body;
+    expect(results.success).toBeTruthy();
+    expect(results.token).toBe(HATHOR_TOKEN_ID);
+    expect(results.index).toBe(2);
+    expect(results.total_amount_received).toBeGreaterThan(0);
+
+    /*
+     * According to the REWARD_SPEND_MIN_BLOCKS variable in the ./configuration/privnet.py file
+     * the miner rewards are locked for exactly one block. Since we have only one miner reward
+     * address, this value should be precisely 6400.
+     *
+     * Should another miner reward address be included later, this assertion must be recalculated.
+     */
+    expect(results.total_amount_locked).toBe(6400);
     done();
   });
 

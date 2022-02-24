@@ -1,4 +1,4 @@
-import { getRandomInt, TestUtils } from './utils/test-utils-integration';
+import { getRandomInt, TestUtils, WALLET_CONSTANTS } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
 
 describe('balance routes', () => {
@@ -31,6 +31,7 @@ describe('balance routes', () => {
   afterAll(async () => {
     await wallet1.stop();
     await wallet2.stop();
+    await wallet3.stop();
   });
 
   it('should return zero for an empty wallet', async (done) => {
@@ -50,6 +51,22 @@ describe('balance routes', () => {
 
     expect(balanceResult.body.available).toBe(wallet2Balance);
     expect(balanceResult.body.locked).toBe(0);
+    done();
+  });
+
+  it('should return some locked balance for the miner wallet', async (done) => {
+    const balanceResult = await TestUtils.request
+      .get('/wallet/balance')
+      .set({ 'x-wallet-id': WALLET_CONSTANTS.genesis.walletId });
+
+    /*
+     * According to the REWARD_SPEND_MIN_BLOCKS variable in the ./configuration/privnet.py file
+     * the miner rewards are locked for exactly one block. Since we have only one miner reward
+     * address, this value should be precisely 6400.
+     *
+     * Should another miner reward address be included later, this assertion must be recalculated.
+     */
+    expect(balanceResult.body.locked).toBe(6400);
     done();
   });
 
