@@ -26,7 +26,11 @@ export class TxLogger {
   }
 
   /**
-   * Builds the log filename based on current time and an optional title
+   * Builds the log filename based on current time and an optional title.
+   * The resulting filename will be in the format:
+   * <pre><code>
+   * 20220224T084737-title-integrationTest.log
+   * </pre></code>
    * @param {string} [title] Optional title. Keep it short and simple for readability
    */
   constructor(title) {

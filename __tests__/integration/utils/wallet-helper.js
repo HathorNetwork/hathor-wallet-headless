@@ -5,12 +5,26 @@ import { TestUtils } from './test-utils-integration';
  * A helper for testing the wallet
  */
 export class WalletHelper {
+  /**
+   * Identification that will be used to start the wallet and as a reference on the request headers
+   */
   #walletId;
 
+  /**
+   * 24-word seed for referencing the wallet
+   */
   #words;
 
+  /**
+   * Some cached addresses to improve performance on tests
+   * @type {string[]}
+   */
   #addresses = [];
 
+  /**
+   * Indicates if the wallet was started in the Wallet Headless app
+   * @type {boolean}
+   */
   #started = false;
 
   get walletId() {
@@ -122,15 +136,18 @@ export class WalletHelper {
   async createToken(params) {
     const { amount, name, symbol } = params;
 
+    // Creating the request body from mandatory and optional parameters
     const tokenCreationBody = { name, symbol, amount };
     if (params.address) tokenCreationBody.address = params.address;
     if (params.change_address) tokenCreationBody.change_address = params.change_address;
 
+    // Executing the request
     const newTokenResponse = await TestUtils.request
       .post('/wallet/create-token')
       .set({ 'x-wallet-id': this.#walletId })
       .send(tokenCreationBody);
 
+    // Retrieving token data and building the Test Log message
     const tokenHash = newTokenResponse.body.hash;
     let destination = '';
     if (tokenCreationBody.address) {
@@ -144,12 +161,14 @@ export class WalletHelper {
 
     const transaction = newTokenResponse.body;
 
+    // Handling errors
     if (!transaction.success) {
       const injectError = new Error(transaction.message);
       injectError.innerError = newTokenResponse;
       throw injectError;
     }
 
+    // Returning the Create Token transaction
     if (!params.doNotWait) await TestUtils.delay(1000);
 
     return transaction;

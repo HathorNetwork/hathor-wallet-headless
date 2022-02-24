@@ -29,8 +29,8 @@ describe('address-info routes', () => {
 
       /*
        * The state here should be:
-       * wallet1[1] with some value between 100 and 200
-       * wallet2[0] with 0.05 HTR
+       * wallet1[1] with some value between 100 and 200 HTR
+       * wallet2[0] with 5 HTR
        * wallet2[1] with 500 AIT
        */
     } catch (err) {

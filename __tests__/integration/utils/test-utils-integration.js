@@ -28,9 +28,9 @@ export const WALLET_CONSTANTS = {
     walletId: 'genesiswallet',
     words: 'avocado spot town typical traffic vault danger century property shallow divorce festival spend attack anchor afford rotate green audit adjust fade wagon depart level',
     addresses: [
-      'WY1URKUnqCTyiixW1Dw29vmeG99hNN4EW6', // Genesis funds
-      'WRTFYzhTHkfYwub8EWVtAcUgbdUpsYMBpb', // Miner rewards
-      'WhpJeUtBLrDHbKDoMC9ffMxwHqvsrNzTFV', // First without transactions
+      'WY1URKUnqCTyiixW1Dw29vmeG99hNN4EW6', // Genesis funds, index 1
+      'WRTFYzhTHkfYwub8EWVtAcUgbdUpsYMBpb', // Miner rewards, index 2
+      'WhpJeUtBLrDHbKDoMC9ffMxwHqvsrNzTFV', // index 3
     ]
   },
   second: {
@@ -216,8 +216,8 @@ export class TestUtils {
     });
 
     /*
-     * Sometimes there is a delay before updating the balance index. A simple wait is built here to
-     * allow for the indexes to update before continuing.
+     * The balance in the storage is updated after the wallet receives a message via websocket
+     * from the full node. A simple wait is built here to allow for this message before continuing.
      *
      * In case there is a need to do multliple transactions before any assertion is executed,
      * please use the `doNotWait` option and explicitly insert the delay only once.
