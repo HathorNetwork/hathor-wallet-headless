@@ -46,8 +46,16 @@ export const WALLET_CONSTANTS = {
 
 export const HATHOR_TOKEN_ID = "00";
 
+/**
+ * Generates a random positive integer between the maximum and minimum values, with the default minimum equals zero
+ * @param {number} max
+ * @param {number} [min=0]
+ * @returns {number} Random number
+ */
 export function getRandomInt(max, min = 0) {
-  return Math.floor(Math.random() * max) + min;
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 export class TestUtils {
