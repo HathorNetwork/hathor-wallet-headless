@@ -1,7 +1,9 @@
-import {getRandomInt, HATHOR_TOKEN_ID, TestUtils, WalletHelper} from "./test-utils-integration";
+import { getRandomInt, HATHOR_TOKEN_ID, TestUtils } from './utils/test-utils-integration';
+import { WalletHelper } from './utils/wallet-helper';
 
-describe("address-info routes", () => {
-  let wallet1, wallet2;
+describe('address-info routes', () => {
+  let wallet1;
+  let wallet2;
   const address1balance = getRandomInt(200, 100);
   let customTokenHash;
 
@@ -19,7 +21,7 @@ describe("address-info routes", () => {
       const customToken = await wallet2.createToken({
         amount: 500,
         name: 'AddInfo Token',
-        symbol: "AIT",
+        symbol: 'AIT',
         address: await wallet2.getAddressAt(1),
         change_address: await wallet2.getAddressAt(0)
       });
@@ -32,7 +34,7 @@ describe("address-info routes", () => {
        * wallet2[1] with 500 AIT
        */
     } catch (err) {
-      console.error(err.stack);
+      TestUtils.logError(err.stack);
     }
   });
 
@@ -41,11 +43,11 @@ describe("address-info routes", () => {
     await wallet2.stop();
   });
 
-  it("should return results for an address (empty)", async done => {
+  it('should return results for an address (empty)', async (done) => {
     const response = await TestUtils.request
-      .get("/wallet/address-info")
-      .query({address: await wallet1.getAddressAt(0)})
-      .set({"x-wallet-id": wallet1.walletId});
+      .get('/wallet/address-info')
+      .query({ address: await wallet1.getAddressAt(0) })
+      .set({ 'x-wallet-id': wallet1.walletId });
 
     expect(response.status).toBe(200);
 
@@ -60,11 +62,11 @@ describe("address-info routes", () => {
     done();
   });
 
-  it("should return results for an address with a single receiving transaction", async done => {
+  it('should return results for an address with a single receiving transaction', async (done) => {
     const response = await TestUtils.request
-      .get("/wallet/address-info")
-      .query({address: await wallet1.getAddressAt(1)})
-      .set({"x-wallet-id": wallet1.walletId});
+      .get('/wallet/address-info')
+      .query({ address: await wallet1.getAddressAt(1) })
+      .set({ 'x-wallet-id': wallet1.walletId });
 
     expect(response.status).toBe(200);
 
@@ -79,11 +81,11 @@ describe("address-info routes", () => {
     done();
   });
 
-  it("should return results for an address with send/receive transactions", async done => {
+  it('should return results for an address with send/receive transactions', async (done) => {
     const response = await TestUtils.request
-      .get("/wallet/address-info")
-      .query({address: await wallet2.getAddressAt(0)})
-      .set({"x-wallet-id": wallet2.walletId});
+      .get('/wallet/address-info')
+      .query({ address: await wallet2.getAddressAt(0) })
+      .set({ 'x-wallet-id': wallet2.walletId });
 
     expect(response.status).toBe(200);
 
@@ -98,14 +100,14 @@ describe("address-info routes", () => {
     done();
   });
 
-  it("should return results for custom token for an address (empty)", async done => {
+  it('should return results for custom token for an address (empty)', async (done) => {
     const response = await TestUtils.request
-      .get("/wallet/address-info")
+      .get('/wallet/address-info')
       .query({
         address: await wallet2.getAddressAt(0),
         token: customTokenHash,
       })
-      .set({"x-wallet-id": wallet2.walletId});
+      .set({ 'x-wallet-id': wallet2.walletId });
 
     expect(response.status).toBe(200);
 
@@ -120,14 +122,14 @@ describe("address-info routes", () => {
     done();
   });
 
-  it("should return results for custom token on an address with a single transaction", async done => {
+  it('should return results for custom token on an address with a single transaction', async (done) => {
     const response = await TestUtils.request
-      .get("/wallet/address-info")
+      .get('/wallet/address-info')
       .query({
         address: await wallet2.getAddressAt(1),
         token: customTokenHash,
       })
-      .set({"x-wallet-id": wallet2.walletId});
+      .set({ 'x-wallet-id': wallet2.walletId });
 
     expect(response.status).toBe(200);
 
@@ -141,5 +143,4 @@ describe("address-info routes", () => {
     expect(results.total_amount_locked).toBe(0);
     done();
   });
-
 });

@@ -1,8 +1,11 @@
-import {getRandomInt, TestUtils, WalletHelper} from "./test-utils-integration";
+import { getRandomInt, TestUtils } from './utils/test-utils-integration';
+import { WalletHelper } from './utils/wallet-helper';
 
 describe('balance routes', () => {
   /** @type WalletHelper */
-  let wallet1, wallet2, wallet3;
+  let wallet1;
+  let wallet2;
+  let wallet3;
   const wallet2Balance = getRandomInt(200);
 
   beforeAll(async () => {
@@ -21,7 +24,7 @@ describe('balance routes', () => {
       await wallet3.start();
       await wallet3.injectFunds(100);
     } catch (err) {
-      console.error(err.stack);
+      TestUtils.logError(err.stack);
     }
   });
 
@@ -30,60 +33,59 @@ describe('balance routes', () => {
     await wallet2.stop();
   });
 
-  it('should return zero for an empty wallet', async done => {
+  it('should return zero for an empty wallet', async (done) => {
     const balanceResult = await TestUtils.request
       .get('/wallet/balance')
-      .set({"x-wallet-id": wallet1.walletId});
+      .set({ 'x-wallet-id': wallet1.walletId });
 
     expect(balanceResult.body.available).toBe(0);
     expect(balanceResult.body.locked).toBe(0);
     done();
   });
 
-  it('should return correct balance for a wallet with one transaction', async done => {
+  it('should return correct balance for a wallet with one transaction', async (done) => {
     const balanceResult = await TestUtils.request
       .get('/wallet/balance')
-      .set({"x-wallet-id": wallet2.walletId});
+      .set({ 'x-wallet-id': wallet2.walletId });
 
     expect(balanceResult.body.available).toBe(wallet2Balance);
     expect(balanceResult.body.locked).toBe(0);
     done();
   });
 
-  it('should return correct balance for a custom token (empty)', async done => {
+  it('should return correct balance for a custom token (empty)', async (done) => {
     const balanceResult = await TestUtils.request
-      .get("/wallet/balance")
-      .query({token: 'TST'})
-      .set({"x-wallet-id": wallet1.walletId});
+      .get('/wallet/balance')
+      .query({ token: 'TST' })
+      .set({ 'x-wallet-id': wallet1.walletId });
 
     expect(balanceResult.body.available).toBe(0);
     expect(balanceResult.body.locked).toBe(0);
     done();
   });
 
-  it('should return correct balance for a custom token', async done => {
+  it('should return correct balance for a custom token', async (done) => {
     const tokenAmount = getRandomInt(200, 100);
     const newTokenResponse = await TestUtils.request
-      .post("/wallet/create-token")
+      .post('/wallet/create-token')
       .send({
-        name: "Test Token",
-        symbol: "TST",
+        name: 'Test Token',
+        symbol: 'TST',
         amount: tokenAmount
       })
-      .set({"x-wallet-id": wallet3.walletId});
+      .set({ 'x-wallet-id': wallet3.walletId });
 
     const tokenHash = newTokenResponse.body.hash;
     TestUtils.logTx(`Created ${tokenAmount} tokens TST on ${wallet3.walletId} - Hash ${tokenHash}`);
     await TestUtils.delay(1000);
 
     const balanceResult = await TestUtils.request
-      .get("/wallet/balance")
-      .query({token: tokenHash})
-      .set({"x-wallet-id": wallet3.walletId});
+      .get('/wallet/balance')
+      .query({ token: tokenHash })
+      .set({ 'x-wallet-id': wallet3.walletId });
 
     expect(balanceResult.body.available).toBe(tokenAmount);
     expect(balanceResult.body.locked).toBe(0);
     done();
   });
-
 });

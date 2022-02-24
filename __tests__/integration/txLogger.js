@@ -1,6 +1,9 @@
-import * as Path from "path";
+/* eslint-disable no-console */
+
+import * as Path from 'path';
 
 const fsold = require('fs');
+
 const fs = fsold.promises;
 
 export const loggers = {
@@ -15,6 +18,7 @@ export const loggers = {
  */
 export class TxLogger {
   #instanceFilename;
+
   #fileFullPath;
 
   get filename() {
@@ -48,14 +52,16 @@ export class TxLogger {
     // Create the temporary files directory, if it does not exist
     const tmpDir = Path.join(rootFolder, `/tmp/`);
 
-    // The promisified version of fs.assign is incompatible with our babel-node setup for some reason.
-    // Reverting back to using the old callback solution for compatibility
+    /*
+     * The promisified version of fs.assign is incompatible with our babel-node setup
+     * for some reason. Reverting back to using the old callback solution for compatibility.
+     */
     const dirPromise = new Promise((resolve) => {
       try {
         fsold.access(tmpDir, async (err, results) => {
           if (err) {
             fs.mkdir(tmpDir)
-              .catch(err2 => {
+              .catch((err2) => {
                 console.error(`Now that's an error: ${err2.stack}`);
               });
           }
@@ -68,7 +74,6 @@ export class TxLogger {
     });
 
     await dirPromise;
-    console.log(`Initialized ${this.#instanceFilename}`);
     this.#fileFullPath = Path.join(tmpDir, this.#instanceFilename);
     await this.insertLineToLog(`Log initialized`);
   }
@@ -100,10 +105,8 @@ export class TxLogger {
    * @returns {Promise<void>}
    */
   async informWalletAddresses(walletId, addresses) {
-    let strAddresses = addresses
-      .map((address, index) => {
-        return `[${index}] ${address}`;
-      })
+    const strAddresses = addresses
+      .map((address, index) => `[${index}] ${address}`)
       .join(' , ');
 
     return this.insertLineToLog(`Some wallet addresses for ${walletId}: ${strAddresses}`);
@@ -118,19 +121,21 @@ export class TxLogger {
    * @param {number} transactionObject.value
    * @param {string} [transactionObject.originAddress]
    * @param {string} transactionObject.destinationAddress
-   * @param {string} [transactionObject.title] Some title to identify the transaction to a log reader
+   * @param {string} [transactionObject.title] Some title to identify the transaction to log readers
    */
   async informSimpleTransaction(transactionObject) {
     let origin = `${transactionObject.originWallet}`;
     if (transactionObject.originAddress) origin += `[${transactionObject.originAddress}]`;
 
     let destination = `${transactionObject.destinationWallet}`;
-    if (transactionObject.destinationAddress) destination += `[${transactionObject.destinationAddress}]`;
+    if (transactionObject.destinationAddress) {
+      destination += `[${transactionObject.destinationAddress}]`;
+    }
 
     const title = `${transactionObject.title} - ` || '';
 
-    const message = `Tx ${transactionObject.id} : ${title}${origin} => ${transactionObject.value} => ${destination}`;
+    const message = `Tx ${transactionObject.id} : ${title}${origin} `
+      + `=> ${transactionObject.value} => ${destination}`;
     return this.insertLineToLog(message);
   }
-
 }
