@@ -14,10 +14,10 @@ describe('balance routes', () => {
       // Second wallet, random balance
       wallet2 = new WalletHelper('balance2');
       await wallet2.start();
-      await wallet2.injectFunds(wallet2Balance)
+      await wallet2.injectFunds(wallet2Balance);
 
       // Third wallet, balance to be used for custom tokens
-      wallet3 = new WalletHelper('custom3')
+      wallet3 = new WalletHelper('custom3');
       await wallet3.start();
       await wallet3.injectFunds(100);
     } catch (err) {
@@ -53,16 +53,16 @@ describe('balance routes', () => {
   it('should return correct balance for a custom token (empty)', async done => {
     const balanceResult = await TestUtils.request
       .get("/wallet/balance")
-      .query({ token: 'TST' })
-      .set({ "x-wallet-id": wallet1.walletId });
+      .query({token: 'TST'})
+      .set({"x-wallet-id": wallet1.walletId});
 
     expect(balanceResult.body.available).toBe(0);
     expect(balanceResult.body.locked).toBe(0);
     done();
-  })
+  });
 
   it('should return correct balance for a custom token', async done => {
-    const tokenAmount = getRandomInt(200, 100)
+    const tokenAmount = getRandomInt(200, 100);
     const newTokenResponse = await TestUtils.request
       .post("/wallet/create-token")
       .send({
@@ -70,20 +70,20 @@ describe('balance routes', () => {
         symbol: "TST",
         amount: tokenAmount
       })
-      .set({ "x-wallet-id": wallet3.walletId })
+      .set({"x-wallet-id": wallet3.walletId});
 
-    const tokenHash = newTokenResponse.body.hash
-    TestUtils.logTx(`Created ${tokenAmount} tokens TST on ${wallet3.walletId} - Hash ${tokenHash}`)
-    await TestUtils.delay(1000)
+    const tokenHash = newTokenResponse.body.hash;
+    TestUtils.logTx(`Created ${tokenAmount} tokens TST on ${wallet3.walletId} - Hash ${tokenHash}`);
+    await TestUtils.delay(1000);
 
     const balanceResult = await TestUtils.request
       .get("/wallet/balance")
-      .query({ token: tokenHash })
-      .set({ "x-wallet-id": wallet3.walletId });
+      .query({token: tokenHash})
+      .set({"x-wallet-id": wallet3.walletId});
 
     expect(balanceResult.body.available).toBe(tokenAmount);
     expect(balanceResult.body.locked).toBe(0);
     done();
-  })
+  });
 
 });

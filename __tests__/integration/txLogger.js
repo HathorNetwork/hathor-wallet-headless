@@ -8,7 +8,7 @@ export const loggers = {
    * @type: TxLogger
    */
   test: null
-}
+};
 
 /**
  * A logger for every transaction on the integration tests for debugging.
@@ -28,10 +28,10 @@ export class TxLogger {
   constructor(title) {
     const date = new Date();
     const timestamp = date.toISOString()
-      .replace(/-/g,'') // Remove date separator
-      .replace(/:/g,'') // Remove hour separator
-      .split('.')[0] // Get only the seconds integer
-    const additionalTitle = `-${title}` || ''
+      .replace(/-/g, '') // Remove date separator
+      .replace(/:/g, '') // Remove hour separator
+      .split('.')[0]; // Get only the seconds integer
+    const additionalTitle = `-${title}` || '';
     const filename = `${timestamp}${additionalTitle}-integrationTest.log`;
     this.#instanceFilename = filename;
   }
@@ -43,7 +43,7 @@ export class TxLogger {
    * @returns {Promise<void>}
    */
   async init(rootFolder, testName) {
-    if (!rootFolder) throw new Error(`Root folder is mandatory`)
+    if (!rootFolder) throw new Error(`Root folder is mandatory`);
 
     // Create the temporary files directory, if it does not exist
     const tmpDir = Path.join(rootFolder, `/tmp/`);
@@ -59,19 +59,18 @@ export class TxLogger {
                 console.error(`Now that's an error: ${err2.stack}`);
               });
           }
-        })
+        });
       } catch (err) {
         console.error('Untreated error on fs.access: ', err.stack);
+      } finally {
+        resolve();
       }
-      finally {
-        resolve()
-      }
-    })
+    });
 
-    await dirPromise
-    console.log(`Initialized ${this.#instanceFilename}`)
+    await dirPromise;
+    console.log(`Initialized ${this.#instanceFilename}`);
     this.#fileFullPath = Path.join(tmpDir, this.#instanceFilename);
-    await this.insertLineToLog(`Log initialized`)
+    await this.insertLineToLog(`Log initialized`);
   }
 
   /**
@@ -128,7 +127,7 @@ export class TxLogger {
     let destination = `${transactionObject.destinationWallet}`;
     if (transactionObject.destinationAddress) destination += `[${transactionObject.destinationAddress}]`;
 
-    const title = `${transactionObject.title} - ` || ''
+    const title = `${transactionObject.title} - ` || '';
 
     const message = `Tx ${transactionObject.id} : ${title}${origin} => ${transactionObject.value} => ${destination}`;
     return this.insertLineToLog(message);

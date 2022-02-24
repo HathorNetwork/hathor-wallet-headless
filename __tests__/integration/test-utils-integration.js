@@ -42,9 +42,9 @@ export const WALLET_CONSTANTS = {
       'WaQf5igKpbdNyxTBzc3Nv8a8n4DRkcbpmX',
     ]
   },
-}
+};
 
-export const HATHOR_TOKEN_ID = "00"
+export const HATHOR_TOKEN_ID = "00";
 
 export function getRandomInt(max, min = 0) {
   return Math.floor(Math.random() * max) + min;
@@ -57,7 +57,7 @@ export class TestUtils {
    * @returns {Promise<unknown>}
    */
   static async delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
@@ -73,7 +73,7 @@ export class TestUtils {
    * @returns {string|*}
    */
   static generateWords() {
-    return wallet.generateWalletWords()
+    return wallet.generateWalletWords();
   }
 
   /**
@@ -84,7 +84,7 @@ export class TestUtils {
    * @returns {{"x-wallet-id"}}
    */
   static generateHeader(walletId) {
-    return { "x-wallet-id": walletId }
+    return {"x-wallet-id": walletId};
   }
 
   /**
@@ -93,7 +93,7 @@ export class TestUtils {
    */
   static logTx(message) {
     loggers.test.insertLineToLog(message)
-      .catch(err => console.error(err.stack))
+      .catch(err => console.error(err.stack));
   }
 
   /**
@@ -102,22 +102,22 @@ export class TestUtils {
    * @returns {Promise<{start:unknown,status:unknown}>}
    */
   static async startWallet(walletObj) {
-    let start, status
+    let start, status;
 
     // Request the Wallet start
     const response = await request
       .post("/start")
-      .send({ seed: walletObj.words, "wallet-id": walletObj.walletId });
+      .send({seed: walletObj.words, "wallet-id": walletObj.walletId});
 
     // Handle errors
     if (response.status !== 200) {
       throw new Error(`Unable to start the wallet: ${walletObj.walletId}`);
     }
     if (!response.body.success) {
-      console.error(`Failure starting the wallet: ${response.body.message}`)
+      console.error(`Failure starting the wallet: ${response.body.message}`);
       throw new Error(response.body.message);
     }
-    start = response.body
+    start = response.body;
 
     // Wait until the wallet is actually started
     while (true) {
@@ -125,7 +125,7 @@ export class TestUtils {
         .get("/wallet/status")
         .set(TestUtils.generateHeader(walletObj.walletId));
       if (res.body && res.body.success !== false) {
-        status = res.body
+        status = res.body;
         break;
       }
       await TestUtils.delay(500);
@@ -133,9 +133,9 @@ export class TestUtils {
 
     // Log the success and return
     loggers.test.informNewWallet(walletObj.walletId, walletObj.words)
-      .catch(err => console.error(err.stack))
+      .catch(err => console.error(err.stack));
 
-    return { start, status }
+    return {start, status};
   }
 
   /**
@@ -156,10 +156,10 @@ export class TestUtils {
   static async getAddressAt(walletId, index) {
     const response = await TestUtils.request
       .get("/wallet/address")
-      .query({ index })
+      .query({index})
       .set(TestUtils.generateHeader(walletId));
 
-    return response.body.address
+    return response.body.address;
   }
 
   /**
@@ -175,15 +175,15 @@ export class TestUtils {
     // Requests the transaction
     const response = await TestUtils.request
       .post('/wallet/simple-send-tx')
-      .send({address,value})
+      .send({address, value})
       .set(TestUtils.generateHeader(WALLET_CONSTANTS.genesis.walletId));
 
     // Error handling
     const transaction = response.body;
     if (!transaction.success) {
-      const injectError = new Error(transaction.message)
-      injectError.innerError = response
-      throw injectError
+      const injectError = new Error(transaction.message);
+      injectError.innerError = response;
+      throw injectError;
     }
 
     // Logs the results
@@ -194,7 +194,7 @@ export class TestUtils {
       destinationAddress: address,
       destinationWallet: destinationWalletId,
       id: transaction.hash
-    })
+    });
 
     /*
      * Sometimes there is a delay before updating the balance index. A simple wait is built here to
@@ -203,9 +203,9 @@ export class TestUtils {
      * In case there is a need to do multliple transactions before any assertion is executed, please use
      * the `doNotWait` option and explicitly insert the delay only once. This will improve the test speed.
      */
-    if (!options.doNotWait) await TestUtils.delay(1000)
+    if (!options.doNotWait) await TestUtils.delay(1000);
 
-    return transaction
+    return transaction;
   }
 
 }
@@ -214,14 +214,22 @@ export class TestUtils {
  * A helper for testing the wallet
  */
 export class WalletHelper {
-  #walletId
-  #words
-  #addresses = []
-  #started = false
+  #walletId;
+  #words;
+  #addresses = [];
+  #started = false;
 
-  get walletId() { return this.#walletId }
-  get words() { return this.#words }
-  get addresses() { return this.#addresses }
+  get walletId() {
+    return this.#walletId;
+  }
+
+  get words() {
+    return this.#words;
+  }
+
+  get addresses() {
+    return this.#addresses;
+  }
 
   /**
    * Creates a wallet object but does not start it on server
@@ -229,11 +237,11 @@ export class WalletHelper {
    * @param {string} [words] 24 words
    */
   constructor(walletId, words) {
-    if (!walletId) throw new Error(`Wallet must have a walletId`)
-    this.#walletId = walletId
+    if (!walletId) throw new Error(`Wallet must have a walletId`);
+    this.#walletId = walletId;
 
-    if (words) this.#words = words
-    else this.#words = TestUtils.generateWords()
+    if (words) this.#words = words;
+    else this.#words = TestUtils.generateWords();
   }
 
   /**
@@ -247,24 +255,24 @@ export class WalletHelper {
     await TestUtils.startWallet({
       walletId: this.#walletId,
       words: this.#words,
-    })
-    this.#started = true
+    });
+    this.#started = true;
 
     // Populating some addressess for this wallet
     if (!options.skipAddresses) {
-      const amount = options.amountOfAddresses || 10
+      const amount = options.amountOfAddresses || 10;
       for (let i = 0; i < amount; ++i) {
-        const address = await TestUtils.getAddressAt(this.#walletId, i)
-        this.#addresses.push(address)
+        const address = await TestUtils.getAddressAt(this.#walletId, i);
+        this.#addresses.push(address);
       }
-      loggers.test.informWalletAddresses(this.#walletId, this.#addresses).catch(e => console.error(e.stack))
+      loggers.test.informWalletAddresses(this.#walletId, this.#addresses).catch(e => console.error(e.stack));
     }
 
     return {
       walletId: this.#walletId,
       words: this.#words,
       addresses: this.#addresses
-    }
+    };
   }
 
   /**
@@ -272,8 +280,8 @@ export class WalletHelper {
    * @returns {Promise<void>}
    */
   async stop() {
-    await TestUtils.stopWallet(this.#walletId)
-    this.#started = false
+    await TestUtils.stopWallet(this.#walletId);
+    this.#started = false;
   }
 
   /**
@@ -284,13 +292,13 @@ export class WalletHelper {
   async getAddressAt(index) {
     // If this address was already cached, return it
     if (this.#addresses[index] !== undefined) {
-      return this.#addresses[index]
+      return this.#addresses[index];
     }
 
     // Fetch data from the Headless endpoint, update the local cache and return results
-    const addressAt = await TestUtils.getAddressAt(this.#walletId,index)
-    this.#addresses[index] = addressAt
-    return addressAt
+    const addressAt = await TestUtils.getAddressAt(this.#walletId, index);
+    this.#addresses[index] = addressAt;
+    return addressAt;
   }
 
   /**
@@ -301,8 +309,8 @@ export class WalletHelper {
    * @returns {Promise<{success}|*>}
    */
   async injectFunds(value, addressIndex = 0, options) {
-    const destinationAddress = await this.getAddressAt(addressIndex)
-    return TestUtils.injectFundsIntoAddress(destinationAddress, value, this.#walletId, options)
+    const destinationAddress = await this.getAddressAt(addressIndex);
+    return TestUtils.injectFundsIntoAddress(destinationAddress, value, this.#walletId, options);
   }
 
   /**
@@ -317,33 +325,33 @@ export class WalletHelper {
    * @returns {Promise<unknown>} Token creation transaction
    */
   async createToken(params) {
-    const { amount, name, symbol } = params
+    const {amount, name, symbol} = params;
 
     const tokenCreationBody = {name, symbol, amount};
-    if (params.address) tokenCreationBody.address = params.address
-    if (params.change_address) tokenCreationBody.change_address = params.change_address
+    if (params.address) tokenCreationBody.address = params.address;
+    if (params.change_address) tokenCreationBody.change_address = params.change_address;
 
     const newTokenResponse = await TestUtils.request
       .post("/wallet/create-token")
-      .set({ "x-wallet-id": this.#walletId })
-      .send(tokenCreationBody)
+      .set({"x-wallet-id": this.#walletId})
+      .send(tokenCreationBody);
 
-    const tokenHash = newTokenResponse.body.hash
-    let destination = ''
-    if (tokenCreationBody.address) destination += ` - destination: ${tokenCreationBody.address}`
-    if (tokenCreationBody.change_address) destination += ` change: ${tokenCreationBody.change_address}`
-    TestUtils.logTx(`Created ${amount} tokens ${symbol} on ${this.#walletId} - Hash ${tokenHash}${destination}`)
+    const tokenHash = newTokenResponse.body.hash;
+    let destination = '';
+    if (tokenCreationBody.address) destination += ` - destination: ${tokenCreationBody.address}`;
+    if (tokenCreationBody.change_address) destination += ` change: ${tokenCreationBody.change_address}`;
+    TestUtils.logTx(`Created ${amount} tokens ${symbol} on ${this.#walletId} - Hash ${tokenHash}${destination}`);
 
-    const transaction = newTokenResponse.body
+    const transaction = newTokenResponse.body;
 
     if (!transaction.success) {
-      const injectError = new Error(transaction.message)
-      injectError.innerError = newTokenResponse
-      throw injectError
+      const injectError = new Error(transaction.message);
+      injectError.innerError = newTokenResponse;
+      throw injectError;
     }
 
-    if (!params.doNotWait) await TestUtils.delay(1000)
+    if (!params.doNotWait) await TestUtils.delay(1000);
 
-    return transaction
+    return transaction;
   }
 }
