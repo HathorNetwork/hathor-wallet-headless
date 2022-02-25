@@ -83,16 +83,13 @@ describe('balance routes', () => {
 
   it('should return correct balance for a custom token', async done => {
     const tokenAmount = getRandomInt(200, 100);
-    const newTokenResponse = await TestUtils.request
-      .post('/wallet/create-token')
-      .send({
-        name: 'Test Token',
-        symbol: 'TST',
-        amount: tokenAmount
-      })
-      .set({ 'x-wallet-id': wallet3.walletId });
+    const newToken = await wallet3.createToken({
+      name: 'Test Token',
+      symbol: 'TST',
+      amount: tokenAmount,
+    });
 
-    const tokenHash = newTokenResponse.body.hash;
+    const tokenHash = newToken.hash;
     TestUtils.logTx(`Created ${tokenAmount} tokens TST on ${wallet3.walletId} - Hash ${tokenHash}`);
 
     // Giving some time for the Wallet Headless to receive the transaction update from the fullnode
