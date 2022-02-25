@@ -168,7 +168,9 @@ export class WalletHelper {
     }
 
     // Returning the Create Token transaction
-    if (!params.doNotWait) await TestUtils.delay(1000);
+    if (!params.doNotWait) {
+      await TestUtils.delay(1000);
+    }
     return transaction;
   }
 }
