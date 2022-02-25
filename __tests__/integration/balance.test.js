@@ -88,13 +88,7 @@ describe('balance routes', () => {
       symbol: 'TST',
       amount: tokenAmount,
     });
-
     const tokenHash = newToken.hash;
-    TestUtils.logTx(`Created ${tokenAmount} tokens TST on ${wallet3.walletId} - Hash ${tokenHash}`);
-
-    // Giving some time for the Wallet Headless to receive the transaction update from the fullnode
-    // via websocket.
-    await TestUtils.delay(1000);
 
     const balanceResult = await TestUtils.request
       .get('/wallet/balance')

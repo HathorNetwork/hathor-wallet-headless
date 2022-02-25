@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 import supertest from 'supertest';
-import { wallet } from '@hathor/wallet-lib';
+import { wallet, HathorWallet } from '@hathor/wallet-lib';
 import app from '../../../src';
 import { loggers } from '../txLogger';
 
@@ -142,7 +142,7 @@ export class TestUtils {
       const res = await request
         .get('/wallet/status')
         .set(TestUtils.generateHeader(walletObj.walletId));
-      if (res.body?.statusMessage === 'Ready') {
+      if (res.body?.statusCode === HathorWallet.READY) {
         status = res.body;
         break;
       }
