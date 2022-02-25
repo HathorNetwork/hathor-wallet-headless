@@ -222,7 +222,9 @@ export class TestUtils {
      * please use the `doNotWait` option and explicitly insert the delay only once.
      * This will improve the test speed.
      */
-    if (!options.doNotWait) await TestUtils.delay(1000);
+    if (!options.doNotWait) {
+      await TestUtils.delay(1000);
+    }
 
     return transaction;
   }
