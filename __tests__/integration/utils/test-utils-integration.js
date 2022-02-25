@@ -121,8 +121,6 @@ export class TestUtils {
    * @returns {Promise<{start:unknown,status:unknown}>}
    */
   static async startWallet(walletObj) {
-    let status;
-
     // Request the Wallet start
     const response = await request
       .post('/start')
@@ -139,11 +137,12 @@ export class TestUtils {
     const start = response.body;
 
     // Wait until the wallet is actually started
+    let status;
     while (true) {
       const res = await request
         .get('/wallet/status')
         .set(TestUtils.generateHeader(walletObj.walletId));
-      if (res.body && res.body.success !== false) {
+      if (res.body?.statusMessage === 'Ready') {
         status = res.body;
         break;
       }
