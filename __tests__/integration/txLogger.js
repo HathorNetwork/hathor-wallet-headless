@@ -85,12 +85,14 @@ export class TxLogger {
 
   /**
    * Most common interaction: append a log message into the file
+   *
    * @param {string} input Log Message
    * @returns {Promise<void>}
    */
   async insertLineToLog(input) {
     const message = `\n[${new Date().toISOString()}] ${input}`;
-    await fs.appendFile(this.#fileFullPath, message);
+    await fs.appendFile(this.#fileFullPath, message)
+      .catch(err => console.error(err.stack));
   }
 
   /**

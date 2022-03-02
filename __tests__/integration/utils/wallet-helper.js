@@ -72,8 +72,7 @@ export class WalletHelper {
         const address = await TestUtils.getAddressAt(this.#walletId, i);
         this.#addresses.push(address);
       }
-      loggers.test.informWalletAddresses(this.#walletId, this.#addresses)
-        .catch(e => TestUtils.logError(e.stack));
+      await loggers.test.informWalletAddresses(this.#walletId, this.#addresses);
     }
 
     return {

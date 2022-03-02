@@ -99,12 +99,13 @@ export class TestUtils {
   }
 
   /**
-   * Adds a message to the Transaction Log for a test
+   * Adds a message to the Transaction Log for a test.
+   * This log is specific to transactions, to better understand the current state of the blockchain,
+   * and not intended for logging system errors.
    * @param message
    */
   static logTx(message) {
-    loggers.test.insertLineToLog(message)
-      .catch(err => console.error(err.stack));
+    loggers.test.insertLineToLog(message);
   }
 
   /**
@@ -150,8 +151,7 @@ export class TestUtils {
     }
 
     // Log the success and return
-    loggers.test.informNewWallet(walletObj.walletId, walletObj.words)
-      .catch(err => console.error(err.stack));
+    loggers.test.informNewWallet(walletObj.walletId, walletObj.words);
 
     return { start, status };
   }
