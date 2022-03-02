@@ -1,10 +1,7 @@
 /* eslint-disable no-console */
 
-import * as Path from 'path';
-
-const fsold = require('fs');
-
-const fs = fsold.promises;
+import winston from 'winston';
+import config from '../../src/config';
 
 export const loggers = {
   /**
@@ -19,7 +16,7 @@ export const loggers = {
 export class TxLogger {
   #instanceFilename;
 
-  #fileFullPath;
+  #logger;
 
   get filename() {
     return this.#instanceFilename;
@@ -51,36 +48,32 @@ export class TxLogger {
    * @returns {Promise<void>}
    */
   async init(rootFolder, testName) {
-    if (!rootFolder) throw new Error(`Root folder is mandatory`);
-
-    // Create the temporary files directory, if it does not exist
-    const tmpDir = Path.join(rootFolder, `/tmp/`);
-
-    /*
-     * The promisified version of fs.assign is incompatible with our babel-node setup
-     * for some reason. Reverting back to using the old callback solution for compatibility.
-     */
-    const dirPromise = new Promise((resolve, reject) => {
-      try {
-        fsold.access(tmpDir, async (err, results) => {
-          if (err) {
-            fs.mkdir(tmpDir)
-              .catch(err2 => {
-                console.error(`Could not create the directory for the log files: ${err2.stack}`);
-                reject(err2);
-              });
-          }
-        });
-      } catch (err) {
-        console.error('Untreated error on fs.access: ', err.stack);
-        reject(err);
-      }
-      resolve();
+    this.#logger = winston.createLogger({
+      // format: winston.format.combine(
+      //   winston.format.timestamp(),
+      //   winston.format.errors({ stack: true })
+      // ),
+      defaultMeta: { service: 'txLogger' },
+      transports: [
+        new winston.transports.Console({
+          format: winston.format.combine(
+            winston.format.colorize(),
+          ),
+          level: config.consoleLevel || 'silly',
+        }),
+        new winston.transports.File({
+          format: winston.format.combine(
+            winston.format.prettyPrint(),
+            winston.format.timestamp()
+          ),
+          filename: `tmp/${this.#instanceFilename}`,
+          level: config.consoleLevel || 'silly',
+          colorize: false,
+        })
+      ]
     });
 
-    await dirPromise;
-    this.#fileFullPath = Path.join(tmpDir, this.#instanceFilename);
-    await this.insertLineToLog(`Log initialized`);
+    this.#logger.info(`Log initialized`);
   }
 
   /**
@@ -90,9 +83,8 @@ export class TxLogger {
    * @returns {Promise<void>}
    */
   async insertLineToLog(input) {
-    const message = `\n[${new Date().toISOString()}] ${input}`;
-    await fs.appendFile(this.#fileFullPath, message)
-      .catch(err => console.error(err.stack));
+    const message = `[${new Date().toISOString()}] ${input}`;
+    this.#logger.info(message);
   }
 
   /**
