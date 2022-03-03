@@ -40,10 +40,16 @@ export class TxLogger {
    */
   constructor(title) {
     const date = new Date();
+
+    /**
+     * Timestamp in a format like "20220224T084737" for easy human reading on a filename
+     * @type {string}
+     */
     const humanReadableTimestamp = date.toISOString()
       .replace(/-/g, '') // Remove date separator
       .replace(/:/g, '') // Remove hour separator
       .split('.')[0]; // Get only the seconds integer
+
     const additionalTitle = title ? `-${title}` : '';
     const filename = `${humanReadableTimestamp}${additionalTitle}-integrationTest.log`;
     this.#instanceFilename = filename;
@@ -51,9 +57,9 @@ export class TxLogger {
 
   /**
    * Initializes the helper with a winston logger instance
-   * @returns {Promise<void>}
+   * @returns {void}
    */
-  async init() {
+  init() {
     this.#logger = winston.createLogger({
       defaultMeta: { service: 'txLogger' },
       transports: [
@@ -69,7 +75,7 @@ export class TxLogger {
             winston.format.timestamp(),
             winston.format.prettyPrint()
           ),
-          filename: `tmp/${this.#instanceFilename}`,
+          filename: `${config.integrationTestLog.outputFolder}${this.#instanceFilename}`,
           level: config.consoleLevel || 'silly',
           colorize: false,
         })

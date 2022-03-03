@@ -19,7 +19,7 @@ beforeAll(async () => {
   // Initializing the Transaction Logger with the test name
   const testName = getTestNameFromGlobalJasmineInstance();
   const testLogger = new TxLogger(testName);
-  await testLogger.init(__dirname);
+  testLogger.init();
   loggers.test = testLogger;
 
   await TestUtils.startWallet(WALLET_CONSTANTS.genesis);
