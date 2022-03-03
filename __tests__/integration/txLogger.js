@@ -14,8 +14,16 @@ export const loggers = {
  * A logger for every transaction on the integration tests for debugging.
  */
 export class TxLogger {
+  /**
+   * @type: string
+   * Stores the log filename, which is built on the constructor.
+   */
   #instanceFilename;
 
+  /**
+   * Winston logger instance
+   * @type {winston}
+   */
   #logger;
 
   get filename() {
@@ -42,29 +50,24 @@ export class TxLogger {
   }
 
   /**
-   * Initializes the log file on a specified folder
-   * @param {string} rootFolder
-   * @param {string} [testName] Optional title to include in the filename
+   * Initializes the helper with a winston logger instance
    * @returns {Promise<void>}
    */
-  async init(rootFolder, testName) {
+  async init() {
     this.#logger = winston.createLogger({
-      // format: winston.format.combine(
-      //   winston.format.timestamp(),
-      //   winston.format.errors({ stack: true })
-      // ),
       defaultMeta: { service: 'txLogger' },
       transports: [
         new winston.transports.Console({
           format: winston.format.combine(
+            winston.format.timestamp(),
             winston.format.colorize(),
           ),
           level: config.consoleLevel || 'silly',
         }),
         new winston.transports.File({
           format: winston.format.combine(
-            winston.format.prettyPrint(),
-            winston.format.timestamp()
+            winston.format.timestamp(),
+            winston.format.prettyPrint()
           ),
           filename: `tmp/${this.#instanceFilename}`,
           level: config.consoleLevel || 'silly',
@@ -80,35 +83,31 @@ export class TxLogger {
    * Most common interaction: append a log message into the file
    *
    * @param {string} input Log Message
-   * @returns {Promise<void>}
+   * @param {Record<string,unknown>} [metadata] Additional data for winston logs
+   * @returns {void}
    */
-  async insertLineToLog(input) {
-    const message = `[${new Date().toISOString()}] ${input}`;
-    this.#logger.info(message);
+  insertLineToLog(input, metadata) {
+    this.#logger.info(input, metadata);
   }
 
   /**
    * Wrapper for adding a "New Wallet" message
    * @param {string} walletId
    * @param {string} walletWords
-   * @returns {Promise<void>}
+   * @returns {void}
    */
-  async informNewWallet(walletId, walletWords) {
-    return this.insertLineToLog(`New wallet: ${walletId} , words: ${walletWords}`);
+  informNewWallet(walletId, walletWords) {
+    this.#logger.info('New wallet created', { walletId, walletWords });
   }
 
   /**
    * Wrapper for adding a "Wallet Addresses" message
    * @param {string} walletId
    * @param {string} addresses
-   * @returns {Promise<void>}
+   * @returns {void}
    */
-  async informWalletAddresses(walletId, addresses) {
-    const strAddresses = addresses
-      .map((address, index) => `[${index}] ${address}`)
-      .join(' , ');
-
-    return this.insertLineToLog(`Some wallet addresses for ${walletId}: ${strAddresses}`);
+  informWalletAddresses(walletId, addresses) {
+    this.#logger.info(`Sample of wallet addresses.`, { walletId, addresses });
   }
 
   /**
@@ -123,18 +122,6 @@ export class TxLogger {
    * @param {string} [transactionObject.title] Some title to identify the transaction to log readers
    */
   async informSimpleTransaction(transactionObject) {
-    let origin = `${transactionObject.originWallet}`;
-    if (transactionObject.originAddress) origin += `[${transactionObject.originAddress}]`;
-
-    let destination = `${transactionObject.destinationWallet}`;
-    if (transactionObject.destinationAddress) {
-      destination += `[${transactionObject.destinationAddress}]`;
-    }
-
-    const title = `${transactionObject.title} - ` || '';
-
-    const message = `Tx ${transactionObject.id} : ${title}${origin} `
-      + `=> ${transactionObject.value} => ${destination}`;
-    return this.insertLineToLog(message);
+    this.#logger.info('New transaction', transactionObject);
   }
 }

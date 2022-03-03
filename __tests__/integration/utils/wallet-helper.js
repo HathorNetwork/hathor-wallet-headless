@@ -147,15 +147,11 @@ export class WalletHelper {
 
     // Retrieving token data and building the Test Log message
     const tokenHash = newTokenResponse.body.hash;
-    let destination = '';
-    if (tokenCreationBody.address) {
-      destination += ` - destination: ${tokenCreationBody.address}`;
-    }
-    if (tokenCreationBody.change_address) {
-      destination += ` - change: ${tokenCreationBody.change_address}`;
-    }
-    TestUtils.logTx(`Created ${amount} tokens ${symbol} on ${this.#walletId} `
-      + `- Hash ${tokenHash}${destination}`);
+    TestUtils.logTx('Token creation', {
+      hash: tokenHash,
+      walletId: this.#walletId,
+      ...tokenCreationBody
+    });
 
     const transaction = newTokenResponse.body;
 

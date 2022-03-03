@@ -100,12 +100,13 @@ export class TestUtils {
 
   /**
    * Adds a message to the Transaction Log for a test.
-   * This log is specific to transactions, to better understand the current state of the blockchain,
-   * and not intended for logging system errors.
-   * @param message
+   * This log is specific to wallets and transactions, to better understand the current state of the
+   * blockchain, and not intended for logging system errors.
+   * @param {string} message
+   * @param {Record<string,unknown>} [metadata] Additional data for winston logs
    */
-  static logTx(message) {
-    loggers.test.insertLineToLog(message);
+  static logTx(message, metadata) {
+    loggers.test.insertLineToLog(message, metadata);
   }
 
   /**
