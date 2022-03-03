@@ -109,7 +109,7 @@ export class TxLogger {
   /**
    * Wrapper for adding a "Wallet Addresses" message
    * @param {string} walletId
-   * @param {string} addresses
+   * @param {string[]} addresses
    * @returns {void}
    */
   informWalletAddresses(walletId, addresses) {
