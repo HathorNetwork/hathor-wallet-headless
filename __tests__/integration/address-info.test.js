@@ -16,12 +16,11 @@ describe('address-info routes', () => {
     try {
       // A random HTR value for the first wallet
       wallet1 = new WalletHelper('addinfo-1');
-      await wallet1.start();
-      await wallet1.injectFunds(address1balance, 1);
-
       // A fixed custom token amount for the second wallet
       wallet2 = new WalletHelper('addinfo-2');
-      await wallet2.start();
+
+      await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
+      await wallet1.injectFunds(address1balance, 1);
       await wallet2.injectFunds(10);
       const customToken = await wallet2.createToken({
         amount: 500,

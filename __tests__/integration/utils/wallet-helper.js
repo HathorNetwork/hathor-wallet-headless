@@ -1,5 +1,5 @@
 import { loggers } from '../txLogger';
-import { TestUtils } from './test-utils-integration';
+import { TestUtils, WALLET_CONSTANTS } from './test-utils-integration';
 
 /**
  * A helper for testing the wallet
@@ -39,6 +39,10 @@ export class WalletHelper {
     return this.#addresses;
   }
 
+  get started() {
+    return this.#started;
+  }
+
   /**
    * Creates a wallet object but does not start it on server
    * @param {string} walletId
@@ -52,7 +56,9 @@ export class WalletHelper {
   }
 
   /**
-   * Starts this wallet and returns a formatted object with relevant wallet data
+   * Starts this wallet and returns a formatted object with relevant wallet data.
+   * Because the wallet takes time to instantiate, prefer the `startMultipleWalletsForTest` method.
+   * @see startMultipleWalletsForTest
    * @param [options]
    * @param {boolean} [options.skipAddresses] Skips the getSomeAddresses command
    * @param {number} [options.amountOfAddresses=10] How many addresses should be cached (default 10)
@@ -80,6 +86,57 @@ export class WalletHelper {
       words: this.#words,
       addresses: this.#addresses
     };
+  }
+
+  __setStarted() { this.#started = true; }
+
+  /**
+   * Starts all the wallets needed for the test suite.
+   * <b>This is the preferred way of starting wallets</b> on the Integration Tests,
+   * performance-wise.
+   * @param {WalletHelper[]} walletsArr Array of WalletHelpers
+   * @param [options]
+   * @param {boolean} [options.skipAddresses] Skips the getSomeAddresses command
+   * @param {number} [options.amountOfAddresses=10] How many addresses should be cached per wallet
+   * @returns {Promise<void>}
+   */
+  static async startMultipleWalletsForTest(walletsArr, options) {
+    const walletsPendingStart = {};
+
+    // If the genesis wallet is not instantiated, start it. It should be always available
+    const { genesis } = WALLET_CONSTANTS;
+    const isGenesisStarted = await TestUtils.checkIfWalletIsReady(genesis.walletId);
+    if (!isGenesisStarted) walletsArr.unshift(new WalletHelper(genesis.walletId, genesis.words));
+
+    // Requests the start of all the wallets in quick succession
+    for (const wallet of walletsArr) {
+      await TestUtils.startWallet({
+        walletId: wallet.walletId,
+        words: wallet.words,
+      }, {
+        skipWait: true
+      });
+      walletsPendingStart[wallet.walletId] = wallet;
+    }
+
+    // Enters the loop checking each wallet for its status
+    while (true) {
+      const pendingWalletIds = Object.keys(walletsPendingStart);
+      if (!pendingWalletIds.length) break; // All wallets were started. Return to the caller.
+
+      // First we add a delay
+      await TestUtils.delay(500);
+
+      // Checking the status of each wallet
+      for (const walletId of pendingWalletIds) {
+        const isReady = await TestUtils.checkIfWalletIsReady(walletId);
+        if (!isReady) continue;
+
+        // If the wallet is ready, we remove it from the status check loop
+        walletsPendingStart[walletId].__setStarted();
+        delete walletsPendingStart[walletId];
+      }
+    }
   }
 
   /**
@@ -116,6 +173,9 @@ export class WalletHelper {
    * @returns {Promise<{success}|*>}
    */
   async injectFunds(value, addressIndex = 0, options = {}) {
+    if (!this.#started) {
+      throw new Error(`Cannot inject funds: wallet ${this.#walletId} is not started.`);
+    }
     const destinationAddress = await this.getAddressAt(addressIndex);
     return TestUtils.injectFundsIntoAddress(destinationAddress, value, this.#walletId, options);
   }

@@ -120,9 +120,11 @@ export class TestUtils {
   /**
    * Starts a wallet. Prefer instantiating a WalletHelper instead.
    * @param {WalletData} walletObj
+   * @param [options]
+   * @param {boolean} [options.skipWait] If true, skips the wallet status validation
    * @returns {Promise<{start:unknown,status:unknown}>}
    */
-  static async startWallet(walletObj) {
+  static async startWallet(walletObj, options = {}) {
     // Request the Wallet start
     const response = await request
       .post('/start')
@@ -140,12 +142,10 @@ export class TestUtils {
 
     // Wait until the wallet is actually started
     let status;
-    while (true) {
-      const res = await request
-        .get('/wallet/status')
-        .set(TestUtils.generateHeader(walletObj.walletId));
-      if (res.body?.statusCode === HathorWallet.READY) {
-        status = res.body;
+    while (!options.skipWait) {
+      const walletReady = await TestUtils.checkIfWalletIsReady(walletObj.walletId);
+      if (walletReady) {
+        status = true;
         break;
       }
       await TestUtils.delay(500);
@@ -155,6 +155,14 @@ export class TestUtils {
     loggers.test.informNewWallet(walletObj.walletId, walletObj.words);
 
     return { start, status };
+  }
+
+  static async checkIfWalletIsReady(walletId) {
+    const res = await request
+      .get('/wallet/status')
+      .set(TestUtils.generateHeader(walletId));
+
+    return res.body?.statusCode === HathorWallet.READY;
   }
 
   /**
