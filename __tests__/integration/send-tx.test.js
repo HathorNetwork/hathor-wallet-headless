@@ -24,11 +24,27 @@ describe('send tx (HTR)', () => {
 
   // Starting with all the rejection tests, that do not have side-effects
 
+  // Invalid inputs
   it('should reject an invalid address', async done => {
     const response = await TestUtils.request
       .post('/wallet/send-tx')
       .send({
         outputs: [{ address: 'invalidAddress', value: 10 }],
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeUndefined();
+    expect(response.body.success).toBe(false);
+    done();
+  });
+
+  it('should reject an invalid filterAddress input', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        inputs: [{ type: 'query', filter_address: 'invalidAddress' }],
+        outputs: [{ address: await wallet1.getAddressAt(5), value: 10 }],
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
@@ -100,6 +116,7 @@ describe('send tx (HTR)', () => {
     done();
   });
 
+  // Insuficcient funds
   it('should reject for insuficcient funds', async done => {
     const response = await TestUtils.request
       .post('/wallet/send-tx')
@@ -123,6 +140,22 @@ describe('send tx (HTR)', () => {
           { address: await wallet2.getAddressAt(1), value: 800 },
           { address: await wallet2.getAddressAt(2), value: 800 },
         ],
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeUndefined();
+    expect(response.body.success).toBe(false);
+    done();
+  });
+
+  it('should reject for insuficcient funds on queryAddress', async done => {
+    // Wallet1 has enough funds, but none of them are on index 5
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        inputs: [{ type: 'query', filter_address: await wallet1.getAddressAt(5) }],
+        outputs: [{ address: await wallet2.getAddressAt(0), value: 10 }],
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
@@ -163,6 +196,24 @@ describe('send tx (HTR)', () => {
     done();
   });
 
+  it('should send with only the filterAddress', async done => {
+    // Waiting for transactions to settle and spending the 20 HTR tokens above back to wallet1
+    await TestUtils.delay(1000);
+
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        inputs: [{ type: 'query', filter_address: await wallet2.getAddressAt(0) }],
+        outputs: [{ address: await wallet1.getAddressAt(0), value: 20 }],
+      })
+      .set({ 'x-wallet-id': wallet2.walletId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeDefined();
+    expect(response.body.success).toBe(true);
+    done();
+  });
+
   it('should send with two outputs', async done => {
     const response = await TestUtils.request
       .post('/wallet/send-tx')
@@ -189,21 +240,35 @@ describe('send tx (HTR)', () => {
 });
 
 /*
-Valid and invalid values
-Valid and invalid destination address
-Sufficient and insufficient balance
-With and without change address
+Change address with zero change
 Validation of the change address
 
-Send a transaction with a single token ( use the "token" attribute on body )
-Send a transaction with a single token ( use the "token" attribute on "outputs[n]" )
-Send a transaction with multiple tokens
-On each scenario test suite, include the following tests:
+Send transaction with a single input - invalid source
+Send transaction with a single input - source without balance
+Send transaction with a single input - success
 
-Send a transaction with multiple inputs
-Send a transaction with multiple outputs
-Send a transaction with multiple inputs and outputs
+Send a transaction with two inputs - one invalid source
+Send a transaction with two inputs - sources without combined balance
+Send a transaction with two inputs - success
 
-Also, make a separate test passing an object {type: "query", filterAddress: sample_address}
-on the inputs array to filter for UTXO's on the specified address.
+Send a transaction with two outputs - invalid destination
+Send a transaction with two outputs - insuficcient balance
+Send a transaction with two outputs - success, existing change
+Send a transaction with two outputs - success, exact value, no change
+
+Send a transaction with a single custom token ( use the "token" attribute on body )
+- Send a transaction with multiple inputs
+- Send a transaction with multiple outputs
+- Send a transaction with multiple inputs and outputs
+
+Send a transaction with a single custom token ( use the "token" attribute on "outputs[n]" )
+- Send a transaction with multiple inputs
+- Send a transaction with multiple outputs
+- Send a transaction with multiple inputs and outputs
+
+Send a transaction with multiple tokens (custom + htr)
+- Send a transaction with multiple inputs
+- Send a transaction with multiple outputs
+- Send a transaction with multiple inputs and outputs
+
  */
