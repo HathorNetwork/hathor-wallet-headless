@@ -1,4 +1,4 @@
-import { loggers } from '../txLogger';
+import { loggers, TxLogger } from '../txLogger';
 import { TestUtils, WALLET_CONSTANTS } from './test-utils-integration';
 
 /**
@@ -135,6 +135,9 @@ export class WalletHelper {
         // If the wallet is ready, we remove it from the status check loop
         walletsPendingStart[walletId].__setStarted();
         delete walletsPendingStart[walletId];
+
+        const addresses = await TestUtils.getSomeAddresses(walletId);
+        await loggers.test.informWalletAddresses(walletId, addresses);
       }
     }
   }

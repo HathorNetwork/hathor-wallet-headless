@@ -190,6 +190,21 @@ export class TestUtils {
   }
 
   /**
+   * Get the next addresses on this wallet that do not have transactions.
+   * The amount of addresses is the current gap limit.
+   * @param {string} walletId
+   * @returns {Promise<string[]>}
+   */
+  static async getSomeAddresses(walletId) {
+    const response = await TestUtils.request
+      .get('/wallet/addresses')
+      .set(TestUtils.generateHeader(walletId));
+
+    if (!response.body.addresses) throw new Error(response.text);
+    return response.body.addresses;
+  }
+
+  /**
    * Transfers funds to a destination address.
    * By default, this method also waits for a second to let the indexes build before returning.
    * @param {string} address Destination address
