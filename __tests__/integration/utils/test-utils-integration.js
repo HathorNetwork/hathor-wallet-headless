@@ -252,4 +252,26 @@ export class TestUtils {
 
     return transaction;
   }
+
+  /**
+   * Retrieves the index containing the desired output value.
+   * @example
+   * // The txObject transaction contains many outputs, the second's value is 15
+   * TestUtils.getOutputIndexFromTx(txObject, 15)
+   * // will return 1
+   *
+   * @param {unknown} transaction Transaction object, as returned in the `response.body`
+   * @param {number} value Value to search for
+   * @returns {number|null} Zero-based index containing the desired output
+   */
+  static getOutputIndexFromTx(transaction, value) {
+    if (!transaction?.outputs?.length) return null;
+
+    for (const index in transaction.outputs) {
+      if (transaction.outputs[index].value !== value) continue;
+      return +index;
+    }
+
+    return null;
+  }
 }
