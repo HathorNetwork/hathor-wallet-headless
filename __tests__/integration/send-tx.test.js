@@ -27,9 +27,6 @@ describe('send tx (HTR)', () => {
       const fundTxObj3 = await wallet3.injectFunds(1000, 1, { doNotWait: true });
       const fundTxObj4 = await wallet3.injectFunds(1000, 4, { doNotWait: true });
 
-      // Awaiting for transactions to be received by the websocket
-      await TestUtils.delay(1000);
-
       fundTx1.hash = fundTxObj1.hash;
       fundTx1.index = TestUtils.getOutputIndexFromTx(fundTxObj1, 1000);
       fundTx2.hash = fundTxObj2.hash;
@@ -38,6 +35,9 @@ describe('send tx (HTR)', () => {
       fundTx3.index = TestUtils.getOutputIndexFromTx(fundTxObj3, 1000);
       fundTx4.hash = fundTxObj4.hash;
       fundTx4.index = TestUtils.getOutputIndexFromTx(fundTxObj4, 1000);
+
+      // Awaiting for updated balances to be received by the websocket
+      await TestUtils.delay(1000);
     } catch (err) {
       TestUtils.logError(err.stack);
     }
@@ -46,6 +46,7 @@ describe('send tx (HTR)', () => {
   afterAll(async () => {
     await wallet1.stop();
     await wallet2.stop();
+    await wallet3.stop();
   });
 
   // Starting with all the rejection tests, that do not have side-effects
@@ -442,6 +443,152 @@ describe('send tx (HTR)', () => {
 
     const addr8 = await wallet2.getAddressInfo(11);
     expect(addr8.total_amount_received).toBe(740);
+    done();
+  });
+});
+
+describe('send tx (custom tokens)', () => {
+  let wallet1; // Auto-input funds
+  let wallet2; // Destination
+  let wallet3; // More than one input
+
+  const tokenA = {
+    name: 'Token A',
+    symbol: 'TKA',
+    uid: null
+  };
+  const tokenB = {
+    name: 'Token B',
+    symbol: 'TKB',
+    uid: null
+  };
+
+  const fundTx1 = { hash: null, index: null }; // Auto-input transactions
+
+  beforeAll(async () => {
+    wallet1 = new WalletHelper('custom-tx-1');
+    wallet2 = new WalletHelper('custom-tx-2');
+    wallet3 = new WalletHelper('custom-tx-3');
+
+    await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3]);
+
+    // Funds for single input/output tests - 1000 HTR + 1000 custom A and B
+    await wallet1.injectFunds(1020, 0, { doNotWait: true });
+    const tokenCreationA = await wallet1.createToken({
+      name: tokenA.name,
+      symbol: tokenA.symbol,
+      amount: 1000,
+      address: await wallet1.getAddressAt(0),
+      change_address: await wallet1.getAddressAt(0)
+    });
+    tokenA.uid = tokenCreationA.hash;
+    const tokenCreationB = await wallet1.createToken({
+      name: tokenB.name,
+      symbol: tokenB.symbol,
+      amount: 1000,
+      address: await wallet1.getAddressAt(0),
+      change_address: await wallet1.getAddressAt(0)
+    });
+    tokenB.uid = tokenCreationB.hash;
+
+    fundTx1.hash = tokenCreationB.hash;
+    fundTx1.index = TestUtils.getOutputIndexFromTx(tokenCreationB, 1000);
+
+    // Awaiting for balances to be updated via websocket
+    await TestUtils.delay(1000);
+  });
+
+  afterAll(async () => {
+    await wallet1.stop();
+    await wallet2.stop();
+    await wallet3.stop();
+  });
+
+  // Starting with all the rejection tests, that do not have side-effects
+
+  // Invalid inputs
+  it('should reject an invalid input hash on body', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{ address: await wallet2.getAddressAt(0), value: 10 }],
+        token: {
+          name: tokenA.name,
+          symbol: tokenA.symbol,
+          uid: 'invalidHash'
+        }
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    expect(response.body.success).toBe(false);
+    expect(response.body.hash).toBeUndefined();
+    done();
+  });
+
+  it.skip('should reject an invalid input name on body', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{ address: await wallet2.getAddressAt(0), value: 10 }],
+        token: {
+          name: 'invalidName',
+          symbol: tokenA.symbol,
+          uid: tokenA.uid
+        }
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    // Currently ignoring the wrong name. To be fixed later
+    expect(response.body.success).toBe(false);
+    expect(response.body.hash).toBeUndefined();
+    done();
+  });
+
+  it.skip('should reject an invalid input symbol on body', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{ address: await wallet2.getAddressAt(0), value: 10 }],
+        token: {
+          name: tokenA.name,
+          symbol: 'invalidSymbol',
+          uid: tokenA.uid
+        }
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    // Currently ignoring the wrong symbol. To be fixed later
+    expect(response.body.success).toBe(false);
+    expect(response.body.hash).toBeUndefined();
+    done();
+  });
+
+  // Insuficcient funds
+  it('should reject a transaction with insuficcient funds', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{ address: await wallet2.getAddressAt(0), value: 2000 }],
+        token: tokenA
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    expect(response.body.success).toBe(false);
+    expect(response.body.hash).toBeUndefined();
+    done();
+  });
+
+  // Success transaction tests
+  it('should send a custom token', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{ address: await wallet2.getAddressAt(0), value: 200 }],
+        token: tokenA,
+        change_address: await wallet1.getAddressAt(0)
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.body.success).toBe(true);
+    expect(response.body.hash).toBeDefined();
     done();
   });
 });
