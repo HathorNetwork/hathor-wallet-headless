@@ -2,19 +2,42 @@ import { TestUtils } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
 
 describe('send tx (HTR)', () => {
-  let wallet1;
-  let wallet2;
-  const fundTx1 = { hash: null, index: null };
+  let wallet1; // Receives funds
+  let wallet2; // Main destination for test transactions
+  let wallet3; // For transactions with more than one input
+
+  const fundTx1 = { hash: null, index: null }; // Fund for auto-input transactions
+  const fundTx2 = { hash: null, index: null }; // Fund for manual input transactions
+  const fundTx3 = { hash: null, index: null }; // Two funds for multi-input transactions
+  const fundTx4 = { hash: null, index: null };
+  const tx5 = { hash: null, index: null }; // This will be executed on a multiple input test
 
   beforeAll(async () => {
     try {
       wallet1 = new WalletHelper('send-tx-1');
       wallet2 = new WalletHelper('send-tx-2');
+      wallet3 = new WalletHelper('send-tx-3');
 
-      await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
-      const fundTxObj = await wallet1.injectFunds(1000);
-      fundTx1.hash = fundTxObj.hash;
-      fundTx1.index = TestUtils.getOutputIndexFromTx(fundTxObj, 1000);
+      await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3]);
+
+      // Funds for single input/output tests
+      const fundTxObj1 = await wallet1.injectFunds(1000, 0, { doNotWait: true });
+      // Funds for multiple input/output tests
+      const fundTxObj2 = await wallet3.injectFunds(1000, 0, { doNotWait: true });
+      const fundTxObj3 = await wallet3.injectFunds(1000, 1, { doNotWait: true });
+      const fundTxObj4 = await wallet3.injectFunds(1000, 4, { doNotWait: true });
+
+      // Awaiting for transactions to be received by the websocket
+      await TestUtils.delay(1000);
+
+      fundTx1.hash = fundTxObj1.hash;
+      fundTx1.index = TestUtils.getOutputIndexFromTx(fundTxObj1, 1000);
+      fundTx2.hash = fundTxObj2.hash;
+      fundTx2.index = TestUtils.getOutputIndexFromTx(fundTxObj2, 1000);
+      fundTx3.hash = fundTxObj3.hash;
+      fundTx3.index = TestUtils.getOutputIndexFromTx(fundTxObj3, 1000);
+      fundTx4.hash = fundTxObj4.hash;
+      fundTx4.index = TestUtils.getOutputIndexFromTx(fundTxObj4, 1000);
     } catch (err) {
       TestUtils.logError(err.stack);
     }
@@ -81,6 +104,29 @@ describe('send tx (HTR)', () => {
           hash: 'invalidInput',
           index: 0
         }],
+        outputs: [{ address: await wallet2.getAddressAt(0), value: 10 }],
+        change_address: 'invalidAddress',
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeUndefined();
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toContain('invalid');
+    done();
+  });
+
+  it('should reject an invalid input, even with a correct one', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        inputs: [
+          fundTx1,
+          {
+            hash: 'invalidInput',
+            index: 0
+          }
+        ],
         outputs: [{ address: await wallet2.getAddressAt(0), value: 10 }],
         change_address: 'invalidAddress',
       })
@@ -165,6 +211,24 @@ describe('send tx (HTR)', () => {
         ],
       })
       .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeUndefined();
+    expect(response.body.success).toBe(false);
+    done();
+  });
+
+  it('should reject for insufficient funds with two inputs', async done => {
+    // Both outputs are below the 1000 HTR available
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        inputs: [fundTx2, fundTx3],
+        outputs: [
+          { address: await wallet2.getAddressAt(1), value: 3000 },
+        ],
+      })
+      .set({ 'x-wallet-id': wallet3.walletId });
 
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeUndefined();
@@ -276,6 +340,36 @@ describe('send tx (HTR)', () => {
     done();
   });
 
+  it('should send with two inputs', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        inputs: [
+          fundTx2,
+          fundTx3
+        ],
+        outputs: [
+          { address: await wallet2.getAddressAt(6), value: 1500 },
+        ],
+        change_address: await wallet3.getAddressAt(2)
+      })
+      .set({ 'x-wallet-id': wallet3.walletId });
+
+    expect(response.status).toBe(200);
+    const transaction = response.body;
+    expect(transaction.hash).toBeDefined();
+
+    const addr6 = await wallet2.getAddressInfo(6);
+    const addr2 = await wallet3.getAddressInfo(2);
+
+    expect(addr6.total_amount_received).toBe(1500);
+    expect(addr2.total_amount_received).toBe(500);
+
+    tx5.hash = transaction.hash;
+    tx5.index = TestUtils.getOutputIndexFromTx(transaction, 500);
+    done();
+  });
+
   it('should send with correct input', async done => {
     // Injecting 2000 HTR on wallet2, to ensure the funds would not be available otherwise
     const fundTxObj = await wallet2.injectFunds(2000, 3);
@@ -305,20 +399,54 @@ describe('send tx (HTR)', () => {
 
     done();
   });
+
+  it('should send with zero change even with change address', async done => {
+    // This test depends on the above transaction of 1100 from wallet2[3] to wallet1[4]
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{ address: await wallet1.getAddressAt(4), value: 900 }],
+        change_address: await wallet2.getAddressAt(5)
+      })
+      .set({ 'x-wallet-id': wallet2.walletId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeDefined();
+
+    const addr5 = await wallet2.getAddressInfo(5);
+    expect(addr5.total_amount_received).toBe(0);
+
+    done();
+  });
+
+  it('should send with two inputs and two outputs', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        inputs: [
+          fundTx4,
+          tx5
+        ],
+        outputs: [
+          { address: await wallet2.getAddressAt(10), value: 760 },
+          { address: await wallet2.getAddressAt(11), value: 740 },
+        ],
+      })
+      .set({ 'x-wallet-id': wallet3.walletId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeDefined();
+
+    const addr7 = await wallet2.getAddressInfo(10);
+    expect(addr7.total_amount_received).toBe(760);
+
+    const addr8 = await wallet2.getAddressInfo(11);
+    expect(addr8.total_amount_received).toBe(740);
+    done();
+  });
 });
 
 /*
-Change address with zero change
-Validation of the change address
-
-Send a transaction with two inputs - one invalid source
-Send a transaction with two inputs - sources without combined balance
-Send a transaction with two inputs - success
-
-Send a transaction with two outputs - invalid destination
-Send a transaction with two outputs - insuficcient balance
-Send a transaction with two outputs - success, existing change
-Send a transaction with two outputs - success, exact value, no change
 
 Send a transaction with a single custom token ( use the "token" attribute on body )
 - Send a transaction with multiple inputs
