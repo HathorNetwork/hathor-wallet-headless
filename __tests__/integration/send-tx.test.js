@@ -271,31 +271,35 @@ describe('send tx (HTR)', () => {
   // Lastly, testing success cases, which have side-effects
 
   it('should send with only the output address and value', async done => {
-    const response = await TestUtils.request
-      .post('/wallet/send-tx')
-      .send({
-        outputs: [{ address: await wallet2.getAddressAt(0), value: 10 }],
-      })
-      .set({ 'x-wallet-id': wallet1.walletId });
+    const tx = await wallet1.sendTx({
+      fullObject: {
+        outputs: [{
+          address: await wallet2.getAddressAt(0),
+          value: 10
+        }],
+      }
+    });
 
-    expect(response.status).toBe(200);
-    expect(response.body.hash).toBeDefined();
-    expect(response.body.success).toBe(true);
+    expect(tx.hash).toBeDefined();
+    expect(tx.success).toBe(true);
     done();
   });
 
   it('should send with only the output address and value and change', async done => {
-    const response = await TestUtils.request
-      .post('/wallet/send-tx')
-      .send({
-        outputs: [{ address: await wallet2.getAddressAt(0), value: 10 }],
+    const tx = await wallet1.sendTx({
+      fullObject: {
+        outputs: [{
+          address: await wallet2.getAddressAt(0),
+          value: 10
+        }],
         change_address: await wallet1.getAddressAt(0)
-      })
-      .set({ 'x-wallet-id': wallet1.walletId });
+      }
+    });
 
-    expect(response.status).toBe(200);
-    expect(response.body.hash).toBeDefined();
-    expect(response.body.success).toBe(true);
+    expect(tx.hash)
+      .toBeDefined();
+    expect(tx.success)
+      .toBe(true);
     done();
   });
 
@@ -303,34 +307,42 @@ describe('send tx (HTR)', () => {
     // Waiting for transactions to settle and spending the 20 HTR tokens above back to wallet1
     await TestUtils.delay(1000);
 
-    const response = await TestUtils.request
-      .post('/wallet/send-tx')
-      .send({
-        inputs: [{ type: 'query', filter_address: await wallet2.getAddressAt(0) }],
-        outputs: [{ address: await wallet1.getAddressAt(0), value: 20 }],
-      })
-      .set({ 'x-wallet-id': wallet2.walletId });
+    const tx = await wallet2.sendTx({
+      fullObject: {
+        inputs: [{
+          type: 'query',
+          filter_address: await wallet2.getAddressAt(0)
+        }],
+        outputs: [{
+          address: await wallet1.getAddressAt(0),
+          value: 20
+        }],
+      }
+    });
 
-    expect(response.status).toBe(200);
-    expect(response.body.hash).toBeDefined();
-    expect(response.body.success).toBe(true);
+    expect(tx.hash).toBeDefined();
+    expect(tx.success).toBe(true);
     done();
   });
 
   it('should send with two outputs', async done => {
-    const response = await TestUtils.request
-      .post('/wallet/send-tx')
-      .send({
+    const tx = await wallet1.sendTx({
+      fullObject: {
         outputs: [
-          { address: await wallet2.getAddressAt(1), value: 20 },
-          { address: await wallet2.getAddressAt(2), value: 30 },
+          {
+            address: await wallet2.getAddressAt(1),
+            value: 20
+          },
+          {
+            address: await wallet2.getAddressAt(2),
+            value: 30
+          },
         ],
-      })
-      .set({ 'x-wallet-id': wallet1.walletId });
+      }
+    });
 
-    expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.hash).toBeDefined();
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
 
     const [addr1, addr2] = await Promise.all([
       wallet2.getAddressInfo(1),
@@ -342,23 +354,23 @@ describe('send tx (HTR)', () => {
   });
 
   it('should send with two inputs', async done => {
-    const response = await TestUtils.request
-      .post('/wallet/send-tx')
-      .send({
+    const tx = await wallet3.sendTx({
+      fullObject: {
         inputs: [
           fundTx2,
           fundTx3
         ],
         outputs: [
-          { address: await wallet2.getAddressAt(6), value: 1500 },
+          {
+            address: await wallet2.getAddressAt(6),
+            value: 1500
+          },
         ],
         change_address: await wallet3.getAddressAt(2)
-      })
-      .set({ 'x-wallet-id': wallet3.walletId });
+      }
+    });
 
-    expect(response.status).toBe(200);
-    const transaction = response.body;
-    expect(transaction.hash).toBeDefined();
+    expect(tx.hash).toBeDefined();
 
     const addr6 = await wallet2.getAddressInfo(6);
     const addr2 = await wallet3.getAddressInfo(2);
@@ -366,8 +378,8 @@ describe('send tx (HTR)', () => {
     expect(addr6.total_amount_received).toBe(1500);
     expect(addr2.total_amount_received).toBe(500);
 
-    tx5.hash = transaction.hash;
-    tx5.index = TestUtils.getOutputIndexFromTx(transaction, 500);
+    tx5.hash = tx.hash;
+    tx5.index = TestUtils.getOutputIndexFromTx(tx, 500);
     done();
   });
 
@@ -379,17 +391,18 @@ describe('send tx (HTR)', () => {
       index: TestUtils.getOutputIndexFromTx(fundTxObj, 2000)
     };
 
-    const response = await TestUtils.request
-      .post('/wallet/send-tx')
-      .send({
+    const tx = await wallet2.sendTx({
+      fullObject: {
         inputs: [fundTx2],
-        outputs: [{ address: await wallet1.getAddressAt(4), value: 1100 }],
-      })
-      .set({ 'x-wallet-id': wallet2.walletId });
+        outputs: [{
+          address: await wallet1.getAddressAt(4),
+          value: 1100
+        }],
+      }
+    });
 
-    expect(response.status).toBe(200);
-    expect(response.body.hash).toBeDefined();
-    expect(response.body.success).toBe(true);
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
 
     const addr3 = await wallet2.getAddressInfo(3);
     expect(addr3.total_amount_received).toBe(2000);
@@ -403,16 +416,18 @@ describe('send tx (HTR)', () => {
 
   it('should send with zero change even with change address', async done => {
     // This test depends on the above transaction of 1100 from wallet2[3] to wallet1[4]
-    const response = await TestUtils.request
-      .post('/wallet/send-tx')
-      .send({
-        outputs: [{ address: await wallet1.getAddressAt(4), value: 900 }],
+    const tx = await wallet2.sendTx({
+      fullObject: {
+        outputs: [{
+          address: await wallet1.getAddressAt(4),
+          value: 900
+        }],
         change_address: await wallet2.getAddressAt(5)
-      })
-      .set({ 'x-wallet-id': wallet2.walletId });
+      }
+    });
 
-    expect(response.status).toBe(200);
-    expect(response.body.hash).toBeDefined();
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
 
     const addr5 = await wallet2.getAddressInfo(5);
     expect(addr5.total_amount_received).toBe(0);
@@ -421,22 +436,27 @@ describe('send tx (HTR)', () => {
   });
 
   it('should send with two inputs and two outputs', async done => {
-    const response = await TestUtils.request
-      .post('/wallet/send-tx')
-      .send({
+    const tx = await wallet3.sendTx({
+      fullObject: {
         inputs: [
           fundTx4,
           tx5
         ],
         outputs: [
-          { address: await wallet2.getAddressAt(10), value: 760 },
-          { address: await wallet2.getAddressAt(11), value: 740 },
+          {
+            address: await wallet2.getAddressAt(10),
+            value: 760
+          },
+          {
+            address: await wallet2.getAddressAt(11),
+            value: 740
+          },
         ],
-      })
-      .set({ 'x-wallet-id': wallet3.walletId });
+      }
+    });
 
-    expect(response.status).toBe(200);
-    expect(response.body.hash).toBeDefined();
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
 
     const addr7 = await wallet2.getAddressInfo(10);
     expect(addr7.total_amount_received).toBe(760);
