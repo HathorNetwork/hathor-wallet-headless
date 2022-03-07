@@ -450,7 +450,7 @@ describe('send tx (HTR)', () => {
 describe('send tx (custom tokens)', () => {
   let wallet1; // Auto-input funds
   let wallet2; // Destination
-  let wallet3; // More than one input
+  let wallet3; // More than one token in the same transaction
 
   const tokenA = {
     name: 'Token A',
@@ -464,6 +464,7 @@ describe('send tx (custom tokens)', () => {
   };
 
   const fundTx1 = { hash: null, index: null }; // Auto-input transactions
+  const fundTx2 = { hash: null, index: null }; // Token B transactions
   const tkaTx1 = { hash: null }; // Token A transaction to have two inputs
 
   beforeAll(async () => {
@@ -473,8 +474,10 @@ describe('send tx (custom tokens)', () => {
 
     await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3]);
 
-    // Funds for single input/output tests - 1000 HTR + 2000 custom A, 1000 custom B
-    await wallet1.injectFunds(1030, 0, { doNotWait: true });
+    // Funds for single input/output tests - 1000 HTR + 2000 custom A
+    await wallet1.injectFunds(1020, 0, { doNotWait: true });
+    // Funds for multiple token tests - 1000 HTR + 1000 custom B
+    await wallet3.injectFunds(1000, 0, { doNotWait: true });
     const tokenCreationA = await wallet1.createToken({
       name: tokenA.name,
       symbol: tokenA.symbol,
@@ -498,18 +501,19 @@ describe('send tx (custom tokens)', () => {
       ],
     });
     tkaTx1.hash = tokenAtransfer.hash;
+    fundTx1.hash = tokenCreationA.hash;
+    fundTx1.index = TestUtils.getOutputIndexFromTx(tokenCreationA, 1000);
 
-    const tokenCreationB = await wallet1.createToken({
+    const tokenCreationB = await wallet3.createToken({
       name: tokenB.name,
       symbol: tokenB.symbol,
       amount: 1000,
-      address: await wallet1.getAddressAt(0),
-      change_address: await wallet1.getAddressAt(0)
+      address: await wallet3.getAddressAt(0),
+      change_address: await wallet3.getAddressAt(0)
     });
     tokenB.uid = tokenCreationB.hash;
-
-    fundTx1.hash = tokenCreationB.hash;
-    fundTx1.index = TestUtils.getOutputIndexFromTx(tokenCreationB, 1000);
+    fundTx2.hash = tokenCreationB.hash;
+    fundTx2.index = TestUtils.getOutputIndexFromTx(tokenCreationB, 990);
 
     // Awaiting for balances to be updated via websocket
     await TestUtils.delay(1000);
@@ -588,7 +592,6 @@ describe('send tx (custom tokens)', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    // Currently ignoring the wrong name. To be fixed later
     expect(response.body.success)
       .toBe(false);
     expect(response.body.hash)
@@ -653,7 +656,6 @@ describe('send tx (custom tokens)', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    // Currently ignoring the wrong name. To be fixed later
     expect(response.body.success)
       .toBe(false);
     expect(response.body.hash)
@@ -683,7 +685,66 @@ describe('send tx (custom tokens)', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    // Currently ignoring the wrong name. To be fixed later
+    expect(response.body.success).toBe(false);
+    expect(response.body.hash).toBeUndefined();
+    done();
+  });
+
+  it('should reject a multi-input, multi token transaction with insuficcient funds (1)', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        inputs: [
+          {
+            hash: tokenB.uid,
+            index: 0,
+          },
+          fundTx2,
+        ],
+        outputs: [
+          {
+            address: await wallet2.getAddressAt(7),
+            value: 1001,
+            token: tokenB.uid
+          },
+          {
+            address: await wallet2.getAddressAt(8),
+            value: 500
+          }
+        ],
+      })
+      .set({ 'x-wallet-id': wallet3.walletId });
+
+    expect(response.body.success).toBe(false);
+    expect(response.body.hash).toBeUndefined();
+    done();
+  });
+
+  it('should reject a multi-input, multi token transaction with insuficcient funds (2)', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        inputs: [
+          {
+            hash: tokenB.uid,
+            index: 0,
+          },
+          fundTx2,
+        ],
+        outputs: [
+          {
+            address: await wallet2.getAddressAt(7),
+            value: 500,
+            token: tokenB.uid
+          },
+          {
+            address: await wallet2.getAddressAt(8),
+            value: 1001
+          }
+        ],
+      })
+      .set({ 'x-wallet-id': wallet3.walletId });
+
     expect(response.body.success).toBe(false);
     expect(response.body.hash).toBeUndefined();
     done();
@@ -808,18 +869,36 @@ describe('send tx (custom tokens)', () => {
     expect(consolidateTx.hash).toBeDefined();
     done();
   });
+
+  it('should send a multi-input, multi token transaction', async done => {
+    const tx = await wallet3.sendTx({
+      fullObject: {
+        inputs: [
+          {
+            hash: tokenB.uid,
+            index: 0,
+          },
+          {
+            hash: tokenB.uid,
+            index: 1
+          },
+        ],
+        outputs: [
+          {
+            address: await wallet3.getAddressAt(7),
+            value: 1000,
+            token: tokenB.uid
+          },
+          {
+            address: await wallet3.getAddressAt(8),
+            value: 990
+          }
+        ],
+      }
+    });
+
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
+    done();
+  });
 });
-
-/*
-
-Send a transaction with a single custom token ( use the "token" attribute on "outputs[n]" )
-- Send a transaction with multiple inputs
-- Send a transaction with multiple outputs
-- Send a transaction with multiple inputs and outputs
-
-Send a transaction with multiple tokens (custom + htr)
-- Send a transaction with multiple inputs
-- Send a transaction with multiple outputs
-- Send a transaction with multiple inputs and outputs
-
- */

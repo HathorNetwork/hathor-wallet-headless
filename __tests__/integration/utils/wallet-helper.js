@@ -329,7 +329,7 @@ export class WalletHelper {
     // Logs the results
     const metadata = {
       originWallet: this.#walletId,
-      id: transaction.hash,
+      hash: transaction.hash,
       ...sendOptions
     };
     if (options.destinationWallet) metadata.destinationWallet = options.destinationWallet;
