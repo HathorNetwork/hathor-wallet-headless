@@ -464,6 +464,7 @@ describe('send tx (custom tokens)', () => {
   };
 
   const fundTx1 = { hash: null, index: null }; // Auto-input transactions
+  const tkaTx1 = { hash: null }; // Token A transaction to have two inputs
 
   beforeAll(async () => {
     wallet1 = new WalletHelper('custom-tx-1');
@@ -472,16 +473,32 @@ describe('send tx (custom tokens)', () => {
 
     await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3]);
 
-    // Funds for single input/output tests - 1000 HTR + 1000 custom A and B
-    await wallet1.injectFunds(1020, 0, { doNotWait: true });
+    // Funds for single input/output tests - 1000 HTR + 2000 custom A, 1000 custom B
+    await wallet1.injectFunds(1030, 0, { doNotWait: true });
     const tokenCreationA = await wallet1.createToken({
       name: tokenA.name,
       symbol: tokenA.symbol,
-      amount: 1000,
+      amount: 2000,
       address: await wallet1.getAddressAt(0),
       change_address: await wallet1.getAddressAt(0)
     });
     tokenA.uid = tokenCreationA.hash;
+    const tokenAtransfer = await wallet1.sendTx({
+      outputs: [
+        {
+          address: await wallet1.getAddressAt(0),
+          value: 1000,
+          token: tokenA.uid
+        },
+        {
+          address: await wallet1.getAddressAt(1),
+          value: 1000,
+          token: tokenA.uid
+        },
+      ],
+    });
+    tkaTx1.hash = tokenAtransfer.hash;
+
     const tokenCreationB = await wallet1.createToken({
       name: tokenB.name,
       symbol: tokenB.symbol,
@@ -511,7 +528,10 @@ describe('send tx (custom tokens)', () => {
     const response = await TestUtils.request
       .post('/wallet/send-tx')
       .send({
-        outputs: [{ address: await wallet2.getAddressAt(0), value: 10 }],
+        outputs: [{
+          address: await wallet2.getAddressAt(0),
+          value: 10
+        }],
         token: {
           name: tokenA.name,
           symbol: tokenA.symbol,
@@ -528,7 +548,10 @@ describe('send tx (custom tokens)', () => {
     const response = await TestUtils.request
       .post('/wallet/send-tx')
       .send({
-        outputs: [{ address: await wallet2.getAddressAt(0), value: 10 }],
+        outputs: [{
+          address: await wallet2.getAddressAt(0),
+          value: 10
+        }],
         token: {
           name: 'invalidName',
           symbol: tokenA.symbol,
@@ -543,11 +566,44 @@ describe('send tx (custom tokens)', () => {
     done();
   });
 
+  it('should reject an invalid input on a multi-input request', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        inputs: [
+          {
+            hash: tkaTx1,
+            index: 0
+          },
+          {
+            hash: 'invalidInput',
+            index: 5
+          },
+        ],
+        outputs: [{
+          address: await wallet2.getAddressAt(0),
+          value: 10
+        }],
+        token: tokenA
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    // Currently ignoring the wrong name. To be fixed later
+    expect(response.body.success)
+      .toBe(false);
+    expect(response.body.hash)
+      .toBeUndefined();
+    done();
+  });
+
   it.skip('should reject an invalid input symbol on body', async done => {
     const response = await TestUtils.request
       .post('/wallet/send-tx')
       .send({
-        outputs: [{ address: await wallet2.getAddressAt(0), value: 10 }],
+        outputs: [{
+          address: await wallet2.getAddressAt(0),
+          value: 10
+        }],
         token: {
           name: tokenA.name,
           symbol: 'invalidSymbol',
@@ -567,7 +623,10 @@ describe('send tx (custom tokens)', () => {
     const response = await TestUtils.request
       .post('/wallet/send-tx')
       .send({
-        outputs: [{ address: await wallet2.getAddressAt(0), value: 2000 }],
+        outputs: [{
+          address: await wallet2.getAddressAt(0),
+          value: 3000
+        }],
         token: tokenA
       })
       .set({ 'x-wallet-id': wallet1.walletId });
@@ -576,29 +635,182 @@ describe('send tx (custom tokens)', () => {
     done();
   });
 
-  // Success transaction tests
-  it('should send a custom token', async done => {
+  it('should reject a single-input transaction with insuficcient funds', async done => {
     const response = await TestUtils.request
       .post('/wallet/send-tx')
       .send({
-        outputs: [{ address: await wallet2.getAddressAt(0), value: 200 }],
-        token: tokenA,
-        change_address: await wallet1.getAddressAt(0)
+        inputs: [
+          {
+            hash: tkaTx1,
+            index: 0
+          },
+        ],
+        outputs: [{
+          address: await wallet2.getAddressAt(0),
+          value: 1001
+        }],
+        token: tokenA
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.body.success).toBe(true);
-    expect(response.body.hash).toBeDefined();
+    // Currently ignoring the wrong name. To be fixed later
+    expect(response.body.success)
+      .toBe(false);
+    expect(response.body.hash)
+      .toBeUndefined();
+    done();
+  });
+
+  it('should reject a multi-input transaction with insuficcient funds', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        inputs: [
+          {
+            hash: tkaTx1,
+            index: 0
+          },
+          {
+            hash: tkaTx1,
+            index: 1
+          },
+        ],
+        outputs: [{
+          address: await wallet2.getAddressAt(0),
+          value: 2001
+        }],
+        token: tokenA
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    // Currently ignoring the wrong name. To be fixed later
+    expect(response.body.success).toBe(false);
+    expect(response.body.hash).toBeUndefined();
+    done();
+  });
+
+  // Success transaction tests
+
+  const tkaTx2 = { hash: null, index: null }; // Change that will remain on wallet1
+  it('should send a custom token with a single input', async done => {
+    const sendOptions = {
+      inputs: [{ hash: tkaTx1.hash, index: 0 }], // Using index 0 of main transaction
+      outputs: [{
+        address: await wallet2.getAddressAt(0),
+        value: 200
+      }],
+      token: tokenA,
+      change_address: await wallet1.getAddressAt(0)
+    };
+    const tx = await wallet1.sendTx({
+      fullObject: sendOptions
+    });
+
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
+    tkaTx2.hash = tx.hash;
+    tkaTx2.index = TestUtils.getOutputIndexFromTx(tx, 800);
+
+    // 200 TKA were sent to Wallet2
+    // 800 remained on Wallet1
+    done();
+  });
+
+  it('should send a custom token with multiple inputs', async done => {
+    const sendOptions = {
+      inputs: [
+        { hash: tkaTx1.hash, index: 1 }, // Using index 1 of main transaction
+        tkaTx2 // Change on wallet 1
+      ],
+      outputs: [{
+        address: await wallet2.getAddressAt(0),
+        value: 1800
+      }],
+      token: tokenA,
+    };
+    const tx = await wallet1.sendTx({
+      fullObject: sendOptions
+    });
+
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
+
+    // All 2000 TKA are now on Wallet2
+    done();
+  });
+
+  it('should send a custom token', async done => {
+    // Sending all TokenA back to wallet 1, address 0
+    const sendOptions = {
+      outputs: [{
+        address: await wallet1.getAddressAt(0),
+        value: 2000
+      }],
+      token: tokenA,
+    };
+
+    const tx = await wallet2.sendTx({
+      fullObject: sendOptions
+    });
+
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
+    done();
+  });
+
+  it('should send a custom token with multi inputs and outputs', async done => {
+    // Spreading Token A into three output addresses on wallet2
+    const spreadTxOptions = {
+      outputs: [
+        {
+          address: await wallet2.getAddressAt(2),
+          value: 900
+        },
+        {
+          address: await wallet2.getAddressAt(3),
+          value: 800
+        },
+        {
+          address: await wallet2.getAddressAt(4),
+          value: 300
+        }
+      ],
+      token: tokenA,
+    };
+    const spreadTx = await wallet1.sendTx({
+      fullObject: spreadTxOptions
+    });
+
+    // Consolidating these funds back into wallet1 in two addresses
+    const consolidateTxOptions = {
+      outputs: [
+        {
+          address: await wallet1.getAddressAt(3),
+          value: 1600
+        },
+        {
+          address: await wallet1.getAddressAt(4),
+          value: 400
+        }
+      ],
+      inputs: [
+        { hash: spreadTx.hash, index: 0 },
+        { hash: spreadTx.hash, index: 1 },
+        { hash: spreadTx.hash, index: 2 }
+      ],
+      token: tokenA
+    };
+    const consolidateTx = await wallet2.sendTx({
+      fullObject: consolidateTxOptions
+    });
+
+    expect(consolidateTx.success).toBe(true);
+    expect(consolidateTx.hash).toBeDefined();
     done();
   });
 });
 
 /*
-
-Send a transaction with a single custom token ( use the "token" attribute on body )
-- Send a transaction with multiple inputs
-- Send a transaction with multiple outputs
-- Send a transaction with multiple inputs and outputs
 
 Send a transaction with a single custom token ( use the "token" attribute on "outputs[n]" )
 - Send a transaction with multiple inputs

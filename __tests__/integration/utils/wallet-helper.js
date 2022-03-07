@@ -1,4 +1,4 @@
-import { loggers, TxLogger } from '../txLogger';
+import { loggers } from '../txLogger';
 import { TestUtils, WALLET_CONSTANTS } from './test-utils-integration';
 
 /**
@@ -267,6 +267,86 @@ export class WalletHelper {
     if (!params.doNotWait) {
       await TestUtils.delay(1000);
     }
+    return transaction;
+  }
+
+  /**
+   * Sends a transaction.
+   *
+   * @example
+   * wallet.sendTx({
+   *   destination: 'abc123',
+   *   value: 100,
+   *   token: 'def456'
+   * })
+   * @see https://wallet-headless.docs.hathor.network/#/paths/~1wallet~1simple-send-tx/post
+   * @param options
+   * @param {unknown} [options.fullObject] Advanced usage: a full body to send to post on 'send-tx'
+   * @param {{hash:string,index:number,token?:string}[]} [options.inputs] Optional Inputs
+   * @param {{address:string,value:number,token?:string}[]} [options.outputs] Complete Outputs
+   * @param {string} [options.destination] Simpler way to inform output address instead of "outputs"
+   * @param {number} [options.value] Simpler way to inform transfer value instead of "outputs"
+   * @param {string} [options.token] Simpler way to inform transfer token instead of "outputs"
+   * @param {string} [options.destinationWallet] Optional parameter to explain the funds destination
+   * @param {string} [options.change_address] Optional parameter to set the change address
+   * @param {boolean} [options.doNotWait] If true, the response will be returned immediately
+   * @returns {Promise<unknown>} Returns the transaction
+   */
+  async sendTx(options) {
+    const sendOptions = options.fullObject || {};
+    if (options.inputs) {
+      sendOptions.inputs = options.inputs;
+    }
+    if (options.outputs) {
+      sendOptions.outputs = options.outputs;
+    } else if (options.destination && options.value) {
+      const sendObj = {
+        address: options.destination,
+        value: options.value,
+      };
+      if (options.token) {
+        sendObj.token = options.token;
+      }
+      sendOptions.outputs = [sendObj];
+    }
+    if (options.change_address) {
+      sendOptions.change_address = options.change_address;
+    }
+
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send(sendOptions)
+      .set(TestUtils.generateHeader(this.#walletId));
+
+    // Error handling
+    const transaction = response.body;
+    if (!transaction.success) {
+      const txError = new Error(transaction.message);
+      txError.innerError = response;
+      throw txError;
+    }
+
+    // Logs the results
+    const metadata = {
+      originWallet: this.#walletId,
+      id: transaction.hash,
+      ...sendOptions
+    };
+    if (options.destinationWallet) metadata.destinationWallet = options.destinationWallet;
+    await loggers.test.insertLineToLog(`Transferring funds`, metadata);
+
+    /*
+     * The balance in the storage is updated after the wallet receives a message via websocket
+     * from the full node. A simple wait is built here to allow for this message before continuing.
+     *
+     * In case there is a need to do multliple transactions before any assertion is executed,
+     * please use the `doNotWait` option and explicitly insert the delay only once.
+     * This will improve the test speed.
+     */
+    if (!options.doNotWait) {
+      await TestUtils.delay(1000);
+    }
+
     return transaction;
   }
 }
