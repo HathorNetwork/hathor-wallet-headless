@@ -2,8 +2,8 @@ import { TestUtils } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
 
 describe('simple-send-tx (HTR)', () => {
-  let wallet1; let
-    wallet2;
+  let wallet1;
+  let wallet2;
 
   beforeAll(async () => {
     try {
@@ -139,8 +139,8 @@ describe('simple-send-tx (HTR)', () => {
 });
 
 describe('simple-send-tx (custom token)', () => {
-  let wallet3; let
-    wallet4;
+  let wallet3;
+  let wallet4;
   const tokenData = {
     name: 'SimpleTx Token',
     symbol: 'STX',

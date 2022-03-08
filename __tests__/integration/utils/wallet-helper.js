@@ -27,6 +27,20 @@ export class WalletHelper {
    */
   #started = false;
 
+  /**
+   * Creates a wallet object but does not start it on server
+   * @param {string} walletId
+   * @param {string} [words] 24 words
+   */
+  constructor(walletId, words) {
+    if (!walletId) {
+      throw new Error(`Wallet must have a walletId`);
+    }
+    this.#walletId = walletId;
+
+    this.#words = words || TestUtils.generateWords();
+  }
+
   get walletId() {
     return this.#walletId;
   }
@@ -44,15 +58,61 @@ export class WalletHelper {
   }
 
   /**
-   * Creates a wallet object but does not start it on server
-   * @param {string} walletId
-   * @param {string} [words] 24 words
+   * Starts all the wallets needed for the test suite.
+   * <b>This is the preferred way of starting wallets</b> on the Integration Tests,
+   * performance-wise.
+   * @param {WalletHelper[]} walletsArr Array of WalletHelpers
+   * @param [options]
+   * @param {boolean} [options.skipAddresses] Skips the getSomeAddresses command
+   * @param {number} [options.amountOfAddresses=10] How many addresses should be cached per wallet
+   * @returns {Promise<void>}
    */
-  constructor(walletId, words) {
-    if (!walletId) throw new Error(`Wallet must have a walletId`);
-    this.#walletId = walletId;
+  static async startMultipleWalletsForTest(walletsArr, options) {
+    const walletsPendingStart = {};
 
-    this.#words = words || TestUtils.generateWords();
+    // If the genesis wallet is not instantiated, start it. It should be always available
+    const { genesis } = WALLET_CONSTANTS;
+    const isGenesisStarted = await TestUtils.isWalletReady(genesis.walletId);
+    if (!isGenesisStarted) {
+      walletsArr.unshift(new WalletHelper(genesis.walletId, genesis.words));
+    }
+
+    // Requests the start of all the wallets in quick succession
+    for (const wallet of walletsArr) {
+      await TestUtils.startWallet({
+        walletId: wallet.walletId,
+        words: wallet.words,
+      }, {
+        skipWait: true
+      });
+      walletsPendingStart[wallet.walletId] = wallet;
+    }
+
+    // Enters the loop checking each wallet for its status
+    while (true) {
+      const pendingWalletIds = Object.keys(walletsPendingStart);
+      if (!pendingWalletIds.length) {
+        break;
+      } // All wallets were started. Return to the caller.
+
+      // First we add a delay
+      await TestUtils.delay(500);
+
+      // Checking the status of each wallet
+      for (const walletId of pendingWalletIds) {
+        const isReady = await TestUtils.isWalletReady(walletId);
+        if (!isReady) {
+          continue;
+        }
+
+        // If the wallet is ready, we remove it from the status check loop
+        walletsPendingStart[walletId].__setStarted();
+        delete walletsPendingStart[walletId];
+
+        const addresses = await TestUtils.getSomeAddresses(walletId);
+        await loggers.test.informWalletAddresses(walletId, addresses);
+      }
+    }
   }
 
   /**
@@ -89,58 +149,6 @@ export class WalletHelper {
   }
 
   __setStarted() { this.#started = true; }
-
-  /**
-   * Starts all the wallets needed for the test suite.
-   * <b>This is the preferred way of starting wallets</b> on the Integration Tests,
-   * performance-wise.
-   * @param {WalletHelper[]} walletsArr Array of WalletHelpers
-   * @param [options]
-   * @param {boolean} [options.skipAddresses] Skips the getSomeAddresses command
-   * @param {number} [options.amountOfAddresses=10] How many addresses should be cached per wallet
-   * @returns {Promise<void>}
-   */
-  static async startMultipleWalletsForTest(walletsArr, options) {
-    const walletsPendingStart = {};
-
-    // If the genesis wallet is not instantiated, start it. It should be always available
-    const { genesis } = WALLET_CONSTANTS;
-    const isGenesisStarted = await TestUtils.isWalletReady(genesis.walletId);
-    if (!isGenesisStarted) walletsArr.unshift(new WalletHelper(genesis.walletId, genesis.words));
-
-    // Requests the start of all the wallets in quick succession
-    for (const wallet of walletsArr) {
-      await TestUtils.startWallet({
-        walletId: wallet.walletId,
-        words: wallet.words,
-      }, {
-        skipWait: true
-      });
-      walletsPendingStart[wallet.walletId] = wallet;
-    }
-
-    // Enters the loop checking each wallet for its status
-    while (true) {
-      const pendingWalletIds = Object.keys(walletsPendingStart);
-      if (!pendingWalletIds.length) break; // All wallets were started. Return to the caller.
-
-      // First we add a delay
-      await TestUtils.delay(500);
-
-      // Checking the status of each wallet
-      for (const walletId of pendingWalletIds) {
-        const isReady = await TestUtils.isWalletReady(walletId);
-        if (!isReady) continue;
-
-        // If the wallet is ready, we remove it from the status check loop
-        walletsPendingStart[walletId].__setStarted();
-        delete walletsPendingStart[walletId];
-
-        const addresses = await TestUtils.getSomeAddresses(walletId);
-        await loggers.test.informWalletAddresses(walletId, addresses);
-      }
-    }
-  }
 
   /**
    * Stops this wallet
@@ -237,8 +245,12 @@ export class WalletHelper {
 
     // Creating the request body from mandatory and optional parameters
     const tokenCreationBody = { name, symbol, amount };
-    if (params.address) tokenCreationBody.address = params.address;
-    if (params.change_address) tokenCreationBody.change_address = params.change_address;
+    if (params.address) {
+      tokenCreationBody.address = params.address;
+    }
+    if (params.change_address) {
+      tokenCreationBody.change_address = params.change_address;
+    }
 
     // Executing the request
     const newTokenResponse = await TestUtils.request
@@ -332,7 +344,9 @@ export class WalletHelper {
       hash: transaction.hash,
       ...sendOptions
     };
-    if (options.destinationWallet) metadata.destinationWallet = options.destinationWallet;
+    if (options.destinationWallet) {
+      metadata.destinationWallet = options.destinationWallet;
+    }
     await loggers.test.insertLineToLog(`Transferring funds`, metadata);
 
     /*

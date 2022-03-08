@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 import supertest from 'supertest';
-import { wallet, HathorWallet } from '@hathor/wallet-lib';
+import { HathorWallet, wallet } from '@hathor/wallet-lib';
 import app from '../../../src';
 import { loggers } from '../txLogger';
 
@@ -61,6 +61,14 @@ export function getRandomInt(max, min = 0) {
 
 export class TestUtils {
   /**
+   * Returns the Supertest `request` object for this application
+   * @returns {Test}
+   */
+  static get request() {
+    return request;
+  }
+
+  /**
    * Simple way to wait asynchronously before continuing the funcion. Does not block the JS thread.
    * @param {number} ms Amount of milliseconds to delay
    * @returns {Promise<unknown>}
@@ -69,14 +77,6 @@ export class TestUtils {
     return new Promise(resolve => {
       setTimeout(resolve, ms);
     });
-  }
-
-  /**
-   * Returns the Supertest `request` object for this application
-   * @returns {Test}
-   */
-  static get request() {
-    return request;
   }
 
   /**
@@ -92,7 +92,7 @@ export class TestUtils {
    *
    * @see TestUtils.stopWallet
    * @param {string} walletId
-   * @returns {{"x-wallet-id"}}
+   * @returns {{'x-wallet-id'}}
    */
   static generateHeader(walletId) {
     return { 'x-wallet-id': walletId };
@@ -206,7 +206,9 @@ export class TestUtils {
       .get('/wallet/addresses')
       .set(TestUtils.generateHeader(walletId));
 
-    if (!response.body.addresses) throw new Error(response.text);
+    if (!response.body.addresses) {
+      throw new Error(response.text);
+    }
     return response.body.addresses;
   }
 
@@ -271,10 +273,14 @@ export class TestUtils {
    * @returns {number|null} Zero-based index containing the desired output
    */
   static getOutputIndexFromTx(transaction, value) {
-    if (!transaction?.outputs?.length) return null;
+    if (!transaction?.outputs?.length) {
+      return null;
+    }
 
     for (const index in transaction.outputs) {
-      if (transaction.outputs[index].value !== value) continue;
+      if (transaction.outputs[index].value !== value) {
+        continue;
+      }
       return +index;
     }
 

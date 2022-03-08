@@ -26,10 +26,6 @@ export class TxLogger {
    */
   #logger;
 
-  get filename() {
-    return this.#instanceFilename;
-  }
-
   /**
    * Builds the log filename based on current time and an optional title.
    * The resulting filename will be in the format:
@@ -53,6 +49,10 @@ export class TxLogger {
     const additionalTitle = title ? `-${title}` : '';
     const filename = `${humanReadableTimestamp}${additionalTitle}-integrationTest.log`;
     this.#instanceFilename = filename;
+  }
+
+  get filename() {
+    return this.#instanceFilename;
   }
 
   /**
