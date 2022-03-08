@@ -1,5 +1,4 @@
 import * as Path from 'path';
-import { TestUtils, WALLET_CONSTANTS } from './__tests__/integration/utils/test-utils-integration';
 import { loggers, TxLogger } from './__tests__/integration/txLogger';
 
 /**

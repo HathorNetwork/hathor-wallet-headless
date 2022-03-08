@@ -143,7 +143,7 @@ export class TestUtils {
     // Wait until the wallet is actually started
     let status;
     while (!options.skipWait) {
-      const walletReady = await TestUtils.checkIfWalletIsReady(walletObj.walletId);
+      const walletReady = await TestUtils.isWalletReady(walletObj.walletId);
       if (walletReady) {
         status = true;
         break;
@@ -157,7 +157,13 @@ export class TestUtils {
     return { start, status };
   }
 
-  static async checkIfWalletIsReady(walletId) {
+  /**
+   * Makes a http request to check if the wallet is ready.
+   * Returns only the boolean result.
+   * @param {string} walletId Identification of the wallet
+   * @returns {Promise<boolean>} `true` if the wallet is ready
+   */
+  static async isWalletReady(walletId) {
     const res = await request
       .get('/wallet/status')
       .set(TestUtils.generateHeader(walletId));

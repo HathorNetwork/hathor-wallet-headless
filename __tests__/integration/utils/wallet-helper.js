@@ -105,7 +105,7 @@ export class WalletHelper {
 
     // If the genesis wallet is not instantiated, start it. It should be always available
     const { genesis } = WALLET_CONSTANTS;
-    const isGenesisStarted = await TestUtils.checkIfWalletIsReady(genesis.walletId);
+    const isGenesisStarted = await TestUtils.isWalletReady(genesis.walletId);
     if (!isGenesisStarted) walletsArr.unshift(new WalletHelper(genesis.walletId, genesis.words));
 
     // Requests the start of all the wallets in quick succession
@@ -129,7 +129,7 @@ export class WalletHelper {
 
       // Checking the status of each wallet
       for (const walletId of pendingWalletIds) {
-        const isReady = await TestUtils.checkIfWalletIsReady(walletId);
+        const isReady = await TestUtils.isWalletReady(walletId);
         if (!isReady) continue;
 
         // If the wallet is ready, we remove it from the status check loop
