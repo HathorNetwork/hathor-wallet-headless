@@ -271,7 +271,7 @@ describe('send tx (HTR)', () => {
   });
 
   it('should reject for insufficient funds with two inputs', async done => {
-    // Both outputs are below the 1000 HTR available
+    // Both inputs are have only 2000 HTR
     const response = await TestUtils.request
       .post('/wallet/send-tx')
       .send({
@@ -563,7 +563,7 @@ describe('send tx (custom tokens)', () => {
 
     // Funds for single input/output tests - 1000 HTR + 2000 custom A
     await wallet1.injectFunds(1020, 0, { doNotWait: true });
-    // Funds for multiple token tests - 1000 HTR + 1000 custom B
+    // Funds for multiple token tests - 990 HTR + 1000 custom B
     await wallet3.injectFunds(1000, 0, { doNotWait: true });
     const tokenCreationA = await wallet1.createToken({
       name: tokenA.name,
@@ -773,7 +773,7 @@ describe('send tx (custom tokens)', () => {
     done();
   });
 
-  it('should reject a multi-input, multi token transaction with insuficcient funds (1)', async done => {
+  it('should reject a multi-input, multi token transaction with insuficcient funds (custom)', async done => {
     const response = await TestUtils.request
       .post('/wallet/send-tx')
       .send({
@@ -803,7 +803,7 @@ describe('send tx (custom tokens)', () => {
     done();
   });
 
-  it('should reject a multi-input, multi token transaction with insuficcient funds (2)', async done => {
+  it('should reject a multi-input, multi token transaction with insuficcient funds (htr)', async done => {
     const response = await TestUtils.request
       .post('/wallet/send-tx')
       .send({
