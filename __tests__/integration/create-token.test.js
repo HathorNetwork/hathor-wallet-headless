@@ -57,10 +57,8 @@ describe('create token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(400);
-    expect(response.body.success)
-      .toBe(false);
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
     done();
   });
 
@@ -73,10 +71,8 @@ describe('create token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(400);
-    expect(response.body.success)
-      .toBe(false);
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
     done();
   });
 
@@ -92,12 +88,9 @@ describe('create token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(200);
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.body.hash)
-      .toBeUndefined();
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(false);
+    expect(response.body.hash).toBeUndefined();
     done();
   });
 
@@ -111,14 +104,10 @@ describe('create token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(200);
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.body.hash)
-      .toBeUndefined();
-    expect(response.body.error)
-      .toContain('Invalid token name');
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(false);
+    expect(response.body.hash).toBeUndefined();
+    expect(response.body.error).toContain('Invalid token name');
     done();
   });
 
@@ -132,10 +121,8 @@ describe('create token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.body.success)
-      .toBe(true);
-    expect(response.body.hash)
-      .toBeDefined();
+    expect(response.body.success).toBe(true);
+    expect(response.body.hash).toBeDefined();
     done();
   });
 
@@ -152,12 +139,10 @@ describe('create token', () => {
       .set({ 'x-wallet-id': wallet1.walletId });
 
     const transaction = response.body;
-    expect(transaction.success)
-      .toBe(true);
+    expect(transaction.success).toBe(true);
 
     const addr8 = await wallet1.getAddressInfo(9, transaction.hash);
-    expect(addr8.total_amount_received)
-      .toBe(amountTokens);
+    expect(addr8.total_amount_received).toBe(amountTokens);
     done();
   });
 
@@ -173,8 +158,7 @@ describe('create token', () => {
       .set({ 'x-wallet-id': wallet2.walletId });
 
     const transaction = response.body;
-    expect(transaction.success)
-      .toBe(true);
+    expect(transaction.success).toBe(true);
     const customTokenOutputIndex = TestUtils.getOutputIndexFromTx(transaction, 100);
 
     // If the custom token output is 0, the HTR will be on the output index 1. And vice-versa.
@@ -182,8 +166,7 @@ describe('create token', () => {
     const htrChange = transaction.outputs[htrOutputIndex].value;
 
     const addr8 = await wallet1.getAddressInfo(5);
-    expect(addr8.total_amount_received)
-      .toBe(htrChange);
+    expect(addr8.total_amount_received).toBe(htrChange);
     done();
   });
 });

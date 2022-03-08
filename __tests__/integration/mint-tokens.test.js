@@ -43,10 +43,8 @@ describe('mint token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(200);
-    expect(response.body.success)
-      .toBe(false);
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(false);
 
     // Even though the result is correct, the error thrown is not related. Should be fixed later.
     // expect(response.body.message).toContain('invalid');
@@ -63,12 +61,9 @@ describe('mint token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(200);
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.body.error)
-      .toContain('base58');
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toContain('base58');
     done();
   });
 
@@ -83,12 +78,9 @@ describe('mint token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(200);
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.body.error)
-      .toContain('invalid');
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toContain('invalid');
     done();
   });
 
@@ -102,12 +94,9 @@ describe('mint token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(400);
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.text)
-      .toContain('invalid');
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(response.text).toContain('invalid');
     done();
   });
 
@@ -123,12 +112,9 @@ describe('mint token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(200);
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.body.error)
-      .toContain('HTR funds');
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toContain('HTR funds');
     done();
   });
 
@@ -144,8 +130,7 @@ describe('mint token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.body.success)
-      .toBe(true);
+    expect(response.body.success).toBe(true);
     done();
   });
 
@@ -160,12 +145,10 @@ describe('mint token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.body.success)
-      .toBe(true);
+    expect(response.body.success).toBe(true);
 
     const addr10 = await wallet1.getAddressInfo(10);
-    expect(addr10.total_amount_received)
-      .toBe(1);
+    expect(addr10.total_amount_received).toBe(1);
     done();
   });
 });

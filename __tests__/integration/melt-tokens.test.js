@@ -42,10 +42,8 @@ describe('melt tokens', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(200);
-    expect(response.body.success)
-      .toBe(false);
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(false);
 
     // Even though the result is correct, the error thrown is not related. Should be fixed later.
     // expect(response.body.error).toContain('invalid');
@@ -61,12 +59,9 @@ describe('melt tokens', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(400);
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.text)
-      .toContain('invalid');
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(response.text).toContain('invalid');
     done();
   });
 
@@ -82,12 +77,9 @@ describe('melt tokens', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(200);
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.body.error)
-      .toContain('enough inputs to melt');
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toContain('enough inputs to melt');
     done();
   });
 
@@ -103,8 +95,7 @@ describe('melt tokens', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.body.success)
-      .toBe(true);
+    expect(response.body.success).toBe(true);
     done();
   });
 
@@ -118,16 +109,14 @@ describe('melt tokens', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.body.success)
-      .toBe(true);
+    expect(response.body.success).toBe(true);
 
     const balanceResult = await TestUtils.request
       .get('/wallet/balance')
       .query({ token: tokenA.uid })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(balanceResult.body.available)
-      .toBe(0);
+    expect(balanceResult.body.available).toBe(0);
     done();
   });
 });

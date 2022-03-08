@@ -78,12 +78,9 @@ describe('send tx (HTR)', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(200);
-    expect(response.body.hash)
-      .toBeUndefined();
-    expect(response.body.success)
-      .toBe(false);
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeUndefined();
+    expect(response.body.success).toBe(false);
     done();
   });
 
@@ -102,12 +99,9 @@ describe('send tx (HTR)', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(200);
-    expect(response.body.hash)
-      .toBeUndefined();
-    expect(response.body.success)
-      .toBe(false);
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeUndefined();
+    expect(response.body.success).toBe(false);
     done();
   });
 
@@ -123,14 +117,10 @@ describe('send tx (HTR)', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(200);
-    expect(response.body.hash)
-      .toBeUndefined();
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.body.error)
-      .toContain('invalid');
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeUndefined();
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toContain('invalid');
     done();
   });
 
@@ -150,14 +140,10 @@ describe('send tx (HTR)', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(200);
-    expect(response.body.hash)
-      .toBeUndefined();
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.body.error)
-      .toContain('invalid');
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeUndefined();
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toContain('invalid');
     done();
   });
 
@@ -180,14 +166,10 @@ describe('send tx (HTR)', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(200);
-    expect(response.body.hash)
-      .toBeUndefined();
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.body.error)
-      .toContain('invalid');
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeUndefined();
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toContain('invalid');
     done();
   });
 
@@ -203,15 +185,11 @@ describe('send tx (HTR)', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(400);
-    expect(response.body.success)
-      .toBe(false);
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
     const errorElement = response.body.error[0];
-    expect(errorElement.param)
-      .toBe('change_address');
-    expect(errorElement.msg)
-      .toContain('Invalid');
+    expect(errorElement.param).toBe('change_address');
+    expect(errorElement.msg).toContain('Invalid');
     done();
   });
 
@@ -226,16 +204,11 @@ describe('send tx (HTR)', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(400);
-    expect(response.body.hash)
-      .toBeUndefined();
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.body)
-      .toHaveProperty('error');
-    expect(response.body.error[0].msg)
-      .toContain('Invalid');
+    expect(response.status).toBe(400);
+    expect(response.body.hash).toBeUndefined();
+    expect(response.body.success).toBe(false);
+    expect(response.body).toHaveProperty('error');
+    expect(response.body.error[0].msg).toContain('Invalid');
     done();
   });
 
@@ -250,10 +223,8 @@ describe('send tx (HTR)', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(400);
-    expect(response.body.error[0].msg)
-      .toContain('Invalid');
+    expect(response.status).toBe(400);
+    expect(response.body.error[0].msg).toContain('Invalid');
     done();
   });
 
@@ -269,12 +240,9 @@ describe('send tx (HTR)', () => {
       })
       .set({ 'x-wallet-id': wallet2.walletId });
 
-    expect(response.status)
-      .toBe(200);
-    expect(response.body.hash)
-      .toBeUndefined();
-    expect(response.body.success)
-      .toBe(false);
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeUndefined();
+    expect(response.body.success).toBe(false);
     done();
   });
 
@@ -296,12 +264,9 @@ describe('send tx (HTR)', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(200);
-    expect(response.body.hash)
-      .toBeUndefined();
-    expect(response.body.success)
-      .toBe(false);
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeUndefined();
+    expect(response.body.success).toBe(false);
     done();
   });
 
@@ -320,12 +285,9 @@ describe('send tx (HTR)', () => {
       })
       .set({ 'x-wallet-id': wallet3.walletId });
 
-    expect(response.status)
-      .toBe(200);
-    expect(response.body.hash)
-      .toBeUndefined();
-    expect(response.body.success)
-      .toBe(false);
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeUndefined();
+    expect(response.body.success).toBe(false);
     done();
   });
 
@@ -345,12 +307,9 @@ describe('send tx (HTR)', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(200);
-    expect(response.body.hash)
-      .toBeUndefined();
-    expect(response.body.success)
-      .toBe(false);
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeUndefined();
+    expect(response.body.success).toBe(false);
     done();
   });
 
@@ -366,12 +325,9 @@ describe('send tx (HTR)', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status)
-      .toBe(200);
-    expect(response.body.hash)
-      .toBeUndefined();
-    expect(response.body.success)
-      .toBe(false);
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeUndefined();
+    expect(response.body.success).toBe(false);
     done();
   });
 
@@ -387,10 +343,8 @@ describe('send tx (HTR)', () => {
       }
     });
 
-    expect(tx.hash)
-      .toBeDefined();
-    expect(tx.success)
-      .toBe(true);
+    expect(tx.hash).toBeDefined();
+    expect(tx.success).toBe(true);
     done();
   });
 
@@ -405,10 +359,8 @@ describe('send tx (HTR)', () => {
       }
     });
 
-    expect(tx.hash)
-      .toBeDefined();
-    expect(tx.success)
-      .toBe(true);
+    expect(tx.hash).toBeDefined();
+    expect(tx.success).toBe(true);
     done();
   });
 
@@ -429,10 +381,8 @@ describe('send tx (HTR)', () => {
       }
     });
 
-    expect(tx.hash)
-      .toBeDefined();
-    expect(tx.success)
-      .toBe(true);
+    expect(tx.hash).toBeDefined();
+    expect(tx.success).toBe(true);
     done();
   });
 
@@ -452,19 +402,15 @@ describe('send tx (HTR)', () => {
       }
     });
 
-    expect(tx.success)
-      .toBe(true);
-    expect(tx.hash)
-      .toBeDefined();
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
 
     const [addr1, addr2] = await Promise.all([
       wallet2.getAddressInfo(1),
       wallet2.getAddressInfo(2),
     ]);
-    expect(addr1.total_amount_received)
-      .toBe(20);
-    expect(addr2.total_amount_received)
-      .toBe(30);
+    expect(addr1.total_amount_received).toBe(20);
+    expect(addr2.total_amount_received).toBe(30);
     done();
   });
 
@@ -485,16 +431,13 @@ describe('send tx (HTR)', () => {
       }
     });
 
-    expect(tx.hash)
-      .toBeDefined();
+    expect(tx.hash).toBeDefined();
 
     const addr6 = await wallet2.getAddressInfo(6);
     const addr2 = await wallet3.getAddressInfo(2);
 
-    expect(addr6.total_amount_received)
-      .toBe(1500);
-    expect(addr2.total_amount_received)
-      .toBe(500);
+    expect(addr6.total_amount_received).toBe(1500);
+    expect(addr2.total_amount_received).toBe(500);
 
     tx5.hash = tx.hash;
     tx5.index = TestUtils.getOutputIndexFromTx(tx, 500);
@@ -519,20 +462,15 @@ describe('send tx (HTR)', () => {
       }
     });
 
-    expect(tx.success)
-      .toBe(true);
-    expect(tx.hash)
-      .toBeDefined();
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
 
     const addr3 = await wallet2.getAddressInfo(3);
-    expect(addr3.total_amount_received)
-      .toBe(2000);
-    expect(addr3.total_amount_sent)
-      .toBe(2000);
+    expect(addr3.total_amount_received).toBe(2000);
+    expect(addr3.total_amount_sent).toBe(2000);
 
     const addr4 = await wallet1.getAddressInfo(4);
-    expect(addr4.total_amount_received)
-      .toBe(1100);
+    expect(addr4.total_amount_received).toBe(1100);
 
     done();
   });
@@ -549,14 +487,11 @@ describe('send tx (HTR)', () => {
       }
     });
 
-    expect(tx.success)
-      .toBe(true);
-    expect(tx.hash)
-      .toBeDefined();
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
 
     const addr5 = await wallet2.getAddressInfo(5);
-    expect(addr5.total_amount_received)
-      .toBe(0);
+    expect(addr5.total_amount_received).toBe(0);
 
     done();
   });
@@ -581,18 +516,14 @@ describe('send tx (HTR)', () => {
       }
     });
 
-    expect(tx.success)
-      .toBe(true);
-    expect(tx.hash)
-      .toBeDefined();
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
 
     const addr7 = await wallet2.getAddressInfo(10);
-    expect(addr7.total_amount_received)
-      .toBe(760);
+    expect(addr7.total_amount_received).toBe(760);
 
     const addr8 = await wallet2.getAddressInfo(11);
-    expect(addr8.total_amount_received)
-      .toBe(740);
+    expect(addr8.total_amount_received).toBe(740);
     done();
   });
 });
@@ -699,10 +630,8 @@ describe('send tx (custom tokens)', () => {
         }
       })
       .set({ 'x-wallet-id': wallet1.walletId });
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.body.hash)
-      .toBeUndefined();
+    expect(response.body.success).toBe(false);
+    expect(response.body.hash).toBeUndefined();
     done();
   });
 
@@ -723,10 +652,8 @@ describe('send tx (custom tokens)', () => {
       .set({ 'x-wallet-id': wallet1.walletId });
 
     // Currently ignoring the wrong name. To be fixed later
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.body.hash)
-      .toBeUndefined();
+    expect(response.body.success).toBe(false);
+    expect(response.body.hash).toBeUndefined();
     done();
   });
 
@@ -752,10 +679,8 @@ describe('send tx (custom tokens)', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.body.hash)
-      .toBeUndefined();
+    expect(response.body.success).toBe(false);
+    expect(response.body.hash).toBeUndefined();
     done();
   });
 
@@ -776,10 +701,8 @@ describe('send tx (custom tokens)', () => {
       .set({ 'x-wallet-id': wallet1.walletId });
 
     // Currently ignoring the wrong symbol. To be fixed later
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.body.hash)
-      .toBeUndefined();
+    expect(response.body.success).toBe(false);
+    expect(response.body.hash).toBeUndefined();
     done();
   });
 
@@ -795,10 +718,8 @@ describe('send tx (custom tokens)', () => {
         token: tokenA
       })
       .set({ 'x-wallet-id': wallet1.walletId });
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.body.hash)
-      .toBeUndefined();
+    expect(response.body.success).toBe(false);
+    expect(response.body.hash).toBeUndefined();
     done();
   });
 
@@ -820,10 +741,8 @@ describe('send tx (custom tokens)', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.body.hash)
-      .toBeUndefined();
+    expect(response.body.success).toBe(false);
+    expect(response.body.hash).toBeUndefined();
     done();
   });
 
@@ -849,10 +768,8 @@ describe('send tx (custom tokens)', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.body.hash)
-      .toBeUndefined();
+    expect(response.body.success).toBe(false);
+    expect(response.body.hash).toBeUndefined();
     done();
   });
 
@@ -881,10 +798,8 @@ describe('send tx (custom tokens)', () => {
       })
       .set({ 'x-wallet-id': wallet3.walletId });
 
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.body.hash)
-      .toBeUndefined();
+    expect(response.body.success).toBe(false);
+    expect(response.body.hash).toBeUndefined();
     done();
   });
 
@@ -913,10 +828,8 @@ describe('send tx (custom tokens)', () => {
       })
       .set({ 'x-wallet-id': wallet3.walletId });
 
-    expect(response.body.success)
-      .toBe(false);
-    expect(response.body.hash)
-      .toBeUndefined();
+    expect(response.body.success).toBe(false);
+    expect(response.body.hash).toBeUndefined();
     done();
   });
 
@@ -943,10 +856,8 @@ describe('send tx (custom tokens)', () => {
       fullObject: sendOptions
     });
 
-    expect(tx.success)
-      .toBe(true);
-    expect(tx.hash)
-      .toBeDefined();
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
     tkaTx2.hash = tx.hash;
     tkaTx2.index = TestUtils.getOutputIndexFromTx(tx, 800);
 
@@ -974,10 +885,8 @@ describe('send tx (custom tokens)', () => {
       fullObject: sendOptions
     });
 
-    expect(tx.success)
-      .toBe(true);
-    expect(tx.hash)
-      .toBeDefined();
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
 
     // All 2000 TKA are now on Wallet2
     done();
@@ -997,10 +906,8 @@ describe('send tx (custom tokens)', () => {
       fullObject: sendOptions
     });
 
-    expect(tx.success)
-      .toBe(true);
-    expect(tx.hash)
-      .toBeDefined();
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
     done();
   });
 
@@ -1059,10 +966,8 @@ describe('send tx (custom tokens)', () => {
       fullObject: consolidateTxOptions
     });
 
-    expect(consolidateTx.success)
-      .toBe(true);
-    expect(consolidateTx.hash)
-      .toBeDefined();
+    expect(consolidateTx.success).toBe(true);
+    expect(consolidateTx.hash).toBeDefined();
     done();
   });
 
@@ -1093,10 +998,8 @@ describe('send tx (custom tokens)', () => {
       }
     });
 
-    expect(tx.success)
-      .toBe(true);
-    expect(tx.hash)
-      .toBeDefined();
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
     done();
   });
 });
