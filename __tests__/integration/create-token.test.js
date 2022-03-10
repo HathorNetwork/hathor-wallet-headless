@@ -5,15 +5,6 @@ describe('create token', () => {
   let wallet1;
   let wallet2;
 
-  const fundTx1 = {
-    hash: null,
-    index: null
-  };
-  const fundTx2 = {
-    hash: null,
-    index: null
-  };
-
   const tokenA = {
     name: 'Token A',
     symbol: 'TKA',
@@ -30,14 +21,8 @@ describe('create token', () => {
     wallet2 = new WalletHelper('create-token-2');
 
     await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
-    const fundTxObj1 = await wallet1.injectFunds(10, 0);
-    fundTx1.hash = fundTxObj1.hash;
-    fundTx1.index = TestUtils.getOutputIndexFromTx(fundTxObj1, 10);
-
-    const fundTxObj2 = await wallet1.injectFunds(10, 1);
-    fundTx2.hash = fundTxObj2.hash;
-    fundTx2.index = TestUtils.getOutputIndexFromTx(fundTxObj2, 10);
-
+    await wallet1.injectFunds(10, 0);
+    await wallet1.injectFunds(10, 1);
     await wallet2.injectFunds(10, 0);
   });
 
@@ -160,10 +145,9 @@ describe('create token', () => {
 
     const transaction = response.body;
     expect(transaction.success).toBe(true);
-    const customTokenOutputIndex = TestUtils.getOutputIndexFromTx(transaction, 100);
 
-    // If the custom token output is 0, the HTR will be on the output index 1. And vice-versa.
-    const htrOutputIndex = customTokenOutputIndex === 1 ? 0 : 1;
+    // The only output with token_data equals zero is the one containing the HTR change
+    const htrOutputIndex = transaction.outputs.findIndex(o => o.token_data === 0)
     const htrChange = transaction.outputs[htrOutputIndex].value;
 
     await TestUtils.pauseForWsUpdate();
