@@ -185,9 +185,10 @@ export class TestUtils {
   }
 
   /**
-   * Gets the address from a walletId and an index, using the Wallet Headless endpoint
-   * @param {string} walletId
-   * @param {number} index
+   * Gets the address from a walletId and an index, using the Wallet Headless endpoint.
+   * If no index is informed, the next address without transactions will be returned
+   * @param {string} walletId Walled identification
+   * @param {number} [index]
    * @returns {Promise<string>}
    */
   static async getAddressAt(walletId, index) {
@@ -197,6 +198,45 @@ export class TestUtils {
       .set(TestUtils.generateHeader(walletId));
 
     return response.body.address;
+  }
+
+  /**
+   * Retrieves address information based on the address index inside the wallet.
+   * This is very close to the tests on `address-info.test.js` and as such should reflect any
+   * changes that are made to the calls there.
+   * @param {string} address Address hash
+   * @param {string} walletId Wallet identification
+   * @param {string} [token] Token hash, defaults to HTR
+   * @returns {Promise<{
+   * token: (string), index: (number),
+   * total_amount_received: (number), total_amount_sent: (number),
+   * total_amount_locked: (number), total_amount_available: (number)
+   * }>}
+   */
+  static async getAddressInfo(address, walletId , token) {
+    const response = await TestUtils.request
+      .get('/wallet/address-info')
+      .query({
+        address: address,
+        token
+      })
+      .set(TestUtils.generateHeader(walletId));
+
+    // An error happened
+    if (response.status !== 200 || response.body.success !== true) {
+      throw new Error(`Failure on /wallet/address-info: ${response.text}`);
+    }
+
+    // Returning explicitly each property to help with code completion / test writing
+    const addrInfo = response.body;
+    return {
+      token: addrInfo.token,
+      index: addrInfo.index,
+      total_amount_received: addrInfo.total_amount_received,
+      total_amount_sent: addrInfo.total_amount_sent,
+      total_amount_available: addrInfo.total_amount_available,
+      total_amount_locked: addrInfo.total_amount_locked,
+    };
   }
 
   /**

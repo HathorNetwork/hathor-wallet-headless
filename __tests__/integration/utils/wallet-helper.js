@@ -181,9 +181,15 @@ export class WalletHelper {
   }
 
   /**
+   * Returns the next address without transactions for this wallet
+   * @returns {Promise<string>}
+   */
+  async getNextAddress() {
+    return TestUtils.getAddressAt(this.#walletId)
+  }
+
+  /**
    * Retrieves address information based on the address index inside the wallet.
-   * This is very close to the tests on `address-info.test.js` and as such should reflect any
-   * changes that are made to the calls there.
    * @param {number} index Address index
    * @param {string} [token] Token hash, defaults to HTR
    * @returns {Promise<{
@@ -193,29 +199,9 @@ export class WalletHelper {
    * }>}
    */
   async getAddressInfo(index, token) {
-    const response = await TestUtils.request
-      .get('/wallet/address-info')
-      .query({
-        address: await this.getAddressAt(index),
-        token
-      })
-      .set({ 'x-wallet-id': this.#walletId });
+    const address = await this.getAddressAt(index);
 
-    // An error happened
-    if (response.status !== 200 || response.body.success !== true) {
-      throw new Error(`Failure on /wallet/address-info: ${response.text}`);
-    }
-
-    // Returning explicitly each property to help with code completion / test writing
-    const addrInfo = response.body;
-    return {
-      token: addrInfo.token,
-      index: addrInfo.index,
-      total_amount_received: addrInfo.total_amount_received,
-      total_amount_sent: addrInfo.total_amount_sent,
-      total_amount_available: addrInfo.total_amount_available,
-      total_amount_locked: addrInfo.total_amount_locked,
-    };
+    return TestUtils.getAddressInfo(address, this.#walletId, token);
   }
 
   /**

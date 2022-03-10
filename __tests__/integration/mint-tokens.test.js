@@ -1,4 +1,4 @@
-import { TestUtils } from './utils/test-utils-integration';
+import { TestUtils, WALLET_CONSTANTS } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
 
 describe('mint token', () => {
@@ -38,7 +38,6 @@ describe('mint token', () => {
       .post('/wallet/mint-tokens')
       .send({
         token: 'invalidToken',
-        address: await wallet1.getAddressAt(1),
         amount: 100
       })
       .set({ 'x-wallet-id': wallet1.walletId });
@@ -72,7 +71,6 @@ describe('mint token', () => {
       .post('/wallet/mint-tokens')
       .send({
         token: tokenA.uid,
-        address: await wallet1.getAddressAt(1),
         change_address: 'invalidAddress',
         amount: 100
       })
@@ -80,7 +78,7 @@ describe('mint token', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
-    expect(response.body.error).toContain('invalid');
+    expect(response.body.error).toContain('Change address');
     done();
   });
 
@@ -89,14 +87,47 @@ describe('mint token', () => {
       .post('/wallet/mint-tokens')
       .send({
         token: tokenA.uid,
-        address: await wallet1.getAddressAt(1),
         amount: 'invalidVamount'
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
-    expect(response.text).toContain('invalid');
+    expect(response.text).toContain('amount');
+    done();
+  });
+
+  // The application is allowing minting for an address outside the wallet
+  it.skip('should not mint for addresses outside the wallet', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/mint-tokens')
+      .send({
+        token: tokenA.uid,
+        address: WALLET_CONSTANTS.genesis.addresses[3],
+        amount: 100
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toContain('address');
+    done();
+  });
+
+  // The application is allowing a change_address outside the wallet
+  it.skip('should not mint with change_address outside the wallet', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/mint-tokens')
+      .send({
+        token: tokenA.uid,
+        change_address: WALLET_CONSTANTS.genesis.addresses[3],
+        amount: 100
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toContain('Change address');
     done();
   });
 
@@ -107,7 +138,6 @@ describe('mint token', () => {
       .post('/wallet/mint-tokens')
       .send({
         token: tokenA.uid,
-        address: await wallet1.getAddressAt(1),
         amount: 1000
       })
       .set({ 'x-wallet-id': wallet1.walletId });
@@ -120,17 +150,23 @@ describe('mint token', () => {
 
   // Success
 
-  it('should mint without a change address', async done => {
+  it('should mint with destination address', async done => {
     const response = await TestUtils.request
       .post('/wallet/mint-tokens')
       .send({
         token: tokenA.uid,
         address: await wallet1.getAddressAt(1),
-        amount: 300
+        amount: 50
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
     expect(response.body.success).toBe(true);
+
+    await TestUtils.pauseForWsUpdate();
+
+    const addr1 = await wallet1.getAddressInfo(1, tokenA.uid);
+    expect(addr1.total_amount_available).toBe(50)
+
     done();
   });
 
@@ -139,9 +175,36 @@ describe('mint token', () => {
       .post('/wallet/mint-tokens')
       .send({
         token: tokenA.uid,
-        address: await wallet1.getAddressAt(1),
-        change_address: await wallet1.getAddressAt(10),
-        amount: 100
+        change_address: await wallet1.getAddressAt(10), // Index 10 is supposed to be not used yet
+        amount: 60
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    const transaction = response.body;
+    expect(transaction.success).toBe(true);
+    const htrOutputIndex = transaction.outputs.findIndex(o => o.token_data === 0)
+    const htrChange = transaction.outputs[htrOutputIndex].value
+
+    await TestUtils.pauseForWsUpdate();
+
+    const addr10 = await wallet1.getAddressInfo(10);
+    expect(addr10.total_amount_received).toBe(htrChange);
+
+    const tkaBalance = await wallet1.getBalance(tokenA.uid)
+    expect(tkaBalance.available).toBe(500 + 50 + 60)
+    done();
+  });
+
+
+  it('should mint with only mandatory parameters', async done => {
+    const destinationAddress = await wallet1.getNextAddress();
+
+    // By default, will mint tokens into the next unused address
+    const response = await TestUtils.request
+      .post('/wallet/mint-tokens')
+      .send({
+        token: tokenA.uid,
+        amount: 70
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
@@ -149,8 +212,39 @@ describe('mint token', () => {
 
     await TestUtils.pauseForWsUpdate();
 
-    const addr10 = await wallet1.getAddressInfo(10);
-    expect(addr10.total_amount_received).toBe(1);
+    const addrNew = await TestUtils.getAddressInfo(destinationAddress, wallet1.walletId, tokenA.uid);
+    expect(addrNew.total_amount_available).toBe(70)
+
+    const tkaBalance = await wallet1.getBalance(tokenA.uid)
+    expect(tkaBalance.available).toBe(500 + 50 + 60 + 70)
+    done();
+  });
+
+
+  it('should mint with all parameters', async done => {
+    // By default, will mint tokens into the next unused address
+    const response = await TestUtils.request
+      .post('/wallet/mint-tokens')
+      .send({
+        token: tokenA.uid,
+        address: await wallet1.getAddressAt(15),
+        change_address: await wallet1.getAddressAt(14),
+        amount: 80
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    const transaction = response.body
+    expect(transaction.success).toBe(true);
+    const htrOutputIndex = transaction.outputs.findIndex(o => o.token_data === 0)
+    const htrChange = transaction.outputs[htrOutputIndex].value
+
+    await TestUtils.pauseForWsUpdate();
+
+    const addr15 = await wallet1.getAddressInfo(15, tokenA.uid)
+    expect(addr15.total_amount_available).toBe(80)
+
+    const addr14 = await wallet1.getAddressInfo(14)
+    expect(addr14.total_amount_available).toBe(htrChange)
     done();
   });
 });
