@@ -11,8 +11,17 @@ const request = supertest(app);
 /**
  * @typedef WalletData
  * @property {string} walletId Id for interacting with the wallet
- * @property {string} words 24 word seed for the wallet
+ * @property {string} words optional 24 word seed for the wallet
+ * @property {string} seedKey optional key that references a seed on configuration
  * @property {string[]} [addresses] Some sample addresses to help with testing
+ * @property {boolean} multisig If this should represent a multisig wallet
+ *
+ * Obs: One of [`words`, `seedKey`] is always required
+ * If both are present, prefer `words`
+ *
+ * Obs[2]: `multisig` can only be used with `seedKey`
+ * because of the extra configuration required (pubkeys, minSignatures, total)
+ * that are connected to a configured seedKey
  */
 
 /**
@@ -131,10 +140,21 @@ export class TestUtils {
    * @returns {Promise<{start:unknown,status:unknown}>}
    */
   static async startWallet(walletObj, options = {}) {
+    let response;
     // Request the Wallet start
-    const response = await request
-      .post('/start')
-      .send({ seed: walletObj.words, 'wallet-id': walletObj.walletId });
+    if (walletObj.words) {
+      response = await request
+        .post('/start')
+        .send({ seed: walletObj.words, 'wallet-id': walletObj.walletId });
+    } else {
+      response = await request
+        .post('/start')
+        .send({
+          seedKey: walletObj.seedKey,
+          'wallet-id': walletObj.walletId,
+          multisig: walletObj.multisig || false,
+        });
+    }
 
     // Handle errors
     if (response.status !== 200) {
@@ -157,7 +177,11 @@ export class TestUtils {
       }
     }
     // Log the success and return
-    loggers.test.informNewWallet(walletObj.walletId, walletObj.words);
+    if (walletObj.words) {
+      loggers.test.informNewWallet(walletObj.walletId, walletObj.words);
+    } else {
+      loggers.test.informNewWallet(walletObj.walletId, `seedKey: ${walletObj.seedKey}`);
+    }
 
     return { start };
   }
@@ -414,5 +438,20 @@ export class TestUtils {
       .set(TestUtils.generateHeader(walletId));
 
     return response.body;
+  }
+
+  /**
+   * Returns the serialized signatures for a transaction inputs (only the ones owned by the wallet)
+   *
+   * @param {string} txHex Transaction
+   * @returns {Promise<*>}
+   */
+  static async getSignatures(txHex, walletId) {
+    const response = await TestUtils.request
+      .post('/wallet/tx-proposal/get-my-signatures')
+      .send({txHex})
+      .set(TestUtils.generateHeader(walletId));
+
+    return response.body && response.body.signatures;
   }
 }
