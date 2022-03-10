@@ -30,12 +30,13 @@ describe('tx-history routes', () => {
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
 
       for (let amount = 10; amount < 60; amount += 10) {
-        const fundTx = await wallet2.injectFunds(amount, 1, { doNotWait: true });
+        const fundTx = await wallet2.injectFunds(amount, 1);
         fundTransactions[fundTx.hash] = fundTx;
         fundHashes[`tx${amount}`] = fundTx.hash;
       }
-      // Adding a single delay for all the above transactions to "settle" on the wallet's indexes
-      await TestUtils.delay(1000);
+
+      await TestUtils.pauseForWsUpdate();
+
     } catch (err) {
       TestUtils.logError(err.stack);
     }

@@ -30,16 +30,15 @@ describe('create token', () => {
     wallet2 = new WalletHelper('create-token-2');
 
     await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
-    const fundTxObj1 = await wallet1.injectFunds(10, 0, { doNotWait: true });
+    const fundTxObj1 = await wallet1.injectFunds(10, 0);
     fundTx1.hash = fundTxObj1.hash;
     fundTx1.index = TestUtils.getOutputIndexFromTx(fundTxObj1, 10);
 
-    const fundTxObj2 = await wallet1.injectFunds(10, 1, { doNotWait: true });
+    const fundTxObj2 = await wallet1.injectFunds(10, 1);
     fundTx2.hash = fundTxObj2.hash;
     fundTx2.index = TestUtils.getOutputIndexFromTx(fundTxObj2, 10);
 
-    await wallet2.injectFunds(10, 0, { doNotWait: true });
-    await TestUtils.delay(1000);
+    await wallet2.injectFunds(10, 0);
   });
 
   afterAll(async () => {
@@ -141,6 +140,8 @@ describe('create token', () => {
     const transaction = response.body;
     expect(transaction.success).toBe(true);
 
+    await TestUtils.pauseForWsUpdate();
+
     const addr8 = await wallet1.getAddressInfo(9, transaction.hash);
     expect(addr8.total_amount_received).toBe(amountTokens);
     done();
@@ -164,6 +165,8 @@ describe('create token', () => {
     // If the custom token output is 0, the HTR will be on the output index 1. And vice-versa.
     const htrOutputIndex = customTokenOutputIndex === 1 ? 0 : 1;
     const htrChange = transaction.outputs[htrOutputIndex].value;
+
+    await TestUtils.pauseForWsUpdate();
 
     const addr8 = await wallet1.getAddressInfo(5);
     expect(addr8.total_amount_received).toBe(htrChange);

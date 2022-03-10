@@ -218,15 +218,14 @@ export class WalletHelper {
    * Retrieves funds from the Genesis wallet and injects into this wallet at a specified address.
    * @param {number} value Value to be transferred
    * @param {number} [addressIndex=0] Address index. Defaults to 0
-   * @param {FundInjectionOptions} [options]
    * @returns {Promise<{success}|*>}
    */
-  async injectFunds(value, addressIndex = 0, options = {}) {
+  async injectFunds(value, addressIndex = 0) {
     if (!this.#started) {
       throw new Error(`Cannot inject funds: wallet ${this.#walletId} is not started.`);
     }
     const destinationAddress = await this.getAddressAt(addressIndex);
-    return TestUtils.injectFundsIntoAddress(destinationAddress, value, this.#walletId, options);
+    return TestUtils.injectFundsIntoAddress(destinationAddress, value, this.#walletId);
   }
 
   /**
@@ -237,7 +236,6 @@ export class WalletHelper {
    * @param {string} params.symbol Token symbol
    * @param {string} [params.address] Destination address for the custom token
    * @param {string} [params.change_address] Destination address for the HTR change
-   * @param {boolean} [params.doNotWait] Skip waiting after the transaction
    * @returns {Promise<unknown>} Token creation transaction
    */
   async createToken(params) {
@@ -275,10 +273,6 @@ export class WalletHelper {
       throw injectError;
     }
 
-    // Returning the Create Token transaction
-    if (!params.doNotWait) {
-      await TestUtils.delay(1000);
-    }
     return transaction;
   }
 
@@ -301,7 +295,6 @@ export class WalletHelper {
    * @param {string} [options.token] Simpler way to inform transfer token instead of "outputs"
    * @param {string} [options.destinationWallet] Optional parameter to explain the funds destination
    * @param {string} [options.change_address] Optional parameter to set the change address
-   * @param {boolean} [options.doNotWait] If true, the response will be returned immediately
    * @returns {Promise<unknown>} Returns the transaction
    */
   async sendTx(options) {
@@ -348,18 +341,6 @@ export class WalletHelper {
       metadata.destinationWallet = options.destinationWallet;
     }
     await loggers.test.insertLineToLog(`Transferring funds`, metadata);
-
-    /*
-     * The balance in the storage is updated after the wallet receives a message via websocket
-     * from the full node. A simple wait is built here to allow for this message before continuing.
-     *
-     * In case there is a need to do multliple transactions before any assertion is executed,
-     * please use the `doNotWait` option and explicitly insert the delay only once.
-     * This will improve the test speed.
-     */
-    if (!options.doNotWait) {
-      await TestUtils.delay(1000);
-    }
 
     return transaction;
   }

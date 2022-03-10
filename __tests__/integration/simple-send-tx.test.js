@@ -126,14 +126,12 @@ describe('simple-send-tx (HTR)', () => {
     expect(response.body.outputs).toHaveLength(2);
 
     // Check if the transaction arrived at the correct address
+    await TestUtils.pauseForWsUpdate();
 
-    const addrInfoResponse = await TestUtils.request
-      .get('/wallet/address-info')
-      .query({ address: changeAddress })
-      .set({ 'x-wallet-id': wallet1.walletId });
+    const addr5 = await wallet1.getAddressInfo(5)
 
     // The wallet1 started with 1000, transferred 400 to wallet2. Change should be 600
-    expect(addrInfoResponse?.body?.total_amount_received).toBe(600);
+    expect(addr5.total_amount_received).toBe(600);
     done();
   });
 });
@@ -155,7 +153,7 @@ describe('simple-send-tx (custom token)', () => {
       wallet4 = new WalletHelper('simple-tx-4');
 
       await WalletHelper.startMultipleWalletsForTest([wallet3, wallet4]);
-      await wallet3.injectFunds(10, undefined, { doNotWait: true });
+      await wallet3.injectFunds(10);
       const tokenResponse = await wallet3.createToken({
         amount: 1000,
         name: tokenData.name,
@@ -164,7 +162,6 @@ describe('simple-send-tx (custom token)', () => {
       });
       tokenData.uid = tokenResponse.hash;
 
-      await TestUtils.delay(1000);
     } catch (err) {
       TestUtils.logError(err.stack);
     }
@@ -281,14 +278,11 @@ describe('simple-send-tx (custom token)', () => {
     expect(response.body.outputs).toHaveLength(2);
 
     // Check if the transaction arrived at the correct address
-
-    const addrInfoResponse = await TestUtils.request
-      .get('/wallet/address-info')
-      .query({ address: changeAddress, token: tokenData.uid })
-      .set({ 'x-wallet-id': wallet3.walletId });
+    await TestUtils.pauseForWsUpdate();
+    const addr5 = await wallet3.getAddressInfo(5, tokenData.uid);
 
     // The wallet1 started with 1000, transferred 600 to wallet2. Change should be 400
-    expect(addrInfoResponse?.body?.total_amount_received).toBe(400);
+    expect(addr5.total_amount_received).toBe(400);
 
     done();
   });

@@ -36,11 +36,11 @@ describe('send tx (HTR)', () => {
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3]);
 
       // Funds for single input/output tests
-      const fundTxObj1 = await wallet1.injectFunds(1000, 0, { doNotWait: true });
+      const fundTxObj1 = await wallet1.injectFunds(1000, 0);
       // Funds for multiple input/output tests
-      const fundTxObj2 = await wallet3.injectFunds(1000, 0, { doNotWait: true });
-      const fundTxObj3 = await wallet3.injectFunds(1000, 1, { doNotWait: true });
-      const fundTxObj4 = await wallet3.injectFunds(1000, 4, { doNotWait: true });
+      const fundTxObj2 = await wallet3.injectFunds(1000, 0);
+      const fundTxObj3 = await wallet3.injectFunds(1000, 1);
+      const fundTxObj4 = await wallet3.injectFunds(1000, 4);
 
       fundTx1.hash = fundTxObj1.hash;
       fundTx1.index = TestUtils.getOutputIndexFromTx(fundTxObj1, 1000);
@@ -52,7 +52,7 @@ describe('send tx (HTR)', () => {
       fundTx4.index = TestUtils.getOutputIndexFromTx(fundTxObj4, 1000);
 
       // Awaiting for updated balances to be received by the websocket
-      await TestUtils.delay(1000);
+      await TestUtils.pauseForWsUpdate();
     } catch (err) {
       TestUtils.logError(err.stack);
     }
@@ -365,9 +365,6 @@ describe('send tx (HTR)', () => {
   });
 
   it('should send with only the filterAddress', async done => {
-    // Waiting for transactions to settle and spending the 20 HTR tokens above back to wallet1
-    await TestUtils.delay(1000);
-
     const tx = await wallet2.sendTx({
       fullObject: {
         inputs: [{
@@ -405,6 +402,8 @@ describe('send tx (HTR)', () => {
     expect(tx.success).toBe(true);
     expect(tx.hash).toBeDefined();
 
+    await TestUtils.pauseForWsUpdate();
+
     const [addr1, addr2] = await Promise.all([
       wallet2.getAddressInfo(1),
       wallet2.getAddressInfo(2),
@@ -432,6 +431,8 @@ describe('send tx (HTR)', () => {
     });
 
     expect(tx.hash).toBeDefined();
+
+    await TestUtils.pauseForWsUpdate();
 
     const addr6 = await wallet2.getAddressInfo(6);
     const addr2 = await wallet3.getAddressInfo(2);
@@ -465,6 +466,8 @@ describe('send tx (HTR)', () => {
     expect(tx.success).toBe(true);
     expect(tx.hash).toBeDefined();
 
+    await TestUtils.pauseForWsUpdate();
+
     const addr3 = await wallet2.getAddressInfo(3);
     expect(addr3.total_amount_received).toBe(2000);
     expect(addr3.total_amount_sent).toBe(2000);
@@ -489,6 +492,8 @@ describe('send tx (HTR)', () => {
 
     expect(tx.success).toBe(true);
     expect(tx.hash).toBeDefined();
+
+    await TestUtils.pauseForWsUpdate();
 
     const addr5 = await wallet2.getAddressInfo(5);
     expect(addr5.total_amount_received).toBe(0);
@@ -518,6 +523,8 @@ describe('send tx (HTR)', () => {
 
     expect(tx.success).toBe(true);
     expect(tx.hash).toBeDefined();
+
+    await TestUtils.pauseForWsUpdate();
 
     const addr7 = await wallet2.getAddressInfo(10);
     expect(addr7.total_amount_received).toBe(760);
@@ -562,9 +569,9 @@ describe('send tx (custom tokens)', () => {
     await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3]);
 
     // Funds for single input/output tests - 1000 HTR + 2000 custom A
-    await wallet1.injectFunds(1020, 0, { doNotWait: true });
+    await wallet1.injectFunds(1020, 0);
     // Funds for multiple token tests - 990 HTR + 1000 custom B
-    await wallet3.injectFunds(1000, 0, { doNotWait: true });
+    await wallet3.injectFunds(1000, 0);
     const tokenCreationA = await wallet1.createToken({
       name: tokenA.name,
       symbol: tokenA.symbol,
@@ -601,9 +608,6 @@ describe('send tx (custom tokens)', () => {
     tokenB.uid = tokenCreationB.hash;
     fundTx2.hash = tokenCreationB.hash;
     fundTx2.index = TestUtils.getOutputIndexFromTx(tokenCreationB, 990);
-
-    // Awaiting for balances to be updated via websocket
-    await TestUtils.delay(1000);
   });
 
   afterAll(async () => {

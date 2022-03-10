@@ -15,12 +15,6 @@ const request = supertest(app);
  */
 
 /**
- * @typedef FundInjectionOptions
- * @property {boolean} [doNotWait] If true, will not wait a while for the transaction
- *  to "settle" on the fullnode
- */
-
-/**
  * @type {Record<string,WalletData>}
  */
 export const WALLET_CONSTANTS = {
@@ -77,6 +71,17 @@ export class TestUtils {
     return new Promise(resolve => {
       setTimeout(resolve, ms);
     });
+  }
+
+  /**
+   * Whenever the tests need to check for a wallet/address balance, there should be a small pause
+   * to allow for the Fullnode's Websocket connection to update the Wallet Headless' local caches.
+   *
+   * The delay period here should be optimized for this purpose.
+   * @returns {Promise<void>}
+   */
+  static async pauseForWsUpdate() {
+    await TestUtils.delay(1000)
   }
 
   /**
@@ -219,10 +224,9 @@ export class TestUtils {
    * @param {string} address Destination address
    * @param {number} value Amount of tokens, in cents
    * @param {string} [destinationWalletId] walletId of the destination address. Useful for debugging
-   * @param {FundInjectionOptions} [options]
    * @returns {Promise<unknown>}
    */
-  static async injectFundsIntoAddress(address, value, destinationWalletId, options = {}) {
+  static async injectFundsIntoAddress(address, value, destinationWalletId) {
     // Requests the transaction
     const response = await TestUtils.request
       .post('/wallet/simple-send-tx')
@@ -246,18 +250,6 @@ export class TestUtils {
       destinationWallet: destinationWalletId,
       id: transaction.hash
     });
-
-    /*
-     * The balance in the storage is updated after the wallet receives a message via websocket
-     * from the full node. A simple wait is built here to allow for this message before continuing.
-     *
-     * In case there is a need to do multliple transactions before any assertion is executed,
-     * please use the `doNotWait` option and explicitly insert the delay only once.
-     * This will improve the test speed.
-     */
-    if (!options.doNotWait) {
-      await TestUtils.delay(1000);
-    }
 
     return transaction;
   }

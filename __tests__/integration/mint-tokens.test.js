@@ -16,7 +16,7 @@ describe('mint token', () => {
     await WalletHelper.startMultipleWalletsForTest([wallet1]);
 
     // Creating a token for the tests
-    await wallet1.injectFunds(10, 0, { doNotWait: true });
+    await wallet1.injectFunds(10, 0);
     const tkAtx = await wallet1.createToken({
       name: tokenA.name,
       symbol: tokenA.symbol,
@@ -146,6 +146,8 @@ describe('mint token', () => {
       .set({ 'x-wallet-id': wallet1.walletId });
 
     expect(response.body.success).toBe(true);
+
+    await TestUtils.pauseForWsUpdate();
 
     const addr10 = await wallet1.getAddressInfo(10);
     expect(addr10.total_amount_received).toBe(1);
