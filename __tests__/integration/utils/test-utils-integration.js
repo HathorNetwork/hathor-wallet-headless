@@ -146,12 +146,10 @@ export class TestUtils {
     const start = response.body;
 
     // Wait until the wallet is actually started
-    let status;
     if (options.waitForValidation) {
       while (true) {
         const walletReady = await TestUtils.isWalletReady(walletObj.walletId);
         if (walletReady) {
-          status = true;
           break;
         }
         await TestUtils.delay(500);
@@ -160,7 +158,7 @@ export class TestUtils {
     // Log the success and return
     loggers.test.informNewWallet(walletObj.walletId, walletObj.words);
 
-    return { start, status };
+    return { start };
   }
 
   /**
@@ -202,8 +200,7 @@ export class TestUtils {
   }
 
   /**
-   * Get the next addresses on this wallet that do not have transactions.
-   * The amount of addresses is the current gap limit.
+   * Get the all addresses on this wallet, limited by the current gap limit.
    * @param {string} walletId
    * @returns {Promise<string[]>}
    */
@@ -255,7 +252,7 @@ export class TestUtils {
   }
 
   /**
-   * Retrieves the index containing the desired output value.
+   * Searches the transaction outputs and retrieves the first index containing the desired value.
    * @example
    * // The txObject transaction contains many outputs, the second's value is 15
    * TestUtils.getOutputIndexFromTx(txObject, 15)
@@ -274,7 +271,7 @@ export class TestUtils {
       if (transaction.outputs[index].value !== value) {
         continue;
       }
-      return +index;
+      return parseInt(index);
     }
 
     return null;

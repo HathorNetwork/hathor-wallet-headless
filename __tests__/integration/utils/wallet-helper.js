@@ -68,7 +68,11 @@ export class WalletHelper {
    * @returns {Promise<void>}
    */
   static async startMultipleWalletsForTest(walletsArr, options) {
-    const walletsPendingStart = {};
+    /**
+     * A map of `WalletHelper`s indexed by their `walletId`s
+     * @type {Record<string,WalletHelper>}
+     */
+    const walletsPendingReady = {};
 
     // If the genesis wallet is not instantiated, start it. It should be always available
     const { genesis } = WALLET_CONSTANTS;
@@ -83,12 +87,12 @@ export class WalletHelper {
         walletId: wallet.walletId,
         words: wallet.words,
       });
-      walletsPendingStart[wallet.walletId] = wallet;
+      walletsPendingReady[wallet.walletId] = wallet;
     }
 
     // Enters the loop checking each wallet for its status
     while (true) {
-      const pendingWalletIds = Object.keys(walletsPendingStart);
+      const pendingWalletIds = Object.keys(walletsPendingReady);
       if (!pendingWalletIds.length) {
         break;
       } // All wallets were started. Return to the caller.
@@ -104,8 +108,8 @@ export class WalletHelper {
         }
 
         // If the wallet is ready, we remove it from the status check loop
-        walletsPendingStart[walletId].__setStarted();
-        delete walletsPendingStart[walletId];
+        walletsPendingReady[walletId].__setStarted();
+        delete walletsPendingReady[walletId];
 
         const addresses = await TestUtils.getSomeAddresses(walletId);
         await loggers.test.informWalletAddresses(walletId, addresses);
@@ -277,6 +281,27 @@ export class WalletHelper {
   }
 
   /**
+   * @typedef SendTxInputParam
+   * @property {string} [hash] UTXO transaction hash
+   * @property {number} [index] UTXO output index
+   * @property {string} [token] Optional token hash. Defaults to HTR
+   * @property {'query'} [type] Optional command instead of a UTXO
+   * @property {string} [filter_address] Optional command data
+   * @see The source code for route /wallet/send-tx
+   * @example
+   * { hash: '123abc', index: 0 }
+   * { hash: '123abc', index: 1, token: '234def' }
+   * { type: 'query', filter_address: '567acf' }
+   */
+
+  /**
+   * @typedef SendTxOutputParam
+   * @property {string} [address] Destination address hash
+   * @property {number} [value] Amount of tokens to transfer on this output
+   * @property {string} [token] Optional token hash. Defaults to HTR
+   */
+
+  /**
    * Sends a transaction.
    *
    * @example
@@ -288,8 +313,8 @@ export class WalletHelper {
    * @see https://wallet-headless.docs.hathor.network/#/paths/~1wallet~1simple-send-tx/post
    * @param options
    * @param {unknown} [options.fullObject] Advanced usage: a full body to send to post on 'send-tx'
-   * @param {{hash:string,index:number,token?:string}[]} [options.inputs] Optional Inputs
-   * @param {{address:string,value:number,token?:string}[]} [options.outputs] Complete Outputs
+   * @param {SendTxInputParam[]} [options.inputs] Optional Inputs
+   * @param {SendTxOutputParam[]} [options.outputs] Complete Outputs
    * @param {string} [options.destination] Simpler way to inform output address instead of "outputs"
    * @param {number} [options.value] Simpler way to inform transfer value instead of "outputs"
    * @param {string} [options.token] Simpler way to inform transfer token instead of "outputs"
