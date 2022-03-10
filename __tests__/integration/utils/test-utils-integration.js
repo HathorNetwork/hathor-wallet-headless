@@ -276,4 +276,26 @@ export class TestUtils {
 
     return null;
   }
+
+  static async getTxHistory(walletId) {
+    const response = await TestUtils.request
+      .get('/wallet/tx-history')
+      .set(TestUtils.generateHeader(walletId));
+
+    return response.body;
+  }
+
+  static async getBalance(walletId, tokenUid) {
+    const queryParams = {};
+    if (tokenUid) {
+      queryParams.token = tokenUid
+    }
+
+    const response = await TestUtils.request
+      .get('/wallet/balance')
+      .query(queryParams)
+      .set(TestUtils.generateHeader(walletId));
+
+    return response.body;
+  }
 }

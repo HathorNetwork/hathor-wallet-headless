@@ -369,4 +369,12 @@ export class WalletHelper {
 
     return transaction;
   }
+
+  async getTxHistory() {
+    return TestUtils.getTxHistory(this.#walletId)
+  }
+
+  async getBalance(tokenUid = null) {
+    return TestUtils.getBalance(this.#walletId, tokenUid)
+  }
 }
