@@ -82,8 +82,6 @@ export class WalletHelper {
       await TestUtils.startWallet({
         walletId: wallet.walletId,
         words: wallet.words,
-      }, {
-        skipWait: true
       });
       walletsPendingStart[wallet.walletId] = wallet;
     }
@@ -125,10 +123,12 @@ export class WalletHelper {
    * @returns {Promise<WalletData>}
    */
   async start(options = {}) {
-    await TestUtils.startWallet({
-      walletId: this.#walletId,
-      words: this.#words,
-    });
+    await TestUtils.startWallet(
+      {
+        walletId: this.#walletId,
+        words: this.#words,
+      },
+      { waitForValidation: true });
     this.#started = true;
 
     // Populating some addressess for this wallet

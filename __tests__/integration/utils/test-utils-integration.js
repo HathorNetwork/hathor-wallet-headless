@@ -121,7 +121,7 @@ export class TestUtils {
    * Starts a wallet. Prefer instantiating a WalletHelper instead.
    * @param {WalletData} walletObj
    * @param [options]
-   * @param {boolean} [options.skipWait] If true, skips the wallet status validation
+   * @param {boolean} [options.waitForValidation] If true, will only return when wallet is ready
    * @returns {Promise<{start:unknown,status:unknown}>}
    */
   static async startWallet(walletObj, options = {}) {
@@ -142,15 +142,16 @@ export class TestUtils {
 
     // Wait until the wallet is actually started
     let status;
-    while (!options.skipWait) {
-      const walletReady = await TestUtils.isWalletReady(walletObj.walletId);
-      if (walletReady) {
-        status = true;
-        break;
+    if (options.waitForValidation) {
+      while (true) {
+        const walletReady = await TestUtils.isWalletReady(walletObj.walletId);
+        if (walletReady) {
+          status = true;
+          break;
+        }
+        await TestUtils.delay(500);
       }
-      await TestUtils.delay(500);
     }
-
     // Log the success and return
     loggers.test.informNewWallet(walletObj.walletId, walletObj.words);
 
