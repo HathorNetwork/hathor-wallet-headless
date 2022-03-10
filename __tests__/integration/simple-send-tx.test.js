@@ -42,6 +42,22 @@ describe('simple-send-tx (HTR)', () => {
     done();
   });
 
+  it('should not allow a transaction with a negative value', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/simple-send-tx')
+      .send({
+        address: await wallet2.getAddressAt(0),
+        value: -1,
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(response.text).toContain('value')
+
+    done();
+  });
+
   it('should not allow a transaction with an invalid address', async done => {
     const response = await TestUtils.request
       .post('/wallet/simple-send-tx')
@@ -71,6 +87,27 @@ describe('simple-send-tx (HTR)', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toContain('invalid');
+
+    done();
+  });
+
+  it('should not allow a transaction with a change address outside the wallet', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/simple-send-tx')
+      .send({
+        address: await wallet2.getAddressAt(0),
+        value: 500,
+        change_address: wallet2.getAddressAt(2),
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.status).toBe(400);
+
+    const transaction = response.body;
+    expect(transaction.success).toBe(false);
+    const errorElement = transaction.error[0];
+    expect(errorElement).toHaveProperty('param','change_address');
+    expect(errorElement.msg).toContain('Invalid');
 
     done();
   });
@@ -106,6 +143,14 @@ describe('simple-send-tx (HTR)', () => {
     expect(response.body.success).toBe(true);
     expect(response.body.outputs).toHaveLength(2);
 
+    await TestUtils.pauseForWsUpdate();
+
+    const addr0 = await wallet2.getAddressInfo(0);
+    expect(addr0.total_amount_available).toBe(200);
+
+    const balance1 = await wallet1.getBalance();
+    expect(balance1.available).toBe(800);
+
     done();
   });
 
@@ -128,10 +173,12 @@ describe('simple-send-tx (HTR)', () => {
     // Check if the transaction arrived at the correct address
     await TestUtils.pauseForWsUpdate();
 
-    const addr5 = await wallet1.getAddressInfo(5)
-
     // The wallet1 started with 1000, transferred 400 to wallet2. Change should be 600
+    const addr5 = await wallet1.getAddressInfo(5)
     expect(addr5.total_amount_received).toBe(600);
+
+    const addr0 = await wallet2.getAddressInfo(0);
+    expect(addr0.total_amount_available).toBe(400);
     done();
   });
 });
@@ -191,6 +238,23 @@ describe('simple-send-tx (custom token)', () => {
     done();
   });
 
+  it('should not allow a transaction with a negative value', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/simple-send-tx')
+      .send({
+        address: await wallet4.getAddressAt(0),
+        value: -1,
+        token: tokenData.hash,
+      })
+      .set({ 'x-wallet-id': wallet3.walletId });
+
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(response.text).toContain('value')
+
+    done();
+  });
+
   it('should not allow a transaction with an invalid address', async done => {
     const response = await TestUtils.request
       .post('/wallet/simple-send-tx')
@@ -226,6 +290,23 @@ describe('simple-send-tx (custom token)', () => {
     done();
   });
 
+  it('should not allow a transaction with a change address outside the wallet', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/simple-send-tx')
+      .send({
+        address: await wallet4.getAddressAt(0),
+        value: 300,
+        token: tokenData.uid,
+        change_address: await wallet4.getAddressAt(2),
+      })
+      .set({ 'x-wallet-id': wallet3.walletId });
+
+    const transaction = response.body;
+    expect(transaction.success).toBe(false);
+    expect(transaction.error).toContain('Change address');
+    done();
+  });
+
   it('should not allow a transaction with insuficcient balance', async done => {
     const response = await TestUtils.request
       .post('/wallet/simple-send-tx')
@@ -257,6 +338,14 @@ describe('simple-send-tx (custom token)', () => {
     expect(response.body.success).toBe(true);
     expect(response.body.outputs).toHaveLength(2);
 
+    await TestUtils.pauseForWsUpdate();
+
+    const addr0 = await wallet4.getAddressInfo(0, tokenData.uid);
+    expect(addr0.total_amount_available).toBe(300);
+
+    const balance3 = await wallet3.getBalance(tokenData.uid);
+    expect(balance3.available).toBe(700)
+
     done();
   });
 
@@ -279,10 +368,13 @@ describe('simple-send-tx (custom token)', () => {
 
     // Check if the transaction arrived at the correct address
     await TestUtils.pauseForWsUpdate();
-    const addr5 = await wallet3.getAddressInfo(5, tokenData.uid);
 
     // The wallet1 started with 1000, transferred 600 to wallet2. Change should be 400
+    const addr5 = await wallet3.getAddressInfo(5, tokenData.uid);
     expect(addr5.total_amount_received).toBe(400);
+
+    const addr0 = await wallet4.getAddressInfo(0, tokenData.uid);
+    expect(addr0.total_amount_available).toBe(600)
 
     done();
   });
