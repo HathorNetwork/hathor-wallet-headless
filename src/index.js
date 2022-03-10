@@ -7,7 +7,15 @@
 
 import express from 'express';
 import morgan from 'morgan';
-import { Connection, HathorWallet, wallet as oldWalletUtils, walletUtils, tokens, errors, constants as hathorLibConstants, config as hathorLibConfig } from '@hathor/wallet-lib';
+import {
+  config as hathorLibConfig,
+  Connection,
+  constants as hathorLibConstants,
+  errors,
+  HathorWallet,
+  wallet as oldWalletUtils,
+  walletUtils
+} from '@hathor/wallet-lib';
 import { body, checkSchema, matchedData, query, validationResult } from 'express-validator';
 
 import config from './config';
@@ -564,6 +572,13 @@ const getUtxosToFillTx = (wallet, sumOutputs, options) => {
 }
 
 /**
+ * @typedef TokenOutput
+ * A structure to help calculate how many tokens will be needed on send-tx's automatic inputs
+ * @property {string} tokenUid Hash identification of the token
+ * @property {number} amount Amount of tokens necessary on the inputs
+ */
+
+/**
  * POST request to send a transaction with many outputs and inputs selection
  * For the docs, see api-docs.js
  *
@@ -682,6 +697,12 @@ walletRouter.post('/send-tx',
   const wallet = req.wallet;
   const outputs = req.body.outputs;
 
+  /**
+   * Map of tokens on the output that will be needed on the automatic input calculation
+   * @type {Record<string,TokenOutput>}
+   */
+  const tokens = {}
+
   // I tried to use the default schema with express validator to set the default token as HTR
   // but apparently is not possible https://github.com/express-validator/express-validator/issues/682
   for (const output of outputs) {
@@ -692,6 +713,12 @@ walletRouter.post('/send-tx',
       const tokenObj = req.body.token || hathorLibConstants.HATHOR_TOKEN_CONFIG;
       output.token = tokenObj.uid;
     }
+
+    // Updating the `tokens` amount
+    if (!tokens[output.token]) {
+      tokens[output.token] = { tokenUid: output.token, amount: 0 }
+    }
+    tokens[output.token].amount += output.value
   }
 
   // Expects array of objects with {'hash', 'index'}
@@ -703,19 +730,37 @@ walletRouter.post('/send-tx',
   }
 
   if (inputs.length > 0) {
+    // In case the first input is a query command, we will overwrite the inputs array with results
     if (inputs[0].type === 'query') {
-      // First get sum of all outputs
-      const sumOutputs = outputs.reduce((acc, obj) => obj.value + acc, 0);
-      const utxos = getUtxosToFillTx(wallet, sumOutputs, inputs[0]);
-      if (!utxos) {
-        const response = {success: false, error: 'No utxos available for the query filter for this amount.'};
-        res.send(response);
-        lock.unlock(lockTypes.SEND_TX);
-        return;
+      const treatedInputs = []
+
+      // We need to fetch UTXO's for each token on the "outputs"
+      const tokensList = Object.keys(tokens)
+      for (const tokenUid of tokensList) {
+        const tokenObj = tokens[tokenUid];
+
+        const queryOptions = {
+          ...inputs[0],
+          token: tokenObj.tokenUid
+        }
+        const utxos = getUtxosToFillTx(wallet, tokenObj.amount, queryOptions);
+        if (!utxos) {
+          const response = {
+            success: false,
+            error: 'No utxos available for the query filter for this amount.',
+            token: tokenObj.uid
+          };
+          res.send(response);
+          lock.unlock(lockTypes.SEND_TX);
+          return;
+        }
+
+        for (const utxo of utxos) {
+          treatedInputs.push({ txId: utxo.tx_id, index: utxo.index });
+        }
       }
-      inputs = utxos.map((utxo) => {
-        return {txId: utxo.tx_id, index: utxo.index};
-      });
+      // Overwriting the body parameter with the actual inputs
+      inputs = treatedInputs
     } else {
       // The new lib version expects input to have tx_id and not hash
       inputs = inputs.map((input) => {
