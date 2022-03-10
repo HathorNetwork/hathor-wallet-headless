@@ -1,4 +1,4 @@
-import { getRandomInt, TestUtils } from './utils/test-utils-integration';
+import { getRandomInt, TestUtils, WALLET_CONSTANTS } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
 
 describe('create token', () => {
@@ -8,11 +8,6 @@ describe('create token', () => {
   const tokenA = {
     name: 'Token A',
     symbol: 'TKA',
-    uid: null
-  };
-  const tokenB = {
-    name: 'Token B',
-    symbol: 'TKB',
     uid: null
   };
 
@@ -28,6 +23,7 @@ describe('create token', () => {
 
   afterAll(async () => {
     await wallet1.stop();
+    await wallet2.stop();
   });
 
   // Testing failures first, that do not cause side-effects on the blockchain
@@ -57,6 +53,77 @@ describe('create token', () => {
 
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
+    done();
+  });
+
+  it('should reject an invalid destination address', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/create-token')
+      .send({
+        name: tokenA.name,
+        symbol: tokenA.symbol,
+        amount: 1000,
+        address: 'invalidAddress'
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toContain('base58');
+    done();
+  });
+
+  it('should reject an invalid change address', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/create-token')
+      .send({
+        name: tokenA.name,
+        symbol: tokenA.symbol,
+        amount: 500,
+        address: await wallet1.getAddressAt(0),
+        change_address: 'invalidAddress'
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toContain('Change address');
+    done();
+  });
+
+  // The application is incorrectly allowing to create a token for an outside address.
+  it.skip('should reject creating token for address not in the wallet', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/create-token')
+      .send({
+        name: tokenA.name,
+        symbol: tokenA.symbol,
+        amount: 500,
+        address: WALLET_CONSTANTS.genesis.addresses[3]
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(false);
+    done();
+  });
+
+  // The application is incorrectly allowing external addresses to receive the change
+  it.skip('should reject creating token for change address not in the wallet', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/create-token')
+      .send({
+        name: tokenA.name,
+        symbol: tokenA.symbol,
+        amount: 500,
+        address: await wallet1.getAddressAt(0),
+        change_address: WALLET_CONSTANTS.genesis.addresses[3]
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(false);
+    expect(response.text).toContain('wallet');
     done();
   });
 
@@ -95,7 +162,7 @@ describe('create token', () => {
     done();
   });
 
-  it('should create a token successfully', async done => {
+  it('should create a token with only required parameters', async done => {
     const response = await TestUtils.request
       .post('/wallet/create-token')
       .send({
@@ -107,6 +174,11 @@ describe('create token', () => {
 
     expect(response.body.success).toBe(true);
     expect(response.body.hash).toBeDefined();
+
+    await TestUtils.pauseForWsUpdate();
+
+    const tkaBalance = await wallet1.getBalance(response.body.hash);
+    expect(tkaBalance.available).toBe(100);
     done();
   });
 
@@ -115,8 +187,8 @@ describe('create token', () => {
     const response = await TestUtils.request
       .post('/wallet/create-token')
       .send({
-        name: tokenB.name,
-        symbol: tokenB.symbol,
+        name: 'Token B',
+        symbol: 'TKB',
         amount: amountTokens,
         address: await wallet1.getAddressAt(9)
       })
@@ -127,8 +199,8 @@ describe('create token', () => {
 
     await TestUtils.pauseForWsUpdate();
 
-    const addr8 = await wallet1.getAddressInfo(9, transaction.hash);
-    expect(addr8.total_amount_received).toBe(amountTokens);
+    const addr9 = await wallet1.getAddressInfo(9, transaction.hash);
+    expect(addr9.total_amount_received).toBe(amountTokens);
     done();
   });
 
@@ -136,8 +208,8 @@ describe('create token', () => {
     const response = await TestUtils.request
       .post('/wallet/create-token')
       .send({
-        name: tokenB.name,
-        symbol: tokenB.symbol,
+        name: 'Token C',
+        symbol: 'TKC',
         amount: 100,
         change_address: await wallet2.getAddressAt(5)
       })
@@ -152,8 +224,36 @@ describe('create token', () => {
 
     await TestUtils.pauseForWsUpdate();
 
-    const addr8 = await wallet1.getAddressInfo(5);
-    expect(addr8.total_amount_received).toBe(htrChange);
+    const addr5 = await wallet2.getAddressInfo(5);
+    expect(addr5.total_amount_received).toBe(htrChange);
+    done();
+  });
+
+  it('should create a token with all available inputs', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/create-token')
+      .send({
+        name: 'Token D',
+        symbol: 'TKD',
+        amount: 200,
+        address: await wallet2.getAddressAt(4),
+        change_address: await wallet2.getAddressAt(4)
+      })
+      .set({ 'x-wallet-id': wallet2.walletId });
+
+    const transaction = response.body;
+    expect(transaction.success).toBe(true);
+
+    // The only output with token_data equals zero is the one containing the HTR change
+    const htrOutputIndex = transaction.outputs.findIndex(o => o.token_data === 0)
+    const htrChange = transaction.outputs[htrOutputIndex].value;
+
+    await TestUtils.pauseForWsUpdate();
+
+    const addr4 = await wallet2.getAddressInfo(4);
+    expect(addr4.total_amount_received).toBe(htrChange);
+    const addr4C = await wallet2.getAddressInfo(4, transaction.hash)
+    expect(addr4C.total_amount_available).toBe(200);
     done();
   });
 });
