@@ -224,7 +224,25 @@ describe('send tx (HTR)', () => {
       .set({ 'x-wallet-id': wallet1.walletId });
 
     expect(response.status).toBe(400);
-    expect(response.body.error[0].msg).toContain('Invalid');
+    expect(response.text).toContain('Invalid');
+    expect(response.text).toContain('value');
+    done();
+  });
+
+  it('should reject a negative value', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{
+          address: await wallet2.getAddressAt(0),
+          value: -1
+        }],
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.status).toBe(400);
+    expect(response.text).toContain('Invalid');
+    expect(response.text).toContain('value');
     done();
   });
 
@@ -331,6 +349,24 @@ describe('send tx (HTR)', () => {
     done();
   });
 
+  it('should reject for an invalid input', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        inputs: [{ hash: fundTx1.hash, index: -1 }],
+        outputs: [{
+          address: await wallet2.getAddressAt(0),
+          value: 500
+        }],
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.status).toBe(400);
+    expect(response.text).toContain('Invalid')
+    expect(response.text).toContain('input')
+    done();
+  });
+
   // Lastly, testing success cases, which have side-effects
 
   it('should send with only the output address and value', async done => {
@@ -345,6 +381,12 @@ describe('send tx (HTR)', () => {
 
     expect(tx.hash).toBeDefined();
     expect(tx.success).toBe(true);
+
+    await TestUtils.pauseForWsUpdate();
+
+    const destination0 = await wallet2.getAddressInfo(0)
+    expect(destination0.total_amount_available).toBe(10);
+
     done();
   });
 
@@ -361,10 +403,25 @@ describe('send tx (HTR)', () => {
 
     expect(tx.hash).toBeDefined();
     expect(tx.success).toBe(true);
+
+    await TestUtils.pauseForWsUpdate();
+
+    const destination = await wallet2.getAddressInfo(0)
+    expect(destination.total_amount_available).toBe(20);
+
+    const changeAddr = await wallet1.getAddressInfo(0)
+    const txSummary = TestUtils.getOutputSummaryHtr(tx, 10);
+    expect(changeAddr.total_amount_available).toBe(txSummary.change.value);
+
     done();
   });
 
   it('should send with only the filterAddress', async done => {
+    const inputAddrBefore = await wallet2.getAddressInfo(0)
+    const destinationAddrBefore = await wallet1.getAddressInfo(0)
+    const sourceBeforeTx = inputAddrBefore.total_amount_available
+    const destinationBeforeTx = destinationAddrBefore.total_amount_available
+
     const tx = await wallet2.sendTx({
       fullObject: {
         inputs: [{
@@ -380,10 +437,21 @@ describe('send tx (HTR)', () => {
 
     expect(tx.hash).toBeDefined();
     expect(tx.success).toBe(true);
+
+    await TestUtils.pauseForWsUpdate();
+
+    const inputAddrAfter = await wallet2.getAddressInfo(0)
+    const destinationAddrAfter = await wallet1.getAddressInfo(0)
+    expect(inputAddrAfter.total_amount_available).toBe(sourceBeforeTx - 20)
+    expect(destinationAddrAfter.total_amount_available).toBe(destinationBeforeTx + 20)
+
     done();
   });
 
   it('should send with two outputs', async done => {
+    const destination1Before = await wallet2.getAddressInfo(1)
+    const destination2Before = await wallet1.getAddressInfo(2)
+
     const tx = await wallet1.sendTx({
       fullObject: {
         outputs: [
@@ -404,12 +472,12 @@ describe('send tx (HTR)', () => {
 
     await TestUtils.pauseForWsUpdate();
 
-    const [addr1, addr2] = await Promise.all([
-      wallet2.getAddressInfo(1),
-      wallet2.getAddressInfo(2),
-    ]);
-    expect(addr1.total_amount_received).toBe(20);
-    expect(addr2.total_amount_received).toBe(30);
+    const destination1After = await wallet2.getAddressInfo(1)
+    const destination2After = await wallet2.getAddressInfo(2)
+    expect(destination1After.total_amount_available)
+      .toBe(destination1Before.total_amount_available + 20);
+    expect(destination2After.total_amount_available)
+      .toBe(destination2Before.total_amount_available + 30);
     done();
   });
 
@@ -434,11 +502,11 @@ describe('send tx (HTR)', () => {
 
     await TestUtils.pauseForWsUpdate();
 
-    const addr6 = await wallet2.getAddressInfo(6);
-    const addr2 = await wallet3.getAddressInfo(2);
+    const destination = await wallet2.getAddressInfo(6);
+    const changeAddr = await wallet3.getAddressInfo(2);
 
-    expect(addr6.total_amount_received).toBe(1500);
-    expect(addr2.total_amount_received).toBe(500);
+    expect(destination.total_amount_received).toBe(1500);
+    expect(changeAddr.total_amount_received).toBe(500);
 
     tx5.hash = tx.hash;
     tx5.index = TestUtils.getOutputIndexFromTx(tx, 500);
@@ -446,12 +514,15 @@ describe('send tx (HTR)', () => {
   });
 
   it('should send with correct input', async done => {
-    // Injecting 2000 HTR on wallet2, to ensure the funds would not be available otherwise
+    // Injecting 2000 HTR on wallet2[3], to ensure the funds would not be available otherwise
     const fundTxObj = await wallet2.injectFunds(2000, 3);
     const fundTx2 = {
       hash: fundTxObj.hash,
       index: TestUtils.getOutputIndexFromTx(fundTxObj, 2000)
     };
+
+    // The change address should be the next available address on wallet2
+    const changeAddrHash = await wallet2.getNextAddress();
 
     const tx = await wallet2.sendTx({
       fullObject: {
@@ -468,12 +539,15 @@ describe('send tx (HTR)', () => {
 
     await TestUtils.pauseForWsUpdate();
 
-    const addr3 = await wallet2.getAddressInfo(3);
-    expect(addr3.total_amount_received).toBe(2000);
-    expect(addr3.total_amount_sent).toBe(2000);
+    const sourceAddress = await wallet2.getAddressInfo(3);
+    expect(sourceAddress.total_amount_received).toBe(2000);
+    expect(sourceAddress.total_amount_sent).toBe(2000);
 
-    const addr4 = await wallet1.getAddressInfo(4);
-    expect(addr4.total_amount_received).toBe(1100);
+    const destination = await wallet1.getAddressInfo(4);
+    expect(destination.total_amount_received).toBe(1100);
+
+    const changeAddr = await TestUtils.getAddressInfo(changeAddrHash, wallet2.walletId);
+    expect(changeAddr.total_amount_available).toBe(900);
 
     done();
   });
@@ -533,6 +607,28 @@ describe('send tx (HTR)', () => {
     expect(addr8.total_amount_received).toBe(740);
     done();
   });
+
+  it('should confirm that, if not informed, the change address is the next empty one',
+    async done => {
+      const nextAddressHash = await wallet1.getNextAddress();
+
+      const tx = await wallet1.sendTx({
+        fullObject: {
+          inputs: [{ type: 'query', address: await wallet1.getAddressAt(4) }],
+          outputs: [{ address: await wallet2.getAddressAt(5), value: 100 }]
+        }
+      });
+      const txSummary = TestUtils.getOutputSummaryHtr(tx, 100);
+
+      await TestUtils.pauseForWsUpdate();
+
+      const destination = await wallet2.getAddressInfo(5);
+      const changeAddr = await TestUtils.getAddressInfo(nextAddressHash, wallet1.walletId);
+      expect(destination.total_amount_available).toBe(100);
+      expect(changeAddr.total_amount_available).toBe(txSummary.change.value);
+
+      done();
+    });
 });
 
 describe('send tx (custom tokens)', () => {
@@ -865,8 +961,19 @@ describe('send tx (custom tokens)', () => {
     tkaTx2.hash = tx.hash;
     tkaTx2.index = TestUtils.getOutputIndexFromTx(tx, 800);
 
-    // 200 TKA were sent to Wallet2
-    // 800 remained on Wallet1
+    await TestUtils.pauseForWsUpdate();
+
+    // Checking wallet balances
+    const balance2tka = await wallet2.getBalance(tokenA.uid);
+    expect(balance2tka.available).toBe(200)
+    const balance1tka = await wallet1.getBalance(tokenA.uid);
+    expect(balance1tka.available).toBe(1800)
+
+    // Checking specific addresses balances
+    const destination = await wallet2.getAddressInfo(0, tokenA.uid);
+    expect(destination.total_amount_available).toBe(200)
+    const change = await wallet1.getAddressInfo(0, tokenA.uid);
+    expect(change.total_amount_available).toBe(800)
     done();
   });
 
@@ -892,7 +999,14 @@ describe('send tx (custom tokens)', () => {
     expect(tx.success).toBe(true);
     expect(tx.hash).toBeDefined();
 
-    // All 2000 TKA are now on Wallet2
+    const balance2tka = await wallet2.getBalance(tokenA.uid);
+    expect(balance2tka.available).toBe(2000)
+
+    const destination = await wallet2.getAddressInfo(0, tokenA.uid);
+    expect(destination.total_amount_available).toBe(2000)
+
+    const balance1tka = await wallet1.getBalance(tokenA.uid);
+    expect(balance1tka.available).toBe(0)
     done();
   });
 
@@ -912,6 +1026,15 @@ describe('send tx (custom tokens)', () => {
 
     expect(tx.success).toBe(true);
     expect(tx.hash).toBeDefined();
+
+    await TestUtils.pauseForWsUpdate();
+
+    const destination = await wallet1.getAddressInfo(0, tokenA.uid);
+    expect(destination.total_amount_available).toBe(2000)
+
+    const balance2tka = await wallet2.getBalance(tokenA.uid);
+    expect(balance2tka.available).toBe(0)
+
     done();
   });
 
@@ -972,6 +1095,14 @@ describe('send tx (custom tokens)', () => {
 
     expect(consolidateTx.success).toBe(true);
     expect(consolidateTx.hash).toBeDefined();
+
+    await TestUtils.pauseForWsUpdate();
+
+    const destination3 = await wallet1.getAddressInfo(3, tokenA.uid)
+    const destination4 = await wallet1.getAddressInfo(4, tokenA.uid)
+    expect(destination3.total_amount_available).toBe(1600)
+    expect(destination4.total_amount_available).toBe(400)
+
     done();
   });
 
@@ -1004,6 +1135,14 @@ describe('send tx (custom tokens)', () => {
 
     expect(tx.success).toBe(true);
     expect(tx.hash).toBeDefined();
+
+    await TestUtils.pauseForWsUpdate();
+
+    const destination7 = await wallet3.getAddressInfo(7, tokenB.uid)
+    const destination8 = await wallet3.getAddressInfo(8)
+    expect(destination7.total_amount_available).toBe(1000)
+    expect(destination8.total_amount_available).toBe(990)
+
     done();
   });
 });

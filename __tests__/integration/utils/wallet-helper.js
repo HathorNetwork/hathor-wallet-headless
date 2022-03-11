@@ -339,6 +339,7 @@ export class WalletHelper {
     if (!transaction.success) {
       const txError = new Error(transaction.message);
       txError.innerError = response;
+      txError.sendOptions = sendOptions;
       throw txError;
     }
 

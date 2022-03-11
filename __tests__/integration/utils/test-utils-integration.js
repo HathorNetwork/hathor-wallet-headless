@@ -317,6 +317,45 @@ export class TestUtils {
     return null;
   }
 
+  /**
+   * A helper method for fetching the change output. Only useful when the transaction has exactly
+   * two HTR outputs: one for the destination and one for the change address
+   * @param {unknown} transaction Transaction as received in the response.body
+   * @param {number} txValue Tx value
+   * @returns {{change: {index: number, value: number}, destination: {index: number, value: number}}|null}
+   */
+  static getOutputSummaryHtr(transaction, txValue) {
+    const returnValue = {
+      destination: { index: null, value: txValue },
+      change: { index: null, value: null }
+    }
+
+    if (!transaction.outputs?.length) {
+      return null
+    }
+
+    for (const index in transaction.outputs) {
+      const output = transaction.outputs[index];
+
+      // Skipping all that outputs not involving HTR
+      if (output.token_data !== 0) {
+        continue;
+      }
+
+      // If the value is txValue, we assume this is the destination
+      if (output.value === txValue) {
+        returnValue.destination.index = index;
+        continue;
+      }
+
+      // Any other value, we assume it's the change
+      returnValue.change.index = index
+      returnValue.change.value = output.value
+    }
+
+    return returnValue;
+  }
+
   static async getTxHistory(walletId) {
     const response = await TestUtils.request
       .get('/wallet/tx-history')
