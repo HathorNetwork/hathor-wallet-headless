@@ -1106,8 +1106,9 @@ describe('send tx (custom tokens)', () => {
     done();
   });
 
+  let tkbTx1 = null;
   it('should send a multi-input, multi token transaction', async done => {
-    const tx = await wallet3.sendTx({
+    tkbTx1 = await wallet3.sendTx({
       fullObject: {
         inputs: [
           {
@@ -1133,8 +1134,8 @@ describe('send tx (custom tokens)', () => {
       }
     });
 
-    expect(tx.success).toBe(true);
-    expect(tx.hash).toBeDefined();
+    expect(tkbTx1.success).toBe(true);
+    expect(tkbTx1.hash).toBeDefined();
 
     await TestUtils.pauseForWsUpdate();
 
@@ -1142,6 +1143,121 @@ describe('send tx (custom tokens)', () => {
     const destination8 = await wallet3.getAddressInfo(8)
     expect(destination7.total_amount_available).toBe(1000)
     expect(destination8.total_amount_available).toBe(990)
+
+    done();
+  });
+
+  it('should send a multi-input/token transaction with change address', async done => {
+    const outputIndexTKB = TestUtils.getOutputIndexFromTx(tkbTx1, 1000)
+
+    /* We need to have a deep understanding of the wallet and transaction in order to validate
+     * its results. First, let's build a "summary" object to help identify the main data here
+     * */
+    const txOutputSummary = {
+      htr: {
+        address: await wallet3.getAddressAt(11),
+        value: 200,
+        index: null,
+        change: null,
+        changeAddress: null,
+        changeIndex: null
+      },
+      tkb: {
+        address: await wallet3.getAddressAt(10),
+        value: 650,
+        index: null,
+        change: null,
+        changeIndex: null,
+        changeAddress: null
+      }
+    }
+
+    const nextEmptyAddress = await wallet3.getNextAddress();
+
+    // One manual UXTO with 1000 TKB, and automatic UTXO's for HTR
+    const tx = await wallet3.sendTx({
+      fullObject: {
+        inputs: [
+          {
+            hash: tkbTx1.hash,
+            index: outputIndexTKB, // Input for token B
+          },
+        ],
+        outputs: [
+          {
+            address: txOutputSummary.tkb.address,
+            value: txOutputSummary.tkb.value,
+            token: tokenB.uid
+          },
+          {
+            address: txOutputSummary.htr.address,
+            value: txOutputSummary.htr.value
+          }
+        ],
+      }
+    });
+
+    // Basic validation of success
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
+
+    // Obtaining the fully decoded transaction above from the http endpoint
+    const decodedTx = await TestUtils.getDecodedTransaction(tx.hash, wallet3.walletId);
+
+    // Analyzing the decoded output data to identify addresses and values
+    for (let index in decodedTx.outputs) {
+      const output = decodedTx.outputs[index];
+
+      // If token_data === 0 , this is a HTR output
+      if (output.token_data === 0) {
+        if (output.value === txOutputSummary.htr.value) {
+          txOutputSummary.htr.index = index
+        } else {
+          txOutputSummary.htr.changeIndex = index
+          txOutputSummary.htr.change = output.value
+          txOutputSummary.htr.changeAddress = output.decoded.address
+        }
+      }
+
+      // If token_data === 1, this is a custom toke (TKB) output
+      else if (output.token_data === 1) {
+        if (output.value === txOutputSummary.tkb.value) {
+          txOutputSummary.tkb.index = index
+        } else {
+          txOutputSummary.tkb.changeIndex = index
+          txOutputSummary.tkb.change = output.value
+          txOutputSummary.tkb.changeAddress = output.decoded.address
+        }
+      }
+    }
+
+    await TestUtils.pauseForWsUpdate();
+
+    // Validating all the outputs' balances
+    const destination10 = await wallet3.getAddressInfo(10, tokenB.uid)
+    const destination11 = await wallet3.getAddressInfo(11)
+    const changeHtr = await TestUtils.getAddressInfo(txOutputSummary.htr.changeAddress, wallet3.walletId)
+    const changeTkb = await TestUtils.getAddressInfo(txOutputSummary.tkb.changeAddress, wallet3.walletId, tokenB.uid)
+    expect(destination10.total_amount_available).toBe(txOutputSummary.tkb.value)
+    expect(destination11.total_amount_available).toBe(txOutputSummary.htr.value)
+    expect(changeHtr.total_amount_available).toBe(txOutputSummary.htr.change)
+    expect(changeTkb.total_amount_available).toBe(txOutputSummary.tkb.change)
+
+    // Validating that the change addresses are not the same
+    expect(txOutputSummary.htr.changeAddress === txOutputSummary.tkb.changeAddress).toBe(false)
+
+    // One of these addresses is actually the nextEmptyAddress
+    expect((txOutputSummary.htr.changeAddress === nextEmptyAddress) ||
+           (txOutputSummary.tkb.changeAddress === nextEmptyAddress)).toBe(true)
+
+    // Both these addresses have adjacent indexes: the empty addresses are consumed sequentially
+    const htrChangeIndex = await TestUtils.getAddressIndex(wallet3.walletId,
+      txOutputSummary.htr.changeAddress);
+    const tkbChangeIndex = await TestUtils.getAddressIndex(wallet3.walletId,
+      txOutputSummary.tkb.changeAddress);
+
+    // Note: this test result may change if the addresses are consumed in a non-linear order
+    expect(Math.abs(htrChangeIndex - tkbChangeIndex)).toBe(1);
 
     done();
   });

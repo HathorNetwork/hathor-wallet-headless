@@ -201,6 +201,21 @@ export class TestUtils {
   }
 
   /**
+   * Retrieves the Address Index on the Wallet
+   * @param {string} walletId Wallet identification
+   * @param {string} address Address to find the index
+   * @returns {Promise<number>}
+   */
+  static async getAddressIndex(walletId, address) {
+    const response = await TestUtils.request
+      .get('/wallet/address-index')
+      .query({ address })
+      .set(TestUtils.generateHeader(walletId));
+
+    return response.body.index;
+  }
+
+  /**
    * Retrieves address information based on the address index inside the wallet.
    * This is very close to the tests on `address-info.test.js` and as such should reflect any
    * changes that are made to the calls there.
@@ -373,6 +388,25 @@ export class TestUtils {
     const response = await TestUtils.request
       .get('/wallet/balance')
       .query(queryParams)
+      .set(TestUtils.generateHeader(walletId));
+
+    return response.body;
+  }
+
+  /**
+   * Returns a fully decoded transaction to allow for more complete data analysis.
+   * This is done through an HTTP request on the Wallet Headless, in behalf of a started wallet id.
+   *
+   * @param {string} txHash Transaction id
+   * @param {string} walletId Mandatory wallet id for requesting the Wallet Headless
+   * @returns {Promise<*>}
+   */
+  static async getDecodedTransaction(txHash, walletId) {
+    const response = await TestUtils.request
+      .get('/wallet/transaction')
+      .query({
+        id: txHash
+      })
       .set(TestUtils.generateHeader(walletId));
 
     return response.body;
