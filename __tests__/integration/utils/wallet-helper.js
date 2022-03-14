@@ -132,7 +132,7 @@ export class WalletHelper {
         walletId: this.#walletId,
         words: this.#words,
       },
-      { waitForValidation: true }
+      { waitWalletReady: true }
     );
     this.#started = true;
 

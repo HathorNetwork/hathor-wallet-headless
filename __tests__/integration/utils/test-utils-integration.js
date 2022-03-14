@@ -126,7 +126,7 @@ export class TestUtils {
    * Starts a wallet. Prefer instantiating a WalletHelper instead.
    * @param {WalletData} walletObj
    * @param [options]
-   * @param {boolean} [options.waitForValidation] If true, will only return when wallet is ready
+   * @param {boolean} [options.waitWalletReady] If true, will only return when wallet is ready
    * @returns {Promise<{start:unknown,status:unknown}>}
    */
   static async startWallet(walletObj, options = {}) {
@@ -146,7 +146,7 @@ export class TestUtils {
     const start = response.body;
 
     // Wait until the wallet is actually started
-    if (options.waitForValidation) {
+    if (options.waitWalletReady) {
       while (true) {
         const walletReady = await TestUtils.isWalletReady(walletObj.walletId);
         if (walletReady) {
@@ -336,15 +336,15 @@ export class TestUtils {
    * A helper method for fetching the change output. Only useful when the transaction has exactly
    * two HTR outputs: one for the destination and one for the change address
    * @param {unknown} transaction Transaction as received in the response.body
-   * @param {number} txValue Tx value
+   * @param {number} destinationValue Value transferred to the destination
    * @returns {{
    * change: {index: number, value: number},
    * destination: {index: number, value: number}
    * }|null}
    */
-  static getOutputSummaryHtr(transaction, txValue) {
+  static getOutputSummaryHtr(transaction, destinationValue) {
     const returnValue = {
-      destination: { index: null, value: txValue },
+      destination: { index: null, value: destinationValue },
       change: { index: null, value: null }
     };
 
@@ -360,8 +360,8 @@ export class TestUtils {
         continue;
       }
 
-      // If the value is txValue, we assume this is the destination
-      if (output.value === txValue) {
+      // If the value is destinationValue, we assume this is the destination
+      if (output.value === destinationValue) {
         returnValue.destination.index = index;
         continue;
       }
