@@ -53,7 +53,7 @@ describe('simple-send-tx (HTR)', () => {
 
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
-    expect(response.text).toContain('value')
+    expect(response.text).toContain('value');
 
     done();
   });
@@ -106,7 +106,7 @@ describe('simple-send-tx (HTR)', () => {
     const transaction = response.body;
     expect(transaction.success).toBe(false);
     const errorElement = transaction.error[0];
-    expect(errorElement).toHaveProperty('param','change_address');
+    expect(errorElement).toHaveProperty('param', 'change_address');
     expect(errorElement.msg).toContain('Invalid');
 
     done();
@@ -174,7 +174,7 @@ describe('simple-send-tx (HTR)', () => {
     await TestUtils.pauseForWsUpdate();
 
     // The wallet1 started with 1000, transferred 400 to wallet2. Change should be 600
-    const addr5 = await wallet1.getAddressInfo(5)
+    const addr5 = await wallet1.getAddressInfo(5);
     expect(addr5.total_amount_received).toBe(600);
 
     const addr0 = await wallet2.getAddressInfo(0);
@@ -208,7 +208,6 @@ describe('simple-send-tx (custom token)', () => {
         doNotWait: true,
       });
       tokenData.uid = tokenResponse.hash;
-
     } catch (err) {
       TestUtils.logError(err.stack);
     }
@@ -250,7 +249,7 @@ describe('simple-send-tx (custom token)', () => {
 
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
-    expect(response.text).toContain('value')
+    expect(response.text).toContain('value');
 
     done();
   });
@@ -344,7 +343,7 @@ describe('simple-send-tx (custom token)', () => {
     expect(addr0.total_amount_available).toBe(300);
 
     const balance3 = await wallet3.getBalance(tokenData.uid);
-    expect(balance3.available).toBe(700)
+    expect(balance3.available).toBe(700);
 
     done();
   });
@@ -374,7 +373,7 @@ describe('simple-send-tx (custom token)', () => {
     expect(addr5.total_amount_received).toBe(400);
 
     const addr0 = await wallet4.getAddressInfo(0, tokenData.uid);
-    expect(addr0.total_amount_available).toBe(600)
+    expect(addr0.total_amount_available).toBe(600);
 
     done();
   });

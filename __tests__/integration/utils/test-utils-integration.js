@@ -81,7 +81,7 @@ export class TestUtils {
    * @returns {Promise<void>}
    */
   static async pauseForWsUpdate() {
-    await TestUtils.delay(1000)
+    await TestUtils.delay(1000);
   }
 
   /**
@@ -228,11 +228,11 @@ export class TestUtils {
    * total_amount_locked: (number), total_amount_available: (number)
    * }>}
    */
-  static async getAddressInfo(address, walletId , token) {
+  static async getAddressInfo(address, walletId, token) {
     const response = await TestUtils.request
       .get('/wallet/address-info')
       .query({
-        address: address,
+        address,
         token
       })
       .set(TestUtils.generateHeader(walletId));
@@ -326,7 +326,7 @@ export class TestUtils {
       if (transaction.outputs[index].value !== value) {
         continue;
       }
-      return parseInt(index);
+      return parseInt(index, 10);
     }
 
     return null;
@@ -337,16 +337,19 @@ export class TestUtils {
    * two HTR outputs: one for the destination and one for the change address
    * @param {unknown} transaction Transaction as received in the response.body
    * @param {number} txValue Tx value
-   * @returns {{change: {index: number, value: number}, destination: {index: number, value: number}}|null}
+   * @returns {{
+   * change: {index: number, value: number},
+   * destination: {index: number, value: number}
+   * }|null}
    */
   static getOutputSummaryHtr(transaction, txValue) {
     const returnValue = {
       destination: { index: null, value: txValue },
       change: { index: null, value: null }
-    }
+    };
 
     if (!transaction.outputs?.length) {
-      return null
+      return null;
     }
 
     for (const index in transaction.outputs) {
@@ -364,8 +367,8 @@ export class TestUtils {
       }
 
       // Any other value, we assume it's the change
-      returnValue.change.index = index
-      returnValue.change.value = output.value
+      returnValue.change.index = index;
+      returnValue.change.value = output.value;
     }
 
     return returnValue;
@@ -382,7 +385,7 @@ export class TestUtils {
   static async getBalance(walletId, tokenUid) {
     const queryParams = {};
     if (tokenUid) {
-      queryParams.token = tokenUid
+      queryParams.token = tokenUid;
     }
 
     const response = await TestUtils.request

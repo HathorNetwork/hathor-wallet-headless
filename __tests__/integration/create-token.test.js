@@ -219,7 +219,7 @@ describe('create token', () => {
     expect(transaction.success).toBe(true);
 
     // The only output with token_data equals zero is the one containing the HTR change
-    const htrOutputIndex = transaction.outputs.findIndex(o => o.token_data === 0)
+    const htrOutputIndex = transaction.outputs.findIndex(o => o.token_data === 0);
     const htrChange = transaction.outputs[htrOutputIndex].value;
 
     await TestUtils.pauseForWsUpdate();
@@ -245,14 +245,14 @@ describe('create token', () => {
     expect(transaction.success).toBe(true);
 
     // The only output with token_data equals zero is the one containing the HTR change
-    const htrOutputIndex = transaction.outputs.findIndex(o => o.token_data === 0)
+    const htrOutputIndex = transaction.outputs.findIndex(o => o.token_data === 0);
     const htrChange = transaction.outputs[htrOutputIndex].value;
 
     await TestUtils.pauseForWsUpdate();
 
     const addr4 = await wallet2.getAddressInfo(4);
     expect(addr4.total_amount_received).toBe(htrChange);
-    const addr4C = await wallet2.getAddressInfo(4, transaction.hash)
+    const addr4C = await wallet2.getAddressInfo(4, transaction.hash);
     expect(addr4C.total_amount_available).toBe(200);
     done();
   });

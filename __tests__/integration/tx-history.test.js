@@ -36,7 +36,6 @@ describe('tx-history routes', () => {
       }
 
       await TestUtils.pauseForWsUpdate();
-
     } catch (err) {
       TestUtils.logError(err.stack);
     }

@@ -132,7 +132,8 @@ export class WalletHelper {
         walletId: this.#walletId,
         words: this.#words,
       },
-      { waitForValidation: true });
+      { waitForValidation: true }
+    );
     this.#started = true;
 
     // Populating some addressess for this wallet
@@ -185,7 +186,7 @@ export class WalletHelper {
    * @returns {Promise<string>}
    */
   async getNextAddress() {
-    return TestUtils.getAddressAt(this.#walletId)
+    return TestUtils.getAddressAt(this.#walletId);
   }
 
   /**
@@ -358,10 +359,10 @@ export class WalletHelper {
   }
 
   async getTxHistory() {
-    return TestUtils.getTxHistory(this.#walletId)
+    return TestUtils.getTxHistory(this.#walletId);
   }
 
   async getBalance(tokenUid = null) {
-    return TestUtils.getBalance(this.#walletId, tokenUid)
+    return TestUtils.getBalance(this.#walletId, tokenUid);
   }
 }

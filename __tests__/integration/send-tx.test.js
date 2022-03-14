@@ -362,8 +362,8 @@ describe('send tx (HTR)', () => {
       .set({ 'x-wallet-id': wallet1.walletId });
 
     expect(response.status).toBe(400);
-    expect(response.text).toContain('Invalid')
-    expect(response.text).toContain('input')
+    expect(response.text).toContain('Invalid');
+    expect(response.text).toContain('input');
     done();
   });
 
@@ -384,7 +384,7 @@ describe('send tx (HTR)', () => {
 
     await TestUtils.pauseForWsUpdate();
 
-    const destination0 = await wallet2.getAddressInfo(0)
+    const destination0 = await wallet2.getAddressInfo(0);
     expect(destination0.total_amount_available).toBe(10);
 
     done();
@@ -406,10 +406,10 @@ describe('send tx (HTR)', () => {
 
     await TestUtils.pauseForWsUpdate();
 
-    const destination = await wallet2.getAddressInfo(0)
+    const destination = await wallet2.getAddressInfo(0);
     expect(destination.total_amount_available).toBe(20);
 
-    const changeAddr = await wallet1.getAddressInfo(0)
+    const changeAddr = await wallet1.getAddressInfo(0);
     const txSummary = TestUtils.getOutputSummaryHtr(tx, 10);
     expect(changeAddr.total_amount_available).toBe(txSummary.change.value);
 
@@ -417,10 +417,10 @@ describe('send tx (HTR)', () => {
   });
 
   it('should send with only the filterAddress', async done => {
-    const inputAddrBefore = await wallet2.getAddressInfo(0)
-    const destinationAddrBefore = await wallet1.getAddressInfo(0)
-    const sourceBeforeTx = inputAddrBefore.total_amount_available
-    const destinationBeforeTx = destinationAddrBefore.total_amount_available
+    const inputAddrBefore = await wallet2.getAddressInfo(0);
+    const destinationAddrBefore = await wallet1.getAddressInfo(0);
+    const sourceBeforeTx = inputAddrBefore.total_amount_available;
+    const destinationBeforeTx = destinationAddrBefore.total_amount_available;
 
     const tx = await wallet2.sendTx({
       fullObject: {
@@ -440,17 +440,17 @@ describe('send tx (HTR)', () => {
 
     await TestUtils.pauseForWsUpdate();
 
-    const inputAddrAfter = await wallet2.getAddressInfo(0)
-    const destinationAddrAfter = await wallet1.getAddressInfo(0)
-    expect(inputAddrAfter.total_amount_available).toBe(sourceBeforeTx - 20)
-    expect(destinationAddrAfter.total_amount_available).toBe(destinationBeforeTx + 20)
+    const inputAddrAfter = await wallet2.getAddressInfo(0);
+    const destinationAddrAfter = await wallet1.getAddressInfo(0);
+    expect(inputAddrAfter.total_amount_available).toBe(sourceBeforeTx - 20);
+    expect(destinationAddrAfter.total_amount_available).toBe(destinationBeforeTx + 20);
 
     done();
   });
 
   it('should send with two outputs', async done => {
-    const destination1Before = await wallet2.getAddressInfo(1)
-    const destination2Before = await wallet1.getAddressInfo(2)
+    const destination1Before = await wallet2.getAddressInfo(1);
+    const destination2Before = await wallet1.getAddressInfo(2);
 
     const tx = await wallet1.sendTx({
       fullObject: {
@@ -472,8 +472,8 @@ describe('send tx (HTR)', () => {
 
     await TestUtils.pauseForWsUpdate();
 
-    const destination1After = await wallet2.getAddressInfo(1)
-    const destination2After = await wallet2.getAddressInfo(2)
+    const destination1After = await wallet2.getAddressInfo(1);
+    const destination2After = await wallet2.getAddressInfo(2);
     expect(destination1After.total_amount_available)
       .toBe(destination1Before.total_amount_available + 20);
     expect(destination2After.total_amount_available)
@@ -516,7 +516,7 @@ describe('send tx (HTR)', () => {
   it('should send with correct input', async done => {
     // Injecting 2000 HTR on wallet2[3], to ensure the funds would not be available otherwise
     const fundTxObj = await wallet2.injectFunds(2000, 3);
-    const fundTx2 = {
+    const fundTxInput = {
       hash: fundTxObj.hash,
       index: TestUtils.getOutputIndexFromTx(fundTxObj, 2000)
     };
@@ -526,7 +526,7 @@ describe('send tx (HTR)', () => {
 
     const tx = await wallet2.sendTx({
       fullObject: {
-        inputs: [fundTx2],
+        inputs: [fundTxInput],
         outputs: [{
           address: await wallet1.getAddressAt(4),
           value: 1100
@@ -608,7 +608,8 @@ describe('send tx (HTR)', () => {
     done();
   });
 
-  it('should confirm that, if not informed, the change address is the next empty one',
+  it(
+    'should confirm that, if not informed, the change address is the next empty one',
     async done => {
       const nextAddressHash = await wallet1.getNextAddress();
 
@@ -628,7 +629,8 @@ describe('send tx (HTR)', () => {
       expect(changeAddr.total_amount_available).toBe(txSummary.change.value);
 
       done();
-    });
+    }
+  );
 });
 
 describe('send tx (custom tokens)', () => {
@@ -965,15 +967,15 @@ describe('send tx (custom tokens)', () => {
 
     // Checking wallet balances
     const balance2tka = await wallet2.getBalance(tokenA.uid);
-    expect(balance2tka.available).toBe(200)
+    expect(balance2tka.available).toBe(200);
     const balance1tka = await wallet1.getBalance(tokenA.uid);
-    expect(balance1tka.available).toBe(1800)
+    expect(balance1tka.available).toBe(1800);
 
     // Checking specific addresses balances
     const destination = await wallet2.getAddressInfo(0, tokenA.uid);
-    expect(destination.total_amount_available).toBe(200)
+    expect(destination.total_amount_available).toBe(200);
     const change = await wallet1.getAddressInfo(0, tokenA.uid);
-    expect(change.total_amount_available).toBe(800)
+    expect(change.total_amount_available).toBe(800);
     done();
   });
 
@@ -1000,13 +1002,13 @@ describe('send tx (custom tokens)', () => {
     expect(tx.hash).toBeDefined();
 
     const balance2tka = await wallet2.getBalance(tokenA.uid);
-    expect(balance2tka.available).toBe(2000)
+    expect(balance2tka.available).toBe(2000);
 
     const destination = await wallet2.getAddressInfo(0, tokenA.uid);
-    expect(destination.total_amount_available).toBe(2000)
+    expect(destination.total_amount_available).toBe(2000);
 
     const balance1tka = await wallet1.getBalance(tokenA.uid);
-    expect(balance1tka.available).toBe(0)
+    expect(balance1tka.available).toBe(0);
     done();
   });
 
@@ -1030,10 +1032,10 @@ describe('send tx (custom tokens)', () => {
     await TestUtils.pauseForWsUpdate();
 
     const destination = await wallet1.getAddressInfo(0, tokenA.uid);
-    expect(destination.total_amount_available).toBe(2000)
+    expect(destination.total_amount_available).toBe(2000);
 
     const balance2tka = await wallet2.getBalance(tokenA.uid);
-    expect(balance2tka.available).toBe(0)
+    expect(balance2tka.available).toBe(0);
 
     done();
   });
@@ -1098,10 +1100,10 @@ describe('send tx (custom tokens)', () => {
 
     await TestUtils.pauseForWsUpdate();
 
-    const destination3 = await wallet1.getAddressInfo(3, tokenA.uid)
-    const destination4 = await wallet1.getAddressInfo(4, tokenA.uid)
-    expect(destination3.total_amount_available).toBe(1600)
-    expect(destination4.total_amount_available).toBe(400)
+    const destination3 = await wallet1.getAddressInfo(3, tokenA.uid);
+    const destination4 = await wallet1.getAddressInfo(4, tokenA.uid);
+    expect(destination3.total_amount_available).toBe(1600);
+    expect(destination4.total_amount_available).toBe(400);
 
     done();
   });
@@ -1139,16 +1141,16 @@ describe('send tx (custom tokens)', () => {
 
     await TestUtils.pauseForWsUpdate();
 
-    const destination7 = await wallet3.getAddressInfo(7, tokenB.uid)
-    const destination8 = await wallet3.getAddressInfo(8)
-    expect(destination7.total_amount_available).toBe(1000)
-    expect(destination8.total_amount_available).toBe(990)
+    const destination7 = await wallet3.getAddressInfo(7, tokenB.uid);
+    const destination8 = await wallet3.getAddressInfo(8);
+    expect(destination7.total_amount_available).toBe(1000);
+    expect(destination8.total_amount_available).toBe(990);
 
     done();
   });
 
   it('should send a multi-input/token transaction with change address', async done => {
-    const outputIndexTKB = TestUtils.getOutputIndexFromTx(tkbTx1, 1000)
+    const outputIndexTKB = TestUtils.getOutputIndexFromTx(tkbTx1, 1000);
 
     /* We need to have a deep understanding of the wallet and transaction in order to validate
      * its results. First, let's build a "summary" object to help identify the main data here
@@ -1170,7 +1172,7 @@ describe('send tx (custom tokens)', () => {
         changeIndex: null,
         changeAddress: null
       }
-    }
+    };
 
     const nextEmptyAddress = await wallet3.getNextAddress();
 
@@ -1205,28 +1207,26 @@ describe('send tx (custom tokens)', () => {
     const decodedTx = await TestUtils.getDecodedTransaction(tx.hash, wallet3.walletId);
 
     // Analyzing the decoded output data to identify addresses and values
-    for (let index in decodedTx.outputs) {
+    for (const index in decodedTx.outputs) {
       const output = decodedTx.outputs[index];
 
-      // If token_data === 0 , this is a HTR output
       if (output.token_data === 0) {
+        // If token_data === 0 , this is a HTR output
         if (output.value === txOutputSummary.htr.value) {
-          txOutputSummary.htr.index = index
+          txOutputSummary.htr.index = index;
         } else {
-          txOutputSummary.htr.changeIndex = index
-          txOutputSummary.htr.change = output.value
-          txOutputSummary.htr.changeAddress = output.decoded.address
+          txOutputSummary.htr.changeIndex = index;
+          txOutputSummary.htr.change = output.value;
+          txOutputSummary.htr.changeAddress = output.decoded.address;
         }
-      }
-
-      // If token_data === 1, this is a custom toke (TKB) output
-      else if (output.token_data === 1) {
+      } else if (output.token_data === 1) {
+        // If token_data === 1, this is a custom token (TKB) output
         if (output.value === txOutputSummary.tkb.value) {
-          txOutputSummary.tkb.index = index
+          txOutputSummary.tkb.index = index;
         } else {
-          txOutputSummary.tkb.changeIndex = index
-          txOutputSummary.tkb.change = output.value
-          txOutputSummary.tkb.changeAddress = output.decoded.address
+          txOutputSummary.tkb.changeIndex = index;
+          txOutputSummary.tkb.change = output.value;
+          txOutputSummary.tkb.changeAddress = output.decoded.address;
         }
       }
     }
@@ -1234,27 +1234,38 @@ describe('send tx (custom tokens)', () => {
     await TestUtils.pauseForWsUpdate();
 
     // Validating all the outputs' balances
-    const destination10 = await wallet3.getAddressInfo(10, tokenB.uid)
-    const destination11 = await wallet3.getAddressInfo(11)
-    const changeHtr = await TestUtils.getAddressInfo(txOutputSummary.htr.changeAddress, wallet3.walletId)
-    const changeTkb = await TestUtils.getAddressInfo(txOutputSummary.tkb.changeAddress, wallet3.walletId, tokenB.uid)
-    expect(destination10.total_amount_available).toBe(txOutputSummary.tkb.value)
-    expect(destination11.total_amount_available).toBe(txOutputSummary.htr.value)
-    expect(changeHtr.total_amount_available).toBe(txOutputSummary.htr.change)
-    expect(changeTkb.total_amount_available).toBe(txOutputSummary.tkb.change)
+    const destination10 = await wallet3.getAddressInfo(10, tokenB.uid);
+    const destination11 = await wallet3.getAddressInfo(11);
+    const changeHtr = await TestUtils.getAddressInfo(
+      txOutputSummary.htr.changeAddress,
+      wallet3.walletId
+    );
+    const changeTkb = await TestUtils.getAddressInfo(
+      txOutputSummary.tkb.changeAddress,
+      wallet3.walletId,
+      tokenB.uid
+    );
+    expect(destination10.total_amount_available).toBe(txOutputSummary.tkb.value);
+    expect(destination11.total_amount_available).toBe(txOutputSummary.htr.value);
+    expect(changeHtr.total_amount_available).toBe(txOutputSummary.htr.change);
+    expect(changeTkb.total_amount_available).toBe(txOutputSummary.tkb.change);
 
     // Validating that the change addresses are not the same
-    expect(txOutputSummary.htr.changeAddress === txOutputSummary.tkb.changeAddress).toBe(false)
+    expect(txOutputSummary.htr.changeAddress === txOutputSummary.tkb.changeAddress).toBe(false);
 
     // One of these addresses is actually the nextEmptyAddress
-    expect((txOutputSummary.htr.changeAddress === nextEmptyAddress) ||
-           (txOutputSummary.tkb.changeAddress === nextEmptyAddress)).toBe(true)
+    expect((txOutputSummary.htr.changeAddress === nextEmptyAddress)
+           || (txOutputSummary.tkb.changeAddress === nextEmptyAddress)).toBe(true);
 
     // Both these addresses have adjacent indexes: the empty addresses are consumed sequentially
-    const htrChangeIndex = await TestUtils.getAddressIndex(wallet3.walletId,
-      txOutputSummary.htr.changeAddress);
-    const tkbChangeIndex = await TestUtils.getAddressIndex(wallet3.walletId,
-      txOutputSummary.tkb.changeAddress);
+    const htrChangeIndex = await TestUtils.getAddressIndex(
+      wallet3.walletId,
+      txOutputSummary.htr.changeAddress
+    );
+    const tkbChangeIndex = await TestUtils.getAddressIndex(
+      wallet3.walletId,
+      txOutputSummary.tkb.changeAddress
+    );
 
     // Note: this test result may change if the addresses are consumed in a non-linear order
     expect(Math.abs(htrChangeIndex - tkbChangeIndex)).toBe(1);

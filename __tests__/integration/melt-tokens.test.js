@@ -203,13 +203,13 @@ describe('melt tokens', () => {
 
     const addr3htr = await wallet1.getAddressInfo(3);
     const addr3tka = await wallet1.getAddressInfo(3, tokenA.uid);
-    expect(addr3htr.total_amount_available).toBe(3)
-    expect(addr3tka.total_amount_available).toBe(0)
+    expect(addr3htr.total_amount_available).toBe(3);
+    expect(addr3tka.total_amount_available).toBe(0);
 
     const addr4htr = await wallet1.getAddressInfo(4);
     const addr4tka = await wallet1.getAddressInfo(4, tokenA.uid);
-    expect(addr4htr.total_amount_available).toBe(0)
-    expect(addr4tka.total_amount_available).toBe(500)
+    expect(addr4htr.total_amount_available).toBe(0);
+    expect(addr4tka.total_amount_available).toBe(500);
 
     const balance1htr = await wallet1.getBalance();
     const balance1tka = await wallet1.getBalance(tokenA.uid);

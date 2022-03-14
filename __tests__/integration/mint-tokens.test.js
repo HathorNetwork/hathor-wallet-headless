@@ -165,7 +165,7 @@ describe('mint token', () => {
     await TestUtils.pauseForWsUpdate();
 
     const addr1 = await wallet1.getAddressInfo(1, tokenA.uid);
-    expect(addr1.total_amount_available).toBe(50)
+    expect(addr1.total_amount_available).toBe(50);
 
     done();
   });
@@ -182,19 +182,18 @@ describe('mint token', () => {
 
     const transaction = response.body;
     expect(transaction.success).toBe(true);
-    const htrOutputIndex = transaction.outputs.findIndex(o => o.token_data === 0)
-    const htrChange = transaction.outputs[htrOutputIndex].value
+    const htrOutputIndex = transaction.outputs.findIndex(o => o.token_data === 0);
+    const htrChange = transaction.outputs[htrOutputIndex].value;
 
     await TestUtils.pauseForWsUpdate();
 
     const addr10 = await wallet1.getAddressInfo(10);
     expect(addr10.total_amount_received).toBe(htrChange);
 
-    const tkaBalance = await wallet1.getBalance(tokenA.uid)
-    expect(tkaBalance.available).toBe(500 + 50 + 60)
+    const tkaBalance = await wallet1.getBalance(tokenA.uid);
+    expect(tkaBalance.available).toBe(500 + 50 + 60);
     done();
   });
-
 
   it('should mint with only mandatory parameters', async done => {
     const destinationAddress = await wallet1.getNextAddress();
@@ -212,14 +211,17 @@ describe('mint token', () => {
 
     await TestUtils.pauseForWsUpdate();
 
-    const addrNew = await TestUtils.getAddressInfo(destinationAddress, wallet1.walletId, tokenA.uid);
-    expect(addrNew.total_amount_available).toBe(70)
+    const addrNew = await TestUtils.getAddressInfo(
+      destinationAddress,
+      wallet1.walletId,
+      tokenA.uid
+    );
+    expect(addrNew.total_amount_available).toBe(70);
 
-    const tkaBalance = await wallet1.getBalance(tokenA.uid)
-    expect(tkaBalance.available).toBe(500 + 50 + 60 + 70)
+    const tkaBalance = await wallet1.getBalance(tokenA.uid);
+    expect(tkaBalance.available).toBe(500 + 50 + 60 + 70);
     done();
   });
-
 
   it('should mint with all parameters', async done => {
     // By default, will mint tokens into the next unused address
@@ -233,18 +235,18 @@ describe('mint token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    const transaction = response.body
+    const transaction = response.body;
     expect(transaction.success).toBe(true);
-    const htrOutputIndex = transaction.outputs.findIndex(o => o.token_data === 0)
-    const htrChange = transaction.outputs[htrOutputIndex].value
+    const htrOutputIndex = transaction.outputs.findIndex(o => o.token_data === 0);
+    const htrChange = transaction.outputs[htrOutputIndex].value;
 
     await TestUtils.pauseForWsUpdate();
 
-    const addr15 = await wallet1.getAddressInfo(15, tokenA.uid)
-    expect(addr15.total_amount_available).toBe(80)
+    const addr15 = await wallet1.getAddressInfo(15, tokenA.uid);
+    expect(addr15.total_amount_available).toBe(80);
 
-    const addr14 = await wallet1.getAddressInfo(14)
-    expect(addr14.total_amount_available).toBe(htrChange)
+    const addr14 = await wallet1.getAddressInfo(14);
+    expect(addr14.total_amount_available).toBe(htrChange);
     done();
   });
 });
