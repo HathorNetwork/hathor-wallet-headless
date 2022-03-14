@@ -637,6 +637,8 @@ describe('send tx (custom tokens)', () => {
   let wallet1; // Auto-input funds
   let wallet2; // Destination
   let wallet3; // More than one token in the same transaction
+  let wallet4; // Tests using token key inside output
+  let wallet5;
 
   const tokenA = {
     name: 'Token A',
@@ -646,6 +648,9 @@ describe('send tx (custom tokens)', () => {
   const tokenB = {
     name: 'Token B',
     symbol: 'TKB',
+    uid: null
+  };
+  const tokenWallet4 = {
     uid: null
   };
 
@@ -663,8 +668,10 @@ describe('send tx (custom tokens)', () => {
     wallet1 = new WalletHelper('custom-tx-1');
     wallet2 = new WalletHelper('custom-tx-2');
     wallet3 = new WalletHelper('custom-tx-3');
+    wallet4 = new WalletHelper('custom-tx-4');
+    wallet5 = new WalletHelper('custom-tx-5');
 
-    await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3]);
+    await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3, wallet4, wallet5]);
 
     // Funds for single input/output tests - 1000 HTR + 2000 custom A
     await wallet1.injectFunds(1020, 0);
@@ -712,6 +719,8 @@ describe('send tx (custom tokens)', () => {
     await wallet1.stop();
     await wallet2.stop();
     await wallet3.stop();
+    await wallet4.stop();
+    await wallet5.stop();
   });
 
   // Starting with all the rejection tests, that do not have side-effects
@@ -941,7 +950,7 @@ describe('send tx (custom tokens)', () => {
     hash: null,
     index: null
   }; // Change that will remain on wallet1
-  it('should send a custom token with a single input', async done => {
+  it('should send a custom token with a single input (deprecated token api)', async done => {
     const sendOptions = {
       inputs: [{
         hash: tkaTx1.hash,
@@ -979,6 +988,55 @@ describe('send tx (custom tokens)', () => {
     done();
   });
 
+  it('should send a custom token with a single input', async done => {
+    await wallet4.injectFunds(10);
+    const w4TokenTx = await wallet4.createToken({
+      address: await wallet4.getAddressAt(0),
+      change_address: await wallet4.getAddressAt(0),
+      symbol: 'TKW4',
+      name: 'Token Wallet 4',
+      amount: 1000
+    });
+    const tk4OutputIndex = TestUtils.getOutputIndexFromTx(w4TokenTx, 1000);
+    tokenWallet4.uid = w4TokenTx.hash;
+
+    await TestUtils.pauseForWsUpdate();
+
+    const sendOptions = {
+      inputs: [{
+        hash: tokenWallet4.uid,
+        index: tk4OutputIndex
+      }],
+      outputs: [{
+        address: await wallet5.getAddressAt(0),
+        value: 200,
+        token: tokenWallet4.uid
+      }],
+      change_address: await wallet4.getAddressAt(0)
+    };
+    const tx = await wallet4.sendTx({
+      fullObject: sendOptions
+    });
+
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
+
+    await TestUtils.pauseForWsUpdate();
+
+    // Checking wallet balances
+    const balance5tka = await wallet5.getBalance(tokenWallet4.uid);
+    expect(balance5tka.available).toBe(200);
+    const balance4tka = await wallet4.getBalance(tokenWallet4.uid);
+    expect(balance4tka.available).toBe(800);
+
+    // Checking specific addresses balances
+    const destination = await wallet5.getAddressInfo(0, tokenWallet4.uid);
+    expect(destination.total_amount_available).toBe(200);
+    const change = await wallet4.getAddressInfo(0, tokenWallet4.uid);
+    expect(change.total_amount_available).toBe(800);
+    done();
+  });
+
   it('should send a custom token with multiple inputs', async done => {
     const sendOptions = {
       inputs: [
@@ -1012,7 +1070,7 @@ describe('send tx (custom tokens)', () => {
     done();
   });
 
-  it('should send a custom token', async done => {
+  it('should send a custom token (deprecated token api)', async done => {
     // Sending all TokenA back to wallet 1, address 0
     const sendOptions = {
       outputs: [{
@@ -1036,6 +1094,34 @@ describe('send tx (custom tokens)', () => {
 
     const balance2tka = await wallet2.getBalance(tokenA.uid);
     expect(balance2tka.available).toBe(0);
+
+    done();
+  });
+
+  it('should send a custom token', async done => {
+    // Sending all TokenA back to wallet 1, address 0
+    const sendOptions = {
+      outputs: [{
+        address: await wallet4.getAddressAt(0),
+        value: 200,
+        token: tokenWallet4.uid
+      }],
+    };
+
+    const tx = await wallet5.sendTx({
+      fullObject: sendOptions
+    });
+
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
+
+    await TestUtils.pauseForWsUpdate();
+
+    const destination = await wallet4.getAddressInfo(0, tokenWallet4.uid);
+    expect(destination.total_amount_available).toBe(1000);
+
+    const balance5tka = await wallet5.getBalance(tokenWallet4.uid);
+    expect(balance5tka.available).toBe(0);
 
     done();
   });
