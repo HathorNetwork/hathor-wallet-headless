@@ -56,6 +56,37 @@ describe('create token', () => {
     done();
   });
 
+  it('should reject a name with more than 30 characters', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/create-token')
+      .send({
+        name: 'Name input with more than 30 characters',
+        symbol: tokenA.symbol,
+        amount: 1000
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toContain('maximum size');
+    done();
+  });
+
+  // The result is an error with the message "maximum size", but consumes the funds. Must be fixed.
+  it.skip('should reject a symbol with more than 5 characters', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/create-token')
+      .send({
+        name: tokenA.name,
+        symbol: 'TKABCD',
+        amount: 1000
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toContain('maximum size');
+    done();
+  });
+
   it('should reject an invalid destination address', async done => {
     const response = await TestUtils.request
       .post('/wallet/create-token')
