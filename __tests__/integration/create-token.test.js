@@ -56,13 +56,13 @@ describe('create token', () => {
     done();
   });
 
-  it('should reject a name with more than 30 characters', async done => {
+  it.skip('should reject a name with more than 30 characters', async done => {
     const response = await TestUtils.request
       .post('/wallet/create-token')
       .send({
         name: 'Name input with more than 30 characters',
         symbol: tokenA.symbol,
-        amount: 1000
+        amount: 2000
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
@@ -78,7 +78,7 @@ describe('create token', () => {
       .send({
         name: tokenA.name,
         symbol: 'TKABCD',
-        amount: 1000
+        amount: 2000
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
