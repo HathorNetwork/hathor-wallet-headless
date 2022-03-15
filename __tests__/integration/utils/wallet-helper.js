@@ -1,5 +1,6 @@
 import { loggers } from '../txLogger';
 import { TestUtils, WALLET_CONSTANTS } from './test-utils-integration';
+import config from '../../../src/config';
 
 /**
  * A helper for testing the wallet
@@ -94,11 +95,22 @@ export class WalletHelper {
     await Promise.all(startPromisesArray);
 
     // Enters the loop checking each wallet for its status
+    const timestampStart = Date.now().valueOf();
+    const timestampTimeout = timestampStart + config.integrationTest.walletStartTimeout;
     while (true) {
       const pendingWalletIds = Object.keys(walletsPendingReady);
+      // If all wallets were started, return to the caller.
       if (!pendingWalletIds.length) {
         break;
-      } // All wallets were started. Return to the caller.
+      }
+
+      // If this process took too long, the connection with the fullnode may be irreparably broken.
+      const timestamp = Date.now().valueOf();
+      if (timestamp > timestampTimeout) {
+        const errMsg = `Wallet init failure: Timeout after ${timestamp - timestampStart}ms.`;
+        TestUtils.logError(errMsg);
+        throw new Error(errMsg);
+      }
 
       // First we add a delay
       await TestUtils.delay(500);
@@ -118,6 +130,13 @@ export class WalletHelper {
         await loggers.test.informWalletAddresses(walletId, addresses);
       }
     }
+
+    const timestamp = Date.now().valueOf();
+    TestUtils.logTx(`Finished multiple wallet initialization.`, {
+      timestampStart,
+      timestampNow: timestamp,
+      diffSinceStart: timestamp - timestampStart
+    });
   }
 
   /**
