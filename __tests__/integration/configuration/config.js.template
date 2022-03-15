@@ -46,9 +46,11 @@ module.exports = {
   },
   */
 
-  // Integration test transaction logging
-  integrationTestLog: {
-    outputFolder: 'tmp/', // Should match .github/workflows/integration-test.yml -> upload-artifact
+  // Integration test configs
+  integrationTest: {
+    logOutputFolder: 'tmp/', // Should match .github/workflows/integration-test.yml -> upload-artifact
+    consoleLevel: 'silly',
+    wsUpdateDelay: 1000,
   },
 
   // Optional config so you can set the token you want to use in this wallet

@@ -68,15 +68,15 @@ export class TxLogger {
             winston.format.timestamp(),
             winston.format.colorize(),
           ),
-          level: config.consoleLevel || 'silly',
+          level: config.integrationTest.consoleLevel || 'silly',
         }),
         new winston.transports.File({
           format: winston.format.combine(
             winston.format.timestamp(),
             winston.format.prettyPrint()
           ),
-          filename: `${config.integrationTestLog.outputFolder}${this.#instanceFilename}`,
-          level: config.consoleLevel || 'silly',
+          filename: `${config.integrationTest.logOutputFolder}${this.#instanceFilename}`,
+          level: config.integrationTest.consoleLevel || 'silly',
           colorize: false,
         })
       ]
