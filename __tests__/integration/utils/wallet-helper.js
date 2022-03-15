@@ -82,13 +82,16 @@ export class WalletHelper {
     }
 
     // Requests the start of all the wallets in quick succession
+    const startPromisesArray = [];
     for (const wallet of walletsArr) {
-      await TestUtils.startWallet({
+      const promise = TestUtils.startWallet({
         walletId: wallet.walletId,
         words: wallet.words,
       });
       walletsPendingReady[wallet.walletId] = wallet;
+      startPromisesArray.push(promise);
     }
+    await Promise.all(startPromisesArray);
 
     // Enters the loop checking each wallet for its status
     while (true) {
