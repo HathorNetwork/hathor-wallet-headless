@@ -50,7 +50,7 @@ describe('melt tokens', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
 
-    // Even though the result is correct, the error thrown is not related. Should be fixed later.
+    // TODO: Even though the result is correct, the error thrown is not related.
     // expect(response.body.error).toContain('invalid');
     done();
   });
