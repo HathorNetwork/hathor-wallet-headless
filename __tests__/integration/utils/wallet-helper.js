@@ -34,7 +34,7 @@ export class WalletHelper {
    */
   constructor(walletId, words) {
     if (!walletId) {
-      throw new Error(`Wallet must have a walletId`);
+      throw new Error('Wallet must have a walletId');
     }
     this.#walletId = walletId;
 
@@ -353,7 +353,7 @@ export class WalletHelper {
     if (options.destinationWallet) {
       metadata.destinationWallet = options.destinationWallet;
     }
-    await loggers.test.insertLineToLog(`Transferring funds`, metadata);
+    await loggers.test.insertLineToLog('Transferring funds', metadata);
 
     return transaction;
   }

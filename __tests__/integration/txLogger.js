@@ -82,7 +82,7 @@ export class TxLogger {
       ]
     });
 
-    this.#logger.info(`Log initialized`);
+    this.#logger.info('Log initialized');
   }
 
   /**
@@ -113,7 +113,7 @@ export class TxLogger {
    * @returns {void}
    */
   informWalletAddresses(walletId, addresses) {
-    this.#logger.info(`Sample of wallet addresses.`, { walletId, addresses });
+    this.#logger.info('Sample of wallet addresses.', { walletId, addresses });
   }
 
   /**

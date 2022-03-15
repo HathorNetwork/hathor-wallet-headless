@@ -295,7 +295,7 @@ export class TestUtils {
 
     // Logs the results
     await loggers.test.informSimpleTransaction({
-      title: `Injecting funds`,
+      title: 'Injecting funds',
       originWallet: WALLET_CONSTANTS.genesis.walletId,
       value,
       destinationAddress: address,
