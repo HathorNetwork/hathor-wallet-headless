@@ -151,7 +151,7 @@ describe('melt tokens', () => {
 
   // Insufficient funds
 
-  it('should not melt with insuficcient tokens', async done => {
+  it('should not melt with insufficient tokens', async done => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send({

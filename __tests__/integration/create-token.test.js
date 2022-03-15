@@ -141,9 +141,9 @@ describe('create token', () => {
     done();
   });
 
-  // Insuficcient funds
+  // insufficient funds
 
-  it('should reject for insuficcient funds', async done => {
+  it('should reject for insufficient funds', async done => {
     const response = await TestUtils.request
       .post('/wallet/create-token')
       .send({

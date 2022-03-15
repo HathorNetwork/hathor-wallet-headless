@@ -306,7 +306,7 @@ describe('simple-send-tx (custom token)', () => {
     done();
   });
 
-  it('should not allow a transaction with insuficcient balance', async done => {
+  it('should not allow a transaction with insufficient balance', async done => {
     const response = await TestUtils.request
       .post('/wallet/simple-send-tx')
       .send({

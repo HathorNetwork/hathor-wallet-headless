@@ -116,7 +116,7 @@ describe('mint token', () => {
 
   // Insufficient funds
 
-  it('should not mint with insuficcient funds', async done => {
+  it('should not mint with insufficient funds', async done => {
     const response = await TestUtils.request
       .post('/wallet/mint-tokens')
       .send({
