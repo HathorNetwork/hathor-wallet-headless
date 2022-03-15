@@ -132,23 +132,6 @@ describe('melt tokens', () => {
     done();
   });
 
-  // The application is incorrectly allowing a deposit address outside the wallet
-  it.skip('should not melt with a deposit_address outside the wallet', async done => {
-    const response = await TestUtils.request
-      .post('/wallet/melt-tokens')
-      .send({
-        token: tokenA.uid,
-        deposit_address: WALLET_CONSTANTS.genesis.addresses[4],
-        amount: 200
-      })
-      .set({ 'x-wallet-id': wallet1.walletId });
-
-    expect(response.status).toBe(200);
-    expect(response.body.success).toBe(false);
-    expect(response.text).toContain('invalid');
-    done();
-  });
-
   // The application is incorrectly allowing a change address outside the wallet
   it.skip('should not melt with a change_address outside the wallet', async done => {
     const response = await TestUtils.request
@@ -237,9 +220,6 @@ describe('melt tokens', () => {
     const addr5tka = await wallet1.getAddressInfo(5, tokenA.uid);
     expect(addr5htr.total_amount_available).toBe(1);
     expect(addr5tka.total_amount_available).toBe(0);
-
-    const balance1 = await wallet1.getBalance(tokenA.uid);
-    expect(balance1.available).toBe(500 - 100);
 
     const balance1htr = await wallet1.getBalance();
     const balance1tka = await wallet1.getBalance(tokenA.uid);

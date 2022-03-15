@@ -97,23 +97,6 @@ describe('mint token', () => {
     done();
   });
 
-  // The application is allowing minting for an address outside the wallet
-  it.skip('should not mint for addresses outside the wallet', async done => {
-    const response = await TestUtils.request
-      .post('/wallet/mint-tokens')
-      .send({
-        token: tokenA.uid,
-        address: WALLET_CONSTANTS.genesis.addresses[3],
-        amount: 100
-      })
-      .set({ 'x-wallet-id': wallet1.walletId });
-
-    expect(response.status).toBe(200);
-    expect(response.body.success).toBe(false);
-    expect(response.body.error).toContain('address');
-    done();
-  });
-
   // The application is allowing a change_address outside the wallet
   it.skip('should not mint with change_address outside the wallet', async done => {
     const response = await TestUtils.request

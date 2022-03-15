@@ -122,23 +122,6 @@ describe('create token', () => {
     done();
   });
 
-  // The application is incorrectly allowing to create a token for an outside address.
-  it.skip('should reject creating token for address not in the wallet', async done => {
-    const response = await TestUtils.request
-      .post('/wallet/create-token')
-      .send({
-        name: tokenA.name,
-        symbol: tokenA.symbol,
-        amount: 500,
-        address: WALLET_CONSTANTS.genesis.addresses[3]
-      })
-      .set({ 'x-wallet-id': wallet1.walletId });
-
-    expect(response.status).toBe(200);
-    expect(response.body.success).toBe(false);
-    done();
-  });
-
   // The application is incorrectly allowing external addresses to receive the change
   it.skip('should reject creating token for change address not in the wallet', async done => {
     const response = await TestUtils.request
