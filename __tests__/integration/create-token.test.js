@@ -191,8 +191,10 @@ describe('create token', () => {
 
     await TestUtils.pauseForWsUpdate();
 
+    const htrBalance = await wallet1.getBalance();
     const tkaBalance = await wallet1.getBalance(response.body.hash);
-    expect(tkaBalance.available).toBe(100);
+    expect(htrBalance.available).toBe(19); // The initial 20 minus 1
+    expect(tkaBalance.available).toBe(100); // The newly minted TKA tokens
     done();
   });
 
