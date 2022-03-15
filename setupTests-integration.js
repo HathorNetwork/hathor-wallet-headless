@@ -21,7 +21,3 @@ beforeAll(async () => {
   testLogger.init();
   loggers.test = testLogger;
 });
-
-// This function will run after each test file is executed
-afterAll(async () => {
-});
