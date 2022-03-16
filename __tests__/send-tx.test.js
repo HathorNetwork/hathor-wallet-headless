@@ -168,6 +168,24 @@ describe("send-tx api", () => {
     expect(response.body.success).toBeFalsy();
   });
 
+  it("should not accept a custom token transaction without funds to cover it (filter query)", async () => {
+    const response = await TestUtils.request
+      .post("/wallet/send-tx")
+      .send({
+        inputs: [{ type: "query", filter_address: "WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN" }],
+        outputs: [
+          { address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 },
+          { address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1, token: "04" }
+        ],
+      })
+      .set({ "x-wallet-id": TestUtils.walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeUndefined();
+    expect(response.body.success).toBe(false)
+    expect(response.body.error).toContain('No utxos available')
+    expect(response.body.token).toBe("04")
+  });
+
   it("should not accept a custom token transaction without funds to cover it (token as string)", async () => {
     const response = await TestUtils.request
       .post("/wallet/send-tx")

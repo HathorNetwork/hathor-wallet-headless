@@ -736,20 +736,19 @@ walletRouter.post('/send-tx',
       const treatedInputs = []
 
       // We need to fetch UTXO's for each token on the "outputs"
-      const tokensList = Object.keys(tokens)
-      for (const tokenUid of tokensList) {
-        const tokenObj = tokens.get(tokenUid);
+      for (const element of tokens) {
+        const [tokenUid, tokenObj] = element
 
         const queryOptions = {
           ...inputs[0],
-          token: tokenObj.tokenUid
+          token: tokenUid
         }
         const utxos = getUtxosToFillTx(wallet, tokenObj.amount, queryOptions);
         if (!utxos) {
           const response = {
             success: false,
             error: 'No utxos available for the query filter for this amount.',
-            token: tokenObj.uid
+            token: tokenUid
           };
           res.send(response);
           lock.unlock(lockTypes.SEND_TX);
