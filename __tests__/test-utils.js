@@ -1,11 +1,11 @@
-import supertest from "supertest";
-import axios from "axios";
-import MockAdapter from "axios-mock-adapter";
-import app from "../src/index";
-import config from "../src/config";
-import httpFixtures from "./__fixtures__/http-fixtures";
-import wsFixtures from "./__fixtures__/ws-fixtures";
-import { Server } from "mock-socket";
+import supertest from 'supertest';
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
+import app from '../src/index';
+import config from '../src/config';
+import httpFixtures from './__fixtures__/http-fixtures';
+import wsFixtures from './__fixtures__/ws-fixtures';
+import { Server } from 'mock-socket';
 
 const WALLET_ID = "stub_wallet";
 const SEED_KEY = "stub_seed";
@@ -47,6 +47,9 @@ class TestUtils {
     "Weg6WEncAEJs5qDbGUxcLTR3iycM3hrt4C",
     "WSVarF73e6UVccGwb44FvTtqFWsHQmjKCt",
     "Wc5YHn861241iLY42mFT8z1dT1UdsNWkfs",
+    "WU6KGNPuaRG4VCKC1fsKDh4fRZGbkqxG8Y",
+    "WTTdWuDGGsu7X5yjfTzdxR1mQBZkjQfi3V",
+    "WaMaVdMh5Je7qPLjaiePX96uWMwX5hdPVi"
   ];
 
   static get request() {

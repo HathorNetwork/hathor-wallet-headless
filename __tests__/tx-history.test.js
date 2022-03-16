@@ -1,4 +1,4 @@
-import TestUtils from "./test-utils";
+import TestUtils from './test-utils';
 
 describe("tx-history api", () => {
   it("should return 200 with a valid body", async () => {
@@ -6,7 +6,7 @@ describe("tx-history api", () => {
       .get("/wallet/tx-history")
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
-    expect(response.body).toHaveLength(15);
+    expect(response.body).toHaveLength(16);
   });
 
   it("should return limit (string or number) the transactions returned", async () => {

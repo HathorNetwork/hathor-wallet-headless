@@ -1,4 +1,4 @@
-import TestUtils from "./test-utils";
+import TestUtils from './test-utils';
 
 describe("send-tx api", () => {
   it("should return 200 with a valid body selecting inputs by query", async () => {
@@ -7,6 +7,22 @@ describe("send-tx api", () => {
       .send({
         inputs: [{ type: "query", filter_address: "WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN" }],
         outputs: [{ address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 }],
+      })
+      .set({ "x-wallet-id": TestUtils.walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeDefined();
+    expect(response.body.success).toBeTruthy();
+  });
+
+  it("should return 200 with selecting inputs by query with custom tokens", async () => {
+    const response = await TestUtils.request
+      .post("/wallet/send-tx")
+      .send({
+        inputs: [{ type: "query", filter_address: "WYBwT3xLpDnHNtYZiU52oanupVeDKhAvNp" }],
+        outputs: [
+          { address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 10 },
+          { address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 10, token: "04" }
+        ],
       })
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
