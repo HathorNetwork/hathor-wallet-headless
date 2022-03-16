@@ -1,6 +1,6 @@
 import { loggers } from '../txLogger';
 import { TestUtils, WALLET_CONSTANTS } from './test-utils-integration';
-import config from '../../../src/config';
+import testConfig from '../configuration/test.config';
 
 /**
  * A helper for testing the wallet
@@ -96,7 +96,7 @@ export class WalletHelper {
 
     // Enters the loop checking each wallet for its status
     const timestampStart = Date.now().valueOf();
-    const timestampTimeout = timestampStart + config.integrationTest.walletStartTimeout;
+    const timestampTimeout = timestampStart + testConfig.walletStartTimeout;
     while (true) {
       const pendingWalletIds = Object.keys(walletsPendingReady);
       // If all wallets were started, return to the caller.

@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 import winston from 'winston';
-import config from '../../src/config';
+import testConfig from './configuration/test.config';
 
 export const loggers = {
   /**
@@ -68,15 +68,15 @@ export class TxLogger {
             winston.format.timestamp(),
             winston.format.colorize(),
           ),
-          level: config.integrationTest.consoleLevel || 'silly',
+          level: testConfig.consoleLevel || 'silly',
         }),
         new winston.transports.File({
           format: winston.format.combine(
             winston.format.timestamp(),
             winston.format.prettyPrint()
           ),
-          filename: `${config.integrationTest.logOutputFolder}${this.#instanceFilename}`,
-          level: config.integrationTest.consoleLevel || 'silly',
+          filename: `${testConfig.logOutputFolder}${this.#instanceFilename}`,
+          level: testConfig.consoleLevel || 'silly',
           colorize: false,
         })
       ]

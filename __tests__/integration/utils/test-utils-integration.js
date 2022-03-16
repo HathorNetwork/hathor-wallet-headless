@@ -4,7 +4,7 @@ import supertest from 'supertest';
 import { HathorWallet, wallet } from '@hathor/wallet-lib';
 import app from '../../../src';
 import { loggers } from '../txLogger';
-import config from '../../../src/config';
+import testConfig from '../configuration/test.config';
 
 const request = supertest(app);
 
@@ -82,7 +82,7 @@ export class TestUtils {
    * @returns {Promise<void>}
    */
   static async pauseForWsUpdate() {
-    await TestUtils.delay(config.integrationTest.wsUpdateDelay);
+    await TestUtils.delay(testConfig.wsUpdateDelay);
   }
 
   /**
