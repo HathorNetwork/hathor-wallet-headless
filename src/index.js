@@ -699,9 +699,9 @@ walletRouter.post('/send-tx',
 
   /**
    * Map of tokens on the output that will be needed on the automatic input calculation
-   * @type {Record<string,TokenOutput>}
+   * @type {Map<string, TokenOutput>}
    */
-  const tokens = {}
+  const tokens = new Map();
 
   // I tried to use the default schema with express validator to set the default token as HTR
   // but apparently is not possible https://github.com/express-validator/express-validator/issues/682
@@ -715,10 +715,11 @@ walletRouter.post('/send-tx',
     }
 
     // Updating the `tokens` amount
-    if (!tokens[output.token]) {
-      tokens[output.token] = { tokenUid: output.token, amount: 0 }
+    if (!tokens.has(output.token)) {
+      tokens.set(output.token, { tokenUid: output.token, amount: 0 });
     }
-    tokens[output.token].amount += output.value
+    const sumObject = tokens.get(output.token);
+    sumObject.amount += output.value;
   }
 
   // Expects array of objects with {'hash', 'index'}
@@ -737,7 +738,7 @@ walletRouter.post('/send-tx',
       // We need to fetch UTXO's for each token on the "outputs"
       const tokensList = Object.keys(tokens)
       for (const tokenUid of tokensList) {
-        const tokenObj = tokens[tokenUid];
+        const tokenObj = tokens.get(tokenUid);
 
         const queryOptions = {
           ...inputs[0],
