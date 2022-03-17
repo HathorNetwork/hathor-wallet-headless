@@ -572,13 +572,6 @@ const getUtxosToFillTx = (wallet, sumOutputs, options) => {
 }
 
 /**
- * @typedef TokenOutput
- * A structure to help calculate how many tokens will be needed on send-tx's automatic inputs
- * @property {string} tokenUid Hash identification of the token
- * @property {number} amount Amount of tokens necessary on the inputs
- */
-
-/**
  * POST request to send a transaction with many outputs and inputs selection
  * For the docs, see api-docs.js
  *
@@ -696,6 +689,13 @@ walletRouter.post('/send-tx',
 
   const wallet = req.wallet;
   const outputs = req.body.outputs;
+
+  /**
+   * @typedef TokenOutput
+   * A structure to help calculate how many tokens will be needed on send-tx's automatic inputs
+   * @property {string} tokenUid Hash identification of the token
+   * @property {number} amount Amount of tokens necessary on the inputs
+   */
 
   /**
    * Map of tokens on the output that will be needed on the automatic input calculation
