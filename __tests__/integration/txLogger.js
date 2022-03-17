@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 import winston from 'winston';
-import config from '../../src/config';
+import testConfig from './configuration/test.config';
 
 export const loggers = {
   /**
@@ -25,10 +25,6 @@ export class TxLogger {
    * @type {winston}
    */
   #logger;
-
-  get filename() {
-    return this.#instanceFilename;
-  }
 
   /**
    * Builds the log filename based on current time and an optional title.
@@ -55,6 +51,10 @@ export class TxLogger {
     this.#instanceFilename = filename;
   }
 
+  get filename() {
+    return this.#instanceFilename;
+  }
+
   /**
    * Initializes the helper with a winston logger instance
    * @returns {void}
@@ -68,21 +68,21 @@ export class TxLogger {
             winston.format.timestamp(),
             winston.format.colorize(),
           ),
-          level: config.consoleLevel || 'silly',
+          level: testConfig.consoleLevel || 'silly',
         }),
         new winston.transports.File({
           format: winston.format.combine(
             winston.format.timestamp(),
             winston.format.prettyPrint()
           ),
-          filename: `${config.integrationTestLog.outputFolder}${this.#instanceFilename}`,
-          level: config.consoleLevel || 'silly',
+          filename: `${testConfig.logOutputFolder}${this.#instanceFilename}`,
+          level: testConfig.consoleLevel || 'silly',
           colorize: false,
         })
       ]
     });
 
-    this.#logger.info(`Log initialized`);
+    this.#logger.info('Log initialized');
   }
 
   /**
@@ -109,11 +109,11 @@ export class TxLogger {
   /**
    * Wrapper for adding a "Wallet Addresses" message
    * @param {string} walletId
-   * @param {string} addresses
+   * @param {string[]} addresses
    * @returns {void}
    */
   informWalletAddresses(walletId, addresses) {
-    this.#logger.info(`Sample of wallet addresses.`, { walletId, addresses });
+    this.#logger.info('Sample of wallet addresses.', { walletId, addresses });
   }
 
   /**

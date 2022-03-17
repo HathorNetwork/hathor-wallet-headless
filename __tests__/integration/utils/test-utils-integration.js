@@ -1,9 +1,10 @@
 /* eslint-disable no-console */
 
 import supertest from 'supertest';
-import { wallet, HathorWallet } from '@hathor/wallet-lib';
+import { HathorWallet, wallet } from '@hathor/wallet-lib';
 import app from '../../../src';
 import { loggers } from '../txLogger';
+import testConfig from '../configuration/test.config';
 
 const request = supertest(app);
 
@@ -12,12 +13,6 @@ const request = supertest(app);
  * @property {string} walletId Id for interacting with the wallet
  * @property {string} words 24 word seed for the wallet
  * @property {string[]} [addresses] Some sample addresses to help with testing
- */
-
-/**
- * @typedef FundInjectionOptions
- * @property {boolean} [doNotWait] If true, will not wait a while for the transaction
- *  to "settle" on the fullnode
  */
 
 /**
@@ -61,6 +56,14 @@ export function getRandomInt(max, min = 0) {
 
 export class TestUtils {
   /**
+   * Returns the Supertest `request` object for this application
+   * @returns {Test}
+   */
+  static get request() {
+    return request;
+  }
+
+  /**
    * Simple way to wait asynchronously before continuing the funcion. Does not block the JS thread.
    * @param {number} ms Amount of milliseconds to delay
    * @returns {Promise<unknown>}
@@ -72,11 +75,14 @@ export class TestUtils {
   }
 
   /**
-   * Returns the Supertest `request` object for this application
-   * @returns {Test}
+   * Whenever the tests need to check for a wallet/address balance, there should be a small pause
+   * to allow for the Fullnode's Websocket connection to update the Wallet Headless' local caches.
+   *
+   * The delay period here should be optimized for this purpose.
+   * @returns {Promise<void>}
    */
-  static get request() {
-    return request;
+  static async pauseForWsUpdate() {
+    await TestUtils.delay(testConfig.wsUpdateDelay);
   }
 
   /**
@@ -92,7 +98,7 @@ export class TestUtils {
    *
    * @see TestUtils.stopWallet
    * @param {string} walletId
-   * @returns {{"x-wallet-id"}}
+   * @returns {{'x-wallet-id'}}
    */
   static generateHeader(walletId) {
     return { 'x-wallet-id': walletId };
@@ -120,9 +126,11 @@ export class TestUtils {
   /**
    * Starts a wallet. Prefer instantiating a WalletHelper instead.
    * @param {WalletData} walletObj
+   * @param [options]
+   * @param {boolean} [options.waitWalletReady] If true, will only return when wallet is ready
    * @returns {Promise<{start:unknown,status:unknown}>}
    */
-  static async startWallet(walletObj) {
+  static async startWallet(walletObj, options = {}) {
     // Request the Wallet start
     const response = await request
       .post('/start')
@@ -139,22 +147,33 @@ export class TestUtils {
     const start = response.body;
 
     // Wait until the wallet is actually started
-    let status;
-    while (true) {
-      const res = await request
-        .get('/wallet/status')
-        .set(TestUtils.generateHeader(walletObj.walletId));
-      if (res.body?.statusCode === HathorWallet.READY) {
-        status = res.body;
-        break;
+    if (options.waitWalletReady) {
+      while (true) {
+        const walletReady = await TestUtils.isWalletReady(walletObj.walletId);
+        if (walletReady) {
+          break;
+        }
+        await TestUtils.delay(500);
       }
-      await TestUtils.delay(500);
     }
-
     // Log the success and return
     loggers.test.informNewWallet(walletObj.walletId, walletObj.words);
 
-    return { start, status };
+    return { start };
+  }
+
+  /**
+   * Makes a http request to check if the wallet is ready.
+   * Returns only the boolean result.
+   * @param {string} walletId Identification of the wallet
+   * @returns {Promise<boolean>} `true` if the wallet is ready
+   */
+  static async isWalletReady(walletId) {
+    const res = await request
+      .get('/wallet/status')
+      .set(TestUtils.generateHeader(walletId));
+
+    return res.body?.statusCode === HathorWallet.READY;
   }
 
   /**
@@ -167,9 +186,10 @@ export class TestUtils {
   }
 
   /**
-   * Gets the address from a walletId and an index, using the Wallet Headless endpoint
-   * @param {string} walletId
-   * @param {number} index
+   * Gets the address from a walletId and an index, using the Wallet Headless endpoint.
+   * If no index is informed, the next address without transactions will be returned
+   * @param {string} walletId Walled identification
+   * @param {number} [index]
    * @returns {Promise<string>}
    */
   static async getAddressAt(walletId, index) {
@@ -182,15 +202,84 @@ export class TestUtils {
   }
 
   /**
+   * Retrieves the Address Index on the Wallet
+   * @param {string} walletId Wallet identification
+   * @param {string} address Address to find the index
+   * @returns {Promise<number>}
+   */
+  static async getAddressIndex(walletId, address) {
+    const response = await TestUtils.request
+      .get('/wallet/address-index')
+      .query({ address })
+      .set(TestUtils.generateHeader(walletId));
+
+    return response.body.index;
+  }
+
+  /**
+   * Retrieves address information based on the address index inside the wallet.
+   * This is very close to the tests on `address-info.test.js` and as such should reflect any
+   * changes that are made to the calls there.
+   * @param {string} address Address hash
+   * @param {string} walletId Wallet identification
+   * @param {string} [token] Token hash, defaults to HTR
+   * @returns {Promise<{
+   * token: (string), index: (number),
+   * total_amount_received: (number), total_amount_sent: (number),
+   * total_amount_locked: (number), total_amount_available: (number)
+   * }>}
+   */
+  static async getAddressInfo(address, walletId, token) {
+    const response = await TestUtils.request
+      .get('/wallet/address-info')
+      .query({
+        address,
+        token
+      })
+      .set(TestUtils.generateHeader(walletId));
+
+    // An error happened
+    if (response.status !== 200 || response.body.success !== true) {
+      throw new Error(`Failure on /wallet/address-info: ${response.text}`);
+    }
+
+    // Returning explicitly each property to help with code completion / test writing
+    const addrInfo = response.body;
+    return {
+      token: addrInfo.token,
+      index: addrInfo.index,
+      total_amount_received: addrInfo.total_amount_received,
+      total_amount_sent: addrInfo.total_amount_sent,
+      total_amount_available: addrInfo.total_amount_available,
+      total_amount_locked: addrInfo.total_amount_locked,
+    };
+  }
+
+  /**
+   * Get the all addresses on this wallet, limited by the current gap limit.
+   * @param {string} walletId
+   * @returns {Promise<string[]>}
+   */
+  static async getSomeAddresses(walletId) {
+    const response = await TestUtils.request
+      .get('/wallet/addresses')
+      .set(TestUtils.generateHeader(walletId));
+
+    if (!response.body.addresses) {
+      throw new Error(response.text);
+    }
+    return response.body.addresses;
+  }
+
+  /**
    * Transfers funds to a destination address.
    * By default, this method also waits for a second to let the indexes build before returning.
    * @param {string} address Destination address
    * @param {number} value Amount of tokens, in cents
    * @param {string} [destinationWalletId] walletId of the destination address. Useful for debugging
-   * @param {FundInjectionOptions} [options]
    * @returns {Promise<unknown>}
    */
-  static async injectFundsIntoAddress(address, value, destinationWalletId, options = {}) {
+  static async injectFundsIntoAddress(address, value, destinationWalletId) {
     // Requests the transaction
     const response = await TestUtils.request
       .post('/wallet/simple-send-tx')
@@ -207,7 +296,7 @@ export class TestUtils {
 
     // Logs the results
     await loggers.test.informSimpleTransaction({
-      title: `Injecting funds`,
+      title: 'Injecting funds',
       originWallet: WALLET_CONSTANTS.genesis.walletId,
       value,
       destinationAddress: address,
@@ -215,18 +304,115 @@ export class TestUtils {
       id: transaction.hash
     });
 
-    /*
-     * The balance in the storage is updated after the wallet receives a message via websocket
-     * from the full node. A simple wait is built here to allow for this message before continuing.
-     *
-     * In case there is a need to do multliple transactions before any assertion is executed,
-     * please use the `doNotWait` option and explicitly insert the delay only once.
-     * This will improve the test speed.
-     */
-    if (!options.doNotWait) {
-      await TestUtils.delay(1000);
+    return transaction;
+  }
+
+  /**
+   * Searches the transaction outputs and retrieves the first index containing the desired value.
+   * @example
+   * // The txObject transaction contains many outputs, the second's value is 15
+   * TestUtils.getOutputIndexFromTx(txObject, 15)
+   * // will return 1
+   *
+   * @param {unknown} transaction Transaction object, as returned in the `response.body`
+   * @param {number} value Value to search for
+   * @returns {number|null} Zero-based index containing the desired output
+   */
+  static getOutputIndexFromTx(transaction, value) {
+    if (!transaction?.outputs?.length) {
+      return null;
     }
 
-    return transaction;
+    for (const index in transaction.outputs) {
+      if (transaction.outputs[index].value !== value) {
+        continue;
+      }
+      return parseInt(index, 10);
+    }
+
+    return null;
+  }
+
+  /**
+   * A helper method for fetching the change output. Only useful when the transaction has exactly
+   * two HTR outputs: one for the destination and one for the change address
+   * @param {unknown} transaction Transaction as received in the response.body
+   * @param {number} destinationValue Value transferred to the destination
+   * @returns {{
+   * change: {index: number, value: number},
+   * destination: {index: number, value: number}
+   * }|null}
+   */
+  static getOutputSummaryHtr(transaction, destinationValue) {
+    const returnValue = {
+      destination: { index: null, value: destinationValue },
+      change: { index: null, value: null }
+    };
+
+    if (!transaction.outputs?.length) {
+      return null;
+    }
+
+    for (const index in transaction.outputs) {
+      const output = transaction.outputs[index];
+
+      // Skipping all that outputs not involving HTR
+      if (output.token_data !== 0) {
+        continue;
+      }
+
+      // If the value is destinationValue, we assume this is the destination
+      if (output.value === destinationValue) {
+        returnValue.destination.index = index;
+        continue;
+      }
+
+      // Any other value, we assume it's the change
+      returnValue.change.index = index;
+      returnValue.change.value = output.value;
+    }
+
+    return returnValue;
+  }
+
+  static async getTxHistory(walletId) {
+    const response = await TestUtils.request
+      .get('/wallet/tx-history')
+      .set(TestUtils.generateHeader(walletId));
+
+    return response.body;
+  }
+
+  static async getBalance(walletId, tokenUid) {
+    const queryParams = {};
+    if (tokenUid) {
+      queryParams.token = tokenUid;
+    }
+
+    const response = await TestUtils.request
+      .get('/wallet/balance')
+      .query(queryParams)
+      .set(TestUtils.generateHeader(walletId));
+
+    return response.body;
+  }
+
+  /**
+   * Returns a fully decoded transaction to allow for more complete data analysis.
+   * This is done through an HTTP request on the Wallet Headless, in behalf of a started wallet id.
+   *
+   * @param {string} txHash Transaction id
+   * @param {string} walletId Mandatory wallet id for requesting the Wallet Headless
+   * @returns {Promise<*>}
+   */
+  static async getDecodedTransaction(txHash, walletId) {
+    const response = await TestUtils.request
+      .get('/wallet/transaction')
+      .query({
+        id: txHash
+      })
+      .set(TestUtils.generateHeader(walletId));
+
+    return response.body;
   }
 }

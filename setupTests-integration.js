@@ -1,5 +1,4 @@
 import * as Path from 'path';
-import { TestUtils, WALLET_CONSTANTS } from './__tests__/integration/utils/test-utils-integration';
 import { loggers, TxLogger } from './__tests__/integration/txLogger';
 
 /**
@@ -21,11 +20,4 @@ beforeAll(async () => {
   const testLogger = new TxLogger(testName);
   testLogger.init();
   loggers.test = testLogger;
-
-  await TestUtils.startWallet(WALLET_CONSTANTS.genesis);
-});
-
-// This function will run after each test file is executed
-afterAll(async () => {
-  await TestUtils.stopWallet(WALLET_CONSTANTS.genesis.walletId);
 });

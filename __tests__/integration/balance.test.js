@@ -12,17 +12,16 @@ describe('balance routes', () => {
     try {
       // First wallet, no balance
       wallet1 = new WalletHelper('balance1');
-      await wallet1.start();
-
       // Second wallet, random balance
       wallet2 = new WalletHelper('balance2');
-      await wallet2.start();
-      await wallet2.injectFunds(wallet2Balance);
-
       // Third wallet, balance to be used for custom tokens
       wallet3 = new WalletHelper('custom3');
-      await wallet3.start();
+
+      await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3]);
+      await wallet2.injectFunds(wallet2Balance);
       await wallet3.injectFunds(100);
+
+      await TestUtils.pauseForWsUpdate();
     } catch (err) {
       TestUtils.logError(err.stack);
     }
@@ -89,6 +88,8 @@ describe('balance routes', () => {
       amount: tokenAmount,
     });
     const tokenHash = newToken.hash;
+
+    await TestUtils.pauseForWsUpdate();
 
     const balanceResult = await TestUtils.request
       .get('/wallet/balance')

@@ -24,16 +24,18 @@ describe('tx-history routes', () => {
     try {
       // An empty wallet
       wallet1 = new WalletHelper('txHistory1');
-      await wallet1.start();
-
       // A wallet with 5 transactions containing 10, 20, 30, 40 and 50 HTR each
       wallet2 = new WalletHelper('txHistory2');
-      await wallet2.start();
+
+      await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
+
       for (let amount = 10; amount < 60; amount += 10) {
         const fundTx = await wallet2.injectFunds(amount, 1);
         fundTransactions[fundTx.hash] = fundTx;
         fundHashes[`tx${amount}`] = fundTx.hash;
       }
+
+      await TestUtils.pauseForWsUpdate();
     } catch (err) {
       TestUtils.logError(err.stack);
     }

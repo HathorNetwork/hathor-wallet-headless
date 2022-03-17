@@ -33,7 +33,7 @@ services:
     depends_on:
       - fullnode
     ports:
-      - "8034:8034" # Not mandatory to keep these ports open, but helpful for developer machine debugging
+      - "8034:8034" # Not mandatory to keep this port open, but helpful for developer machine debugging
       - "8035:8035"
     command: [
       "http://fullnode:8080",

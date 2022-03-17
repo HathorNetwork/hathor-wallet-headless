@@ -8,7 +8,7 @@ describe('transaction routes', () => {
     try {
       // An empty wallet
       wallet1 = new WalletHelper('transaction-1');
-      await wallet1.start();
+      await WalletHelper.startMultipleWalletsForTest([wallet1]);
     } catch (err) {
       TestUtils.logError(err.stack);
     }
