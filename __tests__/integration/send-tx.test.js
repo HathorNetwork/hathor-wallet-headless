@@ -1359,3 +1359,205 @@ describe('send tx (custom tokens)', () => {
     done();
   });
 });
+
+describe('filter query + custom tokens', () => {
+  let wallet1;
+  const bugCoin = {
+    name: 'BugCoin',
+    symbol: 'BUG',
+    uid: null
+  };
+
+  beforeAll(async () => {
+    wallet1 = new WalletHelper('filter-custom-1');
+
+    await WalletHelper.startMultipleWalletsForTest([wallet1]);
+
+    // Inject 10 HTR into wallet1 and invest them all creating the custom token
+    await wallet1.injectFunds(10, 0);
+    const createTokenTx = await wallet1.createToken({
+      name: bugCoin.name,
+      symbol: bugCoin.symbol,
+      amount: 1000,
+      address: await wallet1.getAddressAt(0),
+    });
+    bugCoin.uid = createTokenTx.hash;
+
+    // Inject 20 HTR on other address to validate that it's not changed by custom token txs
+    await wallet1.injectFunds(20, 1);
+
+    /*
+     * Status:
+     * addr0: 0 HTR, 1000 BUG
+     * addr1: 20 HTR
+     */
+  });
+
+  it('should send the custom token with a query filter by address 0', async done => {
+    // Sending all the tokens to facilitate address-info validation
+    const tx = await wallet1.sendTx({
+      inputs: [{ type: 'query', filter_address: await wallet1.getAddressAt(0) }],
+      outputs: [{ token: bugCoin.uid, address: await wallet1.getAddressAt(1), value: 1000 }],
+      title: 'Sending all 1000 BUG to address 1'
+    });
+    expect(tx.hash).toBeDefined();
+
+    await TestUtils.pauseForWsUpdate();
+
+    const addr0custom = await wallet1.getAddressInfo(0, bugCoin.uid);
+    expect(addr0custom.total_amount_received).toBe(1000);
+    expect(addr0custom.total_amount_available).toBe(0);
+    expect(addr0custom.total_amount_sent).toBe(1000);
+
+    const addr1custom = await wallet1.getAddressInfo(1, bugCoin.uid);
+    expect(addr1custom.total_amount_received).toBe(1000);
+    expect(addr1custom.total_amount_available).toBe(1000);
+    done();
+
+    /*
+     * Status:
+     * addr0: 0 HTR, 0 BUG
+     * addr1: 20 HTR, 1000 BUG
+     */
+  });
+
+  it('should send the correct custom token from an address that have both', async done => {
+    // Sending 10, which is the available HTR balance, to check if the correct token will be sent
+    const tx = await wallet1.sendTx({
+      inputs: [{ type: 'query', filter_address: await wallet1.getAddressAt(1) }],
+      outputs: [{ token: bugCoin.uid, address: await wallet1.getAddressAt(2), value: 10 }],
+      change_address: await wallet1.getAddressAt(1),
+      title: 'Sending only 10 BUG from address 1 to 2'
+    });
+    expect(tx.hash).toBeDefined();
+
+    await TestUtils.pauseForWsUpdate();
+
+    // Checking address 1 for both custom and htr
+    const addr1custom = await wallet1.getAddressInfo(1, bugCoin.uid);
+    const addr1htr = await wallet1.getAddressInfo(1);
+
+    expect(addr1custom.total_amount_available).toBe(990);
+
+    expect(addr1htr.total_amount_received).toBe(20);
+    expect(addr1htr.total_amount_available).toBe(20);
+    expect(addr1htr.total_amount_sent).toBe(0);
+
+    // Checking address 2 for both custom and htr
+    const addr2custom = await wallet1.getAddressInfo(2, bugCoin.uid);
+    const addr2htr = await wallet1.getAddressInfo(2);
+
+    expect(addr2custom.total_amount_received).toBe(10);
+    expect(addr2custom.total_amount_available).toBe(10);
+
+    expect(addr2htr.total_amount_received).toBe(0);
+    expect(addr2htr.total_amount_available).toBe(0);
+    done();
+
+    /*
+     * Status:
+     * addr0: 0 HTR, 0 BUG
+     * addr1: 20 HTR, 990 BUG
+     * addr2: 0 HTR, 10 BUG
+     */
+  });
+
+  it('should send both tokens from multiple available utxos', async done => {
+    await wallet1.injectFunds(990, 3);
+    await wallet1.sendTx({
+      outputs: [
+        { token: bugCoin.uid, address: await wallet1.getAddressAt(3), value: 1000 },
+        { address: await wallet1.getAddressAt(3), value: 10 },
+      ],
+      change_address: await wallet1.getAddressAt(0),
+      title: 'Filling address 3 with 1000 HTR and BUG'
+    });
+    // Address 3 now should have 1000 HTR and 1000 BUG
+
+    /*
+     * Status:
+     * addr0: 0 HTR, 0 BUG
+     * addr1: 10 HTR, 0 BUG
+     * addr2: 0 HTR, 0 BUG
+     * addr3: 1000 HTR, 1000 BUG
+     */
+
+    // Sending all of them to address 4
+    const tx = await wallet1.sendTx({
+      inputs: [{ type: 'query', filter_address: await wallet1.getAddressAt(3) }],
+      outputs: [
+        { token: bugCoin.uid, address: await wallet1.getAddressAt(4), value: 1000 },
+        { address: await wallet1.getAddressAt(4), value: 1000 }
+      ],
+      title: 'Moving all funds to address 4'
+    });
+    expect(tx.hash).toBeDefined();
+
+    await TestUtils.pauseForWsUpdate();
+
+    // Checking address 4 for both custom and htr
+    const addr4custom = await wallet1.getAddressInfo(4, bugCoin.uid);
+    expect(addr4custom.total_amount_received).toBe(1000);
+    expect(addr4custom.total_amount_available).toBe(1000);
+
+    const addr4htr = await wallet1.getAddressInfo(4);
+    expect(addr4htr.total_amount_received).toBe(1000);
+    expect(addr4htr.total_amount_available).toBe(1000);
+
+    /*
+     * Status:
+     * addr0: 0 HTR, 0 BUG
+     * addr1: 10 HTR, 0 BUG
+     * addr2: 0 HTR, 0 BUG
+     * addr3: 0 HTR, 0 BUG
+     * addr4: 1000 HTR, 1000 BUG
+     */
+
+    done();
+  });
+
+  it('should ensure the sum of tokens happens in multiple UTXOs', async done => {
+    /*
+     * Status:
+     * addr1: 10 HTR, 0 BUG
+     * addr4: 1000 HTR, 1000 BUG
+     */
+    const addr3hash = await wallet1.getAddressAt(3);
+    const setupTx = await wallet1.sendTx({
+      title: 'Splitting the funds in multiple UTXOs',
+      outputs: [
+        { token: bugCoin.uid, address: addr3hash, value: 200 },
+        { token: bugCoin.uid, address: addr3hash, value: 300 },
+        { token: bugCoin.uid, address: addr3hash, value: 500 },
+        { address: addr3hash, value: 200 },
+        { address: addr3hash, value: 300 },
+        { address: addr3hash, value: 500 },
+      ]
+    });
+
+    // Status: at least 3 UTXO's for bugCoin and 3 for HTR
+    const addr5hash = await wallet1.getAddressAt(5);
+    await wallet1.sendTx({
+      title: 'Moving all splitted add3 funds on splitted addr5 outputs',
+      inputs: [{ type: 'query', filter_address: addr3hash }],
+      outputs: [
+        { token: bugCoin.uid, address: addr5hash, value: 250 },
+        { token: bugCoin.uid, address: addr5hash, value: 250 },
+        { token: bugCoin.uid, address: addr5hash, value: 400 },
+        { token: bugCoin.uid, address: addr5hash, value: 100 },
+        { address: addr5hash, value: 50 },
+        { address: addr5hash, value: 450 },
+        { address: addr5hash, value: 470 },
+        { address: addr5hash, value: 30 },
+      ]
+    });
+
+    // Checking address 5 for both custom and htr
+    const addr5custom = await wallet1.getAddressInfo(5, bugCoin.uid);
+    const addr5htr = await wallet1.getAddressInfo(5);
+
+    expect(addr5custom.total_amount_available).toBe(1000);
+    expect(addr5htr.total_amount_available).toBe(1000);
+    done();
+  });
+});
