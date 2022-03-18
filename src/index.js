@@ -733,14 +733,16 @@ walletRouter.post('/send-tx',
   if (inputs.length > 0) {
     // In case the first input is a query command, we will overwrite the inputs array with results
     if (inputs[0].type === 'query') {
-      const treatedInputs = []
+      // Overwriting the body parameter with the actual inputs
+      const query = inputs[0];
+      inputs = []
 
       // We need to fetch UTXO's for each token on the "outputs"
       for (const element of tokens) {
         const [tokenUid, tokenObj] = element
 
         const queryOptions = {
-          ...inputs[0],
+          ...query,
           token: tokenUid
         }
         const utxos = getUtxosToFillTx(wallet, tokenObj.amount, queryOptions);
@@ -756,11 +758,9 @@ walletRouter.post('/send-tx',
         }
 
         for (const utxo of utxos) {
-          treatedInputs.push({ txId: utxo.tx_id, index: utxo.index });
+          inputs.push({ txId: utxo.tx_id, index: utxo.index });
         }
       }
-      // Overwriting the body parameter with the actual inputs
-      inputs = treatedInputs
     } else {
       // The new lib version expects input to have tx_id and not hash
       inputs = inputs.map((input) => {
