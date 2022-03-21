@@ -1410,6 +1410,19 @@ describe('filter query + custom tokens', () => {
     done();
   });
 
+  it('should reject for unavailable funds on address', async done => {
+    // Address 0 on this same wallet has enough funds, but address 1 hasn't.
+    const txErr = await wallet1.sendTx({
+      inputs: [{ type: 'query', filter_address: await wallet1.getAddressAt(1) }],
+      outputs: [{ token: bugCoin.uid, address: await wallet1.getAddressAt(2), value: 100 }],
+    }).catch(err => err.innerError);
+
+    expect(txErr.status).toBe(200);
+    expect(txErr.body.success).toBe(false);
+    expect(txErr.body.error).toContain('No utxos');
+    done();
+  });
+
   it('should send the custom token with a query filter by address 0', async done => {
     // Sending all the tokens to facilitate address-info validation
     const tx = await wallet1.sendTx({
