@@ -1,4 +1,4 @@
-import TestUtils from "./test-utils";
+import TestUtils from './test-utils';
 
 describe("balance api", () => {
   it("should return 200 with a valid body", async () => {
@@ -6,7 +6,7 @@ describe("balance api", () => {
       .get("/wallet/balance")
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
-    expect(response.body.available).toBe(76799);
+    expect(response.body.available).toBe(76809);
     expect(response.body.locked).toBe(6400);
   });
 

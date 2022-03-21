@@ -527,6 +527,48 @@ export default {
         height: 19,
         tokens: ["03"]
       },
+      {
+        tx_id:
+          "00991cd24536f402ef60d37df3031e0cff1d4e78cdbf6101e3cde4217a7c4cc3",
+        version: 0,
+        weight: 21,
+        timestamp: 1615256216,
+        is_voided: false,
+        inputs: [],
+        outputs: [
+          {
+            value: 10,
+            token_data: 1,
+            script: "dqkUsmE9zshkgB58piBD7ETUV0e/NgmIrA==",
+            decoded: {
+              type: "P2PKH",
+              address: "WYBwT3xLpDnHNtYZiU52oanupVeDKhAvNp",
+            },
+            token: "04",
+            spent_by: null,
+            selected_as_input: false,
+          },
+          {
+            value: 10,
+            token_data: 0,
+            script: "dqkUsmE9zshkgB58piBD7ETUV0e/NgmIrA==",
+            decoded: {
+              type: "P2PKH",
+              address: "WYBwT3xLpDnHNtYZiU52oanupVeDKhAvNp",
+            },
+            token: "00",
+            spent_by: null,
+            selected_as_input: false,
+          },
+        ],
+        parents: [
+          "000004e31d32f699cc4d4cda8a31037f2197f2e18b2192f4f9225bf0fbb3760c",
+          "00975897028ceb037307327c953f5e7ad4d3f42402d71bd3d11ecb63ac39f01a",
+          "00e161a6b0bee1781ea9300680913fb76fd0fac4acab527cd9626cc1514abdc9",
+        ],
+        height: 19,
+        tokens: ["04"]
+      },
     ],
   },
   "/v1a/push_tx": {

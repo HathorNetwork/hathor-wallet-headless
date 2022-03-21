@@ -321,6 +321,7 @@ export class WalletHelper {
    * })
    * @see https://wallet-headless.docs.hathor.network/#/paths/~1wallet~1simple-send-tx/post
    * @param options
+   * @param {string} [options.title] Optional title describing the transaction's context
    * @param {unknown} [options.fullObject] Advanced usage: a full body to send to post on 'send-tx'
    * @param {SendTxInputParam[]} [options.inputs] Optional Inputs
    * @param {SendTxOutputParam[]} [options.outputs] Complete Outputs
@@ -372,6 +373,9 @@ export class WalletHelper {
       hash: transaction.hash,
       ...sendOptions
     };
+    if (options.title) {
+      metadata.title = options.title;
+    }
     if (options.destinationWallet) {
       metadata.destinationWallet = options.destinationWallet;
     }
