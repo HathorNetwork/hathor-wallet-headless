@@ -286,6 +286,8 @@ export class WalletHelper {
       throw injectError;
     }
 
+    await TestUtils.pauseForWsUpdate();
+
     return transaction;
   }
 
@@ -380,6 +382,8 @@ export class WalletHelper {
       metadata.destinationWallet = options.destinationWallet;
     }
     await loggers.test.insertLineToLog('Transferring funds', metadata);
+
+    await TestUtils.pauseForWsUpdate();
 
     return transaction;
   }
