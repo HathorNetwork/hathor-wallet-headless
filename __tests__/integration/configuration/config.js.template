@@ -1,3 +1,9 @@
+/*
+ * This file contains the configurations for the integration tests on the Wallet Headless.
+ * It should be copied to /src/config.js to start these tests and then removed
+ * before the actual image build begins.
+ */
+
 module.exports = {
   // HTTP API Settings
   http_bind_address: 'localhost',
@@ -7,13 +13,13 @@ module.exports = {
   // http_api_key: 'YOUR_PRIVATE_KEY',
 
   // Hathor Full-node
-  network: 'mainnet',
-  server: 'https://node2.mainnet.hathor.network/v1a/',
+  network: 'privatenet',
+  server: 'http://localhost:8083/v1a/',
 
   // Tx Mining Service
   // This is optional. If you do not set, the hathor-wallet-lib's default will be used.
   // Use it only if you want to use your own tx mining service, e.g. 'https://mytxmining.domain/'
-  txMiningUrl: null,
+  txMiningUrl: 'http://localhost:8035',
 
   // Wallet seeds
   seeds: {
@@ -28,7 +34,7 @@ module.exports = {
   // Console logging level (default: info).
   // Levels: error, warn, info, http, verbose, debug, silly.
   // For further information, see https://github.com/winstonjs/winston#logging-levels.
-  consoleLevel: null,
+  consoleLevel: 'silly',
 
   // File logging configuration.
   /*

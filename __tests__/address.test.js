@@ -1,5 +1,5 @@
-import { wallet as walletUtils } from "@hathor/wallet-lib";
-import TestUtils from "./test-utils";
+import { wallet as walletUtils } from '@hathor/wallet-lib';
+import TestUtils from './test-utils';
 
 describe("address api", () => {
   it("should return 200 with a valid body", async () => {
@@ -7,14 +7,14 @@ describe("address api", () => {
       .get("/wallet/address")
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
-    expect(response.body.address).toBe(TestUtils.addresses[1]);
+    expect(response.body.address).toBe(TestUtils.addresses[4]);
 
     // Should return the same address for a second call
     response = await TestUtils.request
       .get("/wallet/address")
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
-    expect(response.body.address).toBe(TestUtils.addresses[1]);
+    expect(response.body.address).toBe(TestUtils.addresses[4]);
   });
 
   it("should return 200 with a valid body for index = 0", async () => {
@@ -43,7 +43,9 @@ describe("address api", () => {
 
   it("should return a new address with mark_as_used until the gapLimit is reached", async () => {
     const gapLimit = walletUtils.getGapLimit();
-    for (let index = 1; index <= gapLimit; index++) {
+    const startingIndex = 4; // First unused address
+    const upperLimit = gapLimit + startingIndex - 1; // Last address within the gap limit
+    for (let index = startingIndex; index <= upperLimit; index++) {
       const response = await TestUtils.request
         .get("/wallet/address")
         .query({ mark_as_used: true })
@@ -57,6 +59,6 @@ describe("address api", () => {
       .get("/wallet/address")
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(200);
-    expect(response.body.address).toBe(TestUtils.addresses[gapLimit]);
+    expect(response.body.address).toBe(TestUtils.addresses[upperLimit]);
   });
 });
