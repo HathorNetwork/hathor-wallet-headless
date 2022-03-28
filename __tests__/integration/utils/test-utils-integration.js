@@ -304,6 +304,8 @@ export class TestUtils {
       id: transaction.hash
     });
 
+    await TestUtils.pauseForWsUpdate();
+
     return transaction;
   }
 
