@@ -11,8 +11,8 @@ module.exports = {
   consoleLevel: process.env.TEST_CONSOLE_LEVEL || 'silly',
 
   // Defines how long tests should wait before consulting balances after transactions
-  wsUpdateDelay: process.env.TEST_WS_UPDATE_DELAY || 1000,
+  wsUpdateDelay: process.env.TEST_WS_UPDATE_DELAY || 10000,
 
   // Defines for how long the startMultipleWalletsForTest can run
-  walletStartTimeout: process.env.TEST_WALLET_START_TIMEOUT || 60000,
+  walletStartTimeout: process.env.TEST_WALLET_START_TIMEOUT || 120000,
 };
