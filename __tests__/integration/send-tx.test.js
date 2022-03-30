@@ -1402,7 +1402,7 @@ describe('filter query + custom tokens', () => {
     const txErr = await wallet1.sendTx({
       inputs: [{ type: 'query', filter_address: await wallet1.getAddressAt(0) }],
       outputs: [{ token: bugCoin.uid, address: await wallet1.getAddressAt(1), value: 2000 }],
-    }).catch(err => err.innerError);
+    }).catch(err => err.response);
 
     expect(txErr.status).toBe(200);
     expect(txErr.body.success).toBe(false);
@@ -1415,7 +1415,7 @@ describe('filter query + custom tokens', () => {
     const txErr = await wallet1.sendTx({
       inputs: [{ type: 'query', filter_address: await wallet1.getAddressAt(1) }],
       outputs: [{ token: bugCoin.uid, address: await wallet1.getAddressAt(2), value: 100 }],
-    }).catch(err => err.innerError);
+    }).catch(err => err.response);
 
     expect(txErr.status).toBe(200);
     expect(txErr.body.success).toBe(false);
@@ -1463,7 +1463,7 @@ describe('filter query + custom tokens', () => {
         { token: bugCoin.uid, address: await wallet1.getAddressAt(2), value: 900 }
       ],
       title: 'Sending all 1000 BUG to address 1'
-    }).catch(err => err.innerError);
+    }).catch(err => err.response);
 
     expect(txErr.status).toBe(200);
     expect(txErr.body.success).toBe(false);

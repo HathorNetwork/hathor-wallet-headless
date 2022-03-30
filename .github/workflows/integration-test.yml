@@ -4,12 +4,14 @@ on:
     branches:
       - master
       - dev
+      - test/integration-3-simple
     tags:
       - v*
-    pull_request:
-      branches:
-        - dev
-        - master
+  pull_request:
+    branches:
+      - dev
+      - master
+      - test/integration-3-simple
 jobs:
   itest:
     runs-on: ubuntu-20.04
@@ -42,3 +44,18 @@ jobs:
         with:
           name: test-transacion-logs
           path: tmp
+
+      - name: Collect docker logs on failure
+        if: failure()
+        uses: jwalton/gh-docker-logs@v1
+        with:
+          dest: './docker-logs'
+      - name: Tar logs
+        if: failure()
+        run: tar cvzf ./docker-logs.tgz ./docker-logs
+      - name: Upload logs to GitHub
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: logs.tgz
+          path: ./docker-logs.tgz

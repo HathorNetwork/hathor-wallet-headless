@@ -74,6 +74,17 @@ export class WalletHelper {
      * @type {Record<string,WalletHelper>}
      */
     const walletsPendingReady = {};
+    const startBenchmark = {
+      requestsStart: 0,
+      requestsEnd: 0,
+      requestsDiff: 0,
+
+      loopStart: 0,
+      loopEnd: 0,
+      loopDiff: 0,
+      fullStartDiff: 0,
+      wallets: {}
+    };
 
     // If the genesis wallet is not instantiated, start it. It should be always available
     const { genesis } = WALLET_CONSTANTS;
@@ -83,6 +94,7 @@ export class WalletHelper {
     }
 
     // Requests the start of all the wallets in quick succession
+    startBenchmark.requestsStart = Date.now().valueOf();
     const startPromisesArray = [];
     for (const wallet of walletsArr) {
       const promise = TestUtils.startWallet({
@@ -90,13 +102,16 @@ export class WalletHelper {
         words: wallet.words,
       });
       walletsPendingReady[wallet.walletId] = wallet;
+      startBenchmark.wallets[wallet.walletId] = {};
       startPromisesArray.push(promise);
     }
     await Promise.all(startPromisesArray);
+    startBenchmark.requestsEnd = Date.now().valueOf();
+    startBenchmark.requestsDiff = startBenchmark.requestsEnd - startBenchmark.requestsStart;
 
     // Enters the loop checking each wallet for its status
-    const timestampStart = Date.now().valueOf();
-    const timestampTimeout = timestampStart + testConfig.walletStartTimeout;
+    startBenchmark.loopStart = Date.now().valueOf();
+    const timestampTimeout = startBenchmark.loopStart + testConfig.walletStartTimeout;
     while (true) {
       const pendingWalletIds = Object.keys(walletsPendingReady);
       // If all wallets were started, return to the caller.
@@ -107,8 +122,12 @@ export class WalletHelper {
       // If this process took too long, the connection with the fullnode may be irreparably broken.
       const timestamp = Date.now().valueOf();
       if (timestamp > timestampTimeout) {
-        const errMsg = `Wallet init failure: Timeout after ${timestamp - timestampStart}ms.`;
+        const failureDiff = timestamp - startBenchmark.loopStart;
+        const errMsg = `Wallet init failure: Timeout on ${failureDiff}ms.`;
         TestUtils.logError(errMsg);
+        startBenchmark.failureAt = timestamp;
+        startBenchmark.failureDiff = failureDiff;
+        TestUtils.logTx(`Wallet init failure`, startBenchmark);
         throw new Error(errMsg);
       }
 
@@ -123,8 +142,11 @@ export class WalletHelper {
         }
 
         // If the wallet is ready, we remove it from the status check loop
+        const timestampReady = Date.now().valueOf();
         walletsPendingReady[walletId].__setStarted();
         delete walletsPendingReady[walletId];
+        startBenchmark.wallets[walletId].isReady = timestampReady;
+        startBenchmark.wallets[walletId].diffReady = timestampReady - startBenchmark.requestsEnd;
 
         const addresses = await TestUtils.getSomeAddresses(walletId);
         await loggers.test.informWalletAddresses(walletId, addresses);
@@ -132,11 +154,10 @@ export class WalletHelper {
     }
 
     const timestamp = Date.now().valueOf();
-    TestUtils.logTx(`Finished multiple wallet initialization.`, {
-      timestampStart,
-      timestampNow: timestamp,
-      diffSinceStart: timestamp - timestampStart
-    });
+    startBenchmark.loopEnd = timestamp;
+    startBenchmark.loopDiff = startBenchmark.loopEnd - startBenchmark.loopStart;
+    startBenchmark.fullStartDiff = startBenchmark.loopEnd - startBenchmark.requestsStart;
+    TestUtils.logTx(`Finished multiple wallet initialization.`, startBenchmark);
   }
 
   /**
@@ -205,10 +226,11 @@ export class WalletHelper {
 
   /**
    * Returns the next address without transactions for this wallet
+   * @param {boolean} [markAsUsed=false] If true, marks this address as used
    * @returns {Promise<string>}
    */
-  async getNextAddress() {
-    return TestUtils.getAddressAt(this.#walletId);
+  async getNextAddress(markAsUsed = false) {
+    return TestUtils.getAddressAt(this.#walletId, undefined, markAsUsed);
   }
 
   /**
@@ -249,6 +271,7 @@ export class WalletHelper {
    * @param {string} params.symbol Token symbol
    * @param {string} [params.address] Destination address for the custom token
    * @param {string} [params.change_address] Destination address for the HTR change
+   * @param {boolean} [params.dontLogErrors] Skip logging errors.
    * @returns {Promise<unknown>} Token creation transaction
    */
   async createToken(params) {
@@ -269,22 +292,18 @@ export class WalletHelper {
       .set({ 'x-wallet-id': this.#walletId })
       .send(tokenCreationBody);
 
-    // Retrieving token data and building the Test Log message
-    const tokenHash = newTokenResponse.body.hash;
-    TestUtils.logTx('Token creation', {
-      hash: tokenHash,
-      walletId: this.#walletId,
-      ...tokenCreationBody
+    const transaction = TestUtils.handleTransactionResponse({
+      methodName: 'createToken',
+      requestBody: tokenCreationBody,
+      txResponse: newTokenResponse,
+      dontLogErrors: params.dontLogErrors
     });
 
-    const transaction = newTokenResponse.body;
-
-    // Handling errors
-    if (!transaction.success) {
-      const injectError = new Error(transaction.message);
-      injectError.innerError = newTokenResponse;
-      throw injectError;
-    }
+    TestUtils.logTx('Token Creation', {
+      hash: transaction.hash,
+      walletId: this.#walletId,
+      tokenCreationBody,
+    });
 
     await TestUtils.pauseForWsUpdate();
 
@@ -332,6 +351,7 @@ export class WalletHelper {
    * @param {string} [options.token] Simpler way to inform transfer token instead of "outputs"
    * @param {string} [options.destinationWallet] Optional parameter to explain the funds destination
    * @param {string} [options.change_address] Optional parameter to set the change address
+   * @param {boolean} [options.dontLogErrors] Skip logging errors.
    * @returns {Promise<unknown>} Returns the transaction
    */
   async sendTx(options) {
@@ -360,14 +380,12 @@ export class WalletHelper {
       .send(sendOptions)
       .set(TestUtils.generateHeader(this.#walletId));
 
-    // Error handling
-    const transaction = response.body;
-    if (!transaction.success) {
-      const txError = new Error(transaction.message);
-      txError.innerError = response;
-      txError.sendOptions = sendOptions;
-      throw txError;
-    }
+    const transaction = TestUtils.handleTransactionResponse({
+      methodName: 'sendTx',
+      requestBody: sendOptions,
+      txResponse: response,
+      dontLogErrors: options.dontLogErrors
+    });
 
     // Logs the results
     const metadata = {
@@ -381,7 +399,7 @@ export class WalletHelper {
     if (options.destinationWallet) {
       metadata.destinationWallet = options.destinationWallet;
     }
-    await loggers.test.insertLineToLog('Transferring funds', metadata);
+    await TestUtils.logTx('send-tx', metadata);
 
     await TestUtils.pauseForWsUpdate();
 
@@ -394,5 +412,58 @@ export class WalletHelper {
 
   async getBalance(tokenUid = null) {
     return TestUtils.getBalance(this.#walletId, tokenUid);
+  }
+
+  /**
+   * Makes a request to get UTXO's for a specific query.
+   *
+   * @param [params]
+   * @param {number} [params.max_utxos] Maximum amount of results
+   * @param {string} [params.token] Custom token to filter
+   * @param {string} [params.filter_address] Specific address to filter
+   * @param {number} [params.amount_smaller_than] Filter only UTXO's with value <= this parameter
+   * @param {number} [params.amount_bigger_than] Filter only UTXO's with value >= this parameter
+   * @param {number} [params.maximum_amount] Maximum amount of summed values
+   * @param {boolean} [params.only_available] Filter only unlocked UTXOs
+   * @returns {Promise<FilterUtxosResponse>}
+   */
+  async getUtxos(params) {
+    return TestUtils.getUtxos({ ...params, walletId: this.#walletId });
+  }
+
+  /**
+   * Makes a request to get UTXO's for a specific query.
+   *
+   * @param [params]
+   * @param {string} [params.destination_address] Address that will receive the funds
+   * @param {number} [params.max_utxos] Maximum amount of source utxos used
+   * @param {string} [params.token] Custom token to filter
+   * @param {string} [params.filter_address] Specific address to filter for inputs
+   * @param {string} [params.amount_smaller_than] Filter only UTXO's with value <= this parameter
+   * @param {string} [params.amount_bigger_than] Filter only UTXO's with value >= this parameter
+   * @param {string } [params.maximum_amount] Maximum amount of summed values
+   * @param {boolean} [params.dontLogErrors] Skip logging errors.
+   * @returns {Promise<FilterUtxosResponse>}
+   */
+  async consolidateUtxos(params) {
+    return TestUtils.consolidateUtxos({ ...params, walletId: this.#walletId });
+  }
+
+  /**
+   * Creates NFT's
+   * @param params
+   * @param {string} params.name Token name
+   * @param {string} params.symbol Token symbol
+   * @param {number} params.amount Token amount
+   * @param {string} params.data Token data
+   * @param {string} [params.address] Token destination address
+   * @param {string} [params.change_address] Change address for the minting HTR
+   * @param {boolean} [params.create_mint] Determines if the mint authority will be created
+   * @param {boolean} [params.create_melt] Determines if the melt authority will be created
+   * @param {boolean} [params.dontLogErrors] Skip logging errors.
+   * @returns {Promise<{success}|*>}
+   */
+  async createNft(params) {
+    return TestUtils.createNft({ ...params, walletId: this.#walletId });
   }
 }
