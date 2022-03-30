@@ -692,23 +692,37 @@ walletRouter.post('/decode',
     const txHex = req.body.txHex;
     try {
       const tx = helpersUtils.createTxFromHex(txHex, req.wallet.getNetworkObject());
-      const data = {inputs: [], outputs: []};
+      const data = {
+        tokens: tx.tokens,
+        inputs: tx.inputs.map(input => ({txId: input.hash, index: input.index})),
+        outputs: [],
+      };
       for (const output of tx.outputs) {
         const outputData = {
-          address: output.decodedScript.address.base58,
           value: output.value,
           tokenData: output.tokenData,
+          script: output.script.toString('base64'),
+          type: output.decodedScript.getType(),
+          decoded: output.decodedScript,
         };
         if (output.tokenData != 0) {
           outputData['token'] = tx.tokens[output.getTokenIndex()];
         }
+        switch(outputData.type) {
+          case 'data':
+            outputData.decoded = {
+              data: output.decodedScript.data,
+            };
+            break;
+          case 'p2sh':
+          case 'p2pkh':
+          default:
+            outputData.decoded = {
+              address: output.decodedScript.address.base58,
+              timelock: output.decodedScript.timelock,
+            };
+        }
         data.outputs.push(outputData);
-      }
-      for (const input of tx.inputs) {
-        data.inputs.push({
-          txId: input.hash,
-          index: input.index,
-        });
       }
       res.send({ success: true, tx: data });
     } catch(err) {

@@ -67,9 +67,9 @@ describe("decode api", () => {
     // outputs
     expect(response.body.tx.outputs).toBeDefined();
     expect(response.body.tx.outputs.length).toBe(tx.outputs.length);
-    expect(response.body.tx.outputs[0].address).toBe(tx.outputs[0].address);
+    expect(response.body.tx.outputs[0].decoded.address).toBe(tx.outputs[0].address);
     expect(response.body.tx.outputs[0].value).toBe(tx.outputs[0].value);
-    expect(response.body.tx.outputs[1].address).toBe(tx.outputs[1].address);
+    expect(response.body.tx.outputs[1].decoded.address).toBe(tx.outputs[1].address);
     expect(response.body.tx.outputs[1].value).toBe(tx.outputs[1].value);
   });
 });
