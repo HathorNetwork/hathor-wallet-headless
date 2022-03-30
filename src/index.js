@@ -717,6 +717,7 @@ walletRouter.post('/decode',
 });
 
 
+// XXX: Currently only works for P2SH MultiSig signatures, but can be enhanced to include P2PKH Signatures once the wallet-lib adds support.
 txProposalRouter.post('/get-my-signatures',
   checkSchema({
     txHex: {
