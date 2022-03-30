@@ -89,8 +89,6 @@ describe('send tx (HTR)', () => {
       wallet5 = new WalletHelper('multisig-5', {seedKey: 'multisig-5', multisig: true});
       walletExtra = new WalletHelper('multisig-extra', {seedKey: 'multisig-extra', multisig: true});
 
-      // start only the genesis
-      await WalletHelper.startMultipleWalletsForTest([]);
       await WalletHelper.startMultipleWalletsForTest([
         wallet1, wallet2, wallet3, wallet4, wallet5, walletExtra]);
 

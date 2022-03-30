@@ -56,15 +56,6 @@ describe("tx-proposal sign api", () => {
     expect(response.body.success).toBeFalsy();
   });
 
-  it("should fail if signatures is an empty array", async () => {
-    const response = await TestUtils.request
-      .post("/wallet/tx-proposal/sign")
-      .send({txHex: '0123456789abcdef', signatures: []})
-      .set({ "x-wallet-id": TestUtils.walletId });
-    expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
-  });
-
   it("should return the signatures for the inputs we own on the transaction", async () => {
     const tx = {
       outputs: [

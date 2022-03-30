@@ -25,6 +25,19 @@ Example of a 2-of-4 MultiSig:
 ```
 Obs: You can have multiple seeds configured as multisig.
 
+### Docker
+
+When using Docker you need to configure using arguments or environment variables.
+Considering the seedKey `abc` the arguments would be:
+- `--seed_abc_pubkeys`        or `HEADLESS_SEED_ABC_PUBKEYS`        : Space separated list of participant xpubs
+- `--seed_abc_max_signatures` or `HEADLESS_SEED_ABC_MAX_SIGNATURES` : Number of participants
+- `--seed_abc_min_signatures` or `HEADLESS_SEED_ABC_MIN_SIGNATURES` : Minimum number of signatures needed to send a transaction
+
+### == IMPORTANT ==
+
+The MultiSig addresses are determined by the participants xpubs AND the minimum number of signatures.
+Changing the minimum number of signatures will generate a different MultiSig wallet.
+
 ## Collect pubkeys
 
 Configure your wallet normally and use the `/multisig-pubkey` to get your pubkey.
