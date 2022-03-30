@@ -649,6 +649,7 @@ export class TestUtils {
     });
 
     TestUtils.logTx('NFT Creation', { requestBody, transaction });
+    await TestUtils.pauseForWsUpdate();
 
     return transaction;
   }
