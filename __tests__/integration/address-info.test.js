@@ -9,6 +9,7 @@ import { WalletHelper } from './utils/wallet-helper';
 describe('address-info routes', () => {
   let wallet1;
   let wallet2;
+  let minerWallet;
   const address1balance = getRandomInt(200, 100);
   let customTokenHash;
 
@@ -18,8 +19,9 @@ describe('address-info routes', () => {
       wallet1 = new WalletHelper('addinfo-1');
       // A fixed custom token amount for the second wallet
       wallet2 = new WalletHelper('addinfo-2');
+      minerWallet = new WalletHelper(WALLET_CONSTANTS.miner.walletId, WALLET_CONSTANTS.miner.words);
 
-      await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
+      await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, minerWallet]);
       await wallet1.injectFunds(address1balance, 1);
       await wallet2.injectFunds(10);
       const customToken = await wallet2.createToken({
@@ -90,15 +92,15 @@ describe('address-info routes', () => {
   it('should return correct locked balance for an address with miner rewards', async done => {
     const response = await TestUtils.request
       .get('/wallet/address-info')
-      .query({ address: WALLET_CONSTANTS.genesis.addresses[1] }) // Miner rewards address
-      .set({ 'x-wallet-id': WALLET_CONSTANTS.genesis.walletId });
+      .query({ address: WALLET_CONSTANTS.miner.addresses[0] }) // Miner rewards address
+      .set({ 'x-wallet-id': minerWallet.walletId });
 
     expect(response.status).toBe(200);
 
     const results = response.body;
     expect(results.success).toBeTruthy();
     expect(results.token).toBe(HATHOR_TOKEN_ID);
-    expect(results.index).toBe(2);
+    expect(results.index).toBe(0);
     expect(results.total_amount_received).toBeGreaterThan(0);
 
     /*

@@ -49,7 +49,7 @@ services:
       - tx-mining-service
     command: [
       "-a", "sha256d",
-      "--coinbase-addr", "WRTFYzhTHkfYwub8EWVtAcUgbdUpsYMBpb", # Refer to test-utils-integration.js, WALLET_CONSTANTS
+      "--coinbase-addr", "WTjhJXzQJETVx7BVXdyZmvk396DRRsubdw", # Refer to test-utils-integration.js, WALLET_CONSTANTS
       "-o", "stratum+tcp://tx-mining-service:8034",
       "--retry-pause", "5", # 5 seconds between retries
       "-t", "1" # Number of threads used to mine
