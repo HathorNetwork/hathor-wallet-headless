@@ -33,8 +33,6 @@ describe('address-info routes', () => {
       });
       customTokenHash = customToken.hash;
 
-      await TestUtils.pauseForWsUpdate();
-
       /*
        * The state here should be:
        * wallet1[1] with some value between 100 and 200 HTR

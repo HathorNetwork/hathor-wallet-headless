@@ -30,7 +30,6 @@ describe('utxo-filter routes', () => {
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
 
       await wallet2.injectFunds(20, 0);
-      await TestUtils.pauseForWsUpdate();
 
       const tkaTx = await wallet2.createToken({
         name: tokenA.name,
@@ -47,8 +46,6 @@ describe('utxo-filter routes', () => {
        * - addr0: 10 htr
        * - addr1: 1000 tka
        */
-
-      await TestUtils.pauseForWsUpdate();
     } catch (err) {
       TestUtils.logError(err.stack);
     }
@@ -162,7 +159,6 @@ describe('utxo-filter routes', () => {
       transactions.tx10.hash = tx10.hash;
       transactions.tx10.index = TestUtils.getOutputIndexFromTx(tx10, 10);
       remainingChange -= 10;
-      await TestUtils.pauseForWsUpdate();
 
       const tx20 = await wallet2.sendTx({
         fullObject: {
@@ -179,7 +175,6 @@ describe('utxo-filter routes', () => {
       transactions.tx20.hash = tx20.hash;
       transactions.tx20.index = TestUtils.getOutputIndexFromTx(tx20, 20);
       remainingChange -= 20;
-      await TestUtils.pauseForWsUpdate();
 
       const tx30 = await wallet2.sendTx({
         fullObject: {
@@ -196,7 +191,6 @@ describe('utxo-filter routes', () => {
       transactions.tx30.hash = tx30.hash;
       transactions.tx30.index = TestUtils.getOutputIndexFromTx(tx30, 30);
       remainingChange -= 30;
-      await TestUtils.pauseForWsUpdate();
 
       const tx40 = await wallet2.sendTx({
         fullObject: {
@@ -213,7 +207,6 @@ describe('utxo-filter routes', () => {
       transactions.tx40.hash = tx40.hash;
       transactions.tx40.index = TestUtils.getOutputIndexFromTx(tx40, 40);
       remainingChange -= 40;
-      await TestUtils.pauseForWsUpdate();
 
       const tx50 = await wallet2.sendTx({
         fullObject: {
@@ -230,15 +223,12 @@ describe('utxo-filter routes', () => {
       transactions.tx50.hash = tx50.hash;
       transactions.tx50.index = TestUtils.getOutputIndexFromTx(tx50, 50);
     } catch (err) {
-      await TestUtils.pauseForWsUpdate();
       await TestUtils.dumpUtxos({
         walletId: wallet2.walletId,
         token: tokenA.uid,
         err
       });
     }
-
-    await TestUtils.pauseForWsUpdate();
 
     const utxosObj = await wallet2.getUtxos({
       token: tokenA.uid,

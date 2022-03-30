@@ -22,8 +22,6 @@ describe('balance routes', () => {
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3, minerWallet]);
       await wallet2.injectFunds(wallet2Balance);
       await wallet3.injectFunds(100);
-
-      await TestUtils.pauseForWsUpdate();
     } catch (err) {
       TestUtils.logError(err.stack);
     }
@@ -90,8 +88,6 @@ describe('balance routes', () => {
       amount: tokenAmount,
     });
     const tokenHash = newToken.hash;
-
-    await TestUtils.pauseForWsUpdate();
 
     const balanceResult = await TestUtils.request
       .get('/wallet/balance')

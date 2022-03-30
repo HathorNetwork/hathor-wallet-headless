@@ -611,6 +611,7 @@ export class TestUtils {
     });
 
     TestUtils.logTx('UTXO consolidation', { requestBody, transaction });
+    await TestUtils.pauseForWsUpdate();
 
     return transaction;
   }

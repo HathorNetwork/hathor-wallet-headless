@@ -50,9 +50,6 @@ describe('send tx (HTR)', () => {
       fundTx3.index = TestUtils.getOutputIndexFromTx(fundTxObj3, 1000);
       fundTx4.hash = fundTxObj4.hash;
       fundTx4.index = TestUtils.getOutputIndexFromTx(fundTxObj4, 1000);
-
-      // Awaiting for updated balances to be received by the websocket
-      await TestUtils.pauseForWsUpdate();
     } catch (err) {
       TestUtils.logError(err.stack);
     }
@@ -382,8 +379,6 @@ describe('send tx (HTR)', () => {
     expect(tx.hash).toBeDefined();
     expect(tx.success).toBe(true);
 
-    await TestUtils.pauseForWsUpdate();
-
     const destination0 = await wallet2.getAddressInfo(0);
     expect(destination0.total_amount_available).toBe(10);
 
@@ -403,8 +398,6 @@ describe('send tx (HTR)', () => {
 
     expect(tx.hash).toBeDefined();
     expect(tx.success).toBe(true);
-
-    await TestUtils.pauseForWsUpdate();
 
     const destination = await wallet2.getAddressInfo(0);
     expect(destination.total_amount_available).toBe(20);
@@ -438,8 +431,6 @@ describe('send tx (HTR)', () => {
     expect(tx.hash).toBeDefined();
     expect(tx.success).toBe(true);
 
-    await TestUtils.pauseForWsUpdate();
-
     const inputAddrAfter = await wallet2.getAddressInfo(0);
     const destinationAddrAfter = await wallet1.getAddressInfo(0);
     expect(inputAddrAfter.total_amount_available).toBe(sourceBeforeTx - 20);
@@ -470,8 +461,6 @@ describe('send tx (HTR)', () => {
     expect(tx.success).toBe(true);
     expect(tx.hash).toBeDefined();
 
-    await TestUtils.pauseForWsUpdate();
-
     const destination1After = await wallet2.getAddressInfo(1);
     const destination2After = await wallet2.getAddressInfo(2);
     expect(destination1After.total_amount_available)
@@ -499,8 +488,6 @@ describe('send tx (HTR)', () => {
     });
 
     expect(tx.hash).toBeDefined();
-
-    await TestUtils.pauseForWsUpdate();
 
     const destination = await wallet2.getAddressInfo(6);
     const changeAddr = await wallet3.getAddressInfo(2);
@@ -537,8 +524,6 @@ describe('send tx (HTR)', () => {
     expect(tx.success).toBe(true);
     expect(tx.hash).toBeDefined();
 
-    await TestUtils.pauseForWsUpdate();
-
     const sourceAddress = await wallet2.getAddressInfo(3);
     expect(sourceAddress.total_amount_received).toBe(2000);
     expect(sourceAddress.total_amount_sent).toBe(2000);
@@ -566,8 +551,6 @@ describe('send tx (HTR)', () => {
 
     expect(tx.success).toBe(true);
     expect(tx.hash).toBeDefined();
-
-    await TestUtils.pauseForWsUpdate();
 
     const addr5 = await wallet2.getAddressInfo(5);
     expect(addr5.total_amount_received).toBe(0);
@@ -598,8 +581,6 @@ describe('send tx (HTR)', () => {
     expect(tx.success).toBe(true);
     expect(tx.hash).toBeDefined();
 
-    await TestUtils.pauseForWsUpdate();
-
     const addr7 = await wallet2.getAddressInfo(10);
     expect(addr7.total_amount_received).toBe(760);
 
@@ -620,8 +601,6 @@ describe('send tx (HTR)', () => {
         }
       });
       const txSummary = TestUtils.getOutputSummaryHtr(tx, 100);
-
-      await TestUtils.pauseForWsUpdate();
 
       const destination = await wallet2.getAddressInfo(5);
       const changeAddr = await TestUtils.getAddressInfo(nextAddressHash, wallet1.walletId);
@@ -972,8 +951,6 @@ describe('send tx (custom tokens)', () => {
     tkaTx2.hash = tx.hash;
     tkaTx2.index = TestUtils.getOutputIndexFromTx(tx, 800);
 
-    await TestUtils.pauseForWsUpdate();
-
     // Checking wallet balances
     const balance2tka = await wallet2.getBalance(tokenA.uid);
     expect(balance2tka.available).toBe(200);
@@ -1000,8 +977,6 @@ describe('send tx (custom tokens)', () => {
     const tk4OutputIndex = TestUtils.getOutputIndexFromTx(w4TokenTx, 1000);
     tokenWallet4.uid = w4TokenTx.hash;
 
-    await TestUtils.pauseForWsUpdate();
-
     const sendOptions = {
       inputs: [{
         hash: tokenWallet4.uid,
@@ -1020,8 +995,6 @@ describe('send tx (custom tokens)', () => {
 
     expect(tx.success).toBe(true);
     expect(tx.hash).toBeDefined();
-
-    await TestUtils.pauseForWsUpdate();
 
     // Checking wallet balances
     const balance5tka = await wallet5.getBalance(tokenWallet4.uid);
@@ -1087,8 +1060,6 @@ describe('send tx (custom tokens)', () => {
     expect(tx.success).toBe(true);
     expect(tx.hash).toBeDefined();
 
-    await TestUtils.pauseForWsUpdate();
-
     const destination = await wallet1.getAddressInfo(0, tokenA.uid);
     expect(destination.total_amount_available).toBe(2000);
 
@@ -1114,8 +1085,6 @@ describe('send tx (custom tokens)', () => {
 
     expect(tx.success).toBe(true);
     expect(tx.hash).toBeDefined();
-
-    await TestUtils.pauseForWsUpdate();
 
     const destination = await wallet4.getAddressInfo(0, tokenWallet4.uid);
     expect(destination.total_amount_available).toBe(1000);
@@ -1184,8 +1153,6 @@ describe('send tx (custom tokens)', () => {
     expect(consolidateTx.success).toBe(true);
     expect(consolidateTx.hash).toBeDefined();
 
-    await TestUtils.pauseForWsUpdate();
-
     const destination3 = await wallet1.getAddressInfo(3, tokenA.uid);
     const destination4 = await wallet1.getAddressInfo(4, tokenA.uid);
     expect(destination3.total_amount_available).toBe(1600);
@@ -1224,8 +1191,6 @@ describe('send tx (custom tokens)', () => {
 
     expect(tkbTx1.success).toBe(true);
     expect(tkbTx1.hash).toBeDefined();
-
-    await TestUtils.pauseForWsUpdate();
 
     const destination7 = await wallet3.getAddressInfo(7, tokenB.uid);
     const destination8 = await wallet3.getAddressInfo(8);
@@ -1316,8 +1281,6 @@ describe('send tx (custom tokens)', () => {
         }
       }
     }
-
-    await TestUtils.pauseForWsUpdate();
 
     // Validating all the outputs' balances
     const destination10 = await wallet3.getAddressInfo(10, tokenB.uid);
@@ -1432,8 +1395,6 @@ describe('filter query + custom tokens', () => {
     });
     expect(tx.hash).toBeDefined();
 
-    await TestUtils.pauseForWsUpdate();
-
     const addr0htr = await wallet1.getAddressInfo(0);
     const addr0custom = await wallet1.getAddressInfo(0, bugCoin.uid);
     expect(addr0custom.total_amount_received).toBe(1000);
@@ -1480,8 +1441,6 @@ describe('filter query + custom tokens', () => {
       title: 'Sending only 10 BUG from address 1 to 2'
     });
     expect(tx.hash).toBeDefined();
-
-    await TestUtils.pauseForWsUpdate();
 
     // Checking address 1 for both custom and htr
     const addr1custom = await wallet1.getAddressInfo(1, bugCoin.uid);
@@ -1542,8 +1501,6 @@ describe('filter query + custom tokens', () => {
       title: 'Moving all address 3 funds to address 4'
     });
     expect(tx.hash).toBeDefined();
-
-    await TestUtils.pauseForWsUpdate();
 
     // Checking address 4 for both custom and htr
     const addr4custom = await wallet1.getAddressInfo(4, bugCoin.uid);

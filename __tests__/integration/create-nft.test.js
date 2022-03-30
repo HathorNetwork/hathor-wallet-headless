@@ -19,16 +19,6 @@ describe('create-nft routes', () => {
     await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
 
     await wallet1.injectFunds(1010);
-    await TestUtils.pauseForWsUpdate();
-  });
-
-  /*
-   * There are some varying behaviours on the token tests, mapped on issue #161.
-   * To avoid problems with them, we add a delay between each test - even the "invalid" ones that
-   * should not have side effects.
-   */
-  beforeEach(async () => {
-    await TestUtils.pauseForWsUpdate();
   });
 
   it('should reject without the mandatory parameters', async done => {
@@ -92,8 +82,6 @@ describe('create-nft routes', () => {
       ).toBe(true);
     }
 
-    await TestUtils.pauseForWsUpdate();
-
     // The fees (1) and deposits (1) should be deducted
     const htrBalanceAfter = await wallet1.getBalance();
     expect(htrBalanceAfter.available).toBe(htrBalanceBefore.available - 2);
@@ -130,8 +118,6 @@ describe('create-nft routes', () => {
         changeAmount = output.value;
       }
     }
-
-    await TestUtils.pauseForWsUpdate();
 
     // Validating balances for target addresses
     const destInfo = await TestUtils.getAddressInfo(destAddr, wallet1.walletId, nftTx.hash);
