@@ -11,8 +11,8 @@ const request = supertest(app);
 /**
  * @typedef WalletData
  * @property {string} walletId Id for interacting with the wallet
- * @property {string} words optional 24 word seed for the wallet
- * @property {string} seedKey optional key that references a seed on configuration
+ * @property {string} [words] optional 24 word seed for the wallet
+ * @property {string} [seedKey] optional key that references a seed on configuration
  * @property {string[]} [addresses] Some sample addresses to help with testing
  * @property {boolean} multisig If this should represent a multisig wallet
  *
