@@ -59,9 +59,9 @@ export class WalletHelper {
       throw new Error('A MultiSig Wallet must be instantiated from a seedKey');
     }
 
-    if (options.word) {
+    if (options.words) {
       // When words are available, use them
-      this.#words = words;
+      this.#words = option.words;
       this.#seedKey = null;
       this.#multisig = false;
     } else if (options.seedKey) {

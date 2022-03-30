@@ -1,4 +1,5 @@
 import TestUtils from "./test-utils";
+import hathorLib from '@hathor/wallet-lib';
 
 describe("create tx-proposal api", () => {
   beforeAll(async () => {
@@ -26,6 +27,9 @@ describe("create tx-proposal api", () => {
     expect(response.status).toBe(200);
     expect(response.body.txHex).toBeDefined();
     expect(response.body.success).toBeTruthy();
+    const tx = hathorLib.helpersUtils.createTxFromHex(response.body.txHex, new hathorLib.Network('testnet'))
+    expect(tx.outputs.map(o => o.decodedScript.address.base58))
+      .toEqual(expect.arrayContaining(['WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau']));
   });
 
   it("should return 200 with a valid body selecting inputs", async () => {
@@ -39,6 +43,11 @@ describe("create tx-proposal api", () => {
     expect(response.status).toBe(200);
     expect(response.body.txHex).toBeDefined();
     expect(response.body.success).toBeTruthy();
+    const tx = hathorLib.helpersUtils.createTxFromHex(response.body.txHex, new hathorLib.Network('testnet'))
+    expect(tx.outputs.map(o => o.decodedScript.address.base58))
+      .toEqual(expect.arrayContaining(['WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc']));
+    expect(tx.inputs.map(i => i.hash)).toEqual(['0000034e42c9f2a7a7ab720e2f34bc6701679bb70437e7b7d53b6328aa3a88ca']);
+    expect(tx.inputs.map(i => i.index)).toEqual([1]);
   });
 
   it("should accept value as string", async () => {

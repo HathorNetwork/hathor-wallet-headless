@@ -192,6 +192,7 @@ app.post('/start', (req, res) => {
       minSignatures: mconfig.minSignatures,
       pubkeys: mconfig.pubkeys,
     };
+    console.log(`Starting multisig wallet with ${multisigData.pubkeys.length} pubkeys and ${multisigData.minSignatures} minSignatures`);
   }
 
   const connection = new Connection({network: config.network, servers: [config.server], connectionTimeout: config.connectionTimeout});
@@ -283,7 +284,7 @@ app.post('/multisig-pubkey', (req, res) => {
 
   const seed = config.seeds[seedKey];
 
-  const options = {network: config.network};
+  const options = {networkName: config.network};
   if ('passphrase' in req.body) {
     options.passphrase = req.body.passphrase;
   }
@@ -647,12 +648,6 @@ txProposalRouter.post('/',
       return res.status(400).json(validationResult);
     }
 
-    const canStart = lock.lock(lockTypes.SEND_TX);
-    if (!canStart) {
-      res.send({success: false, error: cantSendTxErrorMessage});
-      return;
-    }
-
     const network = req.wallet.getNetworkObject();
     const outputs = req.body.outputs;
     const inputs = req.body.inputs || [];
@@ -670,8 +665,6 @@ txProposalRouter.post('/',
       res.send({ success: true, txHex: tx.toHex() });
     } catch (err) {
       res.send({success: false, error: err.message });
-    } finally {
-      lock.unlock(lockTypes.SEND_TX);
     }
 });
 
@@ -701,7 +694,6 @@ walletRouter.post('/decode',
       const tx = helpersUtils.createTxFromHex(txHex, req.wallet.getNetworkObject());
       const data = {inputs: [], outputs: []};
       for (const output of tx.outputs) {
-        output.parseScript(req.wallet.getNetworkObject());
         const outputData = {
           address: output.decodedScript.address.base58,
           value: output.value,
@@ -833,6 +825,12 @@ txProposalRouter.post('/sign-and-push',
       return res.status(400).json(validationResult);
     }
 
+    const canStart = lock.lock(lockTypes.SEND_TX);
+    if (!canStart) {
+      res.send({success: false, error: cantSendTxErrorMessage});
+      return;
+    }
+
     const txHex = req.body.txHex;
     const signatures = req.body.signatures || [];
     try {
@@ -847,6 +845,8 @@ txProposalRouter.post('/sign-and-push',
       res.send({ success: true, ...mapTxReturn(response) });
     } catch (err) {
       res.send({success: false, error: err.message });
+    } finally {
+      lock.unlock(lockTypes.SEND_TX);
     }
 });
 

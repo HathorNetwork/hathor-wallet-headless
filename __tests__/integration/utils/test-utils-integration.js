@@ -180,7 +180,11 @@ export class TestUtils {
     if (walletObj.words) {
       loggers.test.informNewWallet(walletObj.walletId, walletObj.words);
     } else {
-      loggers.test.informNewWallet(walletObj.walletId, `seedKey: ${walletObj.seedKey}`);
+      if (walletObj.multisig) {
+        loggers.test.informNewMultisigWallet(walletObj.walletId, walletObj.seedKey);
+      } else {
+        loggers.test.informNewWallet(walletObj.walletId, `seedKey: ${walletObj.seedKey}`);
+      }
     }
 
     return { start };
