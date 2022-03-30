@@ -30,9 +30,9 @@ Obs: You can have multiple seeds configured as multisig.
 
 When using Docker you need to configure using arguments or environment variables.
 Considering the seedKey `abc` the arguments would be:
-- `--seed_abc_pubkeys`        or `HEADLESS_SEED_ABC_PUBKEYS`        : Space separated list of participant xpubs
-- `--seed_abc_max_signatures` or `HEADLESS_SEED_ABC_MAX_SIGNATURES` : Number of participants
-- `--seed_abc_min_signatures` or `HEADLESS_SEED_ABC_MIN_SIGNATURES` : Minimum number of signatures needed to send a transaction
+- `--multisig_seed_abc_pubkeys`        or `HEADLESS_MULTISIG_SEED_ABC_PUBKEYS`        : Space separated list of participant xpubs
+- `--multisig_seed_abc_max_signatures` or `HEADLESS_MULTISIG_SEED_ABC_MAX_SIGNATURES` : Number of participants
+- `--multisig_seed_abc_min_signatures` or `HEADLESS_MULTISIG_SEED_ABC_MIN_SIGNATURES` : Minimum number of signatures needed to send a transaction
 
 ### == IMPORTANT ==
 
