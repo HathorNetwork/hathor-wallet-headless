@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 import supertest from 'supertest';
-import { HathorWallet, wallet } from '@hathor/wallet-lib';
+import { constants, HathorWallet, wallet } from '@hathor/wallet-lib';
 import app from '../../../src';
 import { loggers } from '../txLogger';
 import testConfig from '../configuration/test.config';
@@ -51,7 +51,7 @@ export const TOKEN_DATA = {
    * @returns {boolean} True if this is an authority output
    */
   // eslint-disable-next-line no-bitwise
-  isAuthorityToken: tokenData => !!(tokenData & 128)
+  isAuthorityToken: tokenData => !!(tokenData & constants.TOKEN_AUTHORITY_MASK)
 
 };
 
