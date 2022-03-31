@@ -137,7 +137,7 @@ export class TestUtils {
    * @param {Record<string,unknown>} [metadata] Additional data for winston logs
    * @param {'log'|'warn'|'error'} [type='log'] Optional log type
    */
-  static logTx(message, metadata, type) {
+  static log(message, metadata, type) {
     switch (type) {
       case 'warn':
         loggers.test.insertWarnToLog(message, metadata);
@@ -188,7 +188,7 @@ export class TestUtils {
        */
       if (!params.dontLogErrors) {
         delete logMetadata.response; // Avoid log pollution with excessive data
-        TestUtils.logTx(`${(params.methodName)} error`, logMetadata, 'error');
+        TestUtils.log(`${(params.methodName)} error`, logMetadata, 'error');
       }
 
       delete txError.responseBody; // Removing duplicate data
@@ -218,7 +218,7 @@ export class TestUtils {
     await TestUtils.pauseForWsUpdate();
     const utxoData = await TestUtils.getUtxos({ walletId, token });
     const dumpMessage = `Dumping all UTXOs for ${walletId}`;
-    TestUtils.logTx(dumpMessage, utxoData);
+    TestUtils.log(dumpMessage, utxoData);
 
     if (err) {
       const treatedErr = {
@@ -226,7 +226,7 @@ export class TestUtils {
         sendOptions: err.sendOptions,
         body: err.response.body
       };
-      TestUtils.logTx('Error dump', treatedErr);
+      TestUtils.log('Error dump', treatedErr);
     }
   }
 
@@ -620,7 +620,7 @@ export class TestUtils {
       dontLogErrors: params.dontLogErrors
     });
 
-    TestUtils.logTx('UTXO consolidation', { requestBody, transaction });
+    TestUtils.log('UTXO consolidation', { requestBody, transaction });
     await TestUtils.pauseForWsUpdate();
 
     return transaction;
@@ -658,7 +658,7 @@ export class TestUtils {
       dontLogErrors: params.dontLogErrors
     });
 
-    TestUtils.logTx('NFT Creation', { requestBody, transaction });
+    TestUtils.log('NFT Creation', { requestBody, transaction });
     await TestUtils.pauseForWsUpdate();
 
     return transaction;

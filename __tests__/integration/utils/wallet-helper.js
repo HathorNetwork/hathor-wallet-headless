@@ -127,7 +127,7 @@ export class WalletHelper {
         TestUtils.logError(errMsg);
         startBenchmark.failureAt = timestamp;
         startBenchmark.failureDiff = failureDiff;
-        TestUtils.logTx(`Wallet init failure`, startBenchmark);
+        TestUtils.log(`Wallet init failure`, startBenchmark);
         throw new Error(errMsg);
       }
 
@@ -157,7 +157,7 @@ export class WalletHelper {
     startBenchmark.loopEnd = timestamp;
     startBenchmark.loopDiff = startBenchmark.loopEnd - startBenchmark.loopStart;
     startBenchmark.fullStartDiff = startBenchmark.loopEnd - startBenchmark.requestsStart;
-    TestUtils.logTx(`Finished multiple wallet initialization.`, startBenchmark);
+    TestUtils.log(`Finished multiple wallet initialization.`, startBenchmark);
   }
 
   /**
@@ -299,7 +299,7 @@ export class WalletHelper {
       dontLogErrors: params.dontLogErrors
     });
 
-    TestUtils.logTx('Token Creation', {
+    TestUtils.log('Token Creation', {
       hash: transaction.hash,
       walletId: this.#walletId,
       tokenCreationBody,
@@ -399,7 +399,7 @@ export class WalletHelper {
     if (options.destinationWallet) {
       metadata.destinationWallet = options.destinationWallet;
     }
-    await TestUtils.logTx('send-tx', metadata);
+    await TestUtils.log('send-tx', metadata);
 
     await TestUtils.pauseForWsUpdate();
 
