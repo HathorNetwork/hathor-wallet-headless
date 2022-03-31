@@ -64,44 +64,60 @@ describe('utxo-filter routes', () => {
     expect(utxoResponse.utxos).toHaveProperty('length', 0);
   }
 
-  it('should return empty results for an empty wallet', async done => {
-    const utxosObj = await wallet1.getUtxos();
+  it('should return empty results for an empty wallet', async () => {
+    const utxoResponse = await TestUtils.request
+      .get('/wallet/utxo-filter')
+      .query({})
+      .set({ 'x-wallet-id': wallet1.walletId });
+    const utxosObj = utxoResponse.body;
 
     assertAllEmpty(utxosObj);
-    done();
   });
 
-  it('should return empty results for an empty wallet (custom token)', async done => {
-    const utxosObj = await wallet1.getUtxos({
-      token: tokenA.uid
-    });
+  it('should return empty results for an empty wallet (custom token)', async () => {
+    const utxoResponse = await TestUtils.request
+      .get('/wallet/utxo-filter')
+      .query({
+        token: tokenA.uid
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    const utxosObj = utxoResponse.body;
 
     assertAllEmpty(utxosObj);
-    done();
   });
 
-  it('should return empty results for an empty address', async done => {
-    const utxosObj = await wallet2.getUtxos({
-      filter_address: await wallet2.getAddressAt(1)
-    });
+  it('should return empty results for an empty address', async () => {
+    const utxoResponse = await TestUtils.request
+      .get('/wallet/utxo-filter')
+      .query({
+        filter_address: await wallet2.getAddressAt(1)
+      })
+      .set({ 'x-wallet-id': wallet2.walletId });
+    const utxosObj = utxoResponse.body;
 
     assertAllEmpty(utxosObj);
-    done();
   });
 
-  it('should return empty results for an empty address (custom token)', async done => {
-    const utxosObj = await wallet2.getUtxos({
-      token: tokenA.uid,
-      filter_address: await wallet2.getAddressAt(0)
-    });
+  it('should return empty results for an empty address (custom token)', async () => {
+    const utxoResponse = await TestUtils.request
+      .get('/wallet/utxo-filter')
+      .query({
+        token: tokenA.uid,
+        filter_address: await wallet2.getAddressAt(0)
+      })
+      .set({ 'x-wallet-id': wallet2.walletId });
+    const utxosObj = utxoResponse.body;
 
     assertAllEmpty(utxosObj);
-    done();
   });
 
-  it('should return single utxo', async done => {
+  it('should return single utxo', async () => {
     const addr0Hash = await wallet2.getAddressAt(0);
-    const utxosObj = await wallet2.getUtxos();
+    const utxoResponse = await TestUtils.request
+      .get('/wallet/utxo-filter')
+      .query({})
+      .set({ 'x-wallet-id': wallet2.walletId });
+    const utxosObj = utxoResponse.body;
 
     expect(utxosObj.total_amount_available).toBe(10);
     expect(utxosObj.total_utxos_available).toBe(1);
@@ -114,14 +130,17 @@ describe('utxo-filter routes', () => {
     expect(utxo.amount).toBe(10);
     expect(utxo.tx_id).toBe(tokenA.uid);
     expect(utxo.locked).toBe(false);
-    done();
   });
 
-  it('should return single utxo (custom token)', async done => {
+  it('should return single utxo (custom token)', async () => {
     const addr1Hash = await wallet2.getAddressAt(1);
-    const utxosObj = await wallet2.getUtxos({
-      token: tokenA.uid,
-    });
+    const utxoResponse = await TestUtils.request
+      .get('/wallet/utxo-filter')
+      .query({
+        token: tokenA.uid,
+      })
+      .set({ 'x-wallet-id': wallet2.walletId });
+    const utxosObj = utxoResponse.body;
 
     expect(utxosObj.total_amount_available).toBe(1000);
     expect(utxosObj.total_utxos_available).toBe(1);
@@ -134,11 +153,10 @@ describe('utxo-filter routes', () => {
     expect(utxo.amount).toBe(1000);
     expect(utxo.tx_id).toBe(tokenA.uid);
     expect(utxo.locked).toBe(false);
-    done();
   });
 
   // This test spreads out TKA on many UTXOs, as described in the `transactions` variable.
-  it('should return with filter max_utxos', async done => {
+  it('should return with filter max_utxos', async () => {
     const addr0 = await wallet2.getAddressAt(0);
     transactions.tx10.address = await wallet2.getNextAddress(true);
     transactions.tx20.address = await wallet2.getNextAddress(true);
@@ -229,11 +247,14 @@ describe('utxo-filter routes', () => {
         err
       });
     }
-
-    const utxosObj = await wallet2.getUtxos({
-      token: tokenA.uid,
-      max_utxos: 2
-    });
+    const utxoResponse = await TestUtils.request
+      .get('/wallet/utxo-filter')
+      .query({
+        token: tokenA.uid,
+        max_utxos: 2
+      })
+      .set({ 'x-wallet-id': wallet2.walletId });
+    const utxosObj = utxoResponse.body;
 
     expect(utxosObj.utxos).toHaveProperty('length', 2);
     expect(utxosObj.total_amount_available).toBe(30);
@@ -250,15 +271,23 @@ describe('utxo-filter routes', () => {
     expect(utxo1.address).toBe(transactions.tx20.address);
     expect(utxo1.amount).toBe(20);
     expect(utxo1.locked).toBe(false);
-    done();
   });
 
-  it('should return results for specific addresses', async done => {
-    const htrUtxos = await wallet2.getUtxos({ filter_address: await wallet2.getAddressAt(0) });
-    const tkaUtxos = await wallet2.getUtxos({
-      filter_address: transactions.tx20.address,
-      token: tokenA.uid
-    });
+  it('should return results for specific addresses', async () => {
+    const htrResponse = await TestUtils.request
+      .get('/wallet/utxo-filter')
+      .query({ filter_address: await wallet2.getAddressAt(0) })
+      .set({ 'x-wallet-id': wallet2.walletId });
+    const htrUtxos = htrResponse.body;
+
+    const tkaResponse = await TestUtils.request
+      .get('/wallet/utxo-filter')
+      .query({
+        filter_address: transactions.tx20.address,
+        token: tokenA.uid
+      })
+      .set({ 'x-wallet-id': wallet2.walletId });
+    const tkaUtxos = tkaResponse.body;
 
     // HTR
     expect(htrUtxos.total_amount_available).toBe(10);
@@ -272,14 +301,17 @@ describe('utxo-filter routes', () => {
     expect(tkaUtxos.utxos).toHaveProperty('length', 1);
     expect(tkaUtxos.utxos[0]).toHaveProperty('tx_id', transactions.tx20.hash);
     expect(tkaUtxos.utxos[0]).toHaveProperty('index', transactions.tx20.index);
-    done();
   });
 
-  it('should return correct results for amount_smaller_than', async done => {
-    const tkaUtxos = await wallet2.getUtxos({
-      token: tokenA.uid,
-      amount_smaller_than: 30
-    });
+  it('should return correct results for amount_smaller_than', async () => {
+    const utxoResponse = await TestUtils.request
+      .get('/wallet/utxo-filter')
+      .query({
+        token: tokenA.uid,
+        amount_smaller_than: 30
+      })
+      .set({ 'x-wallet-id': wallet2.walletId });
+    const tkaUtxos = utxoResponse.body;
 
     // TODO: This is returning the equivalent of "smaller_or_equal_than". Is this correct?
     expect(tkaUtxos.total_amount_available).toBe(10 + 20 + 30);
@@ -288,14 +320,17 @@ describe('utxo-filter routes', () => {
     expect(tkaUtxos.utxos[0]).toHaveProperty('tx_id', transactions.tx10.hash);
     expect(tkaUtxos.utxos[1]).toHaveProperty('tx_id', transactions.tx20.hash);
     expect(tkaUtxos.utxos[2]).toHaveProperty('tx_id', transactions.tx30.hash);
-    done();
   });
 
-  it('should return correct results for amount_bigger_than', async done => {
-    const tkaUtxos = await wallet2.getUtxos({
-      token: tokenA.uid,
-      amount_bigger_than: 30
-    });
+  it('should return correct results for amount_bigger_than', async () => {
+    const utxoResponse = await TestUtils.request
+      .get('/wallet/utxo-filter')
+      .query({
+        token: tokenA.uid,
+        amount_bigger_than: 30
+      })
+      .set({ 'x-wallet-id': wallet2.walletId });
+    const tkaUtxos = utxoResponse.body;
 
     // TODO: This is returning the equivalent of "bigger_or_equal_than". Is this correct?
     expect(tkaUtxos.total_amount_available).toBe(1000 - 10 - 20);
@@ -318,14 +353,17 @@ describe('utxo-filter routes', () => {
       expect(tkaUtxos.utxos[2]).toHaveProperty('amount', tkaChangeOnAddr0);
       expect(tkaUtxos.utxos[3]).toHaveProperty('amount', 50);
     }
-    done();
   });
 
-  it('should return correct results for maximum_amount', async done => {
-    const tkaUtxos = await wallet2.getUtxos({
-      token: tokenA.uid,
-      maximum_amount: 100
-    });
+  it('should return correct results for maximum_amount', async () => {
+    const utxoResponse = await TestUtils.request
+      .get('/wallet/utxo-filter')
+      .query({
+        token: tokenA.uid,
+        maximum_amount: 100
+      })
+      .set({ 'x-wallet-id': wallet2.walletId });
+    const tkaUtxos = utxoResponse.body;
 
     expect(tkaUtxos.total_amount_available).toBe(100);
     expect(tkaUtxos.total_utxos_available).toBe(4);
@@ -336,16 +374,18 @@ describe('utxo-filter routes', () => {
     expect(tkaUtxos.utxos[1]).toHaveProperty('tx_id', transactions.tx20.hash);
     expect(tkaUtxos.utxos[2]).toHaveProperty('tx_id', transactions.tx30.hash);
     expect(tkaUtxos.utxos[3]).toHaveProperty('tx_id', transactions.tx40.hash);
-
-    done();
   });
 
-  it('should return correct results for maximum_amount and bigger_than', async done => {
-    const tkaUtxos = await wallet2.getUtxos({
-      token: tokenA.uid,
-      maximum_amount: 100,
-      amount_bigger_than: 30
-    });
+  it('should return correct results for maximum_amount and bigger_than', async () => {
+    const utxoResponse = await TestUtils.request
+      .get('/wallet/utxo-filter')
+      .query({
+        token: tokenA.uid,
+        maximum_amount: 100,
+        amount_bigger_than: 30
+      })
+      .set({ 'x-wallet-id': wallet2.walletId });
+    const tkaUtxos = utxoResponse.body;
 
     expect(tkaUtxos.total_amount_available).toBe(70);
     expect(tkaUtxos.total_utxos_available).toBe(2);
@@ -353,12 +393,10 @@ describe('utxo-filter routes', () => {
 
     expect(tkaUtxos.utxos[0]).toHaveProperty('tx_id', transactions.tx30.hash);
     expect(tkaUtxos.utxos[1]).toHaveProperty('tx_id', transactions.tx40.hash);
-
-    done();
   });
 
   // It seems there is a name mismatch on the lib parameter: only_available => only_available_utxos
-  it.skip('should return correct results for only_available', async done => {
+  it.skip('should return correct results for only_available', async () => {
     /*
      * The miner wallet always has some locked utxos because of the mining.
      * There is a small chance that between each request a new block reward has been delivered,
@@ -370,10 +408,21 @@ describe('utxo-filter routes', () => {
     );
     await WalletHelper.startMultipleWalletsForTest([minerWallet]);
 
-    const [utxos, availableUtxos] = await Promise.all([
-      TestUtils.getUtxos({ walletId: minerWallet.walletId }),
-      TestUtils.getUtxos({ walletId: minerWallet.walletId, only_available: true }),
+    const allUtxosPromise = await TestUtils.request
+      .get('/wallet/utxo-filter')
+      .query()
+      .set({ 'x-wallet-id': minerWallet.walletId });
+    const availableUtxosPromise = await TestUtils.request
+      .get('/wallet/utxo-filter')
+      .query({ only_available: true })
+      .set({ 'x-wallet-id': minerWallet.walletId });
+
+    const [utxosResponse, availableUtxosResponse] = await Promise.all([
+      allUtxosPromise,
+      availableUtxosPromise,
     ]);
+    const utxos = utxosResponse.body;
+    const availableUtxos = availableUtxosResponse.body;
 
     // First analyzing the available amounts, which should be equal
     expect(utxos.total_amount_available).toBe(availableUtxos.total_amount_available);
@@ -390,6 +439,5 @@ describe('utxo-filter routes', () => {
     expect(lockedUtxos.length).toBe(utxos.total_utxos_locked);
     const lockedAvailableUtxos = availableUtxos.utxos.filter(u => u.locked === true);
     expect(lockedAvailableUtxos.length).toBe(availableUtxos.total_utxos_locked);
-    done();
   });
 });
