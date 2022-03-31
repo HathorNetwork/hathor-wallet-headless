@@ -161,6 +161,9 @@ describe('create-nft routes', () => {
   });
 
   it('should create nft with melt authority', async () => {
+    // Since no pause was necessary on the last test, we will add one here to improve stability
+    await TestUtils.pauseForWsUpdate();
+
     const response = await TestUtils.request
       .post('/wallet/create-nft')
       .send({
@@ -182,6 +185,7 @@ describe('create-nft routes', () => {
   });
 
   it('should create nft with mint and melt authorities', async () => {
+    await TestUtils.pauseForWsUpdate();
     const response = await TestUtils.request
       .post('/wallet/create-nft')
       .send({
