@@ -59,74 +59,77 @@ describe('utxo-consolidation routes', () => {
   async function cleanWallet1(token) {
     const balance = await wallet1.getBalance(token);
 
-    const cleanTx = await wallet1.sendTx({
+    return wallet1.sendTx({
       outputs: [{ address: await wallet2.getAddressAt(0), value: balance.available, token }],
       destinationWallet: wallet2.walletId,
       title: 'Cleaning up wallet1 after test'
     });
-
-    return cleanTx;
   }
 
-  it('should reject for missing destination address', async done => {
-    const errObj = await wallet1.consolidateUtxos({
-      dontLogErrors: true
-    }).catch(err => err);
+  it('should reject for missing destination address', async () => {
+    const utxoResponse = await TestUtils.request
+      .post('/wallet/utxo-consolidation')
+      .send({})
+      .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(errObj.response.text).toContain('Invalid');
-    expect(errObj.response.text).toContain('destination_address');
-    done();
+    expect(utxoResponse.text).toContain('Invalid');
+    expect(utxoResponse.text).toContain('destination_address');
   });
 
-  it('should reject for an empty wallet', async done => {
-    const errObj = await wallet1.consolidateUtxos({
-      destination_address: await wallet1.getAddressAt(1),
-      dontLogErrors: true
-    }).catch(err => err);
+  it('should reject for an empty wallet', async () => {
+    const utxoResponse = await TestUtils.request
+      .post('/wallet/utxo-consolidation')
+      .send({
+        destination_address: await wallet1.getAddressAt(1),
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(errObj.response.status).toBe(200);
-    expect(errObj.response.body.error).toContain('available utxo');
-    done();
+    expect(utxoResponse.status).toBe(200);
+    expect(utxoResponse.body.error).toContain('available utxo');
   });
 
-  it('should reject for an empty wallet (custom token)', async done => {
-    const errObj = await wallet1.consolidateUtxos({
-      destination_address: await wallet1.getAddressAt(1),
-      token: tokenA.uid,
-      dontLogErrors: true
-    }).catch(err => err);
+  it('should reject for an empty wallet (custom token)', async () => {
+    const utxoResponse = await TestUtils.request
+      .post('/wallet/utxo-consolidation')
+      .send({
+        destination_address: await wallet1.getAddressAt(1),
+        token: tokenA.uid,
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(errObj.response.status).toBe(200);
-    expect(errObj.response.body.error).toContain('available utxo');
-    done();
+    expect(utxoResponse.status).toBe(200);
+    expect(utxoResponse.body.error).toContain('available utxo');
   });
 
-  it('should reject for an empty address', async done => {
-    const errObj = await wallet1.consolidateUtxos({
-      filter_address: await wallet1.getNextAddress(),
-      destination_address: await wallet1.getAddressAt(1),
-      dontLogErrors: true
-    }).catch(err => err);
+  it('should reject for an empty address', async () => {
+    const utxoResponse = await TestUtils.request
+      .post('/wallet/utxo-consolidation')
+      .send({
+        filter_address: await wallet1.getNextAddress(),
+        destination_address: await wallet1.getAddressAt(1),
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(errObj.response.status).toBe(200);
-    expect(errObj.response.body.error).toContain('available utxo');
-    done();
+    expect(utxoResponse.status).toBe(200);
+    expect(utxoResponse.body.error).toContain('available utxo');
   });
 
-  it('should reject for an empty address (custom token)', async done => {
-    const errObj = await wallet1.consolidateUtxos({
-      filter_address: await wallet1.getNextAddress(),
-      destination_address: await wallet1.getAddressAt(1),
-      token: tokenA.uid,
-      dontLogErrors: true
-    }).catch(err => err);
+  it('should reject for an empty address (custom token)', async () => {
+    const utxoResponse = await TestUtils.request
+      .post('/wallet/utxo-consolidation')
+      .send({
+        filter_address: await wallet1.getNextAddress(),
+        destination_address: await wallet1.getAddressAt(1),
+        token: tokenA.uid,
+        dontLogErrors: true
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(errObj.response.status).toBe(200);
-    expect(errObj.response.body.error).toContain('available utxo');
-    done();
+    expect(utxoResponse.status).toBe(200);
+    expect(utxoResponse.body.error).toContain('available utxo');
   });
 
-  it('should consolidate two UTXOs', async done => {
+  it('should consolidate two UTXOs', async () => {
     const fundTx = await wallet2.sendTx({
       outputs: [
         { address: await wallet1.getAddressAt(1), value: 10 },
@@ -135,9 +138,13 @@ describe('utxo-consolidation routes', () => {
       destinationWallet: wallet1.walletId
     });
 
-    const consolidateTx = await wallet1.consolidateUtxos({
-      destination_address: await wallet1.getAddressAt(0)
-    });
+    const utxoResponse = await TestUtils.request
+      .post('/wallet/utxo-consolidation')
+      .send({
+        destination_address: await wallet1.getAddressAt(0)
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    const consolidateTx = utxoResponse.body;
 
     // Evaluating consolidation results
     expect(consolidateTx.total_amount).toBe(30);
@@ -162,11 +169,9 @@ describe('utxo-consolidation routes', () => {
 
     // Cleaning up
     await cleanWallet1();
-
-    done();
   });
 
-  it('should consolidate two UTXOs (custom token)', async done => {
+  it('should consolidate two UTXOs (custom token)', async () => {
     const fundTx = await wallet2.sendTx({
       outputs: [
         { address: await wallet1.getAddressAt(1), value: 10, token: tokenA.uid },
@@ -175,10 +180,14 @@ describe('utxo-consolidation routes', () => {
       destinationWallet: wallet1.walletId
     });
 
-    const consolidateTx = await wallet1.consolidateUtxos({
-      destination_address: await wallet1.getAddressAt(0),
-      token: tokenA.uid
-    });
+    const utxoResponse = await TestUtils.request
+      .post('/wallet/utxo-consolidation')
+      .send({
+        destination_address: await wallet1.getAddressAt(0),
+        token: tokenA.uid
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    const consolidateTx = utxoResponse.body;
 
     // Evaluating consolidation results
     expect(consolidateTx.total_amount).toBe(30);
@@ -204,11 +213,9 @@ describe('utxo-consolidation routes', () => {
 
     // Cleaning up
     await cleanWallet1(tokenA.uid);
-
-    done();
   });
 
-  it('should consolidate with filter_address filter', async done => {
+  it('should consolidate with filter_address filter', async () => {
     const addr1 = await wallet1.getAddressAt(1);
     const addr2 = await wallet1.getAddressAt(2);
 
@@ -223,10 +230,14 @@ describe('utxo-consolidation routes', () => {
       destinationWallet: wallet1.walletId
     });
 
-    const consolidateTx = await wallet1.consolidateUtxos({
-      destination_address: await wallet1.getAddressAt(0),
-      filter_address: addr2
-    });
+    const utxoResponse = await TestUtils.request
+      .post('/wallet/utxo-consolidation')
+      .send({
+        destination_address: await wallet1.getAddressAt(0),
+        filter_address: addr2
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    const consolidateTx = utxoResponse.body;
 
     // Evaluating consolidation results
     expect(consolidateTx.total_amount).toBe(30);
@@ -245,11 +256,9 @@ describe('utxo-consolidation routes', () => {
 
     // Cleaning up
     await cleanWallet1();
-
-    done();
   });
 
-  it('should consolidate with amount_smaller_than filter', async done => {
+  it('should consolidate with amount_smaller_than filter', async () => {
     const addr1 = await wallet1.getAddressAt(1);
 
     await wallet2.sendTx({
@@ -263,11 +272,15 @@ describe('utxo-consolidation routes', () => {
       destinationWallet: wallet1.walletId
     });
 
-    const consolidateTx = await wallet1.consolidateUtxos({
-      destination_address: await wallet1.getAddressAt(2),
-      amount_smaller_than: 30,
-      filter_address: addr1
-    });
+    const utxoResponse = await TestUtils.request
+      .post('/wallet/utxo-consolidation')
+      .send({
+        destination_address: await wallet1.getAddressAt(2),
+        amount_smaller_than: 30,
+        filter_address: addr1
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    const consolidateTx = utxoResponse.body;
 
     // Evaluating consolidation results. Only source combination possible must be [10, 20, 30].
     expect(consolidateTx.total_amount).toBe(60);
@@ -283,11 +296,9 @@ describe('utxo-consolidation routes', () => {
 
     // Cleaning up
     await cleanWallet1();
-
-    done();
   });
 
-  it('should consolidate with amount_bigger_than filter', async done => {
+  it('should consolidate with amount_bigger_than filter', async () => {
     const addr0 = await wallet1.getAddressAt(0);
 
     await wallet2.sendTx({
@@ -302,11 +313,15 @@ describe('utxo-consolidation routes', () => {
     });
 
     const destinationAddress = await wallet1.getAddressAt(2);
-    const consolidateTx = await wallet1.consolidateUtxos({
-      destination_address: destinationAddress,
-      amount_bigger_than: 30,
-      filter_address: addr0
-    });
+    const utxoResponse = await TestUtils.request
+      .post('/wallet/utxo-consolidation')
+      .send({
+        destination_address: destinationAddress,
+        amount_bigger_than: 30,
+        filter_address: addr0
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    const consolidateTx = utxoResponse.body;
 
     // Evaluating results. Only source combination must be [30, 40, 50]
     expect(consolidateTx.total_amount).toBe(120);
@@ -322,11 +337,9 @@ describe('utxo-consolidation routes', () => {
 
     // Cleaning up
     await cleanWallet1();
-
-    done();
   });
 
-  it('should consolidate with amount_bigger_than and maximum_amount filters', async done => {
+  it('should consolidate with amount_bigger_than and maximum_amount filters', async () => {
     const addr0 = await wallet1.getAddressAt(0);
 
     await wallet2.sendTx({
@@ -341,12 +354,16 @@ describe('utxo-consolidation routes', () => {
     });
 
     const destinationAddress = await wallet1.getAddressAt(2);
-    const consolidateTx = await wallet1.consolidateUtxos({
-      destination_address: destinationAddress,
-      amount_bigger_than: 30,
-      maximum_amount: 100,
-      filter_address: addr0
-    });
+    const utxoResponse = await TestUtils.request
+      .post('/wallet/utxo-consolidation')
+      .send({
+        destination_address: destinationAddress,
+        amount_bigger_than: 30,
+        maximum_amount: 100,
+        filter_address: addr0
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    const consolidateTx = utxoResponse.body;
 
     // Evaluating results. Only possible combination is [30, 40]
     expect(consolidateTx.total_amount).toBe(70);
@@ -364,7 +381,5 @@ describe('utxo-consolidation routes', () => {
 
     // Cleaning up
     await cleanWallet1();
-
-    done();
   });
 });
