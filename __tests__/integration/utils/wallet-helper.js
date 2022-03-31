@@ -61,7 +61,7 @@ export class WalletHelper {
 
     if (options.words) {
       // When words are available, use them
-      this.#words = option.words;
+      this.#words = options.words;
       this.#seedKey = null;
       this.#multisig = false;
     } else if (options.seedKey) {
