@@ -21,66 +21,73 @@ describe('create-nft routes', () => {
     await wallet1.injectFunds(1010);
   });
 
-  it('should reject without the mandatory parameters', async done => {
+  it('should reject without the mandatory parameters', async () => {
     for (const field of ['name', 'symbol', 'amount', 'data']) {
       const token = {
         ...nftData,
         amount: 1000,
-        dontLogErrors: true
       };
       delete token[field];
-      const nftErr = await wallet1.createNft(token)
-        .catch(err => err);
 
-      expect(nftErr).toBeInstanceOf(Error);
-      expect(nftErr.response.text).toContain(field);
+      const response = await TestUtils.request
+        .post('/wallet/create-nft')
+        .send(token)
+        .set({ 'x-wallet-id': wallet1.walletId });
+
+      expect(response.status).toBe(400);
+      expect(response.text).toContain(field);
     }
-    done();
   });
 
-  it('should reject for insufficient funds', async done => {
-    const nftErr = await wallet2.createNft({
-      ...nftData,
-      amount: 1000,
-      dontLogErrors: true
-    })
-      .catch(err => err);
+  it('should reject for insufficient funds', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/create-nft')
+      .send({
+        ...nftData,
+        amount: 1000,
+      })
+      .set({ 'x-wallet-id': wallet2.walletId });
 
-    expect(nftErr).toBeInstanceOf(Error);
-    expect(nftErr.response.text).toContain('HTR funds');
-    done();
+    expect(response.body.success).toBe(false);
+    expect(response.text).toContain('HTR funds');
   });
 
-  it('should reject for a change address outside of the wallet', async done => {
-    const nftErr = await wallet1.createNft({
-      ...nftData,
-      amount: 10,
-      change_address: await wallet2.getAddressAt(0),
-      dontLogErrors: true
-    })
-      .catch(err => err);
+  it('should reject for a change address outside of the wallet', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/create-nft')
+      .send({
+        ...nftData,
+        amount: 10,
+        change_address: await wallet2.getAddressAt(0),
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(nftErr).toBeInstanceOf(Error);
-    expect(nftErr.response.text).toContain('Change address');
-    done();
+    expect(response.body.success).toBe(false);
+    expect(response.text).toContain('Change address');
   });
 
-  it('should create nft with only mandatory parameters', async done => {
+  it('should create nft with only mandatory parameters', async () => {
     const htrBalanceBefore = await wallet1.getBalance();
     const nextAddress = await wallet1.getNextAddress();
 
-    const nftTx = await wallet1.createNft({
-      ...nftData,
-      amount: 1
-    });
+    const response = await TestUtils.request
+      .post('/wallet/create-nft')
+      .send({
+        ...nftData,
+        amount: 1
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.body.success).toBe(true);
+    const nftTx = response.body;
     expect(nftTx.hash).toBeDefined();
+
     // No authority tokens
     for (const output of nftTx.outputs) {
-      expect(
-        output.token_data === TOKEN_DATA.HTR
-        || output.token_data === TOKEN_DATA.TOKEN
-      ).toBe(true);
+      expect(TOKEN_DATA.isAuthorityToken(output.token_data)).toBe(false);
     }
+
+    await TestUtils.pauseForWsUpdate();
 
     // The fees (1) and deposits (1) should be deducted
     const htrBalanceAfter = await wallet1.getBalance();
@@ -89,20 +96,24 @@ describe('create-nft routes', () => {
     // NFT should be on the next available address
     const addrInfo = await TestUtils.getAddressInfo(nextAddress, wallet1.walletId, nftTx.hash);
     expect(addrInfo.total_amount_available).toBe(1);
-
-    done();
   });
 
-  it('should create nft with address and change address', async done => {
+  it('should create nft with address and change address', async () => {
     const destAddr = await wallet1.getNextAddress(true);
     const changeAddr = await wallet1.getNextAddress(true);
 
-    const nftTx = await wallet1.createNft({
-      ...nftData,
-      amount: 1,
-      address: destAddr,
-      change_address: changeAddr
-    });
+    const response = await TestUtils.request
+      .post('/wallet/create-nft')
+      .send({
+        ...nftData,
+        amount: 1,
+        address: destAddr,
+        change_address: changeAddr
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.body.success).toBe(true);
+    const nftTx = response.body;
     expect(nftTx.hash).toBeDefined();
 
     // No authority tokens
@@ -119,21 +130,27 @@ describe('create-nft routes', () => {
       }
     }
 
+    await TestUtils.pauseForWsUpdate();
+
     // Validating balances for target addresses
     const destInfo = await TestUtils.getAddressInfo(destAddr, wallet1.walletId, nftTx.hash);
     expect(destInfo.total_amount_available).toBe(1);
     const changeInfo = await TestUtils.getAddressInfo(changeAddr, wallet1.walletId);
     expect(changeInfo.total_amount_available).toBe(changeAmount);
-
-    done();
   });
 
-  it('should create nft with mint authority', async done => {
-    const nftTx = await wallet1.createNft({
-      ...nftData,
-      amount: 1,
-      create_mint: true
-    });
+  it('should create nft with mint authority', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/create-nft')
+      .send({
+        ...nftData,
+        amount: 1,
+        create_mint: true
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.body.success).toBe(true);
+    const nftTx = response.body;
 
     expect(nftTx.hash).toBeDefined();
 
@@ -141,16 +158,20 @@ describe('create-nft routes', () => {
     const authorityOutputs = nftTx.outputs.filter(o => TOKEN_DATA.isAuthorityToken(o.token_data));
     expect(authorityOutputs.length).toBe(1);
     expect(authorityOutputs[0].value).toBe(AUTHORITY_VALUE.MINT);
-
-    done();
   });
 
-  it('should create nft with melt authority', async done => {
-    const nftTx = await wallet1.createNft({
-      ...nftData,
-      amount: 1,
-      create_melt: true
-    });
+  it('should create nft with melt authority', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/create-nft')
+      .send({
+        ...nftData,
+        amount: 1,
+        create_melt: true
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.body.success).toBe(true);
+    const nftTx = response.body;
 
     expect(nftTx.hash).toBeDefined();
 
@@ -158,17 +179,21 @@ describe('create-nft routes', () => {
     const authorityOutputs = nftTx.outputs.filter(o => TOKEN_DATA.isAuthorityToken(o.token_data));
     expect(authorityOutputs.length).toBe(1);
     expect(authorityOutputs[0].value).toBe(AUTHORITY_VALUE.MELT);
-
-    done();
   });
 
-  it('should create nft with mint and melt authorities', async done => {
-    const nftTx = await wallet1.createNft({
-      ...nftData,
-      amount: 1,
-      create_melt: true,
-      create_mint: true
-    });
+  it('should create nft with mint and melt authorities', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/create-nft')
+      .send({
+        ...nftData,
+        amount: 1,
+        create_melt: true,
+        create_mint: true
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.body.success).toBe(true);
+    const nftTx = response.body;
 
     expect(nftTx.hash).toBeDefined();
 
@@ -177,7 +202,5 @@ describe('create-nft routes', () => {
     expect(authorityOutputs.length).toBe(2);
     expect(authorityOutputs.find(o => o.value === AUTHORITY_VALUE.MINT)).toBeTruthy();
     expect(authorityOutputs.find(o => o.value === AUTHORITY_VALUE.MELT)).toBeTruthy();
-
-    done();
   });
 });
