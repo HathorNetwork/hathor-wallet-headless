@@ -138,7 +138,7 @@ describe('create-nft routes', () => {
     expect(nftTx.hash).toBeDefined();
 
     // Validating authority tokens
-    const authorityOutputs = nftTx.outputs.filter(o => o.token_data === TOKEN_DATA.AUTHORITY_TOKEN);
+    const authorityOutputs = nftTx.outputs.filter(o => TOKEN_DATA.isAuthorityToken(o.token_data));
     expect(authorityOutputs.length).toBe(1);
     expect(authorityOutputs[0].value).toBe(AUTHORITY_VALUE.MINT);
 
@@ -155,7 +155,7 @@ describe('create-nft routes', () => {
     expect(nftTx.hash).toBeDefined();
 
     // Validating authority tokens
-    const authorityOutputs = nftTx.outputs.filter(o => o.token_data === TOKEN_DATA.AUTHORITY_TOKEN);
+    const authorityOutputs = nftTx.outputs.filter(o => TOKEN_DATA.isAuthorityToken(o.token_data));
     expect(authorityOutputs.length).toBe(1);
     expect(authorityOutputs[0].value).toBe(AUTHORITY_VALUE.MELT);
 
@@ -173,7 +173,7 @@ describe('create-nft routes', () => {
     expect(nftTx.hash).toBeDefined();
 
     // Validating authority tokens
-    const authorityOutputs = nftTx.outputs.filter(o => o.token_data === TOKEN_DATA.AUTHORITY_TOKEN);
+    const authorityOutputs = nftTx.outputs.filter(o => TOKEN_DATA.isAuthorityToken(o.token_data));
     expect(authorityOutputs.length).toBe(2);
     expect(authorityOutputs.find(o => o.value === AUTHORITY_VALUE.MINT)).toBeTruthy();
     expect(authorityOutputs.find(o => o.value === AUTHORITY_VALUE.MELT)).toBeTruthy();

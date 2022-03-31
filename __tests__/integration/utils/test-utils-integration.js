@@ -42,7 +42,17 @@ export const WALLET_CONSTANTS = {
 export const TOKEN_DATA = {
   HTR: 0,
   TOKEN: 1,
-  AUTHORITY_TOKEN: 129
+
+  /**
+   * Checks if this token_data indicates this is an authority output, that is, if its 8th bit from
+   * the right is 1.
+   * @see https://github.com/HathorNetwork/rfcs/blob/master/text/0004-tokens.md#token_data-field
+   * @param {number} tokenData "token_data" property from an output
+   * @returns {boolean} True if this is an authority output
+   */
+  // eslint-disable-next-line no-bitwise
+  isAuthorityToken: tokenData => !!(tokenData & 128)
+
 };
 
 export const AUTHORITY_VALUE = {
