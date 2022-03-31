@@ -1,6 +1,8 @@
 import { TestUtils } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
 
+import hathorLib from '@hathor/wallet-lib';
+
 describe('send tx (HTR)', () => {
   let wallet1;
   let wallet2;
@@ -116,7 +118,7 @@ describe('send tx (HTR)', () => {
     await walletExtra.stop();
   });
 
-  it('Should fail to send a transaction with less than minimum signatures', async done => {
+  it('Should fail to send a transaction with less than minimum signatures', async () => {
     const tx = {
       input: [fundTx1],
       outputs: [
@@ -149,10 +151,9 @@ describe('send tx (HTR)', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
-    done();
   });
 
-  it('Should fail to send a transaction with more than max signatures', async done => {
+  it('Should fail to send a transaction with more than max signatures', async () => {
     const tx = {
       input: [fundTx1],
       outputs: [
@@ -194,10 +195,55 @@ describe('send tx (HTR)', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
-    done();
   });
 
-  it('Should send a transaction with minimum signatures', async done => {
+  it('Should fail to send a transaction with incorrect signatures', async () => {
+    const tx = {
+      input: [fundTx1],
+      outputs: [
+        { address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 100 },
+        { address: "wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau", value: 270 },
+      ],
+    };
+
+    // wallet1 proposes the transaction
+    let response = await TestUtils.request
+      .post('/wallet/tx-proposal')
+      .send(tx)
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    const txHex = response.body.txHex;
+
+    // collect signatures from 3 wallets
+    const sig1 = await wallet1.getSignatures(txHex);
+    expect(sig1).toBeTruthy();
+    const sig2 = await wallet2.getSignatures(txHex);
+    expect(sig2).toBeTruthy();
+    const sig3 = await wallet3.getSignatures(txHex);
+    expect(sig3).toBeTruthy();
+
+    // Change sig3 to be invalid
+    const p2shSig = hathorLib.P2SHSignature.deserialize(sig3);
+    for (const [index, sig] of Object.entries(p2shSig.signatures)) {
+      const buf = Buffer.from(sig, 'hex');
+      for (let i=0; i<buf.length; i++) {
+        buf[i]++;
+      }
+    }
+    const invalidSig = p2shSig.serialize();
+
+    // try to send
+    response = await TestUtils.request
+      .post('/wallet/tx-proposal/sign-and-push')
+      .send({txHex, signatures: [sig1, sig2, invalidSig]})
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(false);
+  });
+
+  it('Should send a transaction with minimum signatures', async () => {
     const tx = {
       input: [fundTx1],
       outputs: [
@@ -231,10 +277,9 @@ describe('send tx (HTR)', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
     expect(response.body.hash).toBeDefined();
-    done();
   });
 
-  it('Should send a transaction with max signatures', async done => {
+  it('Should send a transaction with max signatures', async () => {
     const tx = {
       outputs: [
         { address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 },
@@ -271,6 +316,5 @@ describe('send tx (HTR)', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
     expect(response.body.hash).toBeDefined();
-    done();
   });
 });
