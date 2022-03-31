@@ -390,7 +390,8 @@ export class TestUtils {
 
   /**
    * Transfers funds to a destination address.
-   * By default, this method also waits for a second to let the indexes build before returning.
+   * All transaction changes are sent to the first address of the genesis wallet, to prevent
+   * performance issues with the gap limit.
    * @param {string} address Destination address
    * @param {number} value Amount of tokens, in cents
    * @param {string} [destinationWalletId] walletId of the destination address. Useful for debugging
@@ -398,7 +399,11 @@ export class TestUtils {
    */
   static async injectFundsIntoAddress(address, value, destinationWalletId) {
     // Requests the transaction
-    const requestBody = { address, value };
+    const requestBody = {
+      address,
+      value,
+      change_address: WALLET_CONSTANTS.genesis.addresses[0]
+    };
     const response = await TestUtils.request
       .post('/wallet/simple-send-tx')
       .send(requestBody)

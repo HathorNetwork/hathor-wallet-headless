@@ -156,6 +156,8 @@ describe('utxo-consolidation routes', () => {
     const sourceUtxo20 = consolidateTx.utxos.find(u => u.amount === 20);
     expect(sourceUtxo20.tx_id).toBe(fundTx.hash);
 
+    await TestUtils.pauseForWsUpdate();
+
     // Evaluating destination address balance and utxos
     const destinationUtxos = await wallet1.getUtxos({
       filter_address: await wallet1.getAddressAt(0)
@@ -198,6 +200,8 @@ describe('utxo-consolidation routes', () => {
     expect(sourceTka10.tx_id).toBe(fundTx.hash);
     const sourceTka20 = consolidateTx.utxos.find(u => u.amount === 20);
     expect(sourceTka20.tx_id).toBe(fundTx.hash);
+
+    await TestUtils.pauseForWsUpdate();
 
     // Evaluating destination address balance and utxos
     const destinationUtxos = await wallet1.getUtxos({
@@ -246,6 +250,8 @@ describe('utxo-consolidation routes', () => {
       expect(utxo.address).toBe(addr2); // Only utxos from the correct address were used
     }
 
+    await TestUtils.pauseForWsUpdate();
+
     // Evaluating destination address balance and utxos
     const destinationUtxos = await wallet1.getUtxos({
       filter_address: await wallet1.getAddressAt(0)
@@ -285,6 +291,8 @@ describe('utxo-consolidation routes', () => {
     // Evaluating consolidation results. Only source combination possible must be [10, 20, 30].
     expect(consolidateTx.total_amount).toBe(60);
     expect(consolidateTx.total_utxos_consolidated).toBe(3);
+
+    await TestUtils.pauseForWsUpdate();
 
     // Evaluating destination address balance and utxos
     const destinationUtxos = await wallet1.getUtxos({
@@ -326,6 +334,8 @@ describe('utxo-consolidation routes', () => {
     // Evaluating results. Only source combination must be [30, 40, 50]
     expect(consolidateTx.total_amount).toBe(120);
     expect(consolidateTx.total_utxos_consolidated).toBe(3);
+
+    await TestUtils.pauseForWsUpdate();
 
     // Evaluating destination address balance and utxos
     const destinationUtxos = await wallet1.getUtxos({
@@ -370,6 +380,8 @@ describe('utxo-consolidation routes', () => {
     expect(consolidateTx.total_utxos_consolidated).toBe(2);
     expect(consolidateTx.utxos.find(u => u.amount === 30)).toBeTruthy();
     expect(consolidateTx.utxos.find(u => u.amount === 40)).toBeTruthy();
+
+    await TestUtils.pauseForWsUpdate();
 
     // Evaluating destination address balance and utxos
     const destinationUtxos = await wallet1.getUtxos({
