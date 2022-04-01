@@ -15,15 +15,15 @@ function getTestNameFromGlobalJasmineInstance() {
 
 // Mock config file
 jest.mock(
-  "./src/config",
-  () => require("./__tests__/integration/configuration/config-fixture.js"),
+  './src/config',
+  () => require('./__tests__/integration/configuration/config-fixture.js'),
   { virtual: true }
 );
 
 // Enable features for tests
 jest.mock(
-  "./src/constants",
-  () => require("./__tests__/__fixtures__/feature-fixture"),
+  './src/constants',
+  () => require('./__tests__/__fixtures__/feature-fixture'),
   { virtual: true }
 );
 

@@ -5,6 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const version = process.env.npm_package_version || "unknown";
+const version = process.env.npm_package_version || 'unknown';
 
 export default version;

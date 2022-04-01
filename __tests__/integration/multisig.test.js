@@ -1,7 +1,6 @@
+import hathorLib from '@hathor/wallet-lib';
 import { TestUtils } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
-
-import hathorLib from '@hathor/wallet-lib';
 
 describe('send tx (HTR)', () => {
   let wallet1;
@@ -84,12 +83,12 @@ describe('send tx (HTR)', () => {
       },
     };
     try {
-      wallet1 = new WalletHelper('multisig-1', {seedKey: 'multisig-1', multisig: true});
-      wallet2 = new WalletHelper('multisig-2', {seedKey: 'multisig-2', multisig: true});
-      wallet3 = new WalletHelper('multisig-3', {seedKey: 'multisig-3', multisig: true});
-      wallet4 = new WalletHelper('multisig-4', {seedKey: 'multisig-4', multisig: true});
-      wallet5 = new WalletHelper('multisig-5', {seedKey: 'multisig-5', multisig: true});
-      walletExtra = new WalletHelper('multisig-extra', {seedKey: 'multisig-extra', multisig: true});
+      wallet1 = new WalletHelper('multisig-1', { seedKey: 'multisig-1', multisig: true });
+      wallet2 = new WalletHelper('multisig-2', { seedKey: 'multisig-2', multisig: true });
+      wallet3 = new WalletHelper('multisig-3', { seedKey: 'multisig-3', multisig: true });
+      wallet4 = new WalletHelper('multisig-4', { seedKey: 'multisig-4', multisig: true });
+      wallet5 = new WalletHelper('multisig-5', { seedKey: 'multisig-5', multisig: true });
+      walletExtra = new WalletHelper('multisig-extra', { seedKey: 'multisig-extra', multisig: true });
 
       await WalletHelper.startMultipleWalletsForTest([
         wallet1, wallet2, wallet3, wallet4, wallet5, walletExtra]);
@@ -122,8 +121,8 @@ describe('send tx (HTR)', () => {
     const tx = {
       input: [fundTx1],
       outputs: [
-        { address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 100 },
-        { address: "wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau", value: 270 },
+        { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 100 },
+        { address: 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau', value: 270 },
       ],
     };
 
@@ -134,7 +133,7 @@ describe('send tx (HTR)', () => {
       .set({ 'x-wallet-id': wallet1.walletId });
     console.log(JSON.stringify(response.body));
 
-    const txHex = response.body.txHex;
+    const { txHex } = response.body;
 
     // collect signatures from 2 wallets
     const sig1 = await wallet1.getSignatures(txHex);
@@ -145,7 +144,7 @@ describe('send tx (HTR)', () => {
     // try to send
     response = await TestUtils.request
       .post('/wallet/tx-proposal/sign-and-push')
-      .send({txHex, signatures: [sig1, sig2]})
+      .send({ txHex, signatures: [sig1, sig2] })
       .set({ 'x-wallet-id': wallet1.walletId });
     console.log(JSON.stringify(response.body));
 
@@ -157,8 +156,8 @@ describe('send tx (HTR)', () => {
     const tx = {
       input: [fundTx1],
       outputs: [
-        { address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 100 },
-        { address: "wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau", value: 270 },
+        { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 100 },
+        { address: 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau', value: 270 },
       ],
     };
 
@@ -169,7 +168,7 @@ describe('send tx (HTR)', () => {
       .set({ 'x-wallet-id': wallet1.walletId });
     console.log(JSON.stringify(response.body));
 
-    const txHex = response.body.txHex;
+    const { txHex } = response.body;
 
     // collect signatures from all wallets
     const sig1 = await wallet1.getSignatures(txHex);
@@ -189,7 +188,7 @@ describe('send tx (HTR)', () => {
     // try to send
     response = await TestUtils.request
       .post('/wallet/tx-proposal/sign-and-push')
-      .send({txHex, signatures: [sig1, sig2, sig3, sig4, sig5, sig6]})
+      .send({ txHex, signatures: [sig1, sig2, sig3, sig4, sig5, sig6] })
       .set({ 'x-wallet-id': wallet1.walletId });
     console.log(JSON.stringify(response.body));
 
@@ -201,8 +200,8 @@ describe('send tx (HTR)', () => {
     const tx = {
       input: [fundTx1],
       outputs: [
-        { address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 100 },
-        { address: "wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau", value: 270 },
+        { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 100 },
+        { address: 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau', value: 270 },
       ],
     };
 
@@ -212,7 +211,7 @@ describe('send tx (HTR)', () => {
       .send(tx)
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    const txHex = response.body.txHex;
+    const { txHex } = response.body;
 
     // collect signatures from 3 wallets
     const sig1 = await wallet1.getSignatures(txHex);
@@ -226,7 +225,7 @@ describe('send tx (HTR)', () => {
     const p2shSig = hathorLib.P2SHSignature.deserialize(sig3);
     for (const [index, sig] of Object.entries(p2shSig.signatures)) {
       const buf = Buffer.from(sig, 'hex');
-      for (let i=0; i<buf.length; i++) {
+      for (let i = 0; i < buf.length; i++) {
         buf[i]++;
       }
     }
@@ -235,9 +234,8 @@ describe('send tx (HTR)', () => {
     // try to send
     response = await TestUtils.request
       .post('/wallet/tx-proposal/sign-and-push')
-      .send({txHex, signatures: [sig1, sig2, invalidSig]})
+      .send({ txHex, signatures: [sig1, sig2, invalidSig] })
       .set({ 'x-wallet-id': wallet1.walletId });
-
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
@@ -247,8 +245,8 @@ describe('send tx (HTR)', () => {
     const tx = {
       input: [fundTx1],
       outputs: [
-        { address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 100 },
-        { address: "wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau", value: 270 },
+        { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 100 },
+        { address: 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau', value: 270 },
       ],
     };
 
@@ -258,7 +256,7 @@ describe('send tx (HTR)', () => {
       .send(tx)
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    const txHex = response.body.txHex;
+    const { txHex } = response.body;
 
     // collect signatures from 3 wallets
     const sig1 = await wallet1.getSignatures(txHex);
@@ -271,7 +269,7 @@ describe('send tx (HTR)', () => {
     // try to send
     response = await TestUtils.request
       .post('/wallet/tx-proposal/sign-and-push')
-      .send({txHex, signatures: [sig1, sig2, sig3]})
+      .send({ txHex, signatures: [sig1, sig2, sig3] })
       .set({ 'x-wallet-id': wallet1.walletId });
 
     expect(response.status).toBe(200);
@@ -282,8 +280,8 @@ describe('send tx (HTR)', () => {
   it('Should send a transaction with max signatures', async () => {
     const tx = {
       outputs: [
-        { address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 },
-        { address: "wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau", value: 2 },
+        { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 },
+        { address: 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau', value: 2 },
       ],
     };
 
@@ -293,7 +291,7 @@ describe('send tx (HTR)', () => {
       .send(tx)
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    const txHex = response.body.txHex;
+    const { txHex } = response.body;
 
     // collect signatures from 5 wallets
     const sig1 = await wallet1.getSignatures(txHex);
@@ -310,7 +308,7 @@ describe('send tx (HTR)', () => {
     // try to send
     response = await TestUtils.request
       .post('/wallet/tx-proposal/sign-and-push')
-      .send({txHex, signatures: [sig1, sig2, sig3, sig4, sig5]})
+      .send({ txHex, signatures: [sig1, sig2, sig3, sig4, sig5] })
       .set({ 'x-wallet-id': wallet1.walletId });
 
     expect(response.status).toBe(200);

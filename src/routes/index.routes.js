@@ -1,16 +1,19 @@
 const { Router } = require('express');
-const app = require('../index');
-const rootControllers = require('../controllers/index.controllers')
+const rootControllers = require('../controllers/index.controller');
 
-const mainRouter = Router({mergeParams: true});
+const mainRouter = Router({ mergeParams: true });
+const walletRouter = require('./wallet.routes');
+const txProposalRouter = require('./tx-proposal.routes');
 
-function fake(req, res, next) {}
+mainRouter.get('/', rootControllers.welcome);
+mainRouter.get('/docs', rootControllers.docs);
+mainRouter.post('/start', rootControllers.start);
+mainRouter.get('/multisig-pubkey', rootControllers.multisigPubkey);
+mainRouter.use('/wallet', walletRouter);
 
-app.get('/', rootControllers.welcome);
-app.get('/docs', rootControllers.docs);
-app.get('/start', rootControllers.start);
-app.get('/multisig-pubkey', rootControllers.multisigPubkey);
-app.use('/wallet', 'walletRouter');
-app.use('/tx-proposal', 'txProposalRouter');
+mainRouter.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.statusCode || 500).json({ message: err.message, stack: err.stack });
+});
 
 module.exports = mainRouter;

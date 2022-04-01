@@ -107,7 +107,7 @@ export class WalletHelper {
         walletId: this.walletId,
         words: this.words,
         addresses: this.addresses || [],
-      }
+      };
     }
 
     if (this.seedKey) {
@@ -116,7 +116,7 @@ export class WalletHelper {
         seedKey: this.seedKey,
         multisig: this.multisig,
         addresses: this.addresses || [],
-      }
+      };
     }
 
     throw new Error('Both [`words`, `seedKey`] are missing from the WalletHelper');
@@ -143,7 +143,7 @@ export class WalletHelper {
     const { genesis } = WALLET_CONSTANTS;
     const isGenesisStarted = await TestUtils.isWalletReady(genesis.walletId);
     if (!isGenesisStarted) {
-      walletsArr.unshift(new WalletHelper(genesis.walletId, {words: genesis.words}));
+      walletsArr.unshift(new WalletHelper(genesis.walletId, { words: genesis.words }));
     }
 
     // Requests the start of all the wallets in quick succession

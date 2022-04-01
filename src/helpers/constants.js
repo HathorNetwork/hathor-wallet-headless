@@ -11,4 +11,4 @@ module.exports = {
 
   // Error message when the user tries to send a transaction while the lock is active
   cantSendTxErrorMessage: 'You already have a transaction being sent. Please wait until it\'s done to send another.'
-}
+};

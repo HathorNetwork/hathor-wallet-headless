@@ -1,18 +1,14 @@
 const { Router } = require('express');
-const config = require('../config');
-const { HathorWallet, hathorLibConstants, helpersUtils, errors } = require('@hathor/wallet-lib');
-const { initializedWallets } = require('../services/wallets.service');
-const friendlyWalletState = require('../helpers/constants');
+const { query, checkSchema, body } = require('express-validator');
 const { walletMiddleware } = require('../middlewares/wallet.middleware');
-const { getStatus, getBalance, getAddress, getAddresses, getTxHistory, getTransaction,
-  simpleSendTx, decodeTx, sendTx, createToken, mintTokens, meltTokens, utxoFilter, utxoConsolidation,
-  createNft, getAddressInfo
+const {
+  getStatus, getBalance, getAddress, getAddresses, getTxHistory, getTransaction,
+  simpleSendTx, decodeTx, sendTx, createToken, mintTokens, meltTokens, utxoFilter,
+  utxoConsolidation, createNft, getAddressInfo, stop
 } = require('../controllers/wallet.controller');
-const { query, checkSchema, body, matchedData } = require('express-validator');
-const { lock, lockTypes } = require('../lock');
-const logger = require('../logger');
+const txProposalRouter = require('./tx-proposal.routes');
 
-const walletRouter = Router({mergeParams: true});
+const walletRouter = Router({ mergeParams: true });
 
 walletRouter.use(walletMiddleware);
 
@@ -29,24 +25,28 @@ walletRouter.get('/status', getStatus);
 walletRouter.get(
   '/balance',
   query('token').isString().optional(),
-  getBalance);
+  getBalance
+);
 
 /**
  * GET request to get an address of a wallet
  * For the docs, see api-docs.js
  */
-walletRouter.get('/address',
+walletRouter.get(
+  '/address',
   query('index').isInt({ min: 0 }).optional().toInt(),
   query('mark_as_used').isBoolean().optional().toBoolean(),
-  getAddress);
+  getAddress
+);
 
 /**
  * GET request to get an address index
  * For the docs, see api-docs.js
  */
-walletRouter.get('/address-index',
+walletRouter.get(
+  '/address-index',
   query('address').isString(),
-  );
+);
 
 /**
  * GET request to get all addresses of a wallet
@@ -69,17 +69,21 @@ walletRouter.get(
  * GET request to get the transaction history of a wallet
  * For the docs, see api-docs.js
  */
-walletRouter.get('/tx-history',
+walletRouter.get(
+  '/tx-history',
   query('limit').isInt().optional().toInt(),
-  getTxHistory);
+  getTxHistory
+);
 
 /**
  * GET request to get a transaction from the wallet
  * For the docs, see api-docs.js
  */
-walletRouter.get('/transaction',
+walletRouter.get(
+  '/transaction',
   query('id').isString(),
-  getTransaction);
+  getTransaction
+);
 
 /**
  * POST request to send a transaction with only one output
@@ -90,7 +94,8 @@ walletRouter.get('/transaction',
  * the objects is optional but if presented, the fields on it must be required.
  * To achieve this validation we must create a custom validator.
  */
-walletRouter.post('/simple-send-tx',
+walletRouter.post(
+  '/simple-send-tx',
   checkSchema({
     address: {
       in: ['body'],
@@ -105,7 +110,7 @@ walletRouter.post('/simple-send-tx',
       },
       toInt: true
     },
-    'change_address': {
+    change_address: {
       in: ['body'],
       isString: true,
       optional: true
@@ -117,7 +122,7 @@ walletRouter.post('/simple-send-tx',
         options: (value, { req, location, path }) => {
           if (typeof value === 'string') {
             return true;
-          } else if (typeof value === 'object') {
+          } if (typeof value === 'object') {
             if (!('name' in value) || !(typeof value.name === 'string')) {
               return false;
             }
@@ -131,23 +136,24 @@ walletRouter.post('/simple-send-tx',
               return false;
             }
             return true;
-          } else {
-            return false;
           }
+          return false;
         }
       }
     }
   }),
-  simpleSendTx);
+  simpleSendTx
+);
 
-walletRouter.post('/decode',
+walletRouter.post(
+  '/decode',
   checkSchema({
     txHex: {
       in: ['body'],
-      errorMessage: "Invalid txHex",
+      errorMessage: 'Invalid txHex',
       isString: true,
       custom: {
-        options: (value, {req, location, path}) => {
+        options: (value, { req, location, path }) => {
           // Test if txHex is actually hex
           if (!(/^[0-9a-fA-F]+$/.test(value))) return false;
           return true;
@@ -155,7 +161,8 @@ walletRouter.post('/decode',
       },
     },
   }),
-  decodeTx);
+  decodeTx
+);
 
 /**
  * POST request to send a transaction with many outputs and inputs selection
@@ -166,7 +173,8 @@ walletRouter.post('/decode',
  * the objects is optional but if presented, the fields on it must be required.
  * To achieve this validation we must create a custom validator.
  */
-walletRouter.post('/send-tx',
+walletRouter.post(
+  '/send-tx',
   checkSchema({
     outputs: {
       in: ['body'],
@@ -203,26 +211,25 @@ walletRouter.post('/send-tx',
           if ('type' in value && value.type === 'query') {
             // It's a query input and all fields are optionals
             return true;
-          } else {
-            // It's a normal input
-            if (!('hash' in value) || !(typeof value.hash === 'string')) {
-              return false;
-            }
-            if (!('index' in value) || !(/^\d+$/.test(value.index))) {
-              // Test that index is required and it's an integer
-              return false;
-            }
-            if (!value.hash) {
-              // the regex in value.index already test for empty string
-              return false;
-            }
-            return true;
           }
+          // It's a normal input
+          if (!('hash' in value) || !(typeof value.hash === 'string')) {
+            return false;
+          }
+          if (!('index' in value) || !(/^\d+$/.test(value.index))) {
+            // Test that index is required and it's an integer
+            return false;
+          }
+          if (!value.hash) {
+            // the regex in value.index already test for empty string
+            return false;
+          }
+          return true;
         }
       },
       customSanitizer: {
-        options: (value) => {
-          const sanitizedValue = Object.assign({}, value, {index: parseInt(value.index)});
+        options: value => {
+          const sanitizedValue = { ...value, index: parseInt(value.index, 10) };
           return sanitizedValue;
         }
       }
@@ -249,7 +256,7 @@ walletRouter.post('/send-tx',
         }
       }
     },
-    'change_address': {
+    change_address: {
       in: ['body'],
       isString: true,
       optional: true
@@ -261,41 +268,48 @@ walletRouter.post('/send-tx',
       optional: true,
     }
   }),
-  sendTx);
+  sendTx
+);
 
 /**
  * POST request to create a token
  * For the docs, see api-docs.js
  */
-walletRouter.post('/create-token',
+walletRouter.post(
+  '/create-token',
   body('name').isString(),
   body('symbol').isString(),
   body('amount').isInt({ min: 1 }).toInt(),
   body('address').isString().optional(),
   body('change_address').isString().optional(),
-  createToken);
+  createToken
+);
 
 /**
  * POST request to mint tokens
  * For the docs, see api-docs.js
  */
-walletRouter.post('/mint-tokens',
+walletRouter.post(
+  '/mint-tokens',
   body('token').isString(),
   body('amount').isInt({ min: 1 }).toInt(),
   body('address').isString().optional(),
   body('change_address').isString().optional(),
-  mintTokens);
+  mintTokens
+);
 
 /**
  * POST request to melt tokens
  * For the docs, see api-docs.js
  */
-walletRouter.post('/melt-tokens',
+walletRouter.post(
+  '/melt-tokens',
   body('token').isString(),
   body('amount').isInt({ min: 1 }).toInt(),
   body('change_address').isString().optional(),
   body('deposit_address').isString().optional(),
-  meltTokens);
+  meltTokens
+);
 
 /**
  * GET request to filter utxos before consolidation
@@ -333,7 +347,8 @@ walletRouter.post(
  * POST request to create an NFT
  * For the docs, see api-docs.js
  */
-walletRouter.post('/create-nft',
+walletRouter.post(
+  '/create-nft',
   body('name').isString(),
   body('symbol').isString(),
   body('amount').isInt({ min: 1 }).toInt(),
@@ -350,3 +365,7 @@ walletRouter.post('/create-nft',
  * For the docs, see api-docs.js
  */
 walletRouter.post('/stop', stop);
+
+walletRouter.use('/tx-proposal', txProposalRouter);
+
+module.exports = walletRouter;

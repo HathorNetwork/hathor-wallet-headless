@@ -14,13 +14,13 @@ const myFormat = winston.format.printf(({ level, message, service, timestamp, ..
   let argsStr = '';
   if (Object.keys(args).length > 0) {
     // Adapted from https://github.com/winstonjs/logform/blob/master/pretty-print.js
-    const stripped = Object.assign({}, args);
+    const stripped = { ...args };
 
     delete stripped[Symbol.for('level')];
     delete stripped[Symbol.for('message')];
     delete stripped[Symbol.for('splat')];
 
-    argsStr = util.inspect(stripped, {compact: true, breakLength: Infinity});
+    argsStr = util.inspect(stripped, { compact: true, breakLength: Infinity });
   }
   return `${timestamp} [${service}] ${level}: ${message} ${argsStr}`;
 });
@@ -52,12 +52,12 @@ const logger = winston.createLogger({
     winston.format.errors({ stack: true }),
   ),
   defaultMeta: { service: 'wallet' },
-  transports: transports,
+  transports,
 });
 
 // create a stream object with a 'write' function that will be used by `morgan`
 logger.stream = {
-  write: function(message, encoding) {
+  write(message, encoding) {
     // use the 'info' log level so the output will be picked up by both transports (file and console)
     logger.info(message.trim(), {
       service: 'http',

@@ -1,4 +1,3 @@
-
 /**
  * The endpoints that return a created tx must keep compatibility
  * The library has changed some keys and we must map the return to continue returning the same keys
@@ -7,11 +6,11 @@
  */
 function mapTxReturn(tx) {
   for (const input of tx.inputs) {
-    input['tx_id'] = input['hash'];
+    input.tx_id = input.hash;
   }
 
   for (const output of tx.outputs) {
-    output['token_data'] = output['tokenData'];
+    output.token_data = output.tokenData;
   }
 
   return tx;
@@ -41,14 +40,14 @@ function mapTxReturn(tx) {
  */
 function getUtxosToFillTx(wallet, sumOutputs, options) {
   // We want to find only utxos to use in the tx, so we must filter by available only
-  options['only_available_utxos'] = true;
+  options.only_available_utxos = true;
   const utxosDetails = wallet.getUtxos(options);
   // If I can't fill all the amount with the returned utxos, then return null
   if (utxosDetails.total_amount_available < sumOutputs) {
     return null;
   }
 
-  const utxos = utxosDetails.utxos;
+  const { utxos } = utxosDetails;
   // Sort utxos with larger amounts first
   utxos.sort((a, b) => b.amount - a.amount);
 
@@ -58,26 +57,24 @@ function getUtxosToFillTx(wallet, sumOutputs, options) {
 
     // This is the index of the first utxo that does not fill the full amount
     // if this is -1, then all utxos fill the full amount and I should get the last one
-    const firstSmallerIndex = utxos.findIndex((obj) => obj.amount < sumOutputs);
+    const firstSmallerIndex = utxos.findIndex(obj => obj.amount < sumOutputs);
 
     if (firstSmallerIndex === -1) {
       // Return the last element of the array (the one with smaller amount)
       return [utxos.pop()];
-    } else {
-      // Return the element right before the first element that does not provide the full amount
-      return [utxos[firstSmallerIndex - 1]];
     }
-  } else {
-    // Else I get the utxos in order until the full amount is filled
-    let total = 0;
-    const retUtxos = [];
-    for (const utxo of utxos) {
-      retUtxos.push(utxo);
-      total += utxo.amount;
+    // Return the element right before the first element that does not provide the full amount
+    return [utxos[firstSmallerIndex - 1]];
+  }
+  // Else I get the utxos in order until the full amount is filled
+  let total = 0;
+  const retUtxos = [];
+  for (const utxo of utxos) {
+    retUtxos.push(utxo);
+    total += utxo.amount;
 
-      if (total >= sumOutputs) {
-        return retUtxos;
-      }
+    if (total >= sumOutputs) {
+      return retUtxos;
     }
   }
 }
@@ -85,4 +82,4 @@ function getUtxosToFillTx(wallet, sumOutputs, options) {
 module.exports = {
   mapTxReturn,
   getUtxosToFillTx,
-}
+};

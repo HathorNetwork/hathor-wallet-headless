@@ -1,0 +1,134 @@
+const { Router } = require('express');
+const { checkSchema } = require('express-validator');
+const {
+  constants: hathorLibConstants,
+  SendTransaction,
+  helpersUtils,
+} = require('@hathor/wallet-lib');
+const constants = require('../constants');
+const { lock, lockTypes } = require('../lock');
+const {
+  buildTxProposal,
+  getMySignatures,
+  signTx,
+  signAndPush,
+} = require('../controllers/tx-proposal.controller');
+const { isStringHex } = require('../helpers/validations.helper');
+
+const txProposalRouter = Router({ mergeParams: true });
+
+txProposalRouter.post(
+  '/',
+  checkSchema({
+    outputs: {
+      in: ['body'],
+      errorMessage: 'Invalid outputs array',
+      isArray: true,
+      notEmpty: true,
+    },
+    'outputs.*.address': {
+      in: ['body'],
+      errorMessage: 'Invalid output address',
+      isString: true,
+    },
+    'outputs.*.value': {
+      in: ['body'],
+      errorMessage: 'Invalid output value',
+      isInt: {
+        options: {
+          min: 1,
+        },
+      },
+      toInt: true,
+    },
+    'outputs.*.token': {
+      in: ['body'],
+      errorMessage: 'Invalid token uid',
+      isString: true,
+      optional: true,
+    },
+    inputs: {
+      in: ['body'],
+      errorMessage: 'Invalid inputs array',
+      isArray: true,
+      notEmpty: true,
+      optional: true,
+    },
+    'inputs.*.txId': {
+      in: ['body'],
+      errorMessage: 'Invalid input txId',
+      isString: true,
+      custom: {
+        options: (value, { req, location, path }) => isStringHex(value),
+      },
+    },
+    'inputs.*.index': {
+      in: ['body'],
+      errorMessage: 'Invalid input value',
+      isInt: true,
+      toInt: true,
+    },
+    change_address: {
+      in: ['body'],
+      errorMessage: 'Invalid change address',
+      isString: true,
+      optional: true,
+    },
+  }),
+  buildTxProposal,
+);
+
+/*
+ * XXX: Currently only works for P2SH MultiSig signatures, but can be enhanced to
+ * include P2PKH Signatures once the wallet-lib adds support.
+ */
+txProposalRouter.post(
+  '/get-my-signatures',
+  checkSchema({
+    txHex: {
+      in: ['body'],
+      errorMessage: 'Invalid txHex',
+      isString: true,
+      custom: {
+        options: (value, { req, location, path }) => isStringHex(value),
+      },
+    },
+  }),
+  getMySignatures,
+);
+
+const txHexSignatureSchema = {
+  txHex: {
+    in: ['body'],
+    errorMessage: 'Invalid txHex',
+    isString: true,
+    custom: {
+      options: (value, { req, location, path }) => isStringHex(value),
+    },
+  },
+  signatures: {
+    in: ['body'],
+    errorMessage: 'Invalid signatures array',
+    isArray: true,
+    notEmpty: true,
+  },
+  'signatures.*': {
+    in: ['body'],
+    errorMessage: 'Invalid signature',
+    isString: true,
+  },
+};
+
+txProposalRouter.post(
+  '/sign',
+  checkSchema(txHexSignatureSchema),
+  signTx,
+);
+
+txProposalRouter.post(
+  '/sign-and-push',
+  checkSchema(txHexSignatureSchema),
+  signAndPush,
+);
+
+module.exports = txProposalRouter;

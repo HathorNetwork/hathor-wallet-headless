@@ -10,7 +10,7 @@ function walletMiddleware(req, res, next) {
       statusCode: state,
       statusMessage: (state ? friendlyWalletState[state] : ''),
     });
-  }
+  };
 
   // Get X-WALLET-ID header that defines which wallet the request refers to
   if (!('x-wallet-id' in req.headers)) {
@@ -47,4 +47,4 @@ function walletMiddleware(req, res, next) {
 
 module.exports = {
   walletMiddleware,
-}
+};

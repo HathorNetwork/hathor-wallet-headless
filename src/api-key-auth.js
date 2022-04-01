@@ -1,4 +1,3 @@
-
 function apiKeyAuth(key) {
   return (req, res, next) => {
     const userKey = req.headers['x-api-key'];

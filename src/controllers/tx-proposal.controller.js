@@ -1,0 +1,129 @@
+const {
+  constants: hathorLibConstants,
+  SendTransaction,
+  helpersUtils
+} = require('@hathor/wallet-lib');
+const { parametersValidation } = require('../helpers/validations.helper');
+const constants = require('../constants');
+const { lock, lockTypes } = require('../lock');
+const { cantSendTxErrorMessage } = require('../helpers/constants');
+const { mapTxReturn } = require('../helpers/tx.helper');
+
+async function buildTxProposal(req, res) {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
+
+  const network = req.wallet.getNetworkObject();
+  const { outputs } = req.body;
+  const inputs = req.body.inputs || [];
+  const changeAddress = req.body.change_address || null;
+
+  for (const output of outputs) {
+    if (!output.token) {
+      output.token = hathorLibConstants.HATHOR_TOKEN_CONFIG.uid;
+    }
+  }
+  try {
+    const sendTransaction = new SendTransaction({ outputs, inputs, changeAddress, network });
+    const tx = helpersUtils.createTxFromData({ version: 1, ...sendTransaction.prepareTxData() }, network);
+
+    res.send({ success: true, txHex: tx.toHex() });
+  } catch (err) {
+    res.send({ success: false, error: err.message });
+  }
+}
+
+async function getMySignatures(req, res) {
+  if (!constants.MULTISIG_ENABLED) {
+    res.send({
+      success: false,
+      message: 'The MultiSig feature is disabled',
+    });
+    return;
+  }
+
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
+
+  const { txHex } = req.body;
+  try {
+    const sigs = req.wallet.getAllSignatures(txHex, '123');
+    res.send({ success: true, signatures: sigs });
+  } catch (err) {
+    res.send({ success: false, error: err.message });
+  }
+}
+
+async function signTx(req, res) {
+  if (!constants.MULTISIG_ENABLED) {
+    res.send({
+      success: false,
+      message: 'The MultiSig feature is disabled',
+    });
+    return;
+  }
+
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
+
+  const { txHex } = req.body;
+  const signatures = req.body.signatures || [];
+  try {
+    const tx = req.wallet.assemblePartialTransaction(txHex, signatures);
+    res.send({ success: true, txHex: tx.toHex() });
+  } catch (err) {
+    res.send({ success: false, error: err.message });
+  }
+}
+
+async function signAndPush(req, res) {
+  if (!constants.MULTISIG_ENABLED) {
+    res.send({
+      success: false,
+      message: 'The MultiSig feature is disabled',
+    });
+    return;
+  }
+
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    return res.status(400).json(validationResult);
+  }
+
+  const canStart = lock.lock(lockTypes.SEND_TX);
+  if (!canStart) {
+    res.send({ success: false, error: cantSendTxErrorMessage });
+    return;
+  }
+
+  const { txHex } = req.body;
+  const signatures = req.body.signatures || [];
+  try {
+    const tx = req.wallet.assemblePartialTransaction(txHex, signatures);
+    tx.prepareToSend();
+
+    const sendTransaction = new SendTransaction({
+      transaction: tx,
+      network: req.wallet.getNetworkObject(),
+    });
+    const response = await sendTransaction.runFromMining();
+    res.send({ success: true, ...mapTxReturn(response) });
+  } catch (err) {
+    res.send({ success: false, error: err.message });
+  } finally {
+    lock.unlock(lockTypes.SEND_TX);
+  }
+}
+
+module.exports = {
+  buildTxProposal,
+  getMySignatures,
+  signTx,
+  signAndPush,
+};
