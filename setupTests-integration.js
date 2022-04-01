@@ -13,6 +13,20 @@ function getTestNameFromGlobalJasmineInstance() {
     : testFileName;
 }
 
+// Mock config file
+jest.mock(
+  "./src/config",
+  () => require("./__tests__/integration/configuration/config-fixture.js"),
+  { virtual: true }
+);
+
+// Enable features for tests
+jest.mock(
+  "./src/constants",
+  () => require("./__tests__/__fixtures__/feature-fixture"),
+  { virtual: true }
+);
+
 // This function will run before each test file is executed
 beforeAll(async () => {
   // Initializing the Transaction Logger with the test name

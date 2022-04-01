@@ -14,11 +14,14 @@ import {
   errors,
   HathorWallet,
   wallet as oldWalletUtils,
-  walletUtils
+  walletUtils,
+  helpersUtils,
+  SendTransaction,
 } from '@hathor/wallet-lib';
 import { body, checkSchema, matchedData, query, validationResult } from 'express-validator';
 
 import config from './config';
+import constants from './constants';
 import apiDocs from './api-docs';
 import apiKeyAuth from './api-key-auth';
 import logger from './logger';
@@ -74,7 +77,8 @@ app.use(morgan(config.httpLogFormat || 'combined', { stream: logger.stream }));
 if (config.http_api_key) {
   app.use(apiKeyAuth(config.http_api_key));
 }
-const walletRouter = express.Router({mergeParams: true})
+const walletRouter = express.Router({mergeParams: true});
+const txProposalRouter = express.Router({mergeParams: true});
 
 const parametersValidation = (req) => {
   // Parameters validation
@@ -118,8 +122,9 @@ app.post('/start', (req, res) => {
   }
 
   let seed;
+  let seedKey
   if ('seedKey' in req.body) {
-    const seedKey = req.body.seedKey;
+    seedKey = req.body.seedKey;
     if (!(seedKey in config.seeds)) {
       res.send({
         success: false,
@@ -159,6 +164,37 @@ app.post('/start', (req, res) => {
     return;
   }
 
+  let multisigData = null;
+  if (constants.MULTISIG_ENABLED && ('multisig' in req.body) && (req.body.multisig !== false)) {
+    if (!(config.multisig && (seedKey in config.multisig))) {
+      // Trying to start a multisig without proper configuration
+      return res.send({
+        success: false,
+        message: `Seed ${seedKey} is not configured for multisig.`
+      });
+    }
+    // validate multisig configuration:
+    //   (i) Should have all fields
+    //  (ii) `pubkeys` length should match `total`
+    // (iii) `minSignatures` should be less or equal to `total`
+    const mconfig = config.multisig[seedKey];
+    if (!( mconfig &&
+          (mconfig.total && mconfig.minSignatures && mconfig.pubkeys) &&
+          (mconfig.pubkeys.length === mconfig.total) &&
+          (mconfig.minSignatures <= mconfig.total))) {
+      // Missing multisig items
+      return res.send({
+        success: false,
+        message: `Improperly configured multisig for seed ${seedKey}.`
+      });
+    }
+    multisigData = {
+      minSignatures: mconfig.minSignatures,
+      pubkeys: mconfig.pubkeys,
+    };
+    console.log(`Starting multisig wallet with ${multisigData.pubkeys.length} pubkeys and ${multisigData.minSignatures} minSignatures`);
+  }
+
   const connection = new Connection({network: config.network, servers: [config.server], connectionTimeout: config.connectionTimeout});
   // Previous versions of the lib would have password and pin default as '123'
   // We currently need something to be defined, otherwise we get an error when starting the wallet
@@ -167,6 +203,7 @@ app.post('/start', (req, res) => {
     connection,
     password: '123',
     pinCode: '123',
+    multisig: multisigData,
   }
 
   // tokenUid is optionat but if not passed as parameter
@@ -216,6 +253,45 @@ app.post('/start', (req, res) => {
       success: false,
       message: `Failed to start wallet with wallet id ${req.body['wallet-id']}`,
     });
+  });
+});
+
+app.post('/multisig-pubkey', (req, res) => {
+  if (!constants.MULTISIG_ENABLED) {
+    res.send({
+      success: false,
+      message: 'The MultiSig feature is disabled',
+    });
+    return;
+  }
+
+  if (!('seedKey' in req.body)) {
+    res.send({
+      success: false,
+      message: 'Parameter \'seedKey\' is required.',
+    });
+    return;
+  }
+
+  const seedKey = req.body.seedKey;
+  if (!(seedKey in config.seeds)) {
+    res.send({
+      success: false,
+      message: 'Seed not found.',
+    });
+    return;
+  }
+
+  const seed = config.seeds[seedKey];
+
+  const options = {networkName: config.network};
+  if ('passphrase' in req.body) {
+    options.passphrase = req.body.passphrase;
+  }
+
+  res.send({
+    success: true,
+    xpubkey: walletUtils.getMultiSigXPubFromWords(seed, options),
   });
 });
 
@@ -503,6 +579,290 @@ walletRouter.post('/simple-send-tx',
   } finally {
     lock.unlock(lockTypes.SEND_TX);
   }
+});
+
+txProposalRouter.post('/',
+  checkSchema({
+    outputs: {
+      in: ['body'],
+      errorMessage: "Invalid outputs array",
+      isArray: true,
+      notEmpty: true,
+    },
+    'outputs.*.address': {
+      in: ['body'],
+      errorMessage: "Invalid output address",
+      isString: true,
+    },
+    'outputs.*.value': {
+      in: ['body'],
+      errorMessage: "Invalid output value",
+      isInt: {
+        options: {
+          min: 1
+        }
+      },
+      toInt: true
+    },
+    'outputs.*.token': {
+      in: ['body'],
+      errorMessage: "Invalid token uid",
+      isString: true,
+      optional: true,
+    },
+    inputs: {
+      in: ['body'],
+      errorMessage: "Invalid inputs array",
+      isArray: true,
+      notEmpty: true,
+      optional: true,
+    },
+    'inputs.*.txId': {
+      in: ['body'],
+      errorMessage: "Invalid input txId",
+      isString: true,
+      custom: {
+        options: (value, {req, location, path}) => {
+          // Test if txId is a 64 character hex string
+          if (!(/^[0-9a-fA-F]{64}$/.test(value))) return false;
+          return true;
+        }
+      },
+    },
+    'inputs.*.index': {
+      in: ['body'],
+      errorMessage: "Invalid input value",
+      isInt: true,
+      toInt: true
+    },
+    'change_address': {
+      in: ['body'],
+      errorMessage: "Invalid change address",
+      isString: true,
+      optional: true
+    },
+  }),
+  async (req, res) => {
+    const validationResult = parametersValidation(req);
+    if (!validationResult.success) {
+      return res.status(400).json(validationResult);
+    }
+
+    const network = req.wallet.getNetworkObject();
+    const outputs = req.body.outputs;
+    const inputs = req.body.inputs || [];
+    const changeAddress = req.body.change_address || null;
+
+    for (const output of outputs) {
+      if (!output.token) {
+        output.token = hathorLibConstants.HATHOR_TOKEN_CONFIG.uid;
+      }
+    }
+    try {
+      const sendTransaction = new SendTransaction({ outputs, inputs, changeAddress, network });
+      const tx = helpersUtils.createTxFromData({version: 1, ...sendTransaction.prepareTxData()}, network);
+
+      res.send({ success: true, txHex: tx.toHex() });
+    } catch (err) {
+      res.send({success: false, error: err.message });
+    }
+});
+
+walletRouter.post('/decode',
+  checkSchema({
+    txHex: {
+      in: ['body'],
+      errorMessage: "Invalid txHex",
+      isString: true,
+      custom: {
+        options: (value, {req, location, path}) => {
+          // Test if txHex is actually hex
+          if (!(/^[0-9a-fA-F]+$/.test(value))) return false;
+          return true;
+        }
+      },
+    },
+  }),
+  async (req, res) => {
+    const validationResult = parametersValidation(req);
+    if (!validationResult.success) {
+      return res.status(400).json(validationResult);
+    }
+
+    const txHex = req.body.txHex;
+    try {
+      const tx = helpersUtils.createTxFromHex(txHex, req.wallet.getNetworkObject());
+      const data = {
+        tokens: tx.tokens,
+        inputs: tx.inputs.map(input => ({txId: input.hash, index: input.index})),
+        outputs: [],
+      };
+      for (const output of tx.outputs) {
+        const outputData = {
+          value: output.value,
+          tokenData: output.tokenData,
+          script: output.script.toString('base64'),
+          type: output.decodedScript.getType(),
+          decoded: output.decodedScript,
+        };
+        if (output.tokenData != 0) {
+          outputData['token'] = tx.tokens[output.getTokenIndex()];
+        }
+        switch(outputData.type) {
+          case 'data':
+            outputData.decoded = {
+              data: output.decodedScript.data,
+            };
+            break;
+          case 'p2sh':
+          case 'p2pkh':
+          default:
+            outputData.decoded = {
+              address: output.decodedScript.address.base58,
+              timelock: output.decodedScript.timelock,
+            };
+        }
+        data.outputs.push(outputData);
+      }
+      res.send({ success: true, tx: data });
+    } catch(err) {
+      res.send({success: false, error: err.message });
+    }
+});
+
+
+// XXX: Currently only works for P2SH MultiSig signatures, but can be enhanced to include P2PKH Signatures once the wallet-lib adds support.
+txProposalRouter.post('/get-my-signatures',
+  checkSchema({
+    txHex: {
+      in: ['body'],
+      errorMessage: "Invalid txHex",
+      isString: true,
+      custom: {
+        options: (value, {req, location, path}) => {
+          // Test if txHex is actually hex
+          if (!(/^[0-9a-fA-F]+$/.test(value))) return false;
+          return true;
+        }
+      },
+    },
+  }),
+  async (req, res) => {
+    if (!constants.MULTISIG_ENABLED) {
+      res.send({
+        success: false,
+        message: 'The MultiSig feature is disabled',
+      });
+      return;
+    }
+
+    const validationResult = parametersValidation(req);
+    if (!validationResult.success) {
+      return res.status(400).json(validationResult);
+    }
+
+    const txHex = req.body.txHex;
+    try {
+      const sigs = req.wallet.getAllSignatures(txHex, '123');
+      res.send({ success: true, signatures: sigs });
+    } catch(err) {
+      res.send({success: false, error: err.message });
+    }
+});
+
+
+const txHexSignatureSchema = {
+  txHex: {
+    in: ['body'],
+    errorMessage: "Invalid txHex",
+    isString: true,
+    custom: {
+      options: (value, {req, location, path}) => {
+        // Test if txHex is actually hex
+        if (!(/^[0-9a-fA-F]+$/.test(value))) return false;
+        return true;
+      }
+    },
+  },
+  signatures: {
+    in: ['body'],
+    errorMessage: "Invalid signatures array",
+    isArray: true,
+    notEmpty: true,
+  },
+  'signatures.*': {
+    in: ['body'],
+    errorMessage: "Invalid signature",
+    isString: true,
+  },
+};
+
+txProposalRouter.post('/sign',
+  checkSchema(txHexSignatureSchema),
+  async (req, res) => {
+    if (!constants.MULTISIG_ENABLED) {
+      res.send({
+        success: false,
+        message: 'The MultiSig feature is disabled',
+      });
+      return;
+    }
+
+    const validationResult = parametersValidation(req);
+    if (!validationResult.success) {
+      return res.status(400).json(validationResult);
+    }
+
+    const txHex = req.body.txHex;
+    const signatures = req.body.signatures || [];
+    try {
+      const tx = req.wallet.assemblePartialTransaction(txHex, signatures);
+      res.send({ success: true, txHex: tx.toHex() });
+    } catch (err) {
+      res.send({success: false, error: err.message });
+    }
+});
+
+
+txProposalRouter.post('/sign-and-push',
+  checkSchema(txHexSignatureSchema),
+  async (req, res) => {
+    if (!constants.MULTISIG_ENABLED) {
+      res.send({
+        success: false,
+        message: 'The MultiSig feature is disabled',
+      });
+      return;
+    }
+
+    const validationResult = parametersValidation(req);
+    if (!validationResult.success) {
+      return res.status(400).json(validationResult);
+    }
+
+    const canStart = lock.lock(lockTypes.SEND_TX);
+    if (!canStart) {
+      res.send({success: false, error: cantSendTxErrorMessage});
+      return;
+    }
+
+    const txHex = req.body.txHex;
+    const signatures = req.body.signatures || [];
+    try {
+      const tx = req.wallet.assemblePartialTransaction(txHex, signatures);
+      tx.prepareToSend();
+
+      const sendTransaction = new SendTransaction({
+        transaction: tx,
+        network: req.wallet.getNetworkObject(),
+      });
+      const response = await sendTransaction.runFromMining();
+      res.send({ success: true, ...mapTxReturn(response) });
+    } catch (err) {
+      res.send({success: false, error: err.message });
+    } finally {
+      lock.unlock(lockTypes.SEND_TX);
+    }
 });
 
 
@@ -1061,6 +1421,7 @@ walletRouter.post('/stop', (req, res) => {
   res.send({success: true});
 });
 
+walletRouter.use('/tx-proposal', txProposalRouter);
 app.use('/wallet', walletRouter);
 
 console.log('Starting Hathor Wallet...', {

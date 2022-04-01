@@ -79,7 +79,7 @@ describe("send-tx api", () => {
       })
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(400);
-    expect(response.body.succes).toBeFalsy();
+    expect(response.body.success).toBeFalsy();
 
     response = await TestUtils.request
       .post("/wallet/send-tx")
@@ -88,7 +88,7 @@ describe("send-tx api", () => {
       })
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(400);
-    expect(response.body.succes).toBeFalsy();
+    expect(response.body.success).toBeFalsy();
   });
 
   it("should not accept transactions with 0 value", async () => {
@@ -99,7 +99,7 @@ describe("send-tx api", () => {
       })
       .set({ "x-wallet-id": TestUtils.walletId });
     expect(response.status).toBe(400);
-    expect(response.body.succes).toBeFalsy();
+    expect(response.body.success).toBeFalsy();
   });
 
   it("should receive an error when trying to do concurrent transactions (lock/unlock behavior)", async () => {

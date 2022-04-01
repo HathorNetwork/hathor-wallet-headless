@@ -17,6 +17,19 @@ export class WalletHelper {
   #words;
 
   /**
+   * seedKey referencing a preconfigured multisig on the wallet-headless
+   */
+  #seedKey;
+
+  /**
+   * boolean indicating this is a MultiSig Wallet
+   * XXX: We currently do not support starting a multisig wallet from `words`
+   *
+   * @type {boolean}
+   */
+  #multisig;
+
+  /**
    * Some cached addresses to improve performance on tests
    * @type {string[]}
    */
@@ -31,15 +44,37 @@ export class WalletHelper {
   /**
    * Creates a wallet object but does not start it on server
    * @param {string} walletId
-   * @param {string} [words] 24 words
+   * @param [options]
+   * @param {string} [options.words] 24 words, optional
+   * @param {string} [options.seedKey] seedKey, optional
+   * @param {boolean} [options.multisig] If the wallet is multisig, defaults to false
    */
-  constructor(walletId, words) {
+  constructor(walletId, options = {}) {
     if (!walletId) {
       throw new Error('Wallet must have a walletId');
     }
     this.#walletId = walletId;
 
-    this.#words = words || TestUtils.generateWords();
+    if (options.multisig && !options.seedKey) {
+      throw new Error('A MultiSig Wallet must be instantiated from a seedKey');
+    }
+
+    if (options.words) {
+      // When words are available, use them
+      this.#words = options.words;
+      this.#seedKey = null;
+      this.#multisig = false;
+    } else if (options.seedKey) {
+      // Starting from seedKey
+      this.#words = null;
+      this.#seedKey = options.seedKey;
+      this.#multisig = options.multisig || false;
+    } else {
+      // No words or seedKey, start from random words
+      this.#words = TestUtils.generateWords();
+      this.#seedKey = null;
+      this.#multisig = false;
+    }
   }
 
   get walletId() {
@@ -50,12 +85,41 @@ export class WalletHelper {
     return this.#words;
   }
 
+  get seedKey() {
+    return this.#seedKey;
+  }
+
   get addresses() {
     return this.#addresses;
   }
 
+  get multisig() {
+    return this.#multisig || false;
+  }
+
   get started() {
     return this.#started;
+  }
+
+  get walletData() {
+    if (this.words) {
+      return {
+        walletId: this.walletId,
+        words: this.words,
+        addresses: this.addresses || [],
+      }
+    }
+
+    if (this.seedKey) {
+      return {
+        walletId: this.walletId,
+        seedKey: this.seedKey,
+        multisig: this.multisig,
+        addresses: this.addresses || [],
+      }
+    }
+
+    throw new Error('Both [`words`, `seedKey`] are missing from the WalletHelper');
   }
 
   /**
@@ -79,16 +143,13 @@ export class WalletHelper {
     const { genesis } = WALLET_CONSTANTS;
     const isGenesisStarted = await TestUtils.isWalletReady(genesis.walletId);
     if (!isGenesisStarted) {
-      walletsArr.unshift(new WalletHelper(genesis.walletId, genesis.words));
+      walletsArr.unshift(new WalletHelper(genesis.walletId, {words: genesis.words}));
     }
 
     // Requests the start of all the wallets in quick succession
     const startPromisesArray = [];
     for (const wallet of walletsArr) {
-      const promise = TestUtils.startWallet({
-        walletId: wallet.walletId,
-        words: wallet.words,
-      });
+      const promise = TestUtils.startWallet(wallet.walletData);
       walletsPendingReady[wallet.walletId] = wallet;
       startPromisesArray.push(promise);
     }
@@ -149,13 +210,7 @@ export class WalletHelper {
    * @returns {Promise<WalletData>}
    */
   async start(options = {}) {
-    await TestUtils.startWallet(
-      {
-        walletId: this.#walletId,
-        words: this.#words,
-      },
-      { waitWalletReady: true }
-    );
+    await TestUtils.startWallet(this.walletData, { waitWalletReady: true });
     this.#started = true;
 
     // Populating some addressess for this wallet
@@ -168,11 +223,7 @@ export class WalletHelper {
       await loggers.test.informWalletAddresses(this.#walletId, this.#addresses);
     }
 
-    return {
-      walletId: this.#walletId,
-      words: this.#words,
-      addresses: this.#addresses
-    };
+    return this.walletData;
   }
 
   __setStarted() { this.#started = true; }
@@ -250,6 +301,8 @@ export class WalletHelper {
    * @param {string} [params.address] Destination address for the custom token
    * @param {string} [params.change_address] Destination address for the HTR change
    * @returns {Promise<unknown>} Token creation transaction
+   *
+   * XXX: not supported for multisig
    */
   async createToken(params) {
     const { amount, name, symbol } = params;
@@ -333,6 +386,8 @@ export class WalletHelper {
    * @param {string} [options.destinationWallet] Optional parameter to explain the funds destination
    * @param {string} [options.change_address] Optional parameter to set the change address
    * @returns {Promise<unknown>} Returns the transaction
+   *
+   * XXX: not supported for multisig
    */
   async sendTx(options) {
     const sendOptions = options.fullObject || {};
@@ -394,5 +449,17 @@ export class WalletHelper {
 
   async getBalance(tokenUid = null) {
     return TestUtils.getBalance(this.#walletId, tokenUid);
+  }
+
+  /**
+   * Get this wallet signatures for the transaction.
+   *
+   * @param {string} [txHex] hex encoded transaction.
+   * @returns {Promise<string>} Promise to return the signatures.
+   *
+   * XXX: currently only supported for multisig
+   */
+  async getSignatures(txHex) {
+    return TestUtils.getSignatures(txHex, this.#walletId);
   }
 }
