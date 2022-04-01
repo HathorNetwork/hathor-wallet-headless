@@ -1,19 +1,11 @@
 const { Router } = require('express');
 const { checkSchema } = require('express-validator');
 const {
-  constants: hathorLibConstants,
-  SendTransaction,
-  helpersUtils,
-} = require('@hathor/wallet-lib');
-const constants = require('../constants');
-const { lock, lockTypes } = require('../lock');
-const {
   buildTxProposal,
   getMySignatures,
   signTx,
   signAndPush,
 } = require('../controllers/tx-proposal.controller');
-const { isStringHex } = require('../helpers/validations.helper');
 
 const txProposalRouter = Router({ mergeParams: true });
 
@@ -59,7 +51,11 @@ txProposalRouter.post(
       errorMessage: 'Invalid input txId',
       isString: true,
       custom: {
-        options: (value, { req, location, path }) => isStringHex(value),
+        options: (value, { req, location, path }) => {
+          // Test if txId is a 64 character hex string
+          if (!(/^[0-9a-fA-F]{64}$/.test(value))) return false;
+          return true;
+        }
       },
     },
     'inputs.*.index': {
@@ -90,7 +86,11 @@ txProposalRouter.post(
       errorMessage: 'Invalid txHex',
       isString: true,
       custom: {
-        options: (value, { req, location, path }) => isStringHex(value),
+        options: (value, { req, location, path }) => {
+          // Test if txHex is actually hex
+          if (!(/^[0-9a-fA-F]+$/.test(value))) return false;
+          return true;
+        }
       },
     },
   }),
@@ -103,7 +103,11 @@ const txHexSignatureSchema = {
     errorMessage: 'Invalid txHex',
     isString: true,
     custom: {
-      options: (value, { req, location, path }) => isStringHex(value),
+      options: (value, { req, location, path }) => {
+        // Test if txHex is actually hex
+        if (!(/^[0-9a-fA-F]+$/.test(value))) return false;
+        return true;
+      }
     },
   },
   signatures: {

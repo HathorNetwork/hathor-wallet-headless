@@ -3,12 +3,11 @@ const rootControllers = require('../controllers/index.controller');
 
 const mainRouter = Router({ mergeParams: true });
 const walletRouter = require('./wallet.routes');
-const txProposalRouter = require('./tx-proposal.routes');
 
 mainRouter.get('/', rootControllers.welcome);
 mainRouter.get('/docs', rootControllers.docs);
 mainRouter.post('/start', rootControllers.start);
-mainRouter.get('/multisig-pubkey', rootControllers.multisigPubkey);
+mainRouter.post('/multisig-pubkey', rootControllers.multisigPubkey);
 mainRouter.use('/wallet', walletRouter);
 
 mainRouter.use((err, req, res, next) => {
