@@ -79,7 +79,6 @@ export class WalletHelper {
       requestsEnd: 0,
       requestsDiff: 0,
 
-      loopStart: 0,
       loopEnd: 0,
       loopDiff: 0,
       fullStartDiff: 0,
@@ -110,8 +109,7 @@ export class WalletHelper {
     startBenchmark.requestsDiff = startBenchmark.requestsEnd - startBenchmark.requestsStart;
 
     // Enters the loop checking each wallet for its status
-    startBenchmark.loopStart = Date.now().valueOf();
-    const timestampTimeout = startBenchmark.loopStart + testConfig.walletStartTimeout;
+    const timestampTimeout = startBenchmark.requestsEnd + testConfig.walletStartTimeout;
     while (true) {
       const pendingWalletIds = Object.keys(walletsPendingReady);
       // If all wallets were started, return to the caller.
@@ -122,7 +120,7 @@ export class WalletHelper {
       // If this process took too long, the connection with the fullnode may be irreparably broken.
       const timestamp = Date.now().valueOf();
       if (timestamp > timestampTimeout) {
-        const failureDiff = timestamp - startBenchmark.loopStart;
+        const failureDiff = timestamp - startBenchmark.requestsEnd;
         const errMsg = `Wallet init failure: Timeout on ${failureDiff}ms.`;
         TestUtils.logError(errMsg);
         startBenchmark.failureAt = timestamp;
@@ -155,7 +153,7 @@ export class WalletHelper {
 
     const timestamp = Date.now().valueOf();
     startBenchmark.loopEnd = timestamp;
-    startBenchmark.loopDiff = startBenchmark.loopEnd - startBenchmark.loopStart;
+    startBenchmark.loopDiff = startBenchmark.loopEnd - startBenchmark.requestsEnd;
     startBenchmark.fullStartDiff = startBenchmark.loopEnd - startBenchmark.requestsStart;
     TestUtils.log(`Finished multiple wallet initialization.`, startBenchmark);
   }
@@ -432,8 +430,7 @@ export class WalletHelper {
   }
 
   /**
-   * Makes a request to get UTXO's for a specific query.
-   *
+   * Consolidates UTXO's
    * @param [params]
    * @param {string} [params.destination_address] Address that will receive the funds
    * @param {number} [params.max_utxos] Maximum amount of source utxos used

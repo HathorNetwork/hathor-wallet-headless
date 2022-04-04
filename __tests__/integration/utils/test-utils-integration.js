@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 import supertest from 'supertest';
-import { constants, HathorWallet, wallet } from '@hathor/wallet-lib';
+import { constants, HathorWallet, wallet, transaction } from '@hathor/wallet-lib';
 import app from '../../../src';
 import { loggers } from '../txLogger';
 import testConfig from '../configuration/test.config';
@@ -50,14 +50,13 @@ export const TOKEN_DATA = {
    * @param {number} tokenData "token_data" property from an output
    * @returns {boolean} True if this is an authority output
    */
-  // eslint-disable-next-line no-bitwise
-  isAuthorityToken: tokenData => !!(tokenData & constants.TOKEN_AUTHORITY_MASK)
+  isAuthorityToken: tokenData => transaction.isTokenDataAuthority(tokenData)
 
 };
 
 export const AUTHORITY_VALUE = {
-  MINT: 1,
-  MELT: 2
+  MINT: constants.TOKEN_MINT_MASK,
+  MELT: constants.TOKEN_MELT_MASK
 };
 
 export const HATHOR_TOKEN_ID = '00';
@@ -184,7 +183,7 @@ export class TestUtils {
       /*
        * Jest doesn't really help with debug data when errors occur, so we're logging this manually
        * most of the time. Except when we explicitly inform not to.
-       * (Ex.: an exception es expected)
+       * (Ex.: when we pass invalid arguments and an exception is expected)
        */
       if (!params.dontLogErrors) {
         delete logMetadata.response; // Avoid log pollution with excessive data
