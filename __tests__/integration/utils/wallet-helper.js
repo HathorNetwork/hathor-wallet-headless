@@ -107,7 +107,7 @@ export class WalletHelper {
         walletId: this.walletId,
         words: this.words,
         addresses: this.addresses || [],
-      }
+      };
     }
 
     if (this.seedKey) {
@@ -116,7 +116,7 @@ export class WalletHelper {
         seedKey: this.seedKey,
         multisig: this.multisig,
         addresses: this.addresses || [],
-      }
+      };
     }
 
     throw new Error('Both [`words`, `seedKey`] are missing from the WalletHelper');
@@ -128,11 +128,10 @@ export class WalletHelper {
    * performance-wise.
    * @param {WalletHelper[]} walletsArr Array of WalletHelpers
    * @param [options]
-   * @param {boolean} [options.skipAddresses] Skips the getSomeAddresses command
-   * @param {number} [options.amountOfAddresses=10] How many addresses should be cached per wallet
+   * @param {boolean} [options.serial] Start one wallet at a time
    * @returns {Promise<void>}
    */
-  static async startMultipleWalletsForTest(walletsArr, options) {
+  static async startMultipleWalletsForTest(walletsArr, options = {}) {
     /**
      * A map of `WalletHelper`s indexed by their `walletId`s
      * @type {Record<string,WalletHelper>}
@@ -153,19 +152,42 @@ export class WalletHelper {
     const { genesis } = WALLET_CONSTANTS;
     const isGenesisStarted = await TestUtils.isWalletReady(genesis.walletId);
     if (!isGenesisStarted) {
-      walletsArr.unshift(new WalletHelper(genesis.walletId, {words: genesis.words}));
+      walletsArr.unshift(new WalletHelper(genesis.walletId, { words: genesis.words }));
     }
 
-    // Requests the start of all the wallets in quick succession
+    // Start of the requests
     startBenchmark.requestsStart = Date.now().valueOf();
-    const startPromisesArray = [];
-    for (const wallet of walletsArr) {
-      const promise = TestUtils.startWallet(wallet.walletData);
-      walletsPendingReady[wallet.walletId] = wallet;
-      startBenchmark.wallets[wallet.walletId] = {};
-      startPromisesArray.push(promise);
+
+    if (options.serial || walletsArr.length > 2) {
+      // If we need to initialize too many wallets at once, it's better to do it serially
+      for (const wallet of walletsArr) {
+        const walletBenchmark = {};
+        walletBenchmark.requestStart = Date.now().valueOf();
+        await TestUtils.startWallet(wallet.walletData, {
+          waitWalletReady: true
+        });
+        walletBenchmark.requestEnd = Date.now().valueOf();
+        walletsPendingReady[wallet.walletId] = wallet;
+        walletBenchmark.diffRequest =
+          walletBenchmark.requestEnd
+          - walletBenchmark.requestStart
+        startBenchmark.wallets[wallet.walletId] = walletBenchmark;
+      }
     }
-    await Promise.all(startPromisesArray);
+    else {
+      // Requests the start of all the wallets in quick succession - parallel mode
+      const startPromisesArray = [];
+      for (const wallet of walletsArr) {
+        const promise = TestUtils.startWallet(wallet.walletData);
+        walletsPendingReady[wallet.walletId] = wallet;
+        const walletBenchmark = {};
+        walletBenchmark.requestStart = Date.now().valueOf();
+        startBenchmark.wallets[wallet.walletId] = walletBenchmark;
+        startPromisesArray.push(promise);
+      }
+      await Promise.all(startPromisesArray);
+    }
+
     startBenchmark.requestsEnd = Date.now().valueOf();
     startBenchmark.requestsDiff = startBenchmark.requestsEnd - startBenchmark.requestsStart;
 
@@ -191,7 +213,7 @@ export class WalletHelper {
       }
 
       // First we add a delay
-      await TestUtils.delay(500);
+      await TestUtils.delay(1000);
 
       // Checking the status of each wallet
       for (const walletId of pendingWalletIds) {
@@ -204,16 +226,19 @@ export class WalletHelper {
         const timestampReady = Date.now().valueOf();
         walletsPendingReady[walletId].__setStarted();
         delete walletsPendingReady[walletId];
-        startBenchmark.wallets[walletId].isReady = timestampReady;
-        startBenchmark.wallets[walletId].diffReady = timestampReady - startBenchmark.requestsEnd;
+
+        const walletBenchmark = startBenchmark.wallets[walletId];
+        walletBenchmark.isReady = timestampReady;
+        walletBenchmark.diffReady = walletBenchmark.requestEnd
+          ? timestampReady - walletBenchmark.requestEnd  // Serial
+          : timestampReady - startBenchmark.requestsEnd; // Parallel
 
         const addresses = await TestUtils.getSomeAddresses(walletId);
         await loggers.test.informWalletAddresses(walletId, addresses);
       }
     }
 
-    const timestamp = Date.now().valueOf();
-    startBenchmark.loopEnd = timestamp;
+    startBenchmark.loopEnd = Date.now().valueOf();
     startBenchmark.loopDiff = startBenchmark.loopEnd - startBenchmark.requestsEnd;
     startBenchmark.fullStartDiff = startBenchmark.loopEnd - startBenchmark.requestsStart;
     TestUtils.log(`Finished multiple wallet initialization.`, startBenchmark);
@@ -353,7 +378,7 @@ export class WalletHelper {
     TestUtils.log('Token Creation', {
       hash: transaction.hash,
       walletId: this.#walletId,
-      tokenCreationBody,
+      ...tokenCreationBody
     });
 
     await TestUtils.pauseForWsUpdate();

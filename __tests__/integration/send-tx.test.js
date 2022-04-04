@@ -650,7 +650,9 @@ describe('send tx (custom tokens)', () => {
     wallet4 = new WalletHelper('custom-tx-4');
     wallet5 = new WalletHelper('custom-tx-5');
 
-    await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3, wallet4, wallet5]);
+    await WalletHelper.startMultipleWalletsForTest(
+      [wallet1, wallet2, wallet3, wallet4, wallet5]
+    );
 
     // Funds for single input/output tests - 1000 HTR + 2000 custom A
     await wallet1.injectFunds(1020, 0);

@@ -279,7 +279,7 @@ export class TestUtils {
         if (walletReady) {
           break;
         }
-        await TestUtils.delay(500);
+        await TestUtils.delay(1000);
       }
     }
     // Log the success and return
@@ -305,7 +305,11 @@ export class TestUtils {
   static async isWalletReady(walletId) {
     const res = await request
       .get('/wallet/status')
-      .set(TestUtils.generateHeader(walletId));
+      .set(TestUtils.generateHeader(walletId))
+      .catch(err => {
+        TestUtils.logTx('Status error.', { message: err.message, stack: err.stack });
+        throw err;
+      });
 
     return res.body?.statusCode === HathorWallet.READY;
   }
