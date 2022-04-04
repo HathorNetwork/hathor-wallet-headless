@@ -9,7 +9,7 @@ describe('create-nft routes', () => {
   const nftData = {
     name: 'Test NFT',
     symbol: 'TNFT',
-    data: 'ipfs://bafybeigu4pynylpbces2eq6hw6kflpjuagqkbqpawa7hrdnm5stzpyuwwe/'
+    data: 'ipfs://ipfs/bafybeigu4pynylpbces2eq6hw6kflpjuagqkbqpawa7hrdnm5stzpyuwwe/'
   };
 
   beforeAll(async () => {
@@ -86,6 +86,10 @@ describe('create-nft routes', () => {
     for (const output of nftTx.outputs) {
       expect(TOKEN_DATA.isAuthorityToken(output.token_data)).toBe(false);
     }
+
+    // Validating that the NFT fee is the first output
+    expect(nftTx.outputs[0].value).toBe(1)
+    expect(nftTx.outputs[0].token_data).toBe(0)
 
     await TestUtils.pauseForWsUpdate();
 
