@@ -34,9 +34,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Copy config file
-        run: cp ./__tests__/integration/configuration/config.js.template ./src/config.js
-
       - name: Run the tests
         run: npm run test_integration
 

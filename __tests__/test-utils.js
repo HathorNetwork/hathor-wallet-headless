@@ -10,6 +10,21 @@ import { Server } from 'mock-socket';
 const WALLET_ID = "stub_wallet";
 const SEED_KEY = "stub_seed";
 
+const MULTISIG_XPUB = 'xpub6CvvCBtHqFfErbcW2Rv28TmZ3MqcFuWQVKGg8xDzLeAwEAHRz9LBTgSFSj7B99scSvZGbq6TxAyyATA9b6cnwsgduNs9NGKQJnEQr3PYtwK';
+const MULTISIG_DATA = {
+  "stub_seed": {
+    minSignatures: 3,
+    total: 5,
+    pubkeys: [
+      MULTISIG_XPUB,
+      'xpub6CA16g2qPwukWAWBMdJKU3p2fQEEi831W3WAs2nesuCzPhbrG29aJsoRDSEDT4Ac3smqSk51uuv6oujU3MAAL3d1Nm87q9GDwE3HRGQLjdP',
+      'xpub6BwNT613Vzy7ARVHDEpoX23SMBEZQMJXdqTWYjQKvJZJVDBjEemU38exJEhc6qbFVc4MmarN68gUKHkyZ3NEgXXCbWtoXXGouHpwMEcXJLf',
+      'xpub6DCyPHg4AwXsdiMh7QSTHR7afmNVwZKHBBMFUiy5aCYQNaWp68ceQXYXCGQr5fZyLAe5hiJDdXrq6w3AXzvVmjFX9F7EdM87repxJEhsmjL',
+      'xpub6CgPUcCCJ9pAK7Rj52hwkxTutSRv91Fq74Hx1SjN62eg6Mp3S3YCJFPChPaDjpp9jCbCZHibBgdKnfNdq6hE9umyjyZKUCySBNF7wkoG4uK',
+    ],
+  }
+}
+
 const request = supertest(app);
 
 const httpMock = new MockAdapter(axios);
@@ -24,6 +39,9 @@ class TestUtils {
 
   static seedKey = SEED_KEY;
   static walletId = WALLET_ID;
+
+  static multisigXpub = MULTISIG_XPUB;
+  static multisigData = MULTISIG_DATA;
 
   static addresses = [
     "WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN",
@@ -52,6 +70,30 @@ class TestUtils {
     "WaMaVdMh5Je7qPLjaiePX96uWMwX5hdPVi"
   ];
 
+  static multisigAddresses = [
+    'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
+    'wbe2eJdyZVimA7nJjmBQnKYJSXmpnpMKgG',
+    'wQQWdSZwp2CEGKsTvvbJ7i8HfHuV2i5QVQ',
+    'wfrtq9cMe1YfixVgSKXQNQ5hjsmR4hpjP6',
+    'wQG7itjdtZBsNTk9TG4f1HrehyQiAEMN18',
+    'wfgSqHUHPtmj2GDy8YfasbPPcFh8L1GPMA',
+    'wgZbCEMHHnhftCAwj7CRBmfi5TgBhfMZbk',
+    'wdz9NeMac7jyVeP2WK4BJWsM1zpd9tgsBb',
+    'wPs7WaRCqwC89uHycLbctDGmWPgH9oZvjp',
+    'wWJJxvr6oSk7WZdE9rpSRMoE6ZqJ3i8VDc',
+    'wbuDJtmM7vg8at2h5o3pTCHE4SASEFYusr',
+    'wPNkywbiw8UHbRQkD3nZ3EHMQsjyTamh9u',
+    'wQBNidXXYpE943BgydUNtarAwNzk612Yip',
+    'wh2eCGzUK9rLThr5D6tyCfckHpBjS97ERA',
+    'wZvajxVp3LabcZiY3XPrivrXiSS6wphRu7',
+    'wgPbL1WzbrEntepHRC92UX6mA2EmaqfDqt',
+    'wbdx4g3rucX3WHmZRXjPEKtRfZ7XSnCGKf',
+    'wiKTnqSN11ukuCWEXRVrRTTPo2mw4fGue3',
+    'wQ4aQP4YqJqfwshLggR2w1Gg3UFhhKhVKs',
+    'wca2xk9S2MVn2UrKh78UScdwXz3xrTp8Ky',
+    'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau',
+  ];
+
   static get request() {
     return request;
   }
@@ -59,12 +101,13 @@ class TestUtils {
   static async startWallet({
     seedKey = SEED_KEY,
     walletId = TestUtils.walletId,
+    multisig = false,
   } = {}) {
     TestUtils.walletId = walletId;
 
     const response = await request
       .post("/start")
-      .send({ seedKey: seedKey, "wallet-id": walletId });
+      .send({ seedKey: seedKey, "wallet-id": walletId, multisig: multisig });
 
     if (response.status !== 200) {
       throw new Error("Unable to start the wallet");

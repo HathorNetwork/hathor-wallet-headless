@@ -27,9 +27,10 @@ Create and start a new wallet.
 
 Parameters:
 
-`wallet-id`: key reference of this wallet in the object of created wallets. Used to say which wallet each request is directed to.  
-`passphrase`: Optional parameter to start the wallet with a passphrase. If not sent we use empty string.  
+`wallet-id`: key reference of this wallet in the object of created wallets. Used to say which wallet each request is directed to.
+`passphrase`: Optional parameter to start the wallet with a passphrase. If not sent we use empty string.
 `seedKey`: Parameter to define which seed (from the object seeds in the config file) will be used to generate the wallet.
+`multisig`: Optional boolean parameter to start the wallet as a MultiSig wallet. Requires proper configuration.
 
 ```bash
 $ curl -X POST --data "wallet-id=id" --data-urlencode "passphrase=123" --data "seedKey=default" http://localhost:8000/start
@@ -310,3 +311,7 @@ $ npm run generate_words
 
 work above economy captain advance bread logic paddle copper change maze tongue salon sadness cannon fish debris need make purpose usage worth vault shrug
 ```
+
+## Multisig
+
+Check out how to configure and use as a MultiSig wallet on [MULTISIG.md](./MULTISIG.md)

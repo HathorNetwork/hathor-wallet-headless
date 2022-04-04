@@ -52,4 +52,54 @@ describe.only("start api", () => {
 
     global.config.confirmFirstAddress = null;
   });
+
+  it("should start a MultiSig wallet if multisig is true", async () => {
+    global.config.multisig = TestUtils.multisigData;
+    TestUtils.stopWallet()
+
+    let response1 = await TestUtils.request
+      .post("/start")
+      .send({ seedKey: TestUtils.seedKey, "wallet-id": TestUtils.walletId, "multisig": true });
+    expect(response1.status).toBe(200);
+    expect(response1.body.success).toBeTruthy();
+
+    let response2 = await TestUtils.request
+      .get("/wallet/address")
+      .query({ index: 0 })
+      .set({ "x-wallet-id": TestUtils.walletId });
+    expect(response2.status).toBe(200);
+    expect(response2.body.address).toBe(TestUtils.multisigAddresses[0]);
+
+    global.config.multisig = {};
+  });
+
+  it("should not start a incorrectly configured MultiSig if multisig is true", async () => {
+    global.config.multisig = {};
+
+    let response1 = await TestUtils.request
+      .post("/start")
+      .send({ seedKey: TestUtils.seedKey, "wallet-id": TestUtils.walletId, "multisig": true });
+    expect(response1.status).toBe(200);
+    expect(response1.body.success).toBeFalsy();
+
+    global.config.multisig = TestUtils.multisigData;
+    global.config.multisig[TestUtils.seedKey].total = 6;
+
+    let response2 = await TestUtils.request
+      .post("/start")
+      .send({ seedKey: TestUtils.seedKey, "wallet-id": TestUtils.walletId, "multisig": true });
+    expect(response2.status).toBe(200);
+    expect(response2.body.success).toBeFalsy();
+
+    global.config.multisig[TestUtils.seedKey].total = 5;
+    global.config.multisig[TestUtils.seedKey].minSignatures = 6;
+
+    let response3 = await TestUtils.request
+      .post("/start")
+      .send({ seedKey: TestUtils.seedKey, "wallet-id": TestUtils.walletId, "multisig": true });
+    expect(response3.status).toBe(200);
+    expect(response3.body.success).toBeFalsy();
+
+    global.config.multisig = {};
+  });
 });

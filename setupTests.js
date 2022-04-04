@@ -16,6 +16,13 @@ jest.mock(
   { virtual: true }
 );
 
+// Enable features for tests
+jest.mock(
+  "./src/constants",
+  () => require("./__tests__/__fixtures__/feature-fixture"),
+  { virtual: true }
+);
+
 // Start the stub wallet
 beforeAll(async () => {
   TestUtils.startMocks();

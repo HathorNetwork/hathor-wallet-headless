@@ -119,6 +119,16 @@ export class TxLogger {
   }
 
   /**
+   * Wrapper for adding a "New Wallet" message for multisig wallets
+   * @param {string} walletId
+   * @param {string} seedKey
+   * @returns {void}
+   */
+  informNewMultisigWallet(walletId, seedKey) {
+    this.#logger.info('New MultiSig wallet created', { walletId, seedKey });
+  }
+
+  /**
    * Wrapper for adding a "New Wallet" message
    * @param {string} walletId
    * @param {string} walletWords

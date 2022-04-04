@@ -20,6 +20,12 @@ module.exports = {
       default: '',
   },
 
+  // Optional wallet multisig configuration
+  // Use the seedKey as key and the value should have `total` (max no. of signatures), `minSignatures` (min. no. of signatures) and `pubkeys` as a list of participant pubkeys.
+  // Ex.: { default: { total: 3, minSignatures: 2, pubkeys: [ 'xpub1...', 'xpub2...', 'xpub3...'] } }
+  // The total should match the length of the pubkeys, this can be configured for any seed
+  multisig: {},
+
   // Log format for HTTP Requests (default: combined)
   // Common choices: combined, common, dev, short, tiny
   // For further information, see https://github.com/expressjs/morgan#predefined-formats
