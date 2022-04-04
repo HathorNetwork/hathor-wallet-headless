@@ -247,20 +247,41 @@ describe('utxo-filter routes', () => {
         err
       });
     }
-    const utxoResponse = await TestUtils.request
+
+    const [filteredResponse, unfilteredResponse] = await Promise.all([
+      // Filtered with max_utxos
+      TestUtils.request
       .get('/wallet/utxo-filter')
       .query({
         token: tokenA.uid,
         max_utxos: 2
       })
-      .set({ 'x-wallet-id': wallet2.walletId });
-    const utxosObj = utxoResponse.body;
+      .set({ 'x-wallet-id': wallet2.walletId }),
 
+      // No max filter
+      TestUtils.request
+      .get('/wallet/utxo-filter')
+      .query({
+        token: tokenA.uid,
+      })
+      .set({ 'x-wallet-id': wallet2.walletId }),
+    ]);
+    const utxosObj = filteredResponse.body;
+
+    // Validating filtered response
     expect(utxosObj.utxos).toHaveProperty('length', 2);
     expect(utxosObj.total_amount_available).toBe(30);
     expect(utxosObj.total_utxos_available).toBe(2);
     expect(utxosObj.total_amount_locked).toBe(0);
     expect(utxosObj.total_utxos_locked).toBe(0);
+
+    // Validating unfiltered response
+    const unfilteredObj = unfilteredResponse.body;
+    expect(unfilteredObj.total_utxos_available).toBeGreaterThan(utxosObj.total_utxos_available);
+    for (const utxoIndex in utxosObj.utxos) {
+      // We expect the results to be in the same order
+      expect(unfilteredObj.utxos[utxoIndex]).toStrictEqual(utxosObj.utxos[utxoIndex]);
+    }
 
     const utxo0 = utxosObj.utxos[0];
     expect(utxo0.address).toBe(transactions.tx10.address);
