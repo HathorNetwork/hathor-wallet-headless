@@ -24,7 +24,8 @@
     "test_network_down": "docker-compose -f ./__tests__/integration/docker-compose.yml down",
     "dev": "nodemon --exec babel-node index.js",
     "start": "babel-node src/index.js",
-    "lint": "eslint . --fix",
+    "lint": "eslint .",
+    "lint_fix": "eslint . --fix",
     "generate_words": "babel-node src/utils/generate_words.js"
   },
   "repository": {
