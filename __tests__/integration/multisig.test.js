@@ -32,29 +32,29 @@ describe('send tx (HTR)', () => {
     minSignatures: 3,
   };
 
-  const addresses = [
-    'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
-    'wbe2eJdyZVimA7nJjmBQnKYJSXmpnpMKgG',
-    'wQQWdSZwp2CEGKsTvvbJ7i8HfHuV2i5QVQ',
-    'wfrtq9cMe1YfixVgSKXQNQ5hjsmR4hpjP6',
-    'wQG7itjdtZBsNTk9TG4f1HrehyQiAEMN18',
-    'wfgSqHUHPtmj2GDy8YfasbPPcFh8L1GPMA',
-    'wgZbCEMHHnhftCAwj7CRBmfi5TgBhfMZbk',
-    'wdz9NeMac7jyVeP2WK4BJWsM1zpd9tgsBb',
-    'wPs7WaRCqwC89uHycLbctDGmWPgH9oZvjp',
-    'wWJJxvr6oSk7WZdE9rpSRMoE6ZqJ3i8VDc',
-    'wbuDJtmM7vg8at2h5o3pTCHE4SASEFYusr',
-    'wPNkywbiw8UHbRQkD3nZ3EHMQsjyTamh9u',
-    'wQBNidXXYpE943BgydUNtarAwNzk612Yip',
-    'wh2eCGzUK9rLThr5D6tyCfckHpBjS97ERA',
-    'wZvajxVp3LabcZiY3XPrivrXiSS6wphRu7',
-    'wgPbL1WzbrEntepHRC92UX6mA2EmaqfDqt',
-    'wbdx4g3rucX3WHmZRXjPEKtRfZ7XSnCGKf',
-    'wiKTnqSN11ukuCWEXRVrRTTPo2mw4fGue3',
-    'wQ4aQP4YqJqfwshLggR2w1Gg3UFhhKhVKs',
-    'wca2xk9S2MVn2UrKh78UScdwXz3xrTp8Ky',
-    'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau',
-  ];
+  // const addresses = [
+  //   'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
+  //   'wbe2eJdyZVimA7nJjmBQnKYJSXmpnpMKgG',
+  //   'wQQWdSZwp2CEGKsTvvbJ7i8HfHuV2i5QVQ',
+  //   'wfrtq9cMe1YfixVgSKXQNQ5hjsmR4hpjP6',
+  //   'wQG7itjdtZBsNTk9TG4f1HrehyQiAEMN18',
+  //   'wfgSqHUHPtmj2GDy8YfasbPPcFh8L1GPMA',
+  //   'wgZbCEMHHnhftCAwj7CRBmfi5TgBhfMZbk',
+  //   'wdz9NeMac7jyVeP2WK4BJWsM1zpd9tgsBb',
+  //   'wPs7WaRCqwC89uHycLbctDGmWPgH9oZvjp',
+  //   'wWJJxvr6oSk7WZdE9rpSRMoE6ZqJ3i8VDc',
+  //   'wbuDJtmM7vg8at2h5o3pTCHE4SASEFYusr',
+  //   'wPNkywbiw8UHbRQkD3nZ3EHMQsjyTamh9u',
+  //   'wQBNidXXYpE943BgydUNtarAwNzk612Yip',
+  //   'wh2eCGzUK9rLThr5D6tyCfckHpBjS97ERA',
+  //   'wZvajxVp3LabcZiY3XPrivrXiSS6wphRu7',
+  //   'wgPbL1WzbrEntepHRC92UX6mA2EmaqfDqt',
+  //   'wbdx4g3rucX3WHmZRXjPEKtRfZ7XSnCGKf',
+  //   'wiKTnqSN11ukuCWEXRVrRTTPo2mw4fGue3',
+  //   'wQ4aQP4YqJqfwshLggR2w1Gg3UFhhKhVKs',
+  //   'wca2xk9S2MVn2UrKh78UScdwXz3xrTp8Ky',
+  //   'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau',
+  // ];
 
   const fundTx1 = {
     txId: null,
@@ -79,7 +79,7 @@ describe('send tx (HTR)', () => {
       'multisig-extra': {
         pubkeys,
         total: 5,
-        minSignatures: 2, // Having a different minSignatures will make this be another wallet completely
+        minSignatures: 2, // Having a different minSignatures will change the wallet completely
       },
     };
     try {
@@ -226,6 +226,7 @@ describe('send tx (HTR)', () => {
 
     // Change sig3 to be invalid
     const p2shSig = hathorLib.P2SHSignature.deserialize(sig3);
+    // eslint-disable-next-line no-unused-vars
     for (const [index, sig] of Object.entries(p2shSig.signatures)) {
       const buf = Buffer.from(sig, 'hex');
       for (let i = 0; i < buf.length; i++) {

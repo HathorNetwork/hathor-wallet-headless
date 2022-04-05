@@ -1,4 +1,5 @@
 import supertest from 'supertest';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import { Server } from 'mock-socket';
@@ -127,7 +128,9 @@ class TestUtils {
       if (res.body && res.body.success !== false) {
         break;
       }
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => {
+        setTimeout(resolve, 500);
+      });
     }
   }
 
@@ -168,7 +171,9 @@ class TestUtils {
 
   static stopMocks() {
     httpMock.reset();
-    return new Promise(resolve => wsMock.stop(resolve));
+    return new Promise(resolve => {
+      wsMock.stop(resolve);
+    });
   }
 
   static reorderHandlers() {

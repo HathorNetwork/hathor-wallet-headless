@@ -21,7 +21,8 @@ function getStatus(req, res) {
 async function getBalance(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
-    return res.status(400).json(validationResult);
+    res.status(400).json(validationResult);
+    return;
   }
   const { wallet } = req;
   // Expects token uid
@@ -33,7 +34,8 @@ async function getBalance(req, res) {
 function getAddress(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
-    return res.status(400).json(validationResult);
+    res.status(400).json(validationResult);
+    return;
   }
   const { wallet } = req;
   const { index } = req.query;
@@ -52,7 +54,8 @@ function getAddress(req, res) {
 function getAddressIndex(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
-    return res.status(400).json(validationResult);
+    res.status(400).json(validationResult);
+    return;
   }
   const { wallet } = req;
   const { address } = req.query;
@@ -69,7 +72,8 @@ function getAddressInfo(req, res) {
   // Query parameters validation
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
-    return res.status(400).json(validationResult);
+    res.status(400).json(validationResult);
+    return;
   }
 
   const { wallet } = req;
@@ -113,7 +117,8 @@ function getTxHistory(req, res) {
   // TODO Add pagination
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
-    return res.status(400).json(validationResult);
+    res.status(400).json(validationResult);
+    return;
   }
   const { wallet } = req;
   const limit = req.query.limit || null;
@@ -130,7 +135,8 @@ function getTxHistory(req, res) {
 function getTransaction(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
-    return res.status(400).json(validationResult);
+    res.status(400).json(validationResult);
+    return;
   }
   const { wallet } = req;
   const { id } = req.query;
@@ -145,7 +151,8 @@ function getTransaction(req, res) {
 async function simpleSendTx(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
-    return res.status(400).json(validationResult);
+    res.status(400).json(validationResult);
+    return;
   }
 
   const canStart = lock.lock(lockTypes.SEND_TX);
@@ -158,19 +165,23 @@ async function simpleSendTx(req, res) {
   const { address } = req.body;
   const { value } = req.body;
   const { token } = req.body;
-  let token_id;
+  let tokenId;
   if (token) {
     if (typeof token === 'string') {
-      token_id = token;
+      tokenId = token;
     } else {
-      token_id = token.uid;
+      tokenId = token.uid;
     }
   } else {
-    token_id = hathorLibConstants.HATHOR_TOKEN_CONFIG.uid;
+    tokenId = hathorLibConstants.HATHOR_TOKEN_CONFIG.uid;
   }
   const changeAddress = req.body.change_address || null;
   try {
-    const response = await wallet.sendTransaction(address, value, { token: token_id, changeAddress });
+    const response = await wallet.sendTransaction(
+      address,
+      value,
+      { token: tokenId, changeAddress }
+    );
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
     res.send({ success: false, error: err.message });
@@ -182,7 +193,8 @@ async function simpleSendTx(req, res) {
 async function decodeTx(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
-    return res.status(400).json(validationResult);
+    res.status(400).json(validationResult);
+    return;
   }
 
   const { txHex } = req.body;
@@ -201,7 +213,7 @@ async function decodeTx(req, res) {
         type: output.decodedScript.getType(),
         decoded: output.decodedScript,
       };
-      if (output.tokenData != 0) {
+      if (output.tokenData !== 0) {
         outputData.token = tx.tokens[output.getTokenIndex()];
       }
       switch (outputData.type) {
@@ -229,7 +241,8 @@ async function decodeTx(req, res) {
 async function sendTx(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
-    return res.status(400).json(validationResult);
+    res.status(400).json(validationResult);
+    return;
   }
 
   const canStart = lock.lock(lockTypes.SEND_TX);
@@ -342,7 +355,8 @@ async function createToken(req, res) {
   // TODO: Unify common code with create-nft
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
-    return res.status(400).json(validationResult);
+    res.status(400).json(validationResult);
+    return;
   }
 
   const canStart = lock.lock(lockTypes.SEND_TX);
@@ -371,7 +385,8 @@ async function mintTokens(req, res) {
   // Unify common code with melt-tokens
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
-    return res.status(400).json(validationResult);
+    res.status(400).json(validationResult);
+    return;
   }
 
   const canStart = lock.lock(lockTypes.SEND_TX);
@@ -398,7 +413,8 @@ async function mintTokens(req, res) {
 async function meltTokens(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
-    return res.status(400).json(validationResult);
+    res.status(400).json(validationResult);
+    return;
   }
 
   const canStart = lock.lock(lockTypes.SEND_TX);
@@ -413,7 +429,11 @@ async function meltTokens(req, res) {
   const changeAddress = req.body.change_address || null;
   const depositAddress = req.body.deposit_address || null;
   try {
-    const response = await wallet.meltTokens(token, amount, { address: depositAddress, changeAddress });
+    const response = await wallet.meltTokens(
+      token,
+      amount,
+      { address: depositAddress, changeAddress }
+    );
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
     res.send({ success: false, error: err.message });
@@ -426,7 +446,8 @@ function utxoFilter(req, res) {
   try {
     const validationResult = parametersValidation(req);
     if (!validationResult.success) {
-      return res.status(400).json(validationResult);
+      res.status(400).json(validationResult);
+      return;
     }
 
     const { wallet } = req;
@@ -446,7 +467,8 @@ async function utxoConsolidation(req, res) {
   // Body parameters validation
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
-    return res.status(400).json(validationResult);
+    res.status(400).json(validationResult);
+    return;
   }
 
   const canStart = lock.lock(lockTypes.SEND_TX);
@@ -456,10 +478,10 @@ async function utxoConsolidation(req, res) {
   }
 
   const { wallet } = req;
-  const { destination_address, ...options } = matchedData(req, { locations: ['body'] });
+  const { destination_address: destinationAddress, ...options } = matchedData(req, { locations: ['body'] });
 
   try {
-    const response = await wallet.consolidateUtxos(destination_address, options);
+    const response = await wallet.consolidateUtxos(destinationAddress, options);
     res.send({ success: true, ...response });
   } catch (err) {
     res.send({ success: false, error: err.message });
@@ -471,7 +493,8 @@ async function utxoConsolidation(req, res) {
 async function createNft(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
-    return res.status(400).json(validationResult);
+    res.status(400).json(validationResult);
+    return;
   }
 
   const canStart = lock.lock(lockTypes.SEND_TX);
@@ -490,7 +513,13 @@ async function createNft(req, res) {
   const createMint = req.body.create_mint || false;
   const createMelt = req.body.create_melt || false;
   try {
-    const response = await wallet.createNFT(name, symbol, amount, data, { address, changeAddress, createMint, createMelt });
+    const response = await wallet.createNFT(
+      name,
+      symbol,
+      amount,
+      data,
+      { address, changeAddress, createMint, createMelt }
+    );
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
     res.send({ success: false, error: err.message });

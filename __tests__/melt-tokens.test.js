@@ -99,7 +99,9 @@ describe('melt-tokens api', () => {
 
     // Mimic the full node wallet:address_history message
     TestUtils.socket.send(JSON.stringify(wsFixtures.melt));
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => {
+      setTimeout(resolve, 2000);
+    });
 
     // Check the balance
     response = await TestUtils.request

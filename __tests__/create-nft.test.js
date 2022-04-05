@@ -1,5 +1,4 @@
 import TestUtils from './test-utils';
-import httpFixtures from './__fixtures__/http-fixtures';
 
 describe('create-nft api', () => {
   it('should return 200 with a valid body', async () => {

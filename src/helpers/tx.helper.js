@@ -36,12 +36,16 @@ function mapTxReturn(tx) {
  *
  * @param {HathorWallet} wallet The wallet object
  * @param {number} sumOutputs The sum of outputs of the transaction I need to fill
- * @param {Object} options The options to filter the utxos (see utxo-filter API to see the possibilities)
+ * @param {Object} options The options to filter the utxos
+ *                         (see utxo-filter API to see the possibilities)
  */
 function getUtxosToFillTx(wallet, sumOutputs, options) {
   // We want to find only utxos to use in the tx, so we must filter by available only
-  options.only_available_utxos = true;
-  const utxosDetails = wallet.getUtxos(options);
+  const getUtxosOptions = {
+    ...options,
+    only_available_utxos: true
+  };
+  const utxosDetails = wallet.getUtxos(getUtxosOptions);
   // If I can't fill all the amount with the returned utxos, then return null
   if (utxosDetails.total_amount_available < sumOutputs) {
     return null;
@@ -77,6 +81,7 @@ function getUtxosToFillTx(wallet, sumOutputs, options) {
       return retUtxos;
     }
   }
+  return null;
 }
 
 module.exports = {

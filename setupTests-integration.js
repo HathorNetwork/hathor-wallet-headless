@@ -1,3 +1,4 @@
+/* eslint-disable global-require */
 import * as Path from 'path';
 import { loggers, TxLogger } from './__tests__/integration/txLogger';
 
@@ -6,6 +7,7 @@ import { loggers, TxLogger } from './__tests__/integration/txLogger';
  * @returns {string} Test name
  */
 function getTestNameFromGlobalJasmineInstance() {
+  // eslint-disable-next-line no-undef
   const { testPath } = jasmine;
   const testFileName = Path.parse(testPath).name;
   return testFileName.indexOf('.') > -1
@@ -17,7 +19,7 @@ function getTestNameFromGlobalJasmineInstance() {
 jest.mock(
   './src/config',
   () => {
-    let config = require('./__tests__/integration/configuration/config-fixture.js');
+    let config = require('./__tests__/integration/configuration/config-fixture');
     if (config.default) config = config.default;
     return config;
   },

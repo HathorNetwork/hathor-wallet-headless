@@ -25,6 +25,7 @@ describe('addresses api', () => {
       .set({ 'x-wallet-id': TestUtils.walletId });
     expect(response.status).toBe(200);
     expect(response.body.addresses.length).toBe(gapLimit + 4);
-    expect(response.body.addresses.slice(0, TestUtils.addresses.length)).toEqual(TestUtils.addresses);
+    expect(response.body.addresses.slice(0, TestUtils.addresses.length))
+      .toEqual(TestUtils.addresses);
   });
 });

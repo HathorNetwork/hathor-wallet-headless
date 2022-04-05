@@ -12,7 +12,8 @@ const { mapTxReturn } = require('../helpers/tx.helper');
 async function buildTxProposal(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
-    return res.status(400).json(validationResult);
+    res.status(400).json(validationResult);
+    return;
   }
 
   const network = req.wallet.getNetworkObject();
@@ -27,7 +28,10 @@ async function buildTxProposal(req, res) {
   }
   try {
     const sendTransaction = new SendTransaction({ outputs, inputs, changeAddress, network });
-    const tx = helpersUtils.createTxFromData({ version: 1, ...sendTransaction.prepareTxData() }, network);
+    const tx = helpersUtils.createTxFromData(
+      { version: 1, ...sendTransaction.prepareTxData() },
+      network
+    );
 
     res.send({ success: true, txHex: tx.toHex() });
   } catch (err) {
@@ -46,7 +50,8 @@ async function getMySignatures(req, res) {
 
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
-    return res.status(400).json(validationResult);
+    res.status(400).json(validationResult);
+    return;
   }
 
   const { txHex } = req.body;
@@ -69,7 +74,8 @@ async function signTx(req, res) {
 
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
-    return res.status(400).json(validationResult);
+    res.status(400).json(validationResult);
+    return;
   }
 
   const { txHex } = req.body;
@@ -93,7 +99,8 @@ async function signAndPush(req, res) {
 
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
-    return res.status(400).json(validationResult);
+    res.status(400).json(validationResult);
+    return;
   }
 
   const canStart = lock.lock(lockTypes.SEND_TX);
