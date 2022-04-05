@@ -28,5 +28,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # This file is required by most controllers and triggers "import/no-unresolved" if missing
+      - name: Copy config file
+        run: cp ./__tests__/integration/configuration/config-fixture.js ./src/config.js
+
       - name: Lint
         run: npm run lint
