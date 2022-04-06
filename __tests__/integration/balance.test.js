@@ -17,7 +17,10 @@ describe('balance routes', () => {
       wallet2 = new WalletHelper('balance2');
       // Third wallet, balance to be used for custom tokens
       wallet3 = new WalletHelper('custom3');
-      minerWallet = new WalletHelper(WALLET_CONSTANTS.miner.walletId, WALLET_CONSTANTS.miner.words);
+      minerWallet = new WalletHelper(
+        WALLET_CONSTANTS.miner.walletId,
+        { words: WALLET_CONSTANTS.miner.words }
+      );
 
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3, minerWallet]);
       await wallet2.injectFunds(wallet2Balance);

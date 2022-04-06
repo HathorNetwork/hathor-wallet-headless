@@ -425,7 +425,7 @@ describe('utxo-filter routes', () => {
      */
     const minerWallet = new WalletHelper(
       WALLET_CONSTANTS.miner.walletId,
-      WALLET_CONSTANTS.miner.words
+      { words: WALLET_CONSTANTS.miner.words }
     );
     await WalletHelper.startMultipleWalletsForTest([minerWallet]);
 

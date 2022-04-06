@@ -2,7 +2,7 @@ import {
   getRandomInt,
   HATHOR_TOKEN_ID,
   TestUtils,
-  WALLET_CONSTANTS
+  WALLET_CONSTANTS,
 } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
 
@@ -19,7 +19,10 @@ describe('address-info routes', () => {
       wallet1 = new WalletHelper('addinfo-1');
       // A fixed custom token amount for the second wallet
       wallet2 = new WalletHelper('addinfo-2');
-      minerWallet = new WalletHelper(WALLET_CONSTANTS.miner.walletId, WALLET_CONSTANTS.miner.words);
+      minerWallet = new WalletHelper(
+        WALLET_CONSTANTS.miner.walletId,
+        { words: WALLET_CONSTANTS.miner.words }
+      );
 
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, minerWallet]);
       await wallet1.injectFunds(address1balance, 1);
