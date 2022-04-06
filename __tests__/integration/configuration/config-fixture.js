@@ -20,7 +20,7 @@ const config = {
   consoleLevel: 'silly',
   tokenUid: '',
   gapLimit: null,
-  connectionTimeout: 60000,
+  connectionTimeout: null,
   allowPassphrase: false,
   confirmFirstAddress: false,
 };

@@ -90,11 +90,8 @@ describe('send tx (HTR)', () => {
       wallet5 = new WalletHelper('multisig-5', { seedKey: 'multisig-5', multisig: true });
       walletExtra = new WalletHelper('multisig-extra', { seedKey: 'multisig-extra', multisig: true });
 
-      // TODO: Revert this a single call to startMultipleWalletsForTest after performance improvs.
-      await WalletHelper.startMultipleWalletsForTest([wallet1]);
-      await WalletHelper.startMultipleWalletsForTest([wallet2, wallet3]);
-      await WalletHelper.startMultipleWalletsForTest([wallet4, wallet5]);
-      await WalletHelper.startMultipleWalletsForTest([walletExtra]);
+      await WalletHelper.startMultipleWalletsForTest([
+        wallet1, wallet2, wallet3, wallet4, wallet5, walletExtra]);
 
       // Funds for single input/output tests
       const fundTxObj1 = await wallet1.injectFunds(1000, 0);
