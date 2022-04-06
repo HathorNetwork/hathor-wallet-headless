@@ -20,6 +20,10 @@ import mainRouter from './routes/index.routes';
   if (config.txMiningUrl) {
     hathorLibConfig.setTxMiningUrl(config.txMiningUrl);
   }
+
+  if (config['txMiningApiKey']) {
+    hathorLibConfig.setTxMiningApiKey(config['txMiningApiKey']);
+  }
 })();
 
 // Initializing ExpressJS
