@@ -162,9 +162,7 @@ async function simpleSendTx(req, res) {
   }
 
   const { wallet } = req;
-  const { address } = req.body;
-  const { value } = req.body;
-  const { token } = req.body;
+  const { address, value, token } = req.body;
   let tokenId;
   if (token) {
     if (typeof token === 'string') {
@@ -366,9 +364,7 @@ async function createToken(req, res) {
   }
 
   const { wallet } = req;
-  const { name } = req.body;
-  const { symbol } = req.body;
-  const { amount } = req.body;
+  const { name, symbol, amount } = req.body;
   const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
   try {
@@ -396,8 +392,7 @@ async function mintTokens(req, res) {
   }
 
   const { wallet } = req;
-  const { token } = req.body;
-  const { amount } = req.body;
+  const { token, amount } = req.body;
   const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
   try {
@@ -424,8 +419,7 @@ async function meltTokens(req, res) {
   }
 
   const { wallet } = req;
-  const { token } = req.body;
-  const { amount } = req.body;
+  const { token, amount } = req.body;
   const changeAddress = req.body.change_address || null;
   const depositAddress = req.body.deposit_address || null;
   try {
@@ -504,10 +498,7 @@ async function createNft(req, res) {
   }
 
   const { wallet } = req;
-  const { name } = req.body;
-  const { symbol } = req.body;
-  const { amount } = req.body;
-  const { data } = req.body;
+  const { name, symbol, amount, data } = req.body;
   const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
   const createMint = req.body.create_mint || false;
