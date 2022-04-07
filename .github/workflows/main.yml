@@ -23,10 +23,20 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+
       - name: Install dependencies
         run: npm install
+
+      # Not relevant for tests but required by lint. Triggers "import/no-unresolved" on many app files if missing.
+      - name: Copy config file for Lint
+        run: cp ./__tests__/integration/configuration/config-fixture.js ./src/config.js
+
+      - name: Lint
+        run: npm run lint
+
       - name: Test
         run: npm run test
+
       - name: Upload coverage
         uses: codecov/codecov-action@v1
         if: ${{ matrix.node-version }} == 14.x
