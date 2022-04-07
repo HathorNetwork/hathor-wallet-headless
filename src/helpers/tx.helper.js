@@ -1,4 +1,11 @@
 /**
+ * Copyright (c) Hathor Labs and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/**
  * The endpoints that return a created tx must keep compatibility
  * The library has changed some keys and we must map the return to continue returning the same keys
  * Inputs: 'tx_id' now is 'hash'
