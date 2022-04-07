@@ -17,8 +17,8 @@ const {
 const txProposalRouter = require('./tx-proposal.routes');
 
 const walletRouter = Router({ mergeParams: true });
-
 walletRouter.use(walletMiddleware);
+walletRouter.use('/tx-proposal', txProposalRouter);
 
 /**
  * GET request to get the status of a wallet
@@ -374,7 +374,5 @@ walletRouter.post(
  * For the docs, see api-docs.js
  */
 walletRouter.post('/stop', stop);
-
-walletRouter.use('/tx-proposal', txProposalRouter);
 
 module.exports = walletRouter;

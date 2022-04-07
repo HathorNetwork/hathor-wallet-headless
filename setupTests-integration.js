@@ -1,5 +1,5 @@
 /* eslint-disable global-require */
-import * as Path from 'path';
+import { parse } from 'path';
 import { loggers, TxLogger } from './__tests__/integration/txLogger';
 
 /**
@@ -9,7 +9,7 @@ import { loggers, TxLogger } from './__tests__/integration/txLogger';
 function getTestNameFromGlobalJasmineInstance() {
   // eslint-disable-next-line no-undef
   const { testPath } = jasmine;
-  const testFileName = Path.parse(testPath).name;
+  const testFileName = parse(testPath).name;
   return testFileName.indexOf('.') > -1
     ? testFileName.split('.')[0]
     : testFileName;
