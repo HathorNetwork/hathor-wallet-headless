@@ -4,7 +4,8 @@ const { walletMiddleware } = require('../middlewares/wallet.middleware');
 const {
   getStatus, getBalance, getAddress, getAddresses, getTxHistory, getTransaction,
   simpleSendTx, decodeTx, sendTx, createToken, mintTokens, meltTokens, utxoFilter,
-  utxoConsolidation, createNft, getAddressInfo, stop
+  utxoConsolidation, createNft, getAddressInfo, stop,
+  getAddressIndex
 } = require('../controllers/wallet.controller');
 const txProposalRouter = require('./tx-proposal.routes');
 
@@ -46,6 +47,7 @@ walletRouter.get(
 walletRouter.get(
   '/address-index',
   query('address').isString(),
+  getAddressIndex
 );
 
 /**
