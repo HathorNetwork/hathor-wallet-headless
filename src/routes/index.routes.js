@@ -9,7 +9,7 @@ const { Router } = require('express');
 const rootControllers = require('../controllers/index.controller');
 
 const mainRouter = Router({ mergeParams: true });
-const walletRouter = require('./wallet.routes');
+const walletRouter = require('./wallet/wallet.routes');
 
 mainRouter.get('/', rootControllers.welcome);
 mainRouter.get('/docs', rootControllers.docs);

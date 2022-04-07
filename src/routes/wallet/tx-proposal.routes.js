@@ -12,7 +12,7 @@ const {
   getMySignatures,
   signTx,
   signAndPush,
-} = require('../controllers/tx-proposal.controller');
+} = require('../../controllers/wallet/tx-proposal.controller');
 
 const txProposalRouter = Router({ mergeParams: true });
 

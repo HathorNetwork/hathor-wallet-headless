@@ -10,11 +10,11 @@ const {
   SendTransaction,
   helpersUtils
 } = require('@hathor/wallet-lib');
-const { parametersValidation } = require('../helpers/validations.helper');
-const constants = require('../constants');
-const { lock, lockTypes } = require('../lock');
-const { cantSendTxErrorMessage } = require('../helpers/constants');
-const { mapTxReturn } = require('../helpers/tx.helper');
+const { parametersValidation } = require('../../helpers/validations.helper');
+const constants = require('../../constants');
+const { lock, lockTypes } = require('../../lock');
+const { cantSendTxErrorMessage } = require('../../helpers/constants');
+const { mapTxReturn } = require('../../helpers/tx.helper');
 
 async function buildTxProposal(req, res) {
   const validationResult = parametersValidation(req);

@@ -7,13 +7,13 @@
 
 const { Router } = require('express');
 const { query, checkSchema, body } = require('express-validator');
-const { walletMiddleware } = require('../middlewares/wallet.middleware');
+const { walletMiddleware } = require('../../middlewares/wallet.middleware');
 const {
   getStatus, getBalance, getAddress, getAddresses, getTxHistory, getTransaction,
   simpleSendTx, decodeTx, sendTx, createToken, mintTokens, meltTokens, utxoFilter,
   utxoConsolidation, createNft, getAddressInfo, stop,
   getAddressIndex
-} = require('../controllers/wallet.controller');
+} = require('../../controllers/wallet/wallet.controller');
 const txProposalRouter = require('./tx-proposal.routes');
 
 const walletRouter = Router({ mergeParams: true });

@@ -7,12 +7,12 @@
 
 const { constants: hathorLibConstants, helpersUtils, errors } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
-const { parametersValidation } = require('../helpers/validations.helper');
-const { lock, lockTypes } = require('../lock');
-const { cantSendTxErrorMessage, friendlyWalletState } = require('../helpers/constants');
-const { mapTxReturn, getUtxosToFillTx } = require('../helpers/tx.helper');
-const logger = require('../logger');
-const { initializedWallets } = require('../services/wallets.service');
+const { parametersValidation } = require('../../helpers/validations.helper');
+const { lock, lockTypes } = require('../../lock');
+const { cantSendTxErrorMessage, friendlyWalletState } = require('../../helpers/constants');
+const { mapTxReturn, getUtxosToFillTx } = require('../../helpers/tx.helper');
+const logger = require('../../logger');
+const { initializedWallets } = require('../../services/wallets.service');
 
 function getStatus(req, res) {
   const { wallet } = req;
