@@ -1,4 +1,4 @@
-name: tests
+name: lint
 on:
   push:
     branches:
@@ -10,25 +10,27 @@ on:
     branches:
       - dev
       - master
+
 jobs:
   test:
     runs-on: "ubuntu-latest"
-    timeout-minutes: 40 # default is 360
+    timeout-minutes: 10
     strategy:
       matrix:
-        node-version: [8.x, 10.x, 12.x, 14.x]
+        node-version: [14.x]
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+
       - name: Install dependencies
         run: npm install
-      - name: Test
-        run: npm run test
-      - name: Upload coverage
-        uses: codecov/codecov-action@v1
-        if: ${{ matrix.node-version }} == 14.x
-        with:
-          verbose: true
+
+      # This file is required by most controllers and triggers "import/no-unresolved" if missing
+      - name: Copy config file
+        run: cp ./__tests__/integration/configuration/config-fixture.js ./src/config.js
+
+      - name: Lint
+        run: npm run lint
