@@ -115,7 +115,7 @@ class TestUtils {
       .send({ seedKey, 'wallet-id': walletId, multisig });
 
     if (response.status !== 200) {
-      throw new Error(response.text);
+      throw new Error('Unable to start the wallet');
     }
     if (!response.body.success) {
       throw new Error(response.body.message);
