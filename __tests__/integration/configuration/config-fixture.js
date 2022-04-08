@@ -11,7 +11,7 @@ const config = {
 
   // Wallet seeds
   seeds: {
-      default: '',
+    default: '',
   },
 
   multisig: {},

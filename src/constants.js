@@ -13,7 +13,8 @@ module.exports = {
    * The wallet-headless has multisig capabilities but due to an error on the Hathor wallet-lib
    * The error makes the P2SH addresses to be misinterpreted as P2PKH.
    * Funds are lost when sending to a P2SH address using the wallet-lib with this error.
-   * Support for P2SH addresses is added on wallet-lib v0.33.1 but wallets could still use the old wallet-lib versions.
+   * Support for P2SH addresses is added on wallet-lib v0.33.1 but wallets could still use the old
+   * wallet-lib versions.
    * Safe wallet versions (wallets using wallet-lib 0.33.1):
    * - Desktop  : v0.22.1
    * - Mobile   : v0.17.1
@@ -24,4 +25,4 @@ module.exports = {
    * Do NOT enable this unless you know what you're doing.
    */
   MULTISIG_ENABLED: false,
-}
+};

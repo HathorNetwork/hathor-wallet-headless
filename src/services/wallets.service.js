@@ -5,8 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { wallet } from '@hathor/wallet-lib';
+// TODO: Make this a map instead of a common object. It's safer.
+const initializedWallets = {};
 
-const words = wallet.generateWalletWords();
-
-console.log(words);
+module.exports = {
+  initializedWallets,
+};
