@@ -21,8 +21,8 @@ import mainRouter from './routes/index.routes';
     hathorLibConfig.setTxMiningUrl(config.txMiningUrl);
   }
 
-  if (config['txMiningApiKey']) {
-    hathorLibConfig.setTxMiningApiKey(config['txMiningApiKey']);
+  if (config.txMiningApiKey) {
+    hathorLibConfig.setTxMiningApiKey(config.txMiningApiKey);
   }
 })();
 
