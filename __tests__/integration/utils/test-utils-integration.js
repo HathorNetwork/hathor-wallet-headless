@@ -179,12 +179,10 @@ export class TestUtils {
     // Log the success and return
     if (walletObj.words) {
       loggers.test.informNewWallet(walletObj.walletId, walletObj.words);
+    } else if (walletObj.multisig) {
+      loggers.test.informNewMultisigWallet(walletObj.walletId, walletObj.seedKey);
     } else {
-      if (walletObj.multisig) {
-        loggers.test.informNewMultisigWallet(walletObj.walletId, walletObj.seedKey);
-      } else {
-        loggers.test.informNewWallet(walletObj.walletId, `seedKey: ${walletObj.seedKey}`);
-      }
+      loggers.test.informNewWallet(walletObj.walletId, `seedKey: ${walletObj.seedKey}`);
     }
 
     return { start };
@@ -455,7 +453,7 @@ export class TestUtils {
   static async getSignatures(txHex, walletId) {
     const response = await TestUtils.request
       .post('/wallet/tx-proposal/get-my-signatures')
-      .send({txHex})
+      .send({ txHex })
       .set(TestUtils.generateHeader(walletId));
 
     return response.body && response.body.signatures;

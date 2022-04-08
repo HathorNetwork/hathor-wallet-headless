@@ -1,4 +1,4 @@
-name: integration-test
+name: lint
 on:
   push:
     branches:
@@ -10,18 +10,16 @@ on:
     branches:
       - dev
       - master
-jobs:
-  itest:
-    runs-on: ubuntu-20.04
-    timeout-minutes: 20
 
+jobs:
+  test:
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 10
     strategy:
       matrix:
         node-version: [14.x]
-
     steps:
       - uses: actions/checkout@v2
-
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
@@ -30,12 +28,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run the tests
-        run: npm run test_integration
+      # This file is required by most controllers and triggers "import/no-unresolved" if missing
+      - name: Copy config file
+        run: cp ./__tests__/integration/configuration/config-fixture.js ./src/config.js
 
-      - name: Upload debug transaction logs
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-transacion-logs
-          path: tmp
+      - name: Lint
+        run: npm run lint

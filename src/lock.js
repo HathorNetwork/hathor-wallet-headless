@@ -4,24 +4,22 @@
  * In those cases, we would need to add support for a distributed lock (e.g. using redis).
  */
 
-
 // Lock types enum
 // SENDING_TX is used to lock when a tx is being sent
 // We don't support sending multiples transactions concurrently
 // so we use this to prevent a user from sending multiples requests
 // while the first was not finished
 export const lockTypes = {
-  'SEND_TX': 0,
-}
-
+  SEND_TX: 0,
+};
 
 class Lock {
   constructor() {
     // Stores the lock status for each option in enum
-    this.lockStatus = {}
+    this.lockStatus = {};
 
     // Variable to store the setTimeout return for each lock status
-    this.setTimeoutLock = {}
+    this.setTimeoutLock = {};
 
     // Initializing the objects above with default value for each lock type
     for (const type in lockTypes) {
