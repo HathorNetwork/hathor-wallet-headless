@@ -15,46 +15,42 @@ describe('send tx (HTR)', () => {
     'upon tennis increase embark dismiss diamond monitor face magnet jungle scout salute rural master shoulder cry juice jeans radar present close meat antenna mind',
     'sample garment fun depart various renew require surge service undo cinnamon squeeze hundred nasty gasp ridge surge defense relax turtle wet antique october occur',
     'intact wool rigid diary mountain issue tiny ugly swing rib alone base fold satoshi drift poverty autumn mansion state globe plug ancient pudding hope',
-    'monster opinion bracket aspect mask labor obvious hat matrix exact canoe race shift episode plastic debris dash sort motion juice leg mushroom maximum evidence',
-    'tilt lab swear uncle prize favorite river myth assault transfer venue soap lady someone marine reject fork brain swallow notice glad salt sudden pottery',
   ];
 
   const pubkeys = [
     'xpub6CvvCBtHqFfErbcW2Rv28TmZ3MqcFuWQVKGg8xDzLeAwEAHRz9LBTgSFSj7B99scSvZGbq6TxAyyATA9b6cnwsgduNs9NGKQJnEQr3PYtwK',
     'xpub6CA16g2qPwukWAWBMdJKU3p2fQEEi831W3WAs2nesuCzPhbrG29aJsoRDSEDT4Ac3smqSk51uuv6oujU3MAAL3d1Nm87q9GDwE3HRGQLjdP',
     'xpub6BwNT613Vzy7ARVHDEpoX23SMBEZQMJXdqTWYjQKvJZJVDBjEemU38exJEhc6qbFVc4MmarN68gUKHkyZ3NEgXXCbWtoXXGouHpwMEcXJLf',
-    'xpub6DCyPHg4AwXsdiMh7QSTHR7afmNVwZKHBBMFUiy5aCYQNaWp68ceQXYXCGQr5fZyLAe5hiJDdXrq6w3AXzvVmjFX9F7EdM87repxJEhsmjL',
-    'xpub6CgPUcCCJ9pAK7Rj52hwkxTutSRv91Fq74Hx1SjN62eg6Mp3S3YCJFPChPaDjpp9jCbCZHibBgdKnfNdq6hE9umyjyZKUCySBNF7wkoG4uK',
   ];
 
   const multisigData = {
     pubkeys,
-    total: 5,
-    minSignatures: 3,
+    total: 3,
+    minSignatures: 2,
   };
 
   const addresses = [
-    'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
-    'wbe2eJdyZVimA7nJjmBQnKYJSXmpnpMKgG',
-    'wQQWdSZwp2CEGKsTvvbJ7i8HfHuV2i5QVQ',
-    'wfrtq9cMe1YfixVgSKXQNQ5hjsmR4hpjP6',
-    'wQG7itjdtZBsNTk9TG4f1HrehyQiAEMN18',
-    'wfgSqHUHPtmj2GDy8YfasbPPcFh8L1GPMA',
-    'wgZbCEMHHnhftCAwj7CRBmfi5TgBhfMZbk',
-    'wdz9NeMac7jyVeP2WK4BJWsM1zpd9tgsBb',
-    'wPs7WaRCqwC89uHycLbctDGmWPgH9oZvjp',
-    'wWJJxvr6oSk7WZdE9rpSRMoE6ZqJ3i8VDc',
-    'wbuDJtmM7vg8at2h5o3pTCHE4SASEFYusr',
-    'wPNkywbiw8UHbRQkD3nZ3EHMQsjyTamh9u',
-    'wQBNidXXYpE943BgydUNtarAwNzk612Yip',
-    'wh2eCGzUK9rLThr5D6tyCfckHpBjS97ERA',
-    'wZvajxVp3LabcZiY3XPrivrXiSS6wphRu7',
-    'wgPbL1WzbrEntepHRC92UX6mA2EmaqfDqt',
-    'wbdx4g3rucX3WHmZRXjPEKtRfZ7XSnCGKf',
-    'wiKTnqSN11ukuCWEXRVrRTTPo2mw4fGue3',
-    'wQ4aQP4YqJqfwshLggR2w1Gg3UFhhKhVKs',
-    'wca2xk9S2MVn2UrKh78UScdwXz3xrTp8Ky',
-    'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau',
+    'wbgBYkMMQDvd2pGNFYkLKgn2bjX4Fh1wWR',
+    'wbB7LcWSuSbZcZi336nx7CbGMfAi78LpVh',
+    'wYBwFDdHurqNGRNHXYy7c59FAU3AK5MRKz',
+    'wdF5PWRfhgzhwqDeYsZXb1chYu2KQJfTqn',
+    'wMCsXvDBnF6uRYfQa8gxSwBZBBE7C9qwLv',
+    'wQT94F2BY5xEYTVBt594mJZkPNy17KzY7c',
+    'wTy9nRcc2h87WFX3WXr6rjPhuqzKj97vAZ',
+    'wSpq6Aw86d74Ls27HFgReZJWCNHt9uY3jy',
+    'wR9FTFUcv2pmHMn8CQ9DNSnVGp63FeEy5C',
+    'wQV4wfT2tAFruMHjbKjnWjsdMcucmYP79o',
+    'wXDtsGUYcHShesUZWQ2eN8Pu5ruTFWeQkP',
+    'wQvk4pC82swkJWWUqhabxb6ArkBcUcAruj',
+    'weDqhgJ1HTEmiD341mcYUmeCfJdezAuNnC',
+    'wY2TxKXexPHSqDyeDoy5DGRQ6dmtGixyUK',
+    'wSe9ic5Q9irW2f5kCrLE1vx1yznRPMmYum',
+    'wRCfRVpFt761yH4SyMejPeBQ16aqBtAgcQ',
+    'wKtAEgPGDCHSnw1eSgsrpsScmTMd9j6LK8',
+    'wZ1CkKWxRyiDSVSsrRBzpPcLcxNBsG4y7R',
+    'wXXbVcoXvaBUPS6tDpXSJRq3agYFA8A7wN',
+    'wep5w3zMiMqYjg4VNVvuGRo2tmeSviv6ii',
+    'wNLzdH6gPbEwHYZFtfkXqxFVKzRhxEA2KN',
   ];
 
   const fundTx1 = {
@@ -67,33 +63,25 @@ describe('send tx (HTR)', () => {
       'multisig-1': words[0],
       'multisig-2': words[1],
       'multisig-3': words[2],
-      'multisig-4': words[3],
-      'multisig-5': words[4],
       'multisig-extra': words[4],
     };
     global.config.multisig = {
       'multisig-1': multisigData,
       'multisig-2': multisigData,
       'multisig-3': multisigData,
-      'multisig-4': multisigData,
-      'multisig-5': multisigData,
       'multisig-extra': {
-        pubkeys,
-        total: 5,
-        minSignatures: 2, // Having a different minSignatures will make this be another wallet completely
+        pubkeys: pubkeys.slice(0, 1),
+        total: 1,
+        minSignatures: 1,
       },
     };
     try {
-      wallet1 = new WalletHelper('multisig-1', {seedKey: 'multisig-1', multisig: true});
-      wallet2 = new WalletHelper('multisig-2', {seedKey: 'multisig-2', multisig: true});
-      wallet3 = new WalletHelper('multisig-3', {seedKey: 'multisig-3', multisig: true});
-      wallet4 = new WalletHelper('multisig-4', {seedKey: 'multisig-4', multisig: true});
-      wallet5 = new WalletHelper('multisig-5', {seedKey: 'multisig-5', multisig: true});
-      walletExtra = new WalletHelper('multisig-extra', {seedKey: 'multisig-extra', multisig: true});
+      wallet1 = new WalletHelper('multisig-1', { seedKey: 'multisig-1', multisig: true });
+      wallet2 = new WalletHelper('multisig-2', { seedKey: 'multisig-2', multisig: true });
+      wallet3 = new WalletHelper('multisig-3', { seedKey: 'multisig-3', multisig: true });
+      walletExtra = new WalletHelper('multisig-extra', { seedKey: 'multisig-extra', multisig: true });
 
-      await WalletHelper.startMultipleWalletsForTest([
-        wallet1, wallet2, wallet3, wallet4, wallet5, walletExtra]
-      );
+      await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3, walletExtra]);
 
       // Funds for single input/output tests
       const fundTxObj1 = await wallet1.injectFunds(1000, 0);
@@ -114,8 +102,6 @@ describe('send tx (HTR)', () => {
     await wallet1.stop();
     await wallet2.stop();
     await wallet3.stop();
-    await wallet4.stop();
-    await wallet5.stop();
     await walletExtra.stop();
   });
 
@@ -124,7 +110,7 @@ describe('send tx (HTR)', () => {
       input: [fundTx1],
       outputs: [
         { address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 100 },
-        { address: "wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau", value: 270 },
+        { address: "wbgBYkMMQDvd2pGNFYkLKgn2bjX4Fh1wWR", value: 270 },
       ],
     };
 
@@ -140,13 +126,11 @@ describe('send tx (HTR)', () => {
     // collect signatures from 2 wallets
     const sig1 = await wallet1.getSignatures(txHex);
     expect(sig1).toBeTruthy();
-    const sig2 = await wallet2.getSignatures(txHex);
-    expect(sig2).toBeTruthy();
 
     // try to send
     response = await TestUtils.request
       .post('/wallet/tx-proposal/sign-and-push')
-      .send({txHex, signatures: [sig1, sig2]})
+      .send({ txHex, signatures: [sig1] })
       .set({ 'x-wallet-id': wallet1.walletId });
     console.log(JSON.stringify(response.body));
 
@@ -159,7 +143,7 @@ describe('send tx (HTR)', () => {
       input: [fundTx1],
       outputs: [
         { address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 100 },
-        { address: "wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau", value: 270 },
+        { address: "wbgBYkMMQDvd2pGNFYkLKgn2bjX4Fh1wWR", value: 270 },
       ],
     };
 
@@ -179,18 +163,14 @@ describe('send tx (HTR)', () => {
     expect(sig2).toBeTruthy();
     const sig3 = await wallet3.getSignatures(txHex);
     expect(sig3).toBeTruthy();
-    const sig4 = await wallet4.getSignatures(txHex);
-    expect(sig4).toBeTruthy();
-    const sig5 = await wallet5.getSignatures(txHex);
-    expect(sig5).toBeTruthy();
     // Get an extra signature
-    const sig6 = await walletExtra.getSignatures(txHex);
-    expect(sig6).toBeTruthy();
+    const sigExtra = await walletExtra.getSignatures(txHex);
+    expect(sigExtra).toBeTruthy();
 
     // try to send
     response = await TestUtils.request
       .post('/wallet/tx-proposal/sign-and-push')
-      .send({txHex, signatures: [sig1, sig2, sig3, sig4, sig5, sig6]})
+      .send({ txHex, signatures: [sig1, sig2, sig3, sigExtra] })
       .set({ 'x-wallet-id': wallet1.walletId });
     console.log(JSON.stringify(response.body));
 
@@ -203,7 +183,7 @@ describe('send tx (HTR)', () => {
       input: [fundTx1],
       outputs: [
         { address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 100 },
-        { address: "wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau", value: 270 },
+        { address: "wbgBYkMMQDvd2pGNFYkLKgn2bjX4Fh1wWR", value: 270 },
       ],
     };
 
@@ -220,14 +200,12 @@ describe('send tx (HTR)', () => {
     expect(sig1).toBeTruthy();
     const sig2 = await wallet2.getSignatures(txHex);
     expect(sig2).toBeTruthy();
-    const sig3 = await wallet3.getSignatures(txHex);
-    expect(sig3).toBeTruthy();
 
     // Change sig3 to be invalid
-    const p2shSig = hathorLib.P2SHSignature.deserialize(sig3);
+    const p2shSig = hathorLib.P2SHSignature.deserialize(sig2);
     for (const [index, sig] of Object.entries(p2shSig.signatures)) {
       const buf = Buffer.from(sig, 'hex');
-      for (let i=0; i<buf.length; i++) {
+      for (let i = 0; i < buf.length; i++) {
         buf[i]++;
       }
     }
@@ -236,9 +214,8 @@ describe('send tx (HTR)', () => {
     // try to send
     response = await TestUtils.request
       .post('/wallet/tx-proposal/sign-and-push')
-      .send({txHex, signatures: [sig1, sig2, invalidSig]})
+      .send({ txHex, signatures: [sig1, invalidSig] })
       .set({ 'x-wallet-id': wallet1.walletId });
-
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
@@ -249,7 +226,7 @@ describe('send tx (HTR)', () => {
       input: [fundTx1],
       outputs: [
         { address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 100 },
-        { address: "wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau", value: 270 },
+        { address: "wbgBYkMMQDvd2pGNFYkLKgn2bjX4Fh1wWR", value: 270 },
       ],
     };
 
@@ -266,13 +243,11 @@ describe('send tx (HTR)', () => {
     expect(sig1).toBeTruthy();
     const sig2 = await wallet2.getSignatures(txHex);
     expect(sig2).toBeTruthy();
-    const sig3 = await wallet3.getSignatures(txHex);
-    expect(sig3).toBeTruthy();
 
     // try to send
     response = await TestUtils.request
       .post('/wallet/tx-proposal/sign-and-push')
-      .send({txHex, signatures: [sig1, sig2, sig3]})
+      .send({ txHex, signatures: [sig1, sig2] })
       .set({ 'x-wallet-id': wallet1.walletId });
 
     expect(response.status).toBe(200);
@@ -284,7 +259,7 @@ describe('send tx (HTR)', () => {
     const tx = {
       outputs: [
         { address: "WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc", value: 1 },
-        { address: "wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau", value: 2 },
+        { address: "wbgBYkMMQDvd2pGNFYkLKgn2bjX4Fh1wWR", value: 2 },
       ],
     };
 
@@ -303,15 +278,11 @@ describe('send tx (HTR)', () => {
     expect(sig2).toBeTruthy();
     const sig3 = await wallet3.getSignatures(txHex);
     expect(sig3).toBeTruthy();
-    const sig4 = await wallet4.getSignatures(txHex);
-    expect(sig4).toBeTruthy();
-    const sig5 = await wallet5.getSignatures(txHex);
-    expect(sig5).toBeTruthy();
 
     // try to send
     response = await TestUtils.request
       .post('/wallet/tx-proposal/sign-and-push')
-      .send({txHex, signatures: [sig1, sig2, sig3, sig4, sig5]})
+      .send({ txHex, signatures: [sig1, sig2, sig3] })
       .set({ 'x-wallet-id': wallet1.walletId });
 
     expect(response.status).toBe(200);
