@@ -168,13 +168,11 @@ export class WalletHelper {
         });
         walletBenchmark.requestEnd = Date.now().valueOf();
         walletsPendingReady[wallet.walletId] = wallet;
-        walletBenchmark.diffRequest =
-          walletBenchmark.requestEnd
-          - walletBenchmark.requestStart
+        walletBenchmark.diffRequest = walletBenchmark.requestEnd
+          - walletBenchmark.requestStart;
         startBenchmark.wallets[wallet.walletId] = walletBenchmark;
       }
-    }
-    else {
+    } else {
       // Requests the start of all the wallets in quick succession - parallel mode
       const startPromisesArray = [];
       for (const wallet of walletsArr) {
@@ -230,7 +228,7 @@ export class WalletHelper {
         const walletBenchmark = startBenchmark.wallets[walletId];
         walletBenchmark.isReady = timestampReady;
         walletBenchmark.diffReady = walletBenchmark.requestEnd
-          ? timestampReady - walletBenchmark.requestEnd  // Serial
+          ? timestampReady - walletBenchmark.requestEnd // Serial
           : timestampReady - startBenchmark.requestsEnd; // Parallel
 
         const addresses = await TestUtils.getSomeAddresses(walletId);
