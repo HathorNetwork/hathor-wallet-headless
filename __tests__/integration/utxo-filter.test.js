@@ -251,20 +251,20 @@ describe('utxo-filter routes', () => {
     const [filteredResponse, unfilteredResponse] = await Promise.all([
       // Filtered with max_utxos
       TestUtils.request
-      .get('/wallet/utxo-filter')
-      .query({
-        token: tokenA.uid,
-        max_utxos: 2
-      })
-      .set({ 'x-wallet-id': wallet2.walletId }),
+        .get('/wallet/utxo-filter')
+        .query({
+          token: tokenA.uid,
+          max_utxos: 2
+        })
+        .set({ 'x-wallet-id': wallet2.walletId }),
 
       // No max filter
       TestUtils.request
-      .get('/wallet/utxo-filter')
-      .query({
-        token: tokenA.uid,
-      })
-      .set({ 'x-wallet-id': wallet2.walletId }),
+        .get('/wallet/utxo-filter')
+        .query({
+          token: tokenA.uid,
+        })
+        .set({ 'x-wallet-id': wallet2.walletId }),
     ]);
     const utxosObj = filteredResponse.body;
 

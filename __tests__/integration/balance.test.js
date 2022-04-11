@@ -7,7 +7,7 @@ describe('balance routes', () => {
   let wallet2;
   let wallet3;
   let minerWallet;
-  const wallet2Balance = getRandomInt(200);
+  const wallet2Balance = getRandomInt(100, 200);
 
   beforeAll(async () => {
     try {

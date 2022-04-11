@@ -1,7 +1,12 @@
 /* eslint-disable no-console */
 
 import supertest from 'supertest';
-import { constants, HathorWallet, wallet, transaction } from '@hathor/wallet-lib';
+import {
+  constants as libConstants,
+  HathorWallet,
+  transaction as transactionUtils,
+  wallet,
+} from '@hathor/wallet-lib';
 import app from '../../../src';
 import { loggers } from '../txLogger';
 import testConfig from '../configuration/test.config';
@@ -59,13 +64,13 @@ export const TOKEN_DATA = {
    * @param {number} tokenData "token_data" property from an output
    * @returns {boolean} True if this is an authority output
    */
-  isAuthorityToken: tokenData => transaction.isTokenDataAuthority(tokenData)
+  isAuthorityToken: tokenData => transactionUtils.isTokenDataAuthority(tokenData)
 
 };
 
 export const AUTHORITY_VALUE = {
-  MINT: constants.TOKEN_MINT_MASK,
-  MELT: constants.TOKEN_MELT_MASK
+  MINT: libConstants.TOKEN_MINT_MASK,
+  MELT: libConstants.TOKEN_MELT_MASK
 };
 
 export const HATHOR_TOKEN_ID = '00';
@@ -305,7 +310,7 @@ export class TestUtils {
       .get('/wallet/status')
       .set(TestUtils.generateHeader(walletId))
       .catch(err => {
-        TestUtils.logTx('Status error.', { message: err.message, stack: err.stack });
+        TestUtils.log('Status error.', { message: err.message, stack: err.stack }, 'error');
         throw err;
       });
 

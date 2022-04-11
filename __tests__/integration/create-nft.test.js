@@ -88,8 +88,8 @@ describe('create-nft routes', () => {
     }
 
     // Validating that the NFT fee is the first output
-    expect(nftTx.outputs[0].value).toBe(1)
-    expect(nftTx.outputs[0].token_data).toBe(0)
+    expect(nftTx.outputs[0].value).toBe(1);
+    expect(nftTx.outputs[0].token_data).toBe(0);
 
     await TestUtils.pauseForWsUpdate();
 
