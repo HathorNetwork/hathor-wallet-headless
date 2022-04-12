@@ -144,7 +144,7 @@ function start(req, res) {
     if (!allowPassphrase) {
       // To use a passphrase on /start POST request the configuration of the headless must
       // explicitly allow it
-      console.log('Failed to start wallet because using a passphrase is not allowed by '
+      console.error('Failed to start wallet because using a passphrase is not allowed by '
                   + 'the current config. See allowPassphrase.');
       res.send({
         success: false,
@@ -160,7 +160,7 @@ function start(req, res) {
     // We already have a wallet for this key
     // so we log that it won't start a new one because
     // it must first stop the old wallet and then start the new
-    console.log('Error starting wallet because this wallet-id is already in use. You must stop the wallet first.');
+    console.error('Error starting wallet because this wallet-id is already in use. You must stop the wallet first.');
     res.send({
       success: false,
       message: `Failed to start wallet with wallet id ${walletID}`,
@@ -176,7 +176,7 @@ function start(req, res) {
       success: true,
     });
   }, error => {
-    console.log('Error:', error);
+    console.error('Error:', error);
     res.send({
       success: false,
       message: `Failed to start wallet with wallet id ${req.body['wallet-id']}`,
