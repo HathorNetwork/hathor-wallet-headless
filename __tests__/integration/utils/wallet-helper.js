@@ -137,14 +137,28 @@ export class WalletHelper {
      * @type {Record<string,WalletHelper>}
      */
     const walletsPendingReady = {};
-    const startBenchmark = {
-      requestsStart: 0,
-      requestsEnd: 0,
-      requestsDiff: 0,
 
-      loopEnd: 0,
-      loopDiff: 0,
-      fullStartDiff: 0,
+    /*
+     * This benchmark is separated in three phases:
+     * - The HTTP requests to `/start`, to initialize each wallet (startRequests)
+     * - The waiting loop to confirm via `/status` each wallet is really started (confirmReadyLoop)
+     * - The full time for this process on all wallets
+     *
+     * Aside from the global time counters, each wallet has is own time marks, since they may be
+     * started serially instead of in parallel:
+     * - startRequestBegin and startRequestEnd properties measure the initial http request
+     * - isReady measures the second confirmation of the wallet being initialized
+     * - walletReadyDuration measures the time since the first startRequest above
+     */
+    const startBenchmark = {
+      startRequestsBegin: 0,
+      startRequestsEnd: 0,
+      startRequestsDuration: 0,
+
+      confirmReadyLoopEnd: 0,
+      confirmReadyLoopDuration: 0,
+
+      fullProcessDuration: 0,
       wallets: {}
     };
 
@@ -156,20 +170,20 @@ export class WalletHelper {
     }
 
     // Start of the requests
-    startBenchmark.requestsStart = Date.now().valueOf();
+    startBenchmark.startRequestsBegin = Date.now().valueOf();
 
     if (options.serial || walletsArr.length > 2) {
       // If we need to initialize too many wallets at once, it's better to do it serially
       for (const wallet of walletsArr) {
         const walletBenchmark = {};
-        walletBenchmark.requestStart = Date.now().valueOf();
+        walletBenchmark.startRequestBegin = Date.now().valueOf();
         await TestUtils.startWallet(wallet.walletData, {
           waitWalletReady: true
         });
-        walletBenchmark.requestEnd = Date.now().valueOf();
+        walletBenchmark.startRequestEnd = Date.now().valueOf();
         walletsPendingReady[wallet.walletId] = wallet;
-        walletBenchmark.diffRequest = walletBenchmark.requestEnd
-          - walletBenchmark.requestStart;
+        walletBenchmark.diffRequest = walletBenchmark.startRequestEnd
+          - walletBenchmark.startRequestBegin;
         startBenchmark.wallets[wallet.walletId] = walletBenchmark;
       }
     } else {
@@ -179,18 +193,19 @@ export class WalletHelper {
         const promise = TestUtils.startWallet(wallet.walletData);
         walletsPendingReady[wallet.walletId] = wallet;
         const walletBenchmark = {};
-        walletBenchmark.requestStart = Date.now().valueOf();
+        walletBenchmark.startRequestBegin = Date.now().valueOf();
         startBenchmark.wallets[wallet.walletId] = walletBenchmark;
         startPromisesArray.push(promise);
       }
       await Promise.all(startPromisesArray);
     }
 
-    startBenchmark.requestsEnd = Date.now().valueOf();
-    startBenchmark.requestsDiff = startBenchmark.requestsEnd - startBenchmark.requestsStart;
+    startBenchmark.startRequestsEnd = Date.now().valueOf();
+    startBenchmark.startRequestsDuration = startBenchmark.startRequestsEnd
+                                          - startBenchmark.startRequestsBegin;
 
     // Enters the loop checking each wallet for its status
-    const timestampTimeout = startBenchmark.requestsEnd + testConfig.walletStartTimeout;
+    const loopTimeout = startBenchmark.startRequestsEnd + testConfig.walletStartTimeout;
     while (true) {
       const pendingWalletIds = Object.keys(walletsPendingReady);
       // If all wallets were started, return to the caller.
@@ -200,8 +215,8 @@ export class WalletHelper {
 
       // If this process took too long, the connection with the fullnode may be irreparably broken.
       const timestamp = Date.now().valueOf();
-      if (timestamp > timestampTimeout) {
-        const failureDiff = timestamp - startBenchmark.requestsEnd;
+      if (timestamp > loopTimeout) {
+        const failureDiff = timestamp - startBenchmark.startRequestsEnd;
         const errMsg = `Wallet init failure: Timeout on ${failureDiff}ms.`;
         TestUtils.logError(errMsg);
         startBenchmark.failureAt = timestamp;
@@ -213,7 +228,7 @@ export class WalletHelper {
       // First we add a delay
       await TestUtils.delay(1000);
 
-      // Checking the status of each wallet
+      // Checking the status of each wallet that has not been confirmed ready
       for (const walletId of pendingWalletIds) {
         const isReady = await TestUtils.isWalletReady(walletId);
         if (!isReady) {
@@ -227,18 +242,20 @@ export class WalletHelper {
 
         const walletBenchmark = startBenchmark.wallets[walletId];
         walletBenchmark.isReady = timestampReady;
-        walletBenchmark.diffReady = walletBenchmark.requestEnd
-          ? timestampReady - walletBenchmark.requestEnd // Serial
-          : timestampReady - startBenchmark.requestsEnd; // Parallel
+        walletBenchmark.walletReadyDuration = walletBenchmark.startRequestEnd
+          ? timestampReady - walletBenchmark.startRequestEnd // Serial
+          : timestampReady - startBenchmark.startRequestsEnd; // Parallel
 
         const addresses = await TestUtils.getSomeAddresses(walletId);
         await loggers.test.informWalletAddresses(walletId, addresses);
       }
     }
 
-    startBenchmark.loopEnd = Date.now().valueOf();
-    startBenchmark.loopDiff = startBenchmark.loopEnd - startBenchmark.requestsEnd;
-    startBenchmark.fullStartDiff = startBenchmark.loopEnd - startBenchmark.requestsStart;
+    startBenchmark.confirmReadyLoopEnd = Date.now().valueOf();
+    startBenchmark.confirmReadyLoopDuration = startBenchmark.confirmReadyLoopEnd
+                                              - startBenchmark.startRequestsEnd;
+    startBenchmark.fullProcessDuration = startBenchmark.confirmReadyLoopEnd
+                                         - startBenchmark.startRequestsBegin;
     TestUtils.log(`Finished multiple wallet initialization.`, startBenchmark);
   }
 
