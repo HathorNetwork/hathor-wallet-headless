@@ -20,6 +20,11 @@ const config = {
   consoleLevel: 'silly',
   tokenUid: '',
   gapLimit: null,
+
+  /*
+   * Usually the connectionTimeout option should be `null`, but to increase the stability of the
+   * integration tests we are adding a very long timeout here.
+   */
   connectionTimeout: 30000,
   allowPassphrase: false,
   confirmFirstAddress: false,
