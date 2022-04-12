@@ -1,6 +1,6 @@
 import TestUtils from './test-utils';
 
-describe.only('multisig-pubkey api', () => {
+describe('multisig-pubkey api', () => {
   beforeAll(() => TestUtils.stopWallet());
 
   it('should not return the xpubkey without seedKey', async () => {
