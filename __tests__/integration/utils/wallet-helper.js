@@ -171,7 +171,6 @@ export class WalletHelper {
           waitWalletReady: true
         });
         walletBenchmark.startRequestEnd = Date.now().valueOf();
-        walletsPendingReady[wallet.walletId] = wallet;
         walletBenchmark.diffRequest = walletBenchmark.startRequestEnd
           - walletBenchmark.startRequestBegin;
         startBenchmark.wallets[wallet.walletId] = walletBenchmark;
