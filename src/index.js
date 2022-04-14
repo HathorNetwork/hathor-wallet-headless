@@ -16,7 +16,8 @@ import version from './version';
 import mainRouter from './routes/index.routes';
 
 // Initializing Hathor Lib
-(() => {
+export const initHathorLib = () => {
+  console.log("Initializing Hathor Lib", config);
   if (config.txMiningUrl) {
     hathorLibConfig.setTxMiningUrl(config.txMiningUrl);
   }
@@ -24,7 +25,9 @@ import mainRouter from './routes/index.routes';
   if (config.txMiningApiKey) {
     hathorLibConfig.setTxMiningApiKey(config.txMiningApiKey);
   }
-})();
+};
+
+initHathorLib();
 
 // Initializing ExpressJS
 const app = express();
