@@ -194,7 +194,7 @@ export class WalletHelper {
                                           - startBenchmark.startRequestsBegin;
 
     // Enters the loop checking each wallet for its status
-    const loopTimeout = startBenchmark.startRequestsEnd + testConfig.walletStartTimeout;
+    const loopTimeout = startBenchmark.startRequestsBegin + testConfig.walletStartTimeout;
     while (true) {
       const pendingWalletIds = Object.keys(walletsPendingReady);
       // If all wallets were started, return to the caller.
