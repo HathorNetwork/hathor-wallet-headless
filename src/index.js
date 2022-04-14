@@ -17,7 +17,6 @@ import mainRouter from './routes/index.routes';
 
 // Initializing Hathor Lib
 export const initHathorLib = () => {
-  console.log("Initializing Hathor Lib", config);
   if (config.txMiningUrl) {
     hathorLibConfig.setTxMiningUrl(config.txMiningUrl);
   }

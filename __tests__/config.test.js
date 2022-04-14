@@ -7,11 +7,11 @@ describe('wallet lib config', () => {
     const currentApiKey = hathorLibConfig.getTxMiningApiKey();
     expect(currentApiKey).toBeUndefined();
 
-    global.config.txMiningApiKey = "123123";
+    global.config.txMiningApiKey = '123123';
 
     initHathorLib();
 
     const newApiKey = hathorLibConfig.getTxMiningApiKey();
-    expect(newApiKey).toEqual("123123");
+    expect(newApiKey).toEqual('123123');
   });
 });
