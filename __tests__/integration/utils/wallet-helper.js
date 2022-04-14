@@ -36,12 +36,6 @@ export class WalletHelper {
   #addresses = [];
 
   /**
-   * Indicates if the wallet was started in the Wallet Headless app
-   * @type {boolean}
-   */
-  #started = false;
-
-  /**
    * Creates a wallet object but does not start it on server
    * @param {string} walletId
    * @param [options]
@@ -95,10 +89,6 @@ export class WalletHelper {
 
   get multisig() {
     return this.#multisig || false;
-  }
-
-  get started() {
-    return this.#started;
   }
 
   get walletData() {
@@ -237,7 +227,6 @@ export class WalletHelper {
 
         // If the wallet is ready, we remove it from the status check loop
         const timestampReady = Date.now().valueOf();
-        walletsPendingReady[walletId].__setStarted();
         delete walletsPendingReady[walletId];
 
         const walletBenchmark = startBenchmark.wallets[walletId];
@@ -270,7 +259,6 @@ export class WalletHelper {
    */
   async start(options = {}) {
     await TestUtils.startWallet(this.walletData, { waitWalletReady: true });
-    this.#started = true;
 
     // Populating some addressess for this wallet
     if (!options.skipAddresses) {
@@ -285,15 +273,12 @@ export class WalletHelper {
     return this.walletData;
   }
 
-  __setStarted() { this.#started = true; }
-
   /**
    * Stops this wallet
    * @returns {Promise<void>}
    */
   async stop() {
     await TestUtils.stopWallet(this.#walletId);
-    this.#started = false;
   }
 
   /**
@@ -345,9 +330,6 @@ export class WalletHelper {
    * @returns {Promise<{success}|*>}
    */
   async injectFunds(value, addressIndex = 0) {
-    if (!this.#started) {
-      throw new Error(`Cannot inject funds: wallet ${this.#walletId} is not started.`);
-    }
     const destinationAddress = await this.getAddressAt(addressIndex);
     return TestUtils.injectFundsIntoAddress(destinationAddress, value, this.#walletId);
   }
