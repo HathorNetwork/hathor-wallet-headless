@@ -97,6 +97,28 @@ export class TxLogger {
   }
 
   /**
+   * On situations that demand attention, but are not failures
+   *
+   * @param {string} input Log Message
+   * @param {Record<string,unknown>} [metadata] Additional data for winston logs
+   * @returns {void}
+   */
+  insertWarnToLog(input, metadata) {
+    this.#logger.warn(input, metadata);
+  }
+
+  /**
+   * For registering errors related to blockchain interaction.
+   *
+   * @param {string} input Log Message
+   * @param {Record<string,unknown>} [metadata] Additional data for winston logs
+   * @returns {void}
+   */
+  insertErrorToLog(input, metadata) {
+    this.#logger.error(input, metadata);
+  }
+
+  /**
    * Wrapper for adding a "New Wallet" message for multisig wallets
    * @param {string} walletId
    * @param {string} seedKey
