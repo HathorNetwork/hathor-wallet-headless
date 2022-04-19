@@ -5,6 +5,10 @@ This is a headless Hathor Wallet, i.e., without a graphical user interface. It i
 
 It may be used both by mining pools and exchanges.
 
+## Requirements
+
+* [Node.js](https://nodejs.org/): We recommend and test with version >= 14.0.0, but version >= 10.0.0 will also probably work. Do not use versions < 10.0.0, they are known to have issues.
+
 ## How to run?
 
 Copy `config.js.template` to `src/config.js`, and then fill in the variables. Finally, run `npm start`.

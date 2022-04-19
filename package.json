@@ -3,6 +3,9 @@
   "version": "0.11.1",
   "description": "Hathor Wallet Headless, i.e., without graphical user interface",
   "main": "index.js",
+  "engines": {
+    "node": ">=10.0.0"
+  },
   "dependencies": {
     "@babel/cli": "^7.13.0",
     "@babel/core": "^7.13.1",

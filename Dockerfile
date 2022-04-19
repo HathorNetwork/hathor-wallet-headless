@@ -1,4 +1,4 @@
-FROM node:12.21.0-alpine3.12
+FROM node:16.14-alpine3.14
 WORKDIR /usr/src/app/
 
 COPY .babelrc package.json package-lock.json ./
