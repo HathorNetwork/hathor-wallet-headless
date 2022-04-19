@@ -417,7 +417,7 @@ describe('utxo-filter routes', () => {
   });
 
   // It seems there is a name mismatch on the lib parameter: only_available => only_available_utxos
-  it.skip('should return correct results for only_available', async () => {
+  it('should return correct results for only_available', async () => {
     /*
      * The miner wallet always has some locked utxos because of the mining.
      * There is a small chance that between each request a new block reward has been delivered,
@@ -435,7 +435,7 @@ describe('utxo-filter routes', () => {
       .set({ 'x-wallet-id': minerWallet.walletId });
     const availableUtxosPromise = await TestUtils.request
       .get('/wallet/utxo-filter')
-      .query({ only_available: true })
+      .query({ only_available_utxos: true })
       .set({ 'x-wallet-id': minerWallet.walletId });
 
     const [utxosResponse, availableUtxosResponse] = await Promise.all([
