@@ -34,8 +34,6 @@ describe('tx-history routes', () => {
         fundTransactions[fundTx.hash] = fundTx;
         fundHashes[`tx${amount}`] = fundTx.hash;
       }
-
-      await TestUtils.pauseForWsUpdate();
     } catch (err) {
       TestUtils.logError(err.stack);
     }
