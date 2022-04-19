@@ -332,7 +332,7 @@ walletRouter.get(
   query('amount_smaller_than').isInt().optional().toInt(),
   query('amount_bigger_than').isInt().optional().toInt(),
   query('maximum_amount').isInt().optional().toInt(),
-  query('only_available').isBoolean().optional().toBoolean(),
+  query('only_available_utxos').isBoolean().optional().toBoolean(),
   utxoFilter
 );
 
