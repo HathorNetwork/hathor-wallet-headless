@@ -16,11 +16,17 @@ import version from './version';
 import mainRouter from './routes/index.routes';
 
 // Initializing Hathor Lib
-(() => {
+export const initHathorLib = () => {
   if (config.txMiningUrl) {
     hathorLibConfig.setTxMiningUrl(config.txMiningUrl);
   }
-})();
+
+  if (config.txMiningApiKey) {
+    hathorLibConfig.setTxMiningApiKey(config.txMiningApiKey);
+  }
+};
+
+initHathorLib();
 
 // Initializing ExpressJS
 const app = express();

@@ -1,6 +1,6 @@
 import TestUtils from './test-utils';
 
-describe.only('start api', () => {
+describe('start api', () => {
   beforeAll(() => TestUtils.stopWallet());
 
   it('should not start a wallet with an invalid seedKey', async () => {
