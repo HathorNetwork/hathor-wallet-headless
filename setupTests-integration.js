@@ -1,4 +1,5 @@
-import * as Path from 'path';
+/* eslint-disable global-require */
+import { parse } from 'path';
 import { loggers, TxLogger } from './__tests__/integration/txLogger';
 
 /**
@@ -6,12 +7,35 @@ import { loggers, TxLogger } from './__tests__/integration/txLogger';
  * @returns {string} Test name
  */
 function getTestNameFromGlobalJasmineInstance() {
+  // eslint-disable-next-line no-undef
   const { testPath } = jasmine;
-  const testFileName = Path.parse(testPath).name;
+  const testFileName = parse(testPath).name;
   return testFileName.indexOf('.') > -1
     ? testFileName.split('.')[0]
     : testFileName;
 }
+
+// Mock config file
+jest.mock(
+  './src/config',
+  () => {
+    let config = require('./__tests__/integration/configuration/config-fixture');
+    if (config.default) config = config.default;
+    return config;
+  },
+  { virtual: true },
+);
+
+// Enable features for tests
+jest.mock(
+  './src/constants',
+  () => {
+    let config = require('./__tests__/__fixtures__/feature-fixture');
+    if (config.default) config = config.default;
+    return config;
+  },
+  { virtual: true },
+);
 
 // This function will run before each test file is executed
 beforeAll(async () => {

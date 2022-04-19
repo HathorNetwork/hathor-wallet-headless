@@ -55,13 +55,17 @@ const config = {
   network: getParam('network', 'mainnet'),
   server: getParam('server', 'https://node1.mainnet.hathor.network/v1a/'),
 
-  txMiningUrl: getParam('tx_mining_url', 'https://txmining.mainnet.hathor.network'),
+  txMiningUrl: getParam('tx_mining_url', null),
+  txMiningApiKey: getParam('tx_mining_api_key', null),
 
   http_api_key: getParam('api_key'),
   httpLogFormat: getParam('http_log_format'),
 
   // Wallet seeds
   seeds: {},
+
+  // Wallet multisig configuration
+  multisig: {},
 
   consoleLevel: getParam('console_level', 'info'),
   logging: {},
@@ -78,6 +82,26 @@ for (const x of seeds) {
   if (!config.seeds[x]) {
     throw `Missing parameter --seed_${x} or envvar HEADLESS_SEED_${x.toUpperCase()}`;
   }
+
+  // Multisig configuration and validation
+  const multisigPubkeys = getParam(`multisig_seed_${x}_pubkeys`);
+  const multisig = {
+    total:          getParam(`multisig_seed_${x}_max_signatures`),
+    minSignatures:  getParam(`multisig_seed_${x}_min_signatures`),
+  };
+  if (!(multisigPubkeys || multisig.total || multisig.minSignatures)) {
+    // No multisig parameters means this is not a multisig.
+    continue;
+  }
+  if (!(multisigPubkeys && multisig.total && multisig.minSignatures)) {
+    // If this is a multisig seed, all multisig parameters should be present
+    throw `Multisig improperly configured, need all of [--multisig_seed_${x}_max_signatures, --multisig_seed_${x}_min_signatures, --multisig_seed_${x}_pubkeys] or envvars [HEADLESS_MULTISIG_SEED_${x.toUpperCase()}_MAX_SIGNATURES, HEADLESS_MULTISIG_SEED_${x.toUpperCase()}_MIN_SIGNATURES, HEADLESS_MULTISIG_SEED_${x.toUpperCase()}_PUBKEYS, ]`
+  }
+  multisig.pubkeys = multisigPubkeys.split(' ');
+  if (multisig.pubkeys.length != multisig.total) {
+    throw `Multisig pubkeys for seed ${x} does not match max signatures`;
+  }
+  config.multisig[x] = multisig;
 }
 
 const debugPath = getParam('debug');

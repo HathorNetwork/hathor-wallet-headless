@@ -6,18 +6,22 @@ on:
       - dev
     tags:
       - v*
-    pull_request:
-      branches:
-        - dev
-        - master
+  pull_request:
+    branches:
+      - dev
+      - master
+
+env:
+  TEST_WALLET_START_TIMEOUT: '180000'
+
 jobs:
   itest:
     runs-on: ubuntu-20.04
-    timeout-minutes: 20
+    timeout-minutes: 40
 
     strategy:
       matrix:
-        node-version: [14.x]
+        node-version: [14.x, 16.x]
 
     steps:
       - uses: actions/checkout@v2
@@ -30,9 +34,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Copy config file
-        run: cp ./__tests__/integration/configuration/config.js.template ./src/config.js
-
       - name: Run the tests
         run: npm run test_integration
 
@@ -42,3 +43,18 @@ jobs:
         with:
           name: test-transacion-logs
           path: tmp
+
+      - name: Collect docker logs on failure
+        if: failure()
+        uses: jwalton/gh-docker-logs@v1
+        with:
+          dest: './docker-logs'
+      - name: Tar logs
+        if: failure()
+        run: tar cvzf ./docker-logs.tgz ./docker-logs
+      - name: Upload logs to GitHub
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: logs.tgz
+          path: ./docker-logs.tgz

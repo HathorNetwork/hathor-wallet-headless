@@ -17,29 +17,58 @@ export class WalletHelper {
   #words;
 
   /**
+   * seedKey referencing a preconfigured multisig on the wallet-headless
+   */
+  #seedKey;
+
+  /**
+   * boolean indicating this is a MultiSig Wallet
+   * XXX: We currently do not support starting a multisig wallet from `words`
+   *
+   * @type {boolean}
+   */
+  #multisig;
+
+  /**
    * Some cached addresses to improve performance on tests
    * @type {string[]}
    */
   #addresses = [];
 
   /**
-   * Indicates if the wallet was started in the Wallet Headless app
-   * @type {boolean}
-   */
-  #started = false;
-
-  /**
    * Creates a wallet object but does not start it on server
    * @param {string} walletId
-   * @param {string} [words] 24 words
+   * @param [options]
+   * @param {string} [options.words] 24 words, optional
+   * @param {string} [options.seedKey] seedKey, optional
+   * @param {boolean} [options.multisig] If the wallet is multisig, defaults to false
    */
-  constructor(walletId, words) {
+  constructor(walletId, options = {}) {
     if (!walletId) {
       throw new Error('Wallet must have a walletId');
     }
     this.#walletId = walletId;
 
-    this.#words = words || TestUtils.generateWords();
+    if (options.multisig && !options.seedKey) {
+      throw new Error('A MultiSig Wallet must be instantiated from a seedKey');
+    }
+
+    if (options.words) {
+      // When words are available, use them
+      this.#words = options.words;
+      this.#seedKey = null;
+      this.#multisig = false;
+    } else if (options.seedKey) {
+      // Starting from seedKey
+      this.#words = null;
+      this.#seedKey = options.seedKey;
+      this.#multisig = options.multisig || false;
+    } else {
+      // No words or seedKey, start from random words
+      this.#words = TestUtils.generateWords();
+      this.#seedKey = null;
+      this.#multisig = false;
+    }
   }
 
   get walletId() {
@@ -50,12 +79,37 @@ export class WalletHelper {
     return this.#words;
   }
 
+  get seedKey() {
+    return this.#seedKey;
+  }
+
   get addresses() {
     return this.#addresses;
   }
 
-  get started() {
-    return this.#started;
+  get multisig() {
+    return this.#multisig || false;
+  }
+
+  get walletData() {
+    if (this.words) {
+      return {
+        walletId: this.walletId,
+        words: this.words,
+        addresses: this.addresses || [],
+      };
+    }
+
+    if (this.seedKey) {
+      return {
+        walletId: this.walletId,
+        seedKey: this.seedKey,
+        multisig: this.multisig,
+        addresses: this.addresses || [],
+      };
+    }
+
+    throw new Error('Both [`words`, `seedKey`] are missing from the WalletHelper');
   }
 
   /**
@@ -64,39 +118,83 @@ export class WalletHelper {
    * performance-wise.
    * @param {WalletHelper[]} walletsArr Array of WalletHelpers
    * @param [options]
-   * @param {boolean} [options.skipAddresses] Skips the getSomeAddresses command
-   * @param {number} [options.amountOfAddresses=10] How many addresses should be cached per wallet
+   * @param {boolean} [options.serial] Start one wallet at a time
    * @returns {Promise<void>}
    */
-  static async startMultipleWalletsForTest(walletsArr, options) {
+  static async startMultipleWalletsForTest(walletsArr, options = {}) {
     /**
      * A map of `WalletHelper`s indexed by their `walletId`s
      * @type {Record<string,WalletHelper>}
      */
     const walletsPendingReady = {};
 
+    /*
+     * This benchmark is separated in three phases:
+     * - The HTTP requests to `/start`, to initialize each wallet (startRequests)
+     * - The waiting loop to confirm via `/status` each wallet is really started (confirmReadyLoop)
+     * - The full time for this process on all wallets
+     *
+     * Aside from the global time counters, each wallet has is own time marks, since they may be
+     * started serially instead of in parallel:
+     * - startRequestBegin and startRequestEnd properties measure the initial http request
+     * - isReady measures the second confirmation of the wallet being initialized
+     * - walletReadyDuration measures the time since the first startRequest above
+     */
+    const startBenchmark = {
+      startRequestsBegin: 0,
+      startRequestsEnd: 0,
+      startRequestsDuration: 0,
+
+      confirmReadyLoopEnd: 0,
+      confirmReadyLoopDuration: 0,
+
+      fullProcessDuration: 0,
+      wallets: {}
+    };
+
     // If the genesis wallet is not instantiated, start it. It should be always available
     const { genesis } = WALLET_CONSTANTS;
     const isGenesisStarted = await TestUtils.isWalletReady(genesis.walletId);
     if (!isGenesisStarted) {
-      walletsArr.unshift(new WalletHelper(genesis.walletId, genesis.words));
+      walletsArr.unshift(new WalletHelper(genesis.walletId, { words: genesis.words }));
     }
 
-    // Requests the start of all the wallets in quick succession
-    const startPromisesArray = [];
-    for (const wallet of walletsArr) {
-      const promise = TestUtils.startWallet({
-        walletId: wallet.walletId,
-        words: wallet.words,
-      });
-      walletsPendingReady[wallet.walletId] = wallet;
-      startPromisesArray.push(promise);
+    // Start of the requests
+    startBenchmark.startRequestsBegin = Date.now().valueOf();
+
+    if (options.serial || walletsArr.length > 2) {
+      // If we need to initialize too many wallets at once, it's better to do it serially
+      for (const wallet of walletsArr) {
+        const walletBenchmark = {};
+        walletBenchmark.startRequestBegin = Date.now().valueOf();
+        await TestUtils.startWallet(wallet.walletData, {
+          waitWalletReady: true
+        });
+        walletBenchmark.startRequestEnd = Date.now().valueOf();
+        walletBenchmark.diffRequest = walletBenchmark.startRequestEnd
+          - walletBenchmark.startRequestBegin;
+        startBenchmark.wallets[wallet.walletId] = walletBenchmark;
+      }
+    } else {
+      // Requests the start of all the wallets in quick succession - parallel mode
+      const startPromisesArray = [];
+      for (const wallet of walletsArr) {
+        const promise = TestUtils.startWallet(wallet.walletData);
+        walletsPendingReady[wallet.walletId] = wallet;
+        const walletBenchmark = {};
+        walletBenchmark.startRequestBegin = Date.now().valueOf();
+        startBenchmark.wallets[wallet.walletId] = walletBenchmark;
+        startPromisesArray.push(promise);
+      }
+      await Promise.all(startPromisesArray);
     }
-    await Promise.all(startPromisesArray);
+
+    startBenchmark.startRequestsEnd = Date.now().valueOf();
+    startBenchmark.startRequestsDuration = startBenchmark.startRequestsEnd
+                                          - startBenchmark.startRequestsBegin;
 
     // Enters the loop checking each wallet for its status
-    const timestampStart = Date.now().valueOf();
-    const timestampTimeout = timestampStart + testConfig.walletStartTimeout;
+    const loopTimeout = startBenchmark.startRequestsBegin + testConfig.walletStartTimeout;
     while (true) {
       const pendingWalletIds = Object.keys(walletsPendingReady);
       // If all wallets were started, return to the caller.
@@ -106,16 +204,20 @@ export class WalletHelper {
 
       // If this process took too long, the connection with the fullnode may be irreparably broken.
       const timestamp = Date.now().valueOf();
-      if (timestamp > timestampTimeout) {
-        const errMsg = `Wallet init failure: Timeout after ${timestamp - timestampStart}ms.`;
+      if (timestamp > loopTimeout) {
+        const failureDiff = timestamp - startBenchmark.startRequestsEnd;
+        const errMsg = `Wallet init failure: Timeout on ${failureDiff}ms.`;
         TestUtils.logError(errMsg);
+        startBenchmark.failureAt = timestamp;
+        startBenchmark.failureDiff = failureDiff;
+        TestUtils.log(`Wallet init failure`, startBenchmark);
         throw new Error(errMsg);
       }
 
       // First we add a delay
-      await TestUtils.delay(500);
+      await TestUtils.delay(1000);
 
-      // Checking the status of each wallet
+      // Checking the status of each wallet that has not been confirmed ready
       for (const walletId of pendingWalletIds) {
         const isReady = await TestUtils.isWalletReady(walletId);
         if (!isReady) {
@@ -123,20 +225,26 @@ export class WalletHelper {
         }
 
         // If the wallet is ready, we remove it from the status check loop
-        walletsPendingReady[walletId].__setStarted();
+        const timestampReady = Date.now().valueOf();
         delete walletsPendingReady[walletId];
+
+        const walletBenchmark = startBenchmark.wallets[walletId];
+        walletBenchmark.isReady = timestampReady;
+        walletBenchmark.walletReadyDuration = walletBenchmark.startRequestEnd
+          ? timestampReady - walletBenchmark.startRequestEnd // Serial
+          : timestampReady - startBenchmark.startRequestsEnd; // Parallel
 
         const addresses = await TestUtils.getSomeAddresses(walletId);
         await loggers.test.informWalletAddresses(walletId, addresses);
       }
     }
 
-    const timestamp = Date.now().valueOf();
-    TestUtils.logTx(`Finished multiple wallet initialization.`, {
-      timestampStart,
-      timestampNow: timestamp,
-      diffSinceStart: timestamp - timestampStart
-    });
+    startBenchmark.confirmReadyLoopEnd = Date.now().valueOf();
+    startBenchmark.confirmReadyLoopDuration = startBenchmark.confirmReadyLoopEnd
+                                              - startBenchmark.startRequestsEnd;
+    startBenchmark.fullProcessDuration = startBenchmark.confirmReadyLoopEnd
+                                         - startBenchmark.startRequestsBegin;
+    TestUtils.log(`Finished multiple wallet initialization.`, startBenchmark);
   }
 
   /**
@@ -149,14 +257,7 @@ export class WalletHelper {
    * @returns {Promise<WalletData>}
    */
   async start(options = {}) {
-    await TestUtils.startWallet(
-      {
-        walletId: this.#walletId,
-        words: this.#words,
-      },
-      { waitWalletReady: true }
-    );
-    this.#started = true;
+    await TestUtils.startWallet(this.walletData, { waitWalletReady: true });
 
     // Populating some addressess for this wallet
     if (!options.skipAddresses) {
@@ -168,14 +269,8 @@ export class WalletHelper {
       await loggers.test.informWalletAddresses(this.#walletId, this.#addresses);
     }
 
-    return {
-      walletId: this.#walletId,
-      words: this.#words,
-      addresses: this.#addresses
-    };
+    return this.walletData;
   }
-
-  __setStarted() { this.#started = true; }
 
   /**
    * Stops this wallet
@@ -183,7 +278,6 @@ export class WalletHelper {
    */
   async stop() {
     await TestUtils.stopWallet(this.#walletId);
-    this.#started = false;
   }
 
   /**
@@ -205,10 +299,11 @@ export class WalletHelper {
 
   /**
    * Returns the next address without transactions for this wallet
+   * @param {boolean} [markAsUsed=false] If true, marks this address as used
    * @returns {Promise<string>}
    */
-  async getNextAddress() {
-    return TestUtils.getAddressAt(this.#walletId);
+  async getNextAddress(markAsUsed = false) {
+    return TestUtils.getAddressAt(this.#walletId, undefined, markAsUsed);
   }
 
   /**
@@ -234,9 +329,6 @@ export class WalletHelper {
    * @returns {Promise<{success}|*>}
    */
   async injectFunds(value, addressIndex = 0) {
-    if (!this.#started) {
-      throw new Error(`Cannot inject funds: wallet ${this.#walletId} is not started.`);
-    }
     const destinationAddress = await this.getAddressAt(addressIndex);
     return TestUtils.injectFundsIntoAddress(destinationAddress, value, this.#walletId);
   }
@@ -249,7 +341,10 @@ export class WalletHelper {
    * @param {string} params.symbol Token symbol
    * @param {string} [params.address] Destination address for the custom token
    * @param {string} [params.change_address] Destination address for the HTR change
+   * @param {boolean} [params.dontLogErrors] Skip logging errors.
    * @returns {Promise<unknown>} Token creation transaction
+   *
+   * XXX: not supported for multisig
    */
   async createToken(params) {
     const { amount, name, symbol } = params;
@@ -269,22 +364,18 @@ export class WalletHelper {
       .set({ 'x-wallet-id': this.#walletId })
       .send(tokenCreationBody);
 
-    // Retrieving token data and building the Test Log message
-    const tokenHash = newTokenResponse.body.hash;
-    TestUtils.logTx('Token creation', {
-      hash: tokenHash,
+    const transaction = TestUtils.handleTransactionResponse({
+      methodName: 'createToken',
+      requestBody: tokenCreationBody,
+      txResponse: newTokenResponse,
+      dontLogErrors: params.dontLogErrors
+    });
+
+    TestUtils.log('Token Creation', {
+      hash: transaction.hash,
       walletId: this.#walletId,
       ...tokenCreationBody
     });
-
-    const transaction = newTokenResponse.body;
-
-    // Handling errors
-    if (!transaction.success) {
-      const injectError = new Error(transaction.message);
-      injectError.innerError = newTokenResponse;
-      throw injectError;
-    }
 
     await TestUtils.pauseForWsUpdate();
 
@@ -332,7 +423,10 @@ export class WalletHelper {
    * @param {string} [options.token] Simpler way to inform transfer token instead of "outputs"
    * @param {string} [options.destinationWallet] Optional parameter to explain the funds destination
    * @param {string} [options.change_address] Optional parameter to set the change address
+   * @param {boolean} [options.dontLogErrors] Skip logging errors.
    * @returns {Promise<unknown>} Returns the transaction
+   *
+   * XXX: not supported for multisig
    */
   async sendTx(options) {
     const sendOptions = options.fullObject || {};
@@ -360,14 +454,12 @@ export class WalletHelper {
       .send(sendOptions)
       .set(TestUtils.generateHeader(this.#walletId));
 
-    // Error handling
-    const transaction = response.body;
-    if (!transaction.success) {
-      const txError = new Error(transaction.message);
-      txError.innerError = response;
-      txError.sendOptions = sendOptions;
-      throw txError;
-    }
+    const transaction = TestUtils.handleTransactionResponse({
+      methodName: 'sendTx',
+      requestBody: sendOptions,
+      txResponse: response,
+      dontLogErrors: options.dontLogErrors
+    });
 
     // Logs the results
     const metadata = {
@@ -381,7 +473,7 @@ export class WalletHelper {
     if (options.destinationWallet) {
       metadata.destinationWallet = options.destinationWallet;
     }
-    await loggers.test.insertLineToLog('Transferring funds', metadata);
+    await TestUtils.log('send-tx', metadata);
 
     await TestUtils.pauseForWsUpdate();
 
@@ -394,5 +486,69 @@ export class WalletHelper {
 
   async getBalance(tokenUid = null) {
     return TestUtils.getBalance(this.#walletId, tokenUid);
+  }
+
+  /**
+   * Get this wallet signatures for the transaction.
+   *
+   * @param {string} [txHex] hex encoded transaction.
+   * @returns {Promise<string>} Promise to return the signatures.
+   *
+   * XXX: currently only supported for multisig
+   */
+  async getSignatures(txHex) {
+    return TestUtils.getSignatures(txHex, this.#walletId);
+  }
+
+  /**
+   * Makes a request to get UTXO's for a specific query.
+   *
+   * @param [params]
+   * @param {number} [params.max_utxos] Maximum amount of results
+   * @param {string} [params.token] Custom token to filter
+   * @param {string} [params.filter_address] Specific address to filter
+   * @param {number} [params.amount_smaller_than] Filter only UTXO's with value <= this parameter
+   * @param {number} [params.amount_bigger_than] Filter only UTXO's with value >= this parameter
+   * @param {number} [params.maximum_amount] Maximum amount of summed values
+   * @param {boolean} [params.only_available] Filter only unlocked UTXOs
+   * @returns {Promise<FilterUtxosResponse>}
+   */
+  async getUtxos(params) {
+    return TestUtils.getUtxos({ ...params, walletId: this.#walletId });
+  }
+
+  /**
+   * Consolidates UTXO's
+   * @param [params]
+   * @param {string} [params.destination_address] Address that will receive the funds
+   * @param {number} [params.max_utxos] Maximum amount of source utxos used
+   * @param {string} [params.token] Custom token to filter
+   * @param {string} [params.filter_address] Specific address to filter for inputs
+   * @param {string} [params.amount_smaller_than] Filter only UTXO's with value <= this parameter
+   * @param {string} [params.amount_bigger_than] Filter only UTXO's with value >= this parameter
+   * @param {string } [params.maximum_amount] Maximum amount of summed values
+   * @param {boolean} [params.dontLogErrors] Skip logging errors.
+   * @returns {Promise<FilterUtxosResponse>}
+   */
+  async consolidateUtxos(params) {
+    return TestUtils.consolidateUtxos({ ...params, walletId: this.#walletId });
+  }
+
+  /**
+   * Creates NFT's
+   * @param params
+   * @param {string} params.name Token name
+   * @param {string} params.symbol Token symbol
+   * @param {number} params.amount Token amount
+   * @param {string} params.data Token data
+   * @param {string} [params.address] Token destination address
+   * @param {string} [params.change_address] Change address for the minting HTR
+   * @param {boolean} [params.create_mint] Determines if the mint authority will be created
+   * @param {boolean} [params.create_melt] Determines if the melt authority will be created
+   * @param {boolean} [params.dontLogErrors] Skip logging errors.
+   * @returns {Promise<{success}|*>}
+   */
+  async createNft(params) {
+    return TestUtils.createNft({ ...params, walletId: this.#walletId });
   }
 }

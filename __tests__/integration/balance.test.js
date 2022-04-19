@@ -6,7 +6,8 @@ describe('balance routes', () => {
   let wallet1;
   let wallet2;
   let wallet3;
-  const wallet2Balance = getRandomInt(200);
+  let minerWallet;
+  const wallet2Balance = getRandomInt(100, 200);
 
   beforeAll(async () => {
     try {
@@ -16,12 +17,14 @@ describe('balance routes', () => {
       wallet2 = new WalletHelper('balance2');
       // Third wallet, balance to be used for custom tokens
       wallet3 = new WalletHelper('custom3');
+      minerWallet = new WalletHelper(
+        WALLET_CONSTANTS.miner.walletId,
+        { words: WALLET_CONSTANTS.miner.words }
+      );
 
-      await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3]);
+      await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3, minerWallet]);
       await wallet2.injectFunds(wallet2Balance);
       await wallet3.injectFunds(100);
-
-      await TestUtils.pauseForWsUpdate();
     } catch (err) {
       TestUtils.logError(err.stack);
     }
@@ -56,7 +59,7 @@ describe('balance routes', () => {
   it('should return some locked balance for the miner wallet', async done => {
     const balanceResult = await TestUtils.request
       .get('/wallet/balance')
-      .set({ 'x-wallet-id': WALLET_CONSTANTS.genesis.walletId });
+      .set({ 'x-wallet-id': minerWallet.walletId });
 
     /*
      * According to the REWARD_SPEND_MIN_BLOCKS variable in the ./configuration/privnet.py file
@@ -88,8 +91,6 @@ describe('balance routes', () => {
       amount: tokenAmount,
     });
     const tokenHash = newToken.hash;
-
-    await TestUtils.pauseForWsUpdate();
 
     const balanceResult = await TestUtils.request
       .get('/wallet/balance')
