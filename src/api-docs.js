@@ -48,6 +48,10 @@ const apiDoc = {
                     type: 'string',
                     description: 'Key of the corresponding seed in the config file to create the wallet.'
                   },
+                  seed: {
+                    type: 'string',
+                    description: '24-words seed. This parameter is incompatible with seedKey. Either seed or seedKey are required.'
+                  },
                   multisig: {
                     type: 'boolean',
                     description: 'Start as a multisig wallet. Requires multisig configuration.'
