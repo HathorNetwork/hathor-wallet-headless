@@ -23,9 +23,9 @@ describe('utxo-filter routes', () => {
   beforeAll(async () => {
     try {
       // First wallet, no balance
-      wallet1 = new WalletHelper('utxo-filter-1');
+      wallet1 = WalletHelper.getPrecalculatedWallet('utxo-filter-1');
       // Second wallet, with custom token
-      wallet2 = new WalletHelper('utxo-filter-2');
+      wallet2 = WalletHelper.getPrecalculatedWallet('utxo-filter-2');
 
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
 
@@ -425,7 +425,10 @@ describe('utxo-filter routes', () => {
      */
     const minerWallet = new WalletHelper(
       WALLET_CONSTANTS.miner.walletId,
-      { words: WALLET_CONSTANTS.miner.words }
+      {
+        words: WALLET_CONSTANTS.miner.words,
+        preCalculatedAddresses: WALLET_CONSTANTS.miner.addresses
+      }
     );
     await WalletHelper.startMultipleWalletsForTest([minerWallet]);
 

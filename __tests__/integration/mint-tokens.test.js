@@ -10,7 +10,7 @@ describe('mint token', () => {
   };
 
   beforeAll(async () => {
-    wallet1 = new WalletHelper('mint-token-1');
+    wallet1 = WalletHelper.getPrecalculatedWallet('mint-token-1');
 
     // Starting the wallets
     await WalletHelper.startMultipleWalletsForTest([wallet1]);

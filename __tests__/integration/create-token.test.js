@@ -12,8 +12,8 @@ describe('create token', () => {
   };
 
   beforeAll(async () => {
-    wallet1 = new WalletHelper('create-token-1');
-    wallet2 = new WalletHelper('create-token-2');
+    wallet1 = WalletHelper.getPrecalculatedWallet('create-token-1');
+    wallet2 = WalletHelper.getPrecalculatedWallet('create-token-2');
 
     await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
     await wallet1.injectFunds(10, 0);
