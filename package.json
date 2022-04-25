@@ -22,14 +22,15 @@
   "scripts": {
     "test": "jest",
     "test_integration": "npm run test_network_up && npm run test_network_integration && npm run test_network_down",
-    "test_network_up": "docker-compose -f ./__tests__/integration/docker-compose.yml up -d",
+    "test_network_up": "docker-compose -f ./__tests__/integration/docker-compose.yml up -d && mkdir -p tmp && cp ./__tests__/integration/configuration/precalculated-wallets.json ./tmp/wallets.json",
     "test_network_integration": "jest --config jest-integration.config.js --runInBand --forceExit",
     "test_network_down": "docker-compose -f ./__tests__/integration/docker-compose.yml down",
     "dev": "nodemon --exec babel-node index.js",
     "start": "babel-node src/index.js",
     "lint": "eslint .",
     "lint_fix": "eslint . --fix",
-    "generate_words": "babel-node src/utils/generate_words.js"
+    "generate_words": "babel-node src/utils/generate_words.js",
+    "generate_wallets": "babel-node src/utils/generate_wallets.js"
   },
   "repository": {
     "type": "git",

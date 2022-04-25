@@ -2,6 +2,7 @@ import { loggers } from './logger.util';
 import { TestUtils, WALLET_CONSTANTS } from './test-utils-integration';
 import { WalletBenchmarkUtil } from './benchmark/wallet-benchmark.util';
 import { TxTimeHelper } from './benchmark/tx-benchmark.util';
+import { precalculationHelpers } from '../../../src/helpers/wallet-precalculation.helper';
 
 /**
  * A helper for testing the wallet
@@ -43,6 +44,7 @@ export class WalletHelper {
    * @param {string} [options.words] 24 words, optional
    * @param {string} [options.seedKey] seedKey, optional
    * @param {boolean} [options.multisig] If the wallet is multisig, defaults to false
+   * @param {string[]} [options.preCalculatedAddresses] Pre-calculated addresses, for performance
    */
   constructor(walletId, options = {}) {
     if (!walletId) {
@@ -69,6 +71,10 @@ export class WalletHelper {
       this.#words = TestUtils.generateWords();
       this.#seedKey = null;
       this.#multisig = false;
+    }
+
+    if (options.preCalculatedAddresses) {
+      this.#addresses = options.preCalculatedAddresses;
     }
   }
 
@@ -113,6 +119,14 @@ export class WalletHelper {
     throw new Error('Both [`words`, `seedKey`] are missing from the WalletHelper');
   }
 
+  static getPrecalculatedWallet(walletId) {
+    const precalculatedWallet = precalculationHelpers.test.getPrecalculatedWallet();
+    return new WalletHelper(walletId, {
+      words: precalculatedWallet.words,
+      preCalculatedAddresses: precalculatedWallet.addresses
+    });
+  }
+
   /**
    * Starts all the wallets needed for the test suite.
    * <b>This is the preferred way of starting wallets</b> on the Integration Tests,
@@ -127,7 +141,10 @@ export class WalletHelper {
     const { genesis } = WALLET_CONSTANTS;
     const isGenesisStarted = await TestUtils.isWalletReady(genesis.walletId);
     if (!isGenesisStarted) {
-      walletsArr.unshift(new WalletHelper(genesis.walletId, { words: genesis.words }));
+      walletsArr.unshift(new WalletHelper(genesis.walletId, {
+        words: genesis.words,
+        preCalculatedAddresses: genesis.addresses,
+      }));
     }
 
     // First request each wallet to be started, with a small pause between each request

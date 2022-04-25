@@ -156,6 +156,12 @@ function start(req, res) {
   }
   const walletID = req.body['wallet-id'];
 
+  // Wallet addresses pre-calculation, usually for speeding up tests
+  if (req.body.preCalculatedAddresses && req.body.preCalculatedAddresses.length) {
+    console.log(`Received pre-calculated addresses`, req.body.preCalculatedAddresses);
+    walletConfig.preCalculatedAddresses = req.body.preCalculatedAddresses;
+  }
+
   if (walletID in initializedWallets) {
     // We already have a wallet for this key
     // so we log that it won't start a new one because

@@ -3,6 +3,9 @@ import { parse } from 'path';
 import { loggers, LoggerUtil } from './__tests__/integration/utils/logger.util';
 import { WalletBenchmarkUtil } from './__tests__/integration/utils/benchmark/wallet-benchmark.util';
 import { TxBenchmarkUtil } from './__tests__/integration/utils/benchmark/tx-benchmark.util';
+import {
+  precalculationHelpers, WalletPrecalculationHelper,
+} from './src/helpers/wallet-precalculation.helper';
 
 /**
  * Gets the name of the test being executed from a Jasmine's global variable.
@@ -62,12 +65,22 @@ beforeAll(async () => {
   );
   txBenchmarkLog.init();
   loggers.txBenchmark = txBenchmarkLog;
+
+  // Loading pre-calculated wallets
+  const pcwHelper = new WalletPrecalculationHelper('./tmp/wallets.json');
+  precalculationHelpers.test = pcwHelper;
+  await precalculationHelpers.test.initWithWalletsFile();
 });
 
 afterAll(async () => {
+  // Calculating wallets benchmark summary
   await WalletBenchmarkUtil.logResults();
 
+  // Calculating transactions benchmark summary
   const txSummary = TxBenchmarkUtil.calculateSummary();
   loggers.test.insertLineToLog('Transaction summary', { txSummary });
   await TxBenchmarkUtil.logResults();
+
+  // Storing data about used precalculated wallets
+  await precalculationHelpers.test.storeDbIntoWalletsFile();
 });
