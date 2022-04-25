@@ -148,7 +148,7 @@ export class WalletPrecalculationHelper {
 
   static generateMultipleWallets(params = {}) {
     const amountOfCommonWallets = params.commonWallets || 100;
-    const amountOfMultisigWallets = params.multisigWallets || 10;
+    // const amountOfMultisigWallets = params.multisigWallets || 10;
 
     const wallets = [];
     for (let i = 0; i < amountOfCommonWallets; ++i) {

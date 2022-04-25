@@ -16,23 +16,6 @@ import { delay } from '../core.util';
  */
 const instances = [];
 
-/**
- * @extends TxInstance
- */
-export class TxTimeHelper {
-  constructor(type) {
-    this.type = type;
-    this.startTime = Date.now().valueOf();
-  }
-
-  informResponse(txId) {
-    this.endTime = Date.now().valueOf();
-    this.duration = this.endTime - this.startTime;
-    this.txId = txId;
-    TxBenchmarkUtil.addTx(this);
-  }
-}
-
 export class TxBenchmarkUtil {
   /**
    * Adds a transaction instance to the local storage

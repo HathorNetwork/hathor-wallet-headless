@@ -2,17 +2,14 @@
 
 import supertest from 'supertest';
 import {
-  constants as libConstants,
-  HathorWallet,
-  transaction as transactionUtils,
-  wallet,
+  constants as libConstants, HathorWallet, transaction as transactionUtils, wallet,
 } from '@hathor/wallet-lib';
 import app from '../../../src';
 import { loggers } from './logger.util';
 import testConfig from '../configuration/test.config';
 import { WALLET_EVENTS, WalletBenchmarkUtil } from './benchmark/wallet-benchmark.util';
-import { delay, getRandomInt } from './core.util';
-import { TxTimeHelper } from './benchmark/tx-benchmark.util';
+import { delay } from './core.util';
+import { TxTimeHelper } from './benchmark/tx-time.helper';
 
 export { getRandomInt } from './core.util';
 

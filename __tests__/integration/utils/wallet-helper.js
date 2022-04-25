@@ -1,7 +1,7 @@
 import { loggers } from './logger.util';
 import { TestUtils, WALLET_CONSTANTS } from './test-utils-integration';
 import { WalletBenchmarkUtil } from './benchmark/wallet-benchmark.util';
-import { TxTimeHelper } from './benchmark/tx-benchmark.util';
+import { TxTimeHelper } from './benchmark/tx-time.helper';
 import { precalculationHelpers } from '../../../src/helpers/wallet-precalculation.helper';
 
 /**
