@@ -72,8 +72,7 @@ switch (executionMode) {
 
 if (walletsArray) {
   const helper = new WalletPrecalculationHelper(outputFileForMultipleWallets);
-  const wallets = WalletPrecalculationHelper.generateMultipleWallets();
-  helper._serializeWalletsFile(wallets)
+  helper._serializeWalletsFile(walletsArray)
     .then(() => {
       process.exit(0);
     });
