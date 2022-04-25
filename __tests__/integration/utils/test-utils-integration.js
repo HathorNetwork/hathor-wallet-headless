@@ -8,8 +8,13 @@ import {
   wallet,
 } from '@hathor/wallet-lib';
 import app from '../../../src';
-import { loggers } from '../txLogger';
+import { loggers } from './logger.util';
 import testConfig from '../configuration/test.config';
+import { WALLET_EVENTS, WalletBenchmarkUtil } from './benchmark/wallet-benchmark.util';
+import { delay, getRandomInt } from './core.util';
+import { TxTimeHelper } from './benchmark/tx-benchmark.util';
+
+export { getRandomInt } from './core.util';
 
 const request = supertest(app);
 
@@ -75,19 +80,6 @@ export const AUTHORITY_VALUE = {
 
 export const HATHOR_TOKEN_ID = '00';
 
-/**
- * Generates a random positive integer between the maximum and minimum values,
- * with the default minimum equals zero
- * @param {number} max
- * @param {number} [min=0]
- * @returns {number} Random number
- */
-export function getRandomInt(max, min = 0) {
-  const _min = Math.ceil(min);
-  const _max = Math.floor(max);
-  return Math.floor(Math.random() * (_max - _min + 1)) + _min;
-}
-
 export class TestUtils {
   /**
    * Returns the Supertest `request` object for this application
@@ -95,17 +87,6 @@ export class TestUtils {
    */
   static get request() {
     return request;
-  }
-
-  /**
-   * Simple way to wait asynchronously before continuing the funcion. Does not block the JS thread.
-   * @param {number} ms Amount of milliseconds to delay
-   * @returns {Promise<unknown>}
-   */
-  static async delay(ms) {
-    return new Promise(resolve => {
-      setTimeout(resolve, ms);
-    });
   }
 
   /**
@@ -120,7 +101,7 @@ export class TestUtils {
    * @returns {Promise<void>}
    */
   static async pauseForWsUpdate() {
-    await TestUtils.delay(testConfig.wsUpdateDelay);
+    await delay(testConfig.wsUpdateDelay);
   }
 
   /**
@@ -252,6 +233,13 @@ export class TestUtils {
    */
   static async startWallet(walletObj, options = {}) {
     let response;
+
+    WalletBenchmarkUtil.informWalletEvent(
+      walletObj.walletId,
+      WALLET_EVENTS.startRequest,
+      { multisig: walletObj.multisig }
+    );
+
     // Request the Wallet start
     if (walletObj.words) {
       response = await request
@@ -266,6 +254,10 @@ export class TestUtils {
           multisig: walletObj.multisig || false,
         });
     }
+    WalletBenchmarkUtil.informWalletEvent(
+      walletObj.walletId,
+      WALLET_EVENTS.startResponse,
+    );
 
     // Handle errors
     if (response.status !== 200) {
@@ -279,13 +271,11 @@ export class TestUtils {
 
     // Wait until the wallet is actually started
     if (options.waitWalletReady) {
-      while (true) {
-        const walletReady = await TestUtils.isWalletReady(walletObj.walletId);
-        if (walletReady) {
-          break;
-        }
-        await TestUtils.delay(1000);
-      }
+      await TestUtils.poolUntilWalletReady(walletObj.walletId);
+      WalletBenchmarkUtil.informWalletEvent(
+        walletObj.walletId,
+        WALLET_EVENTS.confirmedReady,
+      );
     }
     // Log the success and return
     if (walletObj.words) {
@@ -314,7 +304,21 @@ export class TestUtils {
         throw err;
       });
 
-    return res.body?.statusCode === HathorWallet.READY;
+    const statusCode = res.body?.statusCode;
+    if (statusCode === HathorWallet.ERROR) {
+      throw new Error(`Wallet ${walletId} initialization failed.`);
+    }
+    return statusCode === HathorWallet.READY;
+  }
+
+  static async poolUntilWalletReady(walletId) {
+    while (true) {
+      const walletReady = await TestUtils.isWalletReady(walletId);
+      if (walletReady) {
+        return;
+      }
+      await delay(1000);
+    }
   }
 
   /**
@@ -438,10 +442,13 @@ export class TestUtils {
       value,
       change_address: WALLET_CONSTANTS.genesis.addresses[0]
     };
+
+    const txTimeHelper = new TxTimeHelper('simple-send-tx');
     const response = await TestUtils.request
       .post('/wallet/simple-send-tx')
       .send(requestBody)
       .set(TestUtils.generateHeader(WALLET_CONSTANTS.genesis.walletId));
+    txTimeHelper.informResponse(response.body.hash);
 
     const transaction = TestUtils.handleTransactionResponse({
       methodName: 'injectFundsIntoAddress',
@@ -662,10 +669,12 @@ export class TestUtils {
     const requestBody = { ...params };
     delete requestBody.walletId; // Removing the only attribute that has no relation to the request
 
+    const txTimeHelper = new TxTimeHelper('utxo-consolidation');
     const utxoResponse = await TestUtils.request
       .post('/wallet/utxo-consolidation')
       .send(requestBody)
       .set(this.generateHeader(params.walletId));
+    txTimeHelper.informResponse(utxoResponse.body.txId);
 
     const transaction = TestUtils.handleTransactionResponse({
       methodName: 'consolidateUtxos',
@@ -700,15 +709,17 @@ export class TestUtils {
     const requestBody = { ...params };
     delete requestBody.walletId; // Removing the only attribute that has no relation to the request
 
-    const utxoResponse = await TestUtils.request
+    const txTimeHelper = new TxTimeHelper('create-nft');
+    const nftResponse = await TestUtils.request
       .post('/wallet/create-nft')
       .send(requestBody)
       .set(this.generateHeader(params.walletId));
+    txTimeHelper.informResponse(nftResponse.body.hash);
 
     const transaction = TestUtils.handleTransactionResponse({
       methodName: 'createNft',
       requestBody,
-      txResponse: utxoResponse,
+      txResponse: nftResponse,
       dontLogErrors: params.dontLogErrors
     });
 

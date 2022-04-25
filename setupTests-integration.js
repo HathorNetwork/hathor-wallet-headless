@@ -1,6 +1,8 @@
 /* eslint-disable global-require */
 import { parse } from 'path';
-import { loggers, TxLogger } from './__tests__/integration/txLogger';
+import { loggers, LoggerUtil } from './__tests__/integration/utils/logger.util';
+import { WalletBenchmarkUtil } from './__tests__/integration/utils/benchmark/wallet-benchmark.util';
+import { TxBenchmarkUtil } from './__tests__/integration/utils/benchmark/tx-benchmark.util';
 
 /**
  * Gets the name of the test being executed from a Jasmine's global variable.
@@ -41,7 +43,31 @@ jest.mock(
 beforeAll(async () => {
   // Initializing the Transaction Logger with the test name
   const testName = getTestNameFromGlobalJasmineInstance();
-  const testLogger = new TxLogger(testName);
-  testLogger.init();
+  const testLogger = new LoggerUtil(testName);
+  testLogger.init({ filePrettyPrint: true });
   loggers.test = testLogger;
+
+  // Initializing wallet benchmark logger
+  const walletBenchmarkLog = new LoggerUtil(
+    'wallet-benchmark',
+    { reusableFilename: true }
+  );
+  walletBenchmarkLog.init();
+  loggers.walletBenchmark = walletBenchmarkLog;
+
+  // Initializing transaction benchmark logger
+  const txBenchmarkLog = new LoggerUtil(
+    'tx-benchmark',
+    { reusableFilename: true }
+  );
+  txBenchmarkLog.init();
+  loggers.txBenchmark = txBenchmarkLog;
+});
+
+afterAll(async () => {
+  await WalletBenchmarkUtil.logResults();
+
+  const txSummary = TxBenchmarkUtil.calculateSummary();
+  loggers.test.insertLineToLog('Transaction summary', { txSummary });
+  await TxBenchmarkUtil.logResults();
 });
