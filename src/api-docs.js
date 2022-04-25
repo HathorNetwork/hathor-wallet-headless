@@ -910,19 +910,26 @@ const apiDoc = {
                     type: 'array',
                     items: {
                       type: 'object',
-                      required: ['address', 'value'],
                       properties: {
                         address: {
                           type: 'string',
-                          description: 'Destination address of the output.'
+                          description: 'Destination address of the output. Required if P2PKH or P2SH.'
                         },
                         value: {
                           type: 'integer',
-                          description: 'The value parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.'
+                          description: 'The value parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR. Required if P2PKH or P2SH.'
                         },
                         token: {
                           type: 'string',
                           description: 'Token id of the output. If not sent, HTR will be chosen.'
+                        },
+                        type: {
+                          type: 'string',
+                          description: 'Type of output script. Required if data script and expected to be "data".'
+                        },
+                        data: {
+                          type: 'string',
+                          description: 'Data string of the data script output. Required if it\'s a data script output.'
                         },
                       }
                     },
@@ -1034,6 +1041,22 @@ const apiDoc = {
                       name: 'Test Coin',
                       symbol: 'TSC'
                     }
+                  }
+                },
+                dataScript: {
+                  summary: 'Transaction with a data script output',
+                  value: {
+                    outputs: [
+                      {
+                        address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
+                        value: 100,
+                        token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d'
+                      },
+                      {
+                        type: 'data',
+                        data: 'test'
+                      }
+                    ],
                   }
                 }
               }
