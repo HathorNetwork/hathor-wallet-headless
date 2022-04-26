@@ -1,9 +1,6 @@
-import {
-  getRandomInt,
-  HATHOR_TOKEN_ID,
-  TestUtils,
-  WALLET_CONSTANTS,
-} from './utils/test-utils-integration';
+import { TestUtils } from './utils/test-utils-integration';
+import { HATHOR_TOKEN_ID, WALLET_CONSTANTS } from './configuration/test-constants';
+import { getRandomInt } from './utils/core.util';
 import { WalletHelper } from './utils/wallet-helper';
 
 describe('address-info routes', () => {

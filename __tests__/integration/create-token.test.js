@@ -1,4 +1,6 @@
-import { getRandomInt, TestUtils, WALLET_CONSTANTS } from './utils/test-utils-integration';
+import { getRandomInt } from './utils/core.util';
+import { TestUtils } from './utils/test-utils-integration';
+import { WALLET_CONSTANTS } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
 
 describe('create token', () => {

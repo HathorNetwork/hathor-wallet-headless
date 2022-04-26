@@ -1,5 +1,5 @@
 import TestUtils from './test-utils';
-import { WALLET_CONSTANTS } from './integration/utils/test-utils-integration';
+import { WALLET_CONSTANTS } from './integration/configuration/test-constants';
 
 describe('start api', () => {
   beforeAll(() => TestUtils.stopWallet());

@@ -1,4 +1,5 @@
-import { TestUtils, WALLET_CONSTANTS } from './utils/test-utils-integration';
+import { TestUtils } from './utils/test-utils-integration';
+import { WALLET_CONSTANTS } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
 
 describe('mint token', () => {

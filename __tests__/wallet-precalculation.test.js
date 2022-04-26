@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { WALLET_CONSTANTS } from './integration/utils/test-utils-integration';
+import { WALLET_CONSTANTS } from './integration/configuration/test-constants';
 import {
   multisigWalletsData, WalletPrecalculationHelper,
 } from '../src/helpers/wallet-precalculation.helper';

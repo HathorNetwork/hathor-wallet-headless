@@ -1,4 +1,5 @@
-import { AUTHORITY_VALUE, TestUtils, TOKEN_DATA } from './utils/test-utils-integration';
+import { TestUtils } from './utils/test-utils-integration';
+import { AUTHORITY_VALUE, TOKEN_DATA } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
 
 describe('create-nft routes', () => {
