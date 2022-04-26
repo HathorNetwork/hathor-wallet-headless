@@ -172,7 +172,7 @@ export class WalletPrecalculationHelper {
       const multisigWallet = WalletPrecalculationHelper.generateWallet({
         words: walletWords,
         multisig: {
-          words: params.wordsArray,
+          wordsArray: params.wordsArray,
           minSignatures: params.minSignatures
         }
       });
