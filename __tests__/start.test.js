@@ -1,4 +1,5 @@
 import TestUtils from './test-utils';
+import { WALLET_CONSTANTS } from './integration/utils/test-utils-integration';
 
 describe('start api', () => {
   beforeAll(() => TestUtils.stopWallet());
@@ -25,6 +26,25 @@ describe('start api', () => {
       .send({ seedKey: TestUtils.seedKey });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
+  });
+
+  it('should accept pre-calculated addresses', async () => {
+    const walletHttpInput = {
+      'wallet-id': 'wallet-1',
+      seed: WALLET_CONSTANTS.genesis.words,
+      preCalculatedAddresses: ['addr1', 'addr2'],
+    };
+
+    const response = await TestUtils.request
+      .post('/start')
+      .send(walletHttpInput);
+
+    /*
+     * In the future this test must be expanded to check if the preCalculatedAddresses parameter
+     * was passed to the wallet lib. This could be done either by mocking the HathorWallet class
+     * or by returning a precalculation flag from the start method.
+     */
+    expect(response.body).toHaveProperty('success', true);
   });
 
   it('should require x-first-address if confirmFirstAddress is true', async () => {
