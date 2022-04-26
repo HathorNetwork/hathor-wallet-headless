@@ -71,7 +71,7 @@ describe('start api', () => {
     global.config.confirmFirstAddress = null;
   });
 
-  it('should start a MultiSig wallet if multisig is true', async () => {
+  it.skip('should start a MultiSig wallet if multisig is true', async () => {
     global.config.multisig = TestUtils.multisigData;
     TestUtils.stopWallet();
 
