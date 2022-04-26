@@ -50,6 +50,33 @@ describe('wallet addresses precalculation', () => {
     }
   });
 
+  it('correctly generates addresses for a new wallet', () => {
+    const generatedWallet = WalletPrecalculationHelper.generateWallet();
+
+    expect(generatedWallet).toHaveProperty('words');
+    expect(generatedWallet.words.split(' ')).toHaveProperty('length', 24);
+    expect(generatedWallet.addresses).toHaveProperty('length', 22);
+  });
+
+  it('correctly generates multiple new wallets with a specified amount', () => {
+    jest.spyOn(WalletPrecalculationHelper, 'generateWallet')
+      .mockImplementation(() => ({ words: 'mockedWords', addresses: ['mock1', 'mock2'] }));
+    const walletsArray = WalletPrecalculationHelper.generateMultipleWallets({
+      commonWallets: 5
+    });
+    jest.restoreAllMocks();
+
+    expect(walletsArray).toHaveProperty('length', 5);
+  });
+
+  it('correctly generates multiple new wallets with a default amount', () => {
+    const mockedFn = jest.spyOn(WalletPrecalculationHelper, 'generateWallet')
+      .mockImplementation(() => ({ words: 'mockedWords', addresses: ['mock1', 'mock2'] }));
+    WalletPrecalculationHelper.generateMultipleWallets();
+    expect(mockedFn).toHaveBeenCalledTimes(100);
+    jest.restoreAllMocks();
+  });
+
   it('correctly generates addresses for a known multisig wallet', () => {
     const generatedWallet = WalletPrecalculationHelper.generateWallet({
       words: multisigWalletsData.words[0],
@@ -63,9 +90,32 @@ describe('wallet addresses precalculation', () => {
       expect(generatedWallet.addresses[i]).toBe(precalculatedMultisig[0].addresses[i]);
     }
   });
+});
 
+describe('pre-generated wallet storage management', () => {
+  it('can flag a used wallet', () => {
+    const helper = new WalletPrecalculationHelper();
+    helper.walletsDb.push({ ...fakeWallet });
+    expect(helper.walletsDb[0]).toHaveProperty('isUsed', false);
+
+    const pregenWallet = helper.getPrecalculatedWallet();
+    expect(pregenWallet).toEqual(helper.walletsDb[0]);
+    expect(helper.walletsDb[0]).toHaveProperty('isUsed', true);
+  });
+
+  it('does not fetch used wallets', () => {
+    const helper = new WalletPrecalculationHelper();
+    helper.walletsDb.push({ ...fakeWallet, isUsed: true });
+    helper.walletsDb.push({ ...fakeWallet, words: 'my fake words' });
+
+    const pregenWallet = helper.getPrecalculatedWallet();
+    expect(pregenWallet.words).toEqual('my fake words');
+  });
+});
+
+describe('precalculation persistent storage', () => {
   it('can read a json file with wallets', async () => {
-    const mockReadFile = fs.promises.readFile.mockImplementation(
+    fs.promises.readFile.mockImplementation(
       async () => `[${JSON.stringify(fakeWallet)}]`
     );
 
@@ -74,6 +124,32 @@ describe('wallet addresses precalculation', () => {
 
     expect(helper.walletsDb).toHaveProperty('length', 1);
     expect(helper.walletsDb[0]).toEqual(fakeWallet);
+
+    jest.resetAllMocks();
+  });
+
+  it('the default json file with wallets is set', async () => {
+    const mockReadFile = fs.promises.readFile.mockImplementation(
+      async () => `[${JSON.stringify(fakeWallet)}]`
+    );
+
+    const helper = new WalletPrecalculationHelper();
+    await helper.initWithWalletsFile();
+
+    expect(mockReadFile).toBeCalledWith('./tmp/wallets.txt');
+
+    jest.resetAllMocks();
+  });
+
+  it('can handle error on loading a corrupt json file', async () => {
+    fs.promises.readFile.mockImplementation(
+      async () => `[${JSON.stringify(fakeWallet)},]`
+    );
+
+    const helper = new WalletPrecalculationHelper('fakeFilename.json');
+    const results = await helper.initWithWalletsFile().catch(err => err);
+    expect(results).toBeInstanceOf(SyntaxError);
+    expect(results.message).toContain('JSON');
 
     jest.resetAllMocks();
   });
