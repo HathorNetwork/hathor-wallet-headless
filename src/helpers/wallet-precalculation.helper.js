@@ -39,6 +39,10 @@ export class WalletPrecalculationHelper {
 
   walletsDb = [];
 
+  /**
+   * Initializes the helper with a filename to sync the local wallet storage with.
+   * @param walletsFilename
+   */
   constructor(walletsFilename) {
     this.WALLETS_FILENAME = walletsFilename || './tmp/wallets.txt';
   }
@@ -117,6 +121,12 @@ export class WalletPrecalculationHelper {
     return returnObject;
   }
 
+  /**
+   * Reads a JSON file containing wallets and parses it
+   * @returns {Promise<any>}
+   * @throws SyntaxError
+   * @private
+   */
   async _deserializeWalletsFile() {
     const dataBuffer = await fs.readFile(this.WALLETS_FILENAME);
     const strData = dataBuffer.toString();
@@ -130,6 +140,12 @@ export class WalletPrecalculationHelper {
     }
   }
 
+  /**
+   * Writes the contents of a wallet array in a human-readable way, but with one wallet per line
+   * @param {unknown[]} wallets
+   * @returns {Promise<void>}
+   * @private
+   */
   async _serializeWalletsFile(wallets) {
     /*
      * The main aim of this file structure is human readability for debugging.
@@ -146,6 +162,14 @@ export class WalletPrecalculationHelper {
     );
   }
 
+  /**
+   * Generates multiple new wallets and return them on an array
+   * @param [params]
+   * @param {number} [params.commonWallets=100] Amount of common wallets to be generated
+//   * @param {number} [params.multisigWallets=100] Amount of multisig wallets to be generated
+   * @param {boolean} [params.verbose] Optional logging of each wallet
+   * @returns {{words:string,addresses:string[]}[]}
+   */
   static generateMultipleWallets(params = {}) {
     const amountOfCommonWallets = params.commonWallets || 100;
     // const amountOfMultisigWallets = params.multisigWallets || 10;
@@ -153,7 +177,7 @@ export class WalletPrecalculationHelper {
     const wallets = [];
     for (let i = 0; i < amountOfCommonWallets; ++i) {
       wallets.push(WalletPrecalculationHelper.generateWallet());
-      console.log(`Generated ${i}`);
+      if (params.verbose) console.log(`Generated ${i}`);
     }
 
     return wallets;
@@ -181,15 +205,27 @@ export class WalletPrecalculationHelper {
     return resultingWallets;
   }
 
+  /**
+   * Loads a file containing precalculated wallets into the local storage
+   * @returns {Promise<void>}
+   */
   async initWithWalletsFile() {
     const fileData = await this._deserializeWalletsFile();
     this.walletsDb = fileData;
   }
 
+  /**
+   * Writes the local storage of precalculated wallets into the filesystem
+   * @returns {Promise<void>}
+   */
   async storeDbIntoWalletsFile() {
     return this._serializeWalletsFile(this.walletsDb);
   }
 
+  /**
+   * Fetches the first unused precalculated wallet from the local storage and marks it as used.
+   * @returns {*}
+   */
   getPrecalculatedWallet() {
     const unusedWallet = this.walletsDb.find(w => !w.isUsed);
     unusedWallet.isUsed = true; // We are using it right now. Marking it.

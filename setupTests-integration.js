@@ -67,8 +67,7 @@ beforeAll(async () => {
   loggers.txBenchmark = txBenchmarkLog;
 
   // Loading pre-calculated wallets
-  const pcwHelper = new WalletPrecalculationHelper('./tmp/wallets.json');
-  precalculationHelpers.test = pcwHelper;
+  precalculationHelpers.test = new WalletPrecalculationHelper('./tmp/wallets.json');
   await precalculationHelpers.test.initWithWalletsFile();
 });
 

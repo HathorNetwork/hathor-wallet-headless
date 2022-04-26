@@ -119,6 +119,11 @@ export class WalletHelper {
     throw new Error('Both [`words`, `seedKey`] are missing from the WalletHelper');
   }
 
+  /**
+   * Creates a WalletHelper instance with precalculated addresses from a local storage.
+   * @param {string} walletId Mandatory identification for the headless app
+   * @returns {WalletHelper}
+   */
   static getPrecalculatedWallet(walletId) {
     const precalculatedWallet = precalculationHelpers.test.getPrecalculatedWallet();
     return new WalletHelper(walletId, {
