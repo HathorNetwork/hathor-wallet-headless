@@ -20,7 +20,7 @@
     "yargs": "^16.2.0"
   },
   "scripts": {
-    "test": "jest --forceExit",
+    "test": "jest",
     "test_integration": "npm run test_network_up && npm run test_network_integration && npm run test_network_down",
     "test_network_up": "docker-compose -f ./__tests__/integration/docker-compose.yml up -d && mkdir -p tmp && cp ./__tests__/integration/configuration/precalculated-wallets.json ./tmp/wallets.json",
     "test_network_integration": "jest --config jest-integration.config.js --runInBand --forceExit",
