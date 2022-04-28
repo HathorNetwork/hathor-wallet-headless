@@ -90,6 +90,27 @@ describe('wallet addresses precalculation', () => {
       expect(generatedWallet.addresses[i]).toBe(precalculatedMultisig[0].addresses[i]);
     }
   });
+
+  it('correctly generates addresses for all multisig wallets of a same group', () => {
+    const mock = jest.spyOn(WalletPrecalculationHelper, 'generateWallet')
+      .mockImplementation(() => ({ words: 'mockedWords', addresses: ['mock1', 'mock2'] }));
+
+    const generatedWallets = WalletPrecalculationHelper.generateMultisigWalletsForWords({
+      wordsArray: multisigWalletsData.words,
+      minSignatures: 3
+    });
+
+    expect(mock).toHaveBeenCalledTimes(multisigWalletsData.words.length);
+    expect(mock).toHaveBeenCalledWith({
+      words: multisigWalletsData.words[0],
+      multisig: {
+        wordsArray: multisigWalletsData.words,
+        minSignatures: 3
+      }
+    });
+
+    expect(generatedWallets).toHaveProperty('length', multisigWalletsData.words.length);
+  });
 });
 
 describe('pre-generated wallet storage management', () => {
