@@ -78,6 +78,13 @@ export class WalletBenchmarkUtil {
     }
   }
 
+  /**
+   * Calculates a summary of the time taken to start all the wallets that are currently on the
+   * local storage.
+   * @param {string[]} [walletIds] Optional list restricting which wallet ids will be in the
+   *   summary
+   * @returns {unknown}
+   */
   static calculateSummary(walletIds) {
     const summary = {};
     let sumResponseTime = 0;
@@ -141,6 +148,10 @@ export class WalletBenchmarkUtil {
     };
   }
 
+  /**
+   * A method to write all the local storage instances into a log file via Winston.
+   * @returns {Promise<void>}
+   */
   static async logResults() {
     for (const walletId in instances) {
       const metadata = { wallet: instances[walletId] };

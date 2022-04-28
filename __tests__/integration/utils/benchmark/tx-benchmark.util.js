@@ -11,8 +11,8 @@ import { delay } from '../core.util';
  */
 
 /**
- * List of wallet instances that were started
- * @type WalletInstanceBenchmark>[]
+ * List of tx instances that were started
+ * @type TxInstance[]
  */
 const instances = [];
 
@@ -25,7 +25,11 @@ export class TxBenchmarkUtil {
     instances.push({ ...txData });
   }
 
-  static calculateSummary(walletIds) {
+  /**
+   * Calculates a summary of transaction length for all instances available locally.
+   * @returns {{}}
+   */
+  static calculateSummary() {
     const summary = {};
     let sumTxDuration = 0;
 
@@ -39,10 +43,14 @@ export class TxBenchmarkUtil {
     return summary;
   }
 
+  /**
+   * A method to write all the local storage instances into a log file via Winston.
+   * @returns {Promise<void>}
+   */
   static async logResults() {
     for (const txIndex in instances) {
       const metadata = { tx: instances[txIndex] };
-      loggers.txBenchmark.insertLineToLog('Wallet instance', metadata);
+      loggers.txBenchmark.insertLineToLog('Tx instance', metadata);
       await delay(0); // Necessary to allow each log request to be fulfilled
     }
   }
