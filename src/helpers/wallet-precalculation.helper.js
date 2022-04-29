@@ -166,13 +166,11 @@ export class WalletPrecalculationHelper {
    * Generates multiple new wallets and return them on an array
    * @param [params]
    * @param {number} [params.commonWallets=100] Amount of common wallets to be generated
-//   * @param {number} [params.multisigWallets=100] Amount of multisig wallets to be generated
    * @param {boolean} [params.verbose] Optional logging of each wallet
    * @returns {{words:string,addresses:string[]}[]}
    */
   static generateMultipleWallets(params = {}) {
     const amountOfCommonWallets = params.commonWallets || 100;
-    // const amountOfMultisigWallets = params.multisigWallets || 10;
 
     const wallets = [];
     for (let i = 0; i < amountOfCommonWallets; ++i) {

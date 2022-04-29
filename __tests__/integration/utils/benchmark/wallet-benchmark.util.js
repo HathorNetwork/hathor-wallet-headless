@@ -21,6 +21,19 @@ import { delay } from '../core.util';
  */
 const instances = {};
 
+/**
+ * Fetches an existing wallet instance from the local storage,
+ * or creates a new instance with this walletId, adds it to the storage and returns it.
+ * @param {string} walletId
+ * @param {boolean} [isMultisig] Indicates if this is a multisig wallet. Only necessary once per id.
+ * @returns {WalletInstanceBenchmark}
+ * @example
+ * const newMsigWallet = getOrInitInstance('multisigWallet',true);
+ * // inform some event on the wallet
+ * // ... some time later, in another context
+ * const msigWallet = getOrInitInstance('multisigWallet');
+ * // ... inform another event on the wallet
+ */
 function getOrInitInstance(walletId, isMultisig = false) {
   if (instances[walletId]) {
     return instances[walletId];
@@ -83,7 +96,19 @@ export class WalletBenchmarkUtil {
    * local storage.
    * @param {string[]} [walletIds] Optional list restricting which wallet ids will be in the
    *   summary
-   * @returns {unknown}
+   * @returns {{
+   *   [avgStartResponseTimeMultisig]: number,
+   *   [avgReadyTimeMultisig]: number,
+   *   [avgStartResponseTime]: number,
+   *   [avgReadyTime]: number,
+   *   startedWallets: number,
+   *   wallets: [{
+   *     startRequestTime: number,
+   *     startResponseTime: number,
+   *     walletReadyTime: number,
+   *     failureTime: number
+   *   }]
+   * }}
    */
   static calculateSummary(walletIds) {
     const summary = {};

@@ -11,6 +11,13 @@ import { delay } from '../core.util';
  */
 
 /**
+ * @typedef TxSummary
+ * @property {number} sumTxDuration Sum of all the time awaiting for transactions to execute
+ * @property {number} amountTxs Amount of transactions executed in this benchmark
+ * @property {number} avgTxDuration Average time for executing a transaction in the benchmark
+ */
+
+/**
  * List of tx instances that were started
  * @type TxInstance[]
  */
@@ -27,7 +34,7 @@ export class TxBenchmarkUtil {
 
   /**
    * Calculates a summary of transaction length for all instances available locally.
-   * @returns {{}}
+   * @returns {TxSummary}
    */
   static calculateSummary() {
     const summary = {};
