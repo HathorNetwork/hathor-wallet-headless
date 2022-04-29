@@ -1,6 +1,13 @@
 import TestUtils from './test-utils';
 import { WALLET_CONSTANTS } from './integration/configuration/test-constants';
 
+/*
+ * Developer note:
+ * Every test to '/start' must be done with the 'wallet-id': TestUtils.walletId
+ * Calls to other ids will result in the mocked websocket calls not being activated and
+ * leaked connections at the end of the test.
+ */
+
 describe('start api', () => {
   beforeAll(() => TestUtils.stopWallet());
 
@@ -30,7 +37,7 @@ describe('start api', () => {
 
   it('should accept pre-calculated addresses', async () => {
     const walletHttpInput = {
-      'wallet-id': 'wallet-1',
+      'wallet-id': TestUtils.walletId,
       seed: WALLET_CONSTANTS.genesis.words,
       preCalculatedAddresses: ['addr1', 'addr2'],
     };
