@@ -9,7 +9,7 @@ import { WALLET_CONSTANTS } from './integration/configuration/test-constants';
  */
 
 describe('start api', () => {
-  beforeEach(() => TestUtils.stopWallet());
+  beforeEach(async () => TestUtils.stopWallet());
 
   it('should not start a wallet with an invalid seedKey', async () => {
     const response = await TestUtils.request
