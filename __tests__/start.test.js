@@ -9,7 +9,7 @@ import { WALLET_CONSTANTS } from './integration/configuration/test-constants';
  */
 
 describe('start api', () => {
-  beforeAll(() => TestUtils.stopWallet());
+  beforeEach(() => TestUtils.stopWallet());
 
   it('should not start a wallet with an invalid seedKey', async () => {
     const response = await TestUtils.request
@@ -80,7 +80,6 @@ describe('start api', () => {
 
   it.skip('should start a MultiSig wallet if multisig is true', async () => {
     global.config.multisig = TestUtils.multisigData;
-    TestUtils.stopWallet();
 
     const response1 = await TestUtils.request
       .post('/start')
