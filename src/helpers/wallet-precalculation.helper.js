@@ -90,6 +90,7 @@ export class WalletPrecalculationHelper {
 
     const store = new MemoryStore();
     Storage.setStore(store);
+    store.setItem('wallet:multisig', !!walletCfg.multisig);
     wallet.executeGenerateWallet(
       walletCfg.seed,
       '',
