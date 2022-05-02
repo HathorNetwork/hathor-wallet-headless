@@ -4,7 +4,7 @@ import { WalletHelper } from './utils/wallet-helper';
 import { multisigWalletsData } from '../../src/helpers/wallet-precalculation.helper';
 import precalculatedMultisig from './configuration/precalculated-multisig-wallets.json';
 
-describe.skip('send tx (HTR)', () => {
+describe('send tx (HTR)', () => {
   let wallet1;
   let wallet2;
   let wallet3;
