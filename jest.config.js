@@ -4,7 +4,6 @@ module.exports = {
   testEnvironment: 'node',
   collectCoverage: true,
   collectCoverageFrom: ['<rootDir>/src/**/*.js'],
-  coveragePathIgnorePatterns: ['<rootDir>/src/utils'],
   testMatch: ['<rootDir>/__tests__/**/*.test.js'],
   testPathIgnorePatterns: ['<rootDir>/__tests__/integration/'],
   coverageReporters: ['text-summary', 'lcov', 'clover'],

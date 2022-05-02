@@ -29,8 +29,8 @@
     "start": "babel-node src/index.js",
     "lint": "eslint .",
     "lint_fix": "eslint . --fix",
-    "generate_words": "babel-node src/utils/generate_words.js",
-    "generate_wallets": "babel-node src/utils/generate_wallets.js"
+    "generate_words": "babel-node scripts/generate_words.js",
+    "generate_wallets": "babel-node scripts/generate_wallets.js"
   },
   "repository": {
     "type": "git",
