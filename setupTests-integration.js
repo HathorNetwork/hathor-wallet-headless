@@ -80,6 +80,6 @@ afterAll(async () => {
   loggers.test.insertLineToLog('Transaction summary', { txSummary });
   await TxBenchmarkUtil.logResults();
 
-  // Storing data about used precalculated wallets
+  // Storing data about used precalculated wallets for the next test suites
   await precalculationHelpers.test.storeDbIntoWalletsFile();
 });
