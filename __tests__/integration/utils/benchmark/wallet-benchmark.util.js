@@ -92,6 +92,7 @@ export class WalletBenchmarkUtil {
       case WALLET_EVENTS.failure:
         walletObj.failureTime = Date.now().valueOf();
         walletObj.failureDuration = walletObj.failureTime - walletObj.startRequestTime;
+        walletObj.hasFailed = true;
         break;
       default:
         console.warn(`Unknown wallet event: ${event}`);
