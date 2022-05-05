@@ -89,7 +89,7 @@ let generatedWallet;
 let walletsArray;
 switch (executionMode) {
   case GENERATION_SCRIPT_MODES.singleExistingWallet:
-    generatedWallet = WalletPrecalculationHelper.generateWallet({ words });
+    generatedWallet = WalletPrecalculationHelper.generateAddressesForSeed({ words });
     break;
 
   case GENERATION_SCRIPT_MODES.singleMultisigWallet:

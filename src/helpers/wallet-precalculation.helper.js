@@ -130,6 +130,55 @@ export class WalletPrecalculationHelper {
   }
 
   /**
+   * Generates 22 addresses for a wallet 24-word seed.
+   * @param [params]
+   * @param {string} [params.words] Optional wallet seed words. If empty, generates a new wallet
+   * @param {number} [params.addressIntervalStart=0] Optional interval start index
+   * @param {number} [params.addressIntervalEnd=22] Optional interval end index
+   * @param {{minSignatures:number,wordsArray:string[]}} [params.multisig] Optional multisig object
+   * @returns {{addresses: string[], words: string}}
+   */
+  static generateAddressesForSeed(params = {}) {
+    const timeStart = Date.now().valueOf();
+
+    let wordsInput = params.words;
+    if (!wordsInput) {
+      wordsInput = wallet.generateWalletWords();
+    }
+
+    const xpubkey = walletUtils.getXPubKeyFromSeed(wordsInput, {
+      networkName: config.network,
+      accountDerivationIndex: '0\'/0'
+    });
+    const addressIntervalStart = params.addressIntervalStart || 0;
+    const addressIntervalEnd = params.addressIntervalEnd || 22;
+    const addresses = walletUtils.getAddresses(
+      xpubkey,
+      addressIntervalStart,
+      addressIntervalEnd,
+      config.network
+    );
+    const addressesArray = [];
+    for (const hash in addresses) {
+      addressesArray[addresses[hash]] = hash;
+    }
+
+    const timeEnd = Date.now().valueOf();
+    const timeDiff = timeEnd - timeStart;
+
+    const returnObject = {
+      duration: timeDiff,
+      isUsed: false,
+      words: wordsInput,
+      addresses: addressesArray
+    };
+    if (params.multisig) {
+      returnObject.multisigDebugData = '';
+    }
+    return returnObject;
+  }
+
+  /**
    * Reads a JSON file containing wallets and parses it
    * @returns {Promise<any>}
    * @throws SyntaxError
@@ -182,7 +231,7 @@ export class WalletPrecalculationHelper {
 
     const wallets = [];
     for (let i = 0; i < amountOfCommonWallets; ++i) {
-      wallets.push(WalletPrecalculationHelper.generateWallet());
+      wallets.push(WalletPrecalculationHelper.generateAddressesForSeed());
       if (params.verbose) console.log(`Generated ${i}`);
     }
 
