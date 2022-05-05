@@ -21,14 +21,60 @@ const GENERATION_SCRIPT_MODES = {
 //-------------------------------------------------------
 
 /**
+ * # Address pre-calculation script
+ * This developer script generates addresses for 24-word wallet seeds.
+ * To generate these addresses in various ways, use the configurations below.
+ */
+
+/**
+ * ## Generating addresses for a single wallet
+ * This will generate all the results only on the stdout.
+ *
+ * @example
+ * // Generate addresses for a random new seed
+ * const executionMode = GENERATION_SCRIPT_MODES.newWallet;
+ *
+ * @example
+ * // Generate addresses for a known seed
+ * const executionMode = GENERATION_SCRIPT_MODES.singleExistingWallet;
+ * const words = WALLET_CONSTANTS.genesis.words;
+ *
+ * @example
+ * // Generate addresses for a known seed (multisig)
+ * const executionMode = GENERATION_SCRIPT_MODES.singleExistingWallet;
+ * const words = multisigWalletsData.words[4];
+ * const multisigInput = {
+ *   wordsArray: multisigWalletsData.words,
+ *   minSignatures: 2
+ * };
+ */
+
+/**
+ * ## Generating addresses for multiple wallets
+ * The results will be written to the filesystem on `outputFileForMultipleWallets` path
+ *
+ * @example
+ * // Generate addresses for a random new seed
+ * const executionMode = GENERATION_SCRIPT_MODES.manyCommonWallets;
+ * const outputFileForMultipleWallets = './tmp/multiple-output.json';
+ *
+ * @example
+ * // Generate addresses for a known seed (multisig)
+ * const executionMode = GENERATION_SCRIPT_MODES.manyMultisigWallets;
+ * const multisigInput = {
+ *   wordsArray: multisigWalletsData.words,
+ *   minSignatures: 3
+ * };
+ */
+
+/**
  * Defines how this script will behave
  * @type {number}
  */
 const executionMode = GENERATION_SCRIPT_MODES.singleMultisigWallet;
 
-// Configurations for the mode defined above
+// Configurations for the defined execution mode. A few examples are on the docstring above.
 const words = multisigWalletsData.words[4];
-// const words = WALLET_CONSTANTS.genesis.words;
 const multisigInput = {
   wordsArray: multisigWalletsData.words,
   minSignatures: 2
