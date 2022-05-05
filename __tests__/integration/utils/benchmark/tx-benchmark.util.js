@@ -51,7 +51,7 @@ export class TxBenchmarkUtil {
       sumTxDuration += tx.duration;
     }
     summary.sumTxDuration = sumTxDuration;
-    summary.amountTxs = (instances.length + 1);
+    summary.amountTxs = (instances.length);
     summary.avgTxDuration = sumTxDuration / summary.amountTxs;
 
     return summary;
