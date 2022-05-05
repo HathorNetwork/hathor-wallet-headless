@@ -82,4 +82,4 @@ export const AUTHORITY_VALUE = {
   MELT: libConstants.TOKEN_MELT_MASK
 };
 
-export const HATHOR_TOKEN_ID = '00';
+export const HATHOR_TOKEN_ID = libConstants.HATHOR_TOKEN_CONFIG.uid;
