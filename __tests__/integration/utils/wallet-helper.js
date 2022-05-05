@@ -398,9 +398,11 @@ export class WalletHelper {
 
   /**
    * @typedef SendTxOutputParam
-   * @property {string} [address] Destination address hash
-   * @property {number} [value] Amount of tokens to transfer on this output
+   * @property {string} [address] Optional Destination address hash. Required if output script is not a data script.
+   * @property {number} [value] Optional Amount of tokens to transfer on this output. Required if output script is not a data script.
    * @property {string} [token] Optional token hash. Defaults to HTR
+   * @property {string} [type] Optional output type. Required if output script is a data script.
+   * @property {string} [data] Optional data script. Required if output script is a data script.
    */
 
   /**

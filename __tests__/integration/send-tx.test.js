@@ -1573,4 +1573,147 @@ describe('filter query + custom tokens', () => {
     expect(addr5htr.total_amount_available).toBe(1000);
     done();
   });
+
+  // Outputs must have address and value or type and data
+  it('should reject an invalid output object', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{
+          address: 'invalidAddress',
+        }],
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeUndefined();
+    expect(response.body.success).toBe(false);
+
+    const response2 = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{
+          type: 'data',
+        }],
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response2.status).toBe(200);
+    expect(response2.body.hash).toBeUndefined();
+    expect(response2.body.success).toBe(false);
+    done();
+  });
+
+});
+
+describe('transaction with data script output', () => {
+  let wallet1; // Receives funds
+  let wallet2; // Main destination for test transactions
+
+  const fundTx1 = {
+    hash: null,
+    index: null
+  };
+
+  beforeAll(async () => {
+    try {
+      wallet1 = new WalletHelper('send-tx-1');
+      wallet2 = new WalletHelper('send-tx-2');
+
+      await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
+
+      // Funds
+      const fundTxObj1 = await wallet1.injectFunds(1000, 0);
+    } catch (err) {
+      TestUtils.logError(err.stack);
+    }
+  });
+
+  afterAll(async () => {
+    await wallet1.stop();
+    await wallet2.stop();
+  });
+
+
+  it('should reject an invalid output object', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{
+          address: 'invalidAddress',
+        }],
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeUndefined();
+    expect(response.body.success).toBe(false);
+
+    const response2 = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{
+          type: 'data',
+        }],
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response2.status).toBe(200);
+    expect(response2.body.hash).toBeUndefined();
+    expect(response2.body.success).toBe(false);
+    done();
+  });
+
+  it('should success with an output data script', async done => {
+    const tx = await wallet1.sendTx({
+      outputs: [{
+        type: 'data',
+        data: 'test'
+      }],
+    });
+
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
+
+    // Checking wallet balance
+    // the data script created spent 0.01 HTR
+    const balance = await wallet1.getBalance();
+    expect(balance.available).toBe(999);
+
+    expect(tx.outputs.length).toBe(2);
+
+    done();
+  });
+
+  it('should success with two output data scripts and p2pkh output script', async done => {
+    const tx = await wallet1.sendTx({
+      outputs: [{
+        type: 'data',
+        data: 'test'
+      },
+      {
+        type: 'data',
+        data: 'test2'
+      },
+      {
+        address: await wallet2.getAddressAt(3),
+        value: 100,
+      }],
+    });
+
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
+
+    // Checking wallet balance
+    // the data script created spent 0.01 HTR
+    const balance = await wallet1.getBalance();
+    expect(balance.available).toBe(897);
+    const balance2 = await wallet2.getBalance();
+    expect(balance2.available).toBe(100);
+
+    // Checking specific address balance
+    const destination = await wallet2.getAddressInfo(3);
+    expect(destination.total_amount_available).toBe(100);
+    done();
+  });
 });
