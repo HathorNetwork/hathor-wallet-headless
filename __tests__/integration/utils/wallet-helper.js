@@ -138,11 +138,9 @@ export class WalletHelper {
    * <b>This is the preferred way of starting wallets</b> on the Integration Tests,
    * performance-wise.
    * @param {WalletHelper[]} walletsArr Array of WalletHelpers
-   * @param [options]
-   * @param {boolean} [options.serial] Start one wallet at a time
    * @returns {Promise<void>}
    */
-  static async startMultipleWalletsForTest(walletsArr, options = {}) {
+  static async startMultipleWalletsForTest(walletsArr) {
     // If the genesis wallet is not instantiated, start it. It should be always available
     const { genesis } = WALLET_CONSTANTS;
     const isGenesisStarted = await TestUtils.isWalletReady(genesis.walletId);
