@@ -212,7 +212,7 @@ export class WalletPrecalculationHelper {
   }
 
   /**
-   * Loads a file containing precalculated wallets into the local storage
+   * Loads a file containing precalculated wallets into the in-memory storage
    * @returns {Promise<void>}
    */
   async initWithWalletsFile() {
@@ -221,7 +221,7 @@ export class WalletPrecalculationHelper {
   }
 
   /**
-   * Writes the local storage of precalculated wallets into the filesystem
+   * Writes the in-memory storage of precalculated wallets into the filesystem
    * @returns {Promise<void>}
    */
   async storeDbIntoWalletsFile() {
@@ -229,7 +229,7 @@ export class WalletPrecalculationHelper {
   }
 
   /**
-   * Fetches the first unused precalculated wallet from the local storage and marks it as used.
+   * Fetches the first unused precalculated wallet from the in-memory storage and marks it as used.
    * @returns {*}
    */
   getPrecalculatedWallet() {
