@@ -219,7 +219,7 @@ walletRouter.post(
       isString: true,
       optional: true
     },
-    'inputs.*': {
+    'outputs.*': {
       in: ['body'],
       isObject: true,
       custom: {
