@@ -16,18 +16,20 @@ const request = supertest(app);
 
 /**
  * @typedef WalletData
- * @property {string} walletId Id for interacting with the wallet
- * @property {string} [words] optional 24 word seed for the wallet
- * @property {string} [seedKey] optional key that references a seed on configuration
- * @property {string[]} [addresses] Some sample addresses to help with testing
- * @property {boolean} multisig If this should represent a multisig wallet
+ * @description Contains the data to instantiate a wallet.
  *
- * Obs: One of [`words`, `seedKey`] is always required
+ * _Obs_: One of [`words`, `seedKey`] is always required.
  * If both are present, prefer `words`
  *
- * Obs[2]: `multisig` can only be used with `seedKey`
+ * _Obs[2]_: `multisig` can only be used with `seedKey`
  * because of the extra configuration required (pubkeys, minSignatures, total)
  * that are connected to a configured seedKey
+ *
+ * @property {string} walletId Id for interacting with the wallet after starting it
+ * @property {string} [words] 24 word seed for the wallet
+ * @property {string} [seedKey] key that references a seed on configuration
+ * @property {string[]} [addresses] Pre-calculated addresses to start the wallet with
+ * @property {boolean} [multisig=false] If this should represent a multisig wallet
  */
 
 export class TestUtils {
