@@ -1,4 +1,11 @@
 /**
+ * Copyright (c) Hathor Labs and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/**
  * Simple way to wait asynchronously before continuing the funcion. Does not block the JS thread.
  * @param {number} ms Amount of milliseconds to delay
  * @returns {Promise<unknown>}
