@@ -287,6 +287,14 @@ async function sendTx(req, res) {
     if (!tokens.has(output.token)) {
       tokens.set(output.token, { tokenUid: output.token, amount: 0 });
     }
+
+    if (output.type === 'data') {
+      // The data output requires that the user burns 0.01 HTR
+      // this must be set here, in order to make the filter_address query
+      // work if the inputs are selected by this method
+      output.value = 1;
+    }
+
     const sumObject = tokens.get(output.token);
     sumObject.amount += output.value;
   }
