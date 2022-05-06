@@ -6,9 +6,9 @@
  */
 
 import { promises as fs } from 'fs';
-import {
-  Connection, MemoryStore, storage as Storage, wallet, walletUtils,
-} from '@hathor/wallet-lib';
+import { wallet, walletUtils } from '@hathor/wallet-lib';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Address, Script } from 'bitcore-lib';
 import config from '../../__tests__/integration/configuration/config-fixture';
 
 export const precalculationHelpers = {
@@ -63,106 +63,60 @@ export class WalletPrecalculationHelper {
    * @param {{minSignatures:number,wordsArray:string[]}} [params.multisig] Optional multisig object
    * @returns {{addresses: string[], words: string}}
    */
-  static generateWallet(params = {}) {
-    const timeStart = Date.now().valueOf();
-    const walletCfg = {
-      seed: params.words || '',
-      connection: {},
-      password: '123',
-      pinCode: '123',
-      multisig: false
-    };
-
-    walletCfg.connection = new Connection({
-      network: config.network,
-      servers: [config.server],
-      connectionTimeout: config.connectionTimeout,
-    });
-
-    let multisigDebugData = null;
-    if (params.multisig) {
-      const pubkeys = params.multisig.wordsArray.map(w => walletUtils.getMultiSigXPubFromWords(w));
-      walletCfg.multisig = {
-        pubkeys,
-        minSignatures: params.multisig.minSignatures
-      };
-      multisigDebugData = {
-        words: params.multisig.wordsArray,
-        total: pubkeys.length,
-        ...walletCfg.multisig
-      };
-    } else if (!params.words) {
-      walletCfg.seed = wallet.generateWalletWords();
-    }
-
-    const store = new MemoryStore();
-    Storage.setStore(store);
-    store.setItem('wallet:multisig', !!walletCfg.multisig);
-    wallet.executeGenerateWallet(
-      walletCfg.seed,
-      '',
-      walletCfg.pinCode,
-      walletCfg.password,
-      false,
-      walletCfg.multisig
-    );
-
-    const addresses = [];
-    const addressIntervalStart = params.addressIntervalStart || 0;
-    const addressIntervalEnd = params.addressIntervalEnd || 22;
-    for (let i = addressIntervalStart; i < addressIntervalEnd; ++i) {
-      const addr = wallet.generateAddress(i);
-      addresses.push(addr.toString());
-    }
-    const timeEnd = Date.now().valueOf();
-    const timeDiff = timeEnd - timeStart;
-
-    const returnObject = {
-      duration: timeDiff,
-      isUsed: false,
-      words: walletCfg.seed,
-      addresses
-    };
-    if (params.multisig) {
-      returnObject.multisigDebugData = multisigDebugData;
-    }
-    return returnObject;
-  }
-
-  /**
-   * Generates 22 addresses for a wallet 24-word seed.
-   * @param [params]
-   * @param {string} [params.words] Optional wallet seed words. If empty, generates a new wallet
-   * @param {number} [params.addressIntervalStart=0] Optional interval start index
-   * @param {number} [params.addressIntervalEnd=22] Optional interval end index
-   * @param {{minSignatures:number,wordsArray:string[]}} [params.multisig] Optional multisig object
-   * @returns {{addresses: string[], words: string}}
-   */
   static generateAddressesForSeed(params = {}) {
     const timeStart = Date.now().valueOf();
 
+    // Generating seed if none was informed
     let wordsInput = params.words;
     if (!wordsInput) {
       wordsInput = wallet.generateWalletWords();
     }
 
-    const xpubkey = walletUtils.getXPubKeyFromSeed(wordsInput, {
-      networkName: config.network,
-      accountDerivationIndex: '0\'/0'
-    });
+    // Calculating addresses
     const addressIntervalStart = params.addressIntervalStart || 0;
     const addressIntervalEnd = params.addressIntervalEnd || 22;
-    const addresses = walletUtils.getAddresses(
-      xpubkey,
-      addressIntervalStart,
-      addressIntervalEnd,
-      config.network
-    );
     const addressesArray = [];
-    for (const hash in addresses) {
-      addressesArray[addresses[hash]] = hash;
+    let multisigDebugData = null;
+    if (params.multisig) {
+      // Multisig calculation
+      const pubkeys = params.multisig.wordsArray.map(w => walletUtils.getMultiSigXPubFromWords(w));
+      for (let i = addressIntervalStart; i < addressIntervalEnd; ++i) {
+        const redeemScript = walletUtils.createP2SHRedeemScript(
+          pubkeys,
+          params.multisig.minSignatures,
+          i
+        );
+        const address = Address.payingTo(Script.fromBuffer(redeemScript), config.network);
+        addressesArray.push(address.toString());
+
+        // Informing debug data
+        multisigDebugData = {
+          words: wordsInput,
+          total: pubkeys.length,
+          minSignatures: params.multisig.minSignatures,
+          pubkeys,
+        };
+      }
+    } else {
+      // Common calculation
+      const xpubkey = walletUtils.getXPubKeyFromSeed(wordsInput, {
+        networkName: config.network,
+        accountDerivationIndex: '0\'/0'
+      });
+      const addresses = walletUtils.getAddresses(
+        xpubkey,
+        addressIntervalStart,
+        addressIntervalEnd,
+        config.network
+      );
+
+      // Formatting addresses to a simple array format
+      for (const hash in addresses) {
+        addressesArray[addresses[hash]] = hash;
+      }
     }
 
+    // Finishing benchmark and returning results
     const timeEnd = Date.now().valueOf();
     const timeDiff = timeEnd - timeStart;
 
@@ -173,7 +127,7 @@ export class WalletPrecalculationHelper {
       addresses: addressesArray
     };
     if (params.multisig) {
-      returnObject.multisigDebugData = '';
+      returnObject.multisigDebugData = multisigDebugData;
     }
     return returnObject;
   }
@@ -248,7 +202,7 @@ export class WalletPrecalculationHelper {
   static generateMultisigWalletsForWords(params = {}) {
     const resultingWallets = [];
     for (const walletWords of params.wordsArray) {
-      const multisigWallet = WalletPrecalculationHelper.generateWallet({
+      const multisigWallet = WalletPrecalculationHelper.generateAddressesForSeed({
         words: walletWords,
         multisig: {
           wordsArray: params.wordsArray,

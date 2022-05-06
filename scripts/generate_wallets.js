@@ -93,7 +93,7 @@ switch (executionMode) {
     break;
 
   case GENERATION_SCRIPT_MODES.singleMultisigWallet:
-    generatedWallet = WalletPrecalculationHelper.generateWallet({
+    generatedWallet = WalletPrecalculationHelper.generateAddressesForSeed({
       words,
       multisig: multisigInput
     });
@@ -112,7 +112,7 @@ switch (executionMode) {
 
   case GENERATION_SCRIPT_MODES.newWallet:
   default:
-    generatedWallet = WalletPrecalculationHelper.generateWallet();
+    generatedWallet = WalletPrecalculationHelper.generateAddressesForSeed();
     break;
 }
 
