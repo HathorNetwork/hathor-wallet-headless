@@ -6,7 +6,7 @@
  */
 import {
   multisigWalletsData, WalletPrecalculationHelper,
-} from '../src/helpers/wallet-precalculation.helper';
+} from './helpers/wallet-precalculation.helper';
 
 const GENERATION_SCRIPT_MODES = {
   singleExistingWallet: 0,

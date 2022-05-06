@@ -3,7 +3,7 @@ import { TestUtils } from './test-utils-integration';
 import { WALLET_CONSTANTS } from '../configuration/test-constants';
 import { WalletBenchmarkUtil } from './benchmark/wallet-benchmark.util';
 import { TxTimeHelper } from './benchmark/tx-time.helper';
-import { precalculationHelpers } from '../../../src/helpers/wallet-precalculation.helper';
+import { precalculationHelpers } from '../../../scripts/helpers/wallet-precalculation.helper';
 
 /**
  * A helper for testing the wallet

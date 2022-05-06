@@ -5,7 +5,7 @@ import { WalletBenchmarkUtil } from './__tests__/integration/utils/benchmark/wal
 import { TxBenchmarkUtil } from './__tests__/integration/utils/benchmark/tx-benchmark.util';
 import {
   precalculationHelpers, WalletPrecalculationHelper,
-} from './src/helpers/wallet-precalculation.helper';
+} from './scripts/helpers/wallet-precalculation.helper';
 
 /**
  * Gets the name of the test being executed from a Jasmine's global variable.

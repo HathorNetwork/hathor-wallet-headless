@@ -1,7 +1,7 @@
 import hathorLib from '@hathor/wallet-lib';
 import { TestUtils } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
-import { multisigWalletsData } from '../../src/helpers/wallet-precalculation.helper';
+import { multisigWalletsData } from '../../scripts/helpers/wallet-precalculation.helper';
 import precalculatedMultisig from './configuration/precalculated-multisig-wallets.json';
 
 describe('send tx (HTR)', () => {

@@ -2,7 +2,7 @@ import fs from 'fs';
 import { WALLET_CONSTANTS } from './integration/configuration/test-constants';
 import {
   multisigWalletsData, WalletPrecalculationHelper,
-} from '../src/helpers/wallet-precalculation.helper';
+} from '../scripts/helpers/wallet-precalculation.helper';
 import precalculatedMultisig from './integration/configuration/precalculated-multisig-wallets.json';
 
 jest.mock('fs', () => ({
