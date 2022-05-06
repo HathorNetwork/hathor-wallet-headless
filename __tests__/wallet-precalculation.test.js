@@ -43,7 +43,7 @@ const fakeWallet = {
 describe('wallet addresses precalculation', () => {
   it('correctly generates addresses for a known common wallet', () => {
     const { words } = WALLET_CONSTANTS.genesis;
-    const generatedWallet = WalletPrecalculationHelper.generateAddressesForSeed({ words });
+    const generatedWallet = WalletPrecalculationHelper.generateAddressesForWordsSeed({ words });
 
     for (const i in generatedWallet.addresses) {
       expect(generatedWallet.addresses[i]).toBe(WALLET_CONSTANTS.genesis.addresses[i]);
@@ -51,7 +51,7 @@ describe('wallet addresses precalculation', () => {
   });
 
   it('correctly generates addresses for a new wallet', () => {
-    const generatedWallet = WalletPrecalculationHelper.generateAddressesForSeed();
+    const generatedWallet = WalletPrecalculationHelper.generateAddressesForWordsSeed();
 
     expect(generatedWallet).toHaveProperty('words');
     expect(generatedWallet.words.split(' ')).toHaveProperty('length', 24);
@@ -59,7 +59,7 @@ describe('wallet addresses precalculation', () => {
   });
 
   it('correctly generates multiple new wallets with a specified amount', () => {
-    jest.spyOn(WalletPrecalculationHelper, 'generateAddressesForSeed')
+    jest.spyOn(WalletPrecalculationHelper, 'generateAddressesForWordsSeed')
       .mockImplementation(() => ({ words: 'mockedWords', addresses: ['mock1', 'mock2'] }));
     const walletsArray = WalletPrecalculationHelper.generateMultipleWallets({
       commonWallets: 5
@@ -70,7 +70,7 @@ describe('wallet addresses precalculation', () => {
   });
 
   it('correctly generates multiple new wallets with a default amount', () => {
-    const mockedFn = jest.spyOn(WalletPrecalculationHelper, 'generateAddressesForSeed')
+    const mockedFn = jest.spyOn(WalletPrecalculationHelper, 'generateAddressesForWordsSeed')
       .mockImplementation(() => ({ words: 'mockedWords', addresses: ['mock1', 'mock2'] }));
     WalletPrecalculationHelper.generateMultipleWallets();
     expect(mockedFn).toHaveBeenCalledTimes(100);
@@ -78,7 +78,7 @@ describe('wallet addresses precalculation', () => {
   });
 
   it('correctly generates addresses for a known multisig wallet', () => {
-    const generatedWallet = WalletPrecalculationHelper.generateAddressesForSeed({
+    const generatedWallet = WalletPrecalculationHelper.generateAddressesForWordsSeed({
       words: multisigWalletsData.words[0],
       multisig: {
         wordsArray: multisigWalletsData.words,
@@ -92,7 +92,7 @@ describe('wallet addresses precalculation', () => {
   });
 
   it('correctly generates addresses for all multisig wallets of a same group', () => {
-    const mock = jest.spyOn(WalletPrecalculationHelper, 'generateAddressesForSeed')
+    const mock = jest.spyOn(WalletPrecalculationHelper, 'generateAddressesForWordsSeed')
       .mockImplementation(() => ({ words: 'mockedWords', addresses: ['mock1', 'mock2'] }));
 
     const generatedWallets = WalletPrecalculationHelper.generateMultisigWalletsForWords({

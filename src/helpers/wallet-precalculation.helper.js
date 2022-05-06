@@ -63,7 +63,7 @@ export class WalletPrecalculationHelper {
    * @param {{minSignatures:number,wordsArray:string[]}} [params.multisig] Optional multisig object
    * @returns {{addresses: string[], words: string}}
    */
-  static generateAddressesForSeed(params = {}) {
+  static generateAddressesForWordsSeed(params = {}) {
     const timeStart = Date.now().valueOf();
 
     // Generating seed if none was informed
@@ -185,7 +185,7 @@ export class WalletPrecalculationHelper {
 
     const wallets = [];
     for (let i = 0; i < amountOfCommonWallets; ++i) {
-      wallets.push(WalletPrecalculationHelper.generateAddressesForSeed());
+      wallets.push(WalletPrecalculationHelper.generateAddressesForWordsSeed());
       if (params.verbose) console.log(`Generated ${i}`);
     }
 
@@ -202,7 +202,7 @@ export class WalletPrecalculationHelper {
   static generateMultisigWalletsForWords(params = {}) {
     const resultingWallets = [];
     for (const walletWords of params.wordsArray) {
-      const multisigWallet = WalletPrecalculationHelper.generateAddressesForSeed({
+      const multisigWallet = WalletPrecalculationHelper.generateAddressesForWordsSeed({
         words: walletWords,
         multisig: {
           wordsArray: params.wordsArray,
