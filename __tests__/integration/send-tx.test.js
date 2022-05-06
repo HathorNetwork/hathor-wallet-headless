@@ -1603,17 +1603,11 @@ describe('filter query + custom tokens', () => {
     expect(response2.body.success).toBe(false);
     done();
   });
-
 });
 
 describe('transaction with data script output', () => {
   let wallet1; // Receives funds
   let wallet2; // Main destination for test transactions
-
-  const fundTx1 = {
-    hash: null,
-    index: null
-  };
 
   beforeAll(async () => {
     try {
@@ -1623,7 +1617,7 @@ describe('transaction with data script output', () => {
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
 
       // Funds
-      const fundTxObj1 = await wallet1.injectFunds(1000, 0);
+      await wallet1.injectFunds(1000, 0);
     } catch (err) {
       TestUtils.logError(err.stack);
     }
@@ -1633,7 +1627,6 @@ describe('transaction with data script output', () => {
     await wallet1.stop();
     await wallet2.stop();
   });
-
 
   it('should reject an invalid output object', async done => {
     const response = await TestUtils.request
