@@ -57,7 +57,8 @@ export class WalletPrecalculationHelper {
   /**
    * Generates 22 addresses for a wallet 24-word seed.
    * @param [params]
-   * @param {string} [params.words] Optional wallet seed words. If empty, generates a new wallet
+   * @param {string} [params.words] Optional wallet seed words.
+   *    If empty on common wallets, generates a random seed of 24 words and derives its addresses.
    * @param {number} [params.addressIntervalStart=0] Optional interval start index ( including )
    * @param {number} [params.addressIntervalEnd=22] Optional interval end index ( excluding )
    * @param {{minSignatures:number,wordsArray:string[]}} [params.multisig] Optional multisig object
@@ -65,12 +66,7 @@ export class WalletPrecalculationHelper {
    */
   static generateAddressesForWordsSeed(params = {}) {
     const timeStart = Date.now().valueOf();
-
-    // Generating seed if none was informed
     let wordsInput = params.words;
-    if (!wordsInput) {
-      wordsInput = wallet.generateWalletWords();
-    }
 
     // Calculating addresses
     const addressIntervalStart = params.addressIntervalStart || 0;
@@ -91,13 +87,17 @@ export class WalletPrecalculationHelper {
 
         // Informing debug data
         multisigDebugData = {
-          words: wordsInput,
           total: pubkeys.length,
           minSignatures: params.multisig.minSignatures,
           pubkeys,
         };
       }
     } else {
+      // Generating 24-word seed if none was informed
+      if (!wordsInput) {
+        wordsInput = wallet.generateWalletWords();
+      }
+
       /*
        * Since the objective of this script is to mimic the addresses generated on a simple `/start`
        * request for the Wallet Headless, we use this standard derivation index.
