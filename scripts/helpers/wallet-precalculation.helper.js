@@ -58,8 +58,8 @@ export class WalletPrecalculationHelper {
    * Generates 22 addresses for a wallet 24-word seed.
    * @param [params]
    * @param {string} [params.words] Optional wallet seed words. If empty, generates a new wallet
-   * @param {number} [params.addressIntervalStart=0] Optional interval start index
-   * @param {number} [params.addressIntervalEnd=22] Optional interval end index
+   * @param {number} [params.addressIntervalStart=0] Optional interval start index ( including )
+   * @param {number} [params.addressIntervalEnd=22] Optional interval end index ( excluding )
    * @param {{minSignatures:number,wordsArray:string[]}} [params.multisig] Optional multisig object
    * @returns {{addresses: string[], words: string}}
    */
@@ -98,10 +98,17 @@ export class WalletPrecalculationHelper {
         };
       }
     } else {
-      // Common calculation
+      /*
+       * Since the objective of this script is to mimic the addresses generated on a simple `/start`
+       * request for the Wallet Headless, we use this standard derivation index.
+       * Future changes on this walletUtils method may cause this step to produce different results.
+       */
+      const accountDerivationIndex = '0\'/0';
+
+      // Common address calculation
       const xpubkey = walletUtils.getXPubKeyFromSeed(wordsInput, {
         networkName: config.network,
-        accountDerivationIndex: '0\'/0'
+        accountDerivationIndex,
       });
       const addresses = walletUtils.getAddresses(
         xpubkey,
