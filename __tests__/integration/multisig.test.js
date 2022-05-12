@@ -1,6 +1,8 @@
 import hathorLib from '@hathor/wallet-lib';
 import { TestUtils } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
+import { multisigWalletsData } from '../../scripts/helpers/wallet-precalculation.helper';
+import precalculatedMultisig from './configuration/precalculated-multisig-wallets.json';
 
 describe('send tx (HTR)', () => {
   let wallet1;
@@ -10,57 +12,7 @@ describe('send tx (HTR)', () => {
   let wallet5;
   let walletExtra;
 
-  const words = [
-    'upon tennis increase embark dismiss diamond monitor face magnet jungle scout salute rural master shoulder cry juice jeans radar present close meat antenna mind',
-    'sample garment fun depart various renew require surge service undo cinnamon squeeze hundred nasty gasp ridge surge defense relax turtle wet antique october occur',
-    'intact wool rigid diary mountain issue tiny ugly swing rib alone base fold satoshi drift poverty autumn mansion state globe plug ancient pudding hope',
-    'monster opinion bracket aspect mask labor obvious hat matrix exact canoe race shift episode plastic debris dash sort motion juice leg mushroom maximum evidence',
-    'tilt lab swear uncle prize favorite river myth assault transfer venue soap lady someone marine reject fork brain swallow notice glad salt sudden pottery',
-  ];
-
-  const pubkeys = [
-    'xpub6CvvCBtHqFfErbcW2Rv28TmZ3MqcFuWQVKGg8xDzLeAwEAHRz9LBTgSFSj7B99scSvZGbq6TxAyyATA9b6cnwsgduNs9NGKQJnEQr3PYtwK',
-    'xpub6CA16g2qPwukWAWBMdJKU3p2fQEEi831W3WAs2nesuCzPhbrG29aJsoRDSEDT4Ac3smqSk51uuv6oujU3MAAL3d1Nm87q9GDwE3HRGQLjdP',
-    'xpub6BwNT613Vzy7ARVHDEpoX23SMBEZQMJXdqTWYjQKvJZJVDBjEemU38exJEhc6qbFVc4MmarN68gUKHkyZ3NEgXXCbWtoXXGouHpwMEcXJLf',
-    'xpub6DCyPHg4AwXsdiMh7QSTHR7afmNVwZKHBBMFUiy5aCYQNaWp68ceQXYXCGQr5fZyLAe5hiJDdXrq6w3AXzvVmjFX9F7EdM87repxJEhsmjL',
-    'xpub6CgPUcCCJ9pAK7Rj52hwkxTutSRv91Fq74Hx1SjN62eg6Mp3S3YCJFPChPaDjpp9jCbCZHibBgdKnfNdq6hE9umyjyZKUCySBNF7wkoG4uK',
-  ];
-
-  const multisigData = {
-    pubkeys,
-    total: 5,
-    minSignatures: 3,
-  };
-
-  /*
-   * This variable was removed because of the linter's no-unused-var rule.
-   * But since it is useful for developing tests, it will remain here as a comment.
-
-   const addresses = [
-   'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
-   'wbe2eJdyZVimA7nJjmBQnKYJSXmpnpMKgG',
-   'wQQWdSZwp2CEGKsTvvbJ7i8HfHuV2i5QVQ',
-   'wfrtq9cMe1YfixVgSKXQNQ5hjsmR4hpjP6',
-   'wQG7itjdtZBsNTk9TG4f1HrehyQiAEMN18',
-   'wfgSqHUHPtmj2GDy8YfasbPPcFh8L1GPMA',
-   'wgZbCEMHHnhftCAwj7CRBmfi5TgBhfMZbk',
-   'wdz9NeMac7jyVeP2WK4BJWsM1zpd9tgsBb',
-   'wPs7WaRCqwC89uHycLbctDGmWPgH9oZvjp',
-   'wWJJxvr6oSk7WZdE9rpSRMoE6ZqJ3i8VDc',
-   'wbuDJtmM7vg8at2h5o3pTCHE4SASEFYusr',
-   'wPNkywbiw8UHbRQkD3nZ3EHMQsjyTamh9u',
-   'wQBNidXXYpE943BgydUNtarAwNzk612Yip',
-   'wh2eCGzUK9rLThr5D6tyCfckHpBjS97ERA',
-   'wZvajxVp3LabcZiY3XPrivrXiSS6wphRu7',
-   'wgPbL1WzbrEntepHRC92UX6mA2EmaqfDqt',
-   'wbdx4g3rucX3WHmZRXjPEKtRfZ7XSnCGKf',
-   'wiKTnqSN11ukuCWEXRVrRTTPo2mw4fGue3',
-   'wQ4aQP4YqJqfwshLggR2w1Gg3UFhhKhVKs',
-   'wca2xk9S2MVn2UrKh78UScdwXz3xrTp8Ky',
-   'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau',
-   ];
-
-   */
+  const { words, pubkeys, walletConfig } = multisigWalletsData;
 
   const fundTx1 = {
     txId: null,
@@ -77,11 +29,11 @@ describe('send tx (HTR)', () => {
       'multisig-extra': words[4],
     };
     global.config.multisig = {
-      'multisig-1': multisigData,
-      'multisig-2': multisigData,
-      'multisig-3': multisigData,
-      'multisig-4': multisigData,
-      'multisig-5': multisigData,
+      'multisig-1': walletConfig,
+      'multisig-2': walletConfig,
+      'multisig-3': walletConfig,
+      'multisig-4': walletConfig,
+      'multisig-5': walletConfig,
       'multisig-extra': {
         pubkeys,
         total: 5,
@@ -89,12 +41,36 @@ describe('send tx (HTR)', () => {
       },
     };
     try {
-      wallet1 = new WalletHelper('multisig-1', { seedKey: 'multisig-1', multisig: true });
-      wallet2 = new WalletHelper('multisig-2', { seedKey: 'multisig-2', multisig: true });
-      wallet3 = new WalletHelper('multisig-3', { seedKey: 'multisig-3', multisig: true });
-      wallet4 = new WalletHelper('multisig-4', { seedKey: 'multisig-4', multisig: true });
-      wallet5 = new WalletHelper('multisig-5', { seedKey: 'multisig-5', multisig: true });
-      walletExtra = new WalletHelper('multisig-extra', { seedKey: 'multisig-extra', multisig: true });
+      wallet1 = new WalletHelper('multisig-1', {
+        seedKey: 'multisig-1',
+        multisig: true,
+        preCalculatedAddresses: precalculatedMultisig[0].addresses
+      });
+      wallet2 = new WalletHelper('multisig-2', {
+        seedKey: 'multisig-2',
+        multisig: true,
+        preCalculatedAddresses: precalculatedMultisig[1].addresses
+      });
+      wallet3 = new WalletHelper('multisig-3', {
+        seedKey: 'multisig-3',
+        multisig: true,
+        preCalculatedAddresses: precalculatedMultisig[2].addresses
+      });
+      wallet4 = new WalletHelper('multisig-4', {
+        seedKey: 'multisig-4',
+        multisig: true,
+        preCalculatedAddresses: precalculatedMultisig[3].addresses
+      });
+      wallet5 = new WalletHelper('multisig-5', {
+        seedKey: 'multisig-5',
+        multisig: true,
+        preCalculatedAddresses: precalculatedMultisig[4].addresses
+      });
+      walletExtra = new WalletHelper('multisig-extra', {
+        seedKey: 'multisig-extra',
+        multisig: true,
+        preCalculatedAddresses: precalculatedMultisig[5].addresses
+      });
 
       await WalletHelper.startMultipleWalletsForTest([
         wallet1, wallet2, wallet3, wallet4, wallet5, walletExtra]);
@@ -127,8 +103,8 @@ describe('send tx (HTR)', () => {
     const tx = {
       input: [fundTx1],
       outputs: [
-        { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 100 },
-        { address: 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau', value: 270 },
+        { address: precalculatedMultisig[0].addresses[1], value: 100 },
+        { address: precalculatedMultisig[0].addresses[2], value: 270 },
       ],
     };
 
@@ -162,8 +138,8 @@ describe('send tx (HTR)', () => {
     const tx = {
       input: [fundTx1],
       outputs: [
-        { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 100 },
-        { address: 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau', value: 270 },
+        { address: precalculatedMultisig[0].addresses[1], value: 100 },
+        { address: precalculatedMultisig[0].addresses[2], value: 270 },
       ],
     };
 
@@ -206,8 +182,8 @@ describe('send tx (HTR)', () => {
     const tx = {
       input: [fundTx1],
       outputs: [
-        { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 100 },
-        { address: 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau', value: 270 },
+        { address: precalculatedMultisig[0].addresses[1], value: 100 },
+        { address: precalculatedMultisig[0].addresses[2], value: 270 },
       ],
     };
 
@@ -255,8 +231,8 @@ describe('send tx (HTR)', () => {
     const tx = {
       input: [fundTx1],
       outputs: [
-        { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 100 },
-        { address: 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau', value: 270 },
+        { address: precalculatedMultisig[0].addresses[1], value: 100 },
+        { address: precalculatedMultisig[0].addresses[2], value: 270 },
       ],
     };
 
@@ -293,8 +269,8 @@ describe('send tx (HTR)', () => {
   it.skip('Should send a transaction with max signatures', async () => {
     const tx = {
       outputs: [
-        { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 },
-        { address: 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau', value: 2 },
+        { address: precalculatedMultisig[0].addresses[1], value: 1 },
+        { address: precalculatedMultisig[0].addresses[2], value: 2 },
       ],
     };
 

@@ -15,9 +15,9 @@ describe('utxo-consolidation routes', () => {
   beforeAll(async () => {
     try {
       // First wallet, no balance. Will receive UTXOs to consolidate.
-      wallet1 = new WalletHelper('consolidate-utxo-1');
+      wallet1 = WalletHelper.getPrecalculatedWallet('consolidate-utxo-1');
       // Second wallet with custom token, source of funds
-      wallet2 = new WalletHelper('consolidate-utxo-2');
+      wallet2 = WalletHelper.getPrecalculatedWallet('consolidate-utxo-2');
 
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
 

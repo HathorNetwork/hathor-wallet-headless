@@ -29,9 +29,9 @@ describe('send tx (HTR)', () => {
 
   beforeAll(async () => {
     try {
-      wallet1 = new WalletHelper('send-tx-1');
-      wallet2 = new WalletHelper('send-tx-2');
-      wallet3 = new WalletHelper('send-tx-3');
+      wallet1 = WalletHelper.getPrecalculatedWallet('send-tx-1');
+      wallet2 = WalletHelper.getPrecalculatedWallet('send-tx-2');
+      wallet3 = WalletHelper.getPrecalculatedWallet('send-tx-3');
 
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3]);
 
@@ -644,11 +644,11 @@ describe('send tx (custom tokens)', () => {
   const tkaTx1 = { hash: null }; // Token A transaction to have two inputs
 
   beforeAll(async () => {
-    wallet1 = new WalletHelper('custom-tx-1');
-    wallet2 = new WalletHelper('custom-tx-2');
-    wallet3 = new WalletHelper('custom-tx-3');
-    wallet4 = new WalletHelper('custom-tx-4');
-    wallet5 = new WalletHelper('custom-tx-5');
+    wallet1 = WalletHelper.getPrecalculatedWallet('custom-tx-1');
+    wallet2 = WalletHelper.getPrecalculatedWallet('custom-tx-2');
+    wallet3 = WalletHelper.getPrecalculatedWallet('custom-tx-3');
+    wallet4 = WalletHelper.getPrecalculatedWallet('custom-tx-4');
+    wallet5 = WalletHelper.getPrecalculatedWallet('custom-tx-5');
 
     await WalletHelper.startMultipleWalletsForTest(
       [wallet1, wallet2, wallet3, wallet4, wallet5]
@@ -1334,7 +1334,7 @@ describe('filter query + custom tokens', () => {
   };
 
   beforeAll(async () => {
-    wallet1 = new WalletHelper('filter-custom-1');
+    wallet1 = WalletHelper.getPrecalculatedWallet('filter-custom-1');
 
     await WalletHelper.startMultipleWalletsForTest([wallet1]);
 

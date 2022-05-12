@@ -1,4 +1,5 @@
-import { TestUtils, WALLET_CONSTANTS } from './utils/test-utils-integration';
+import { TestUtils } from './utils/test-utils-integration';
+import { WALLET_CONSTANTS } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
 
 describe('melt tokens', () => {
@@ -10,7 +11,7 @@ describe('melt tokens', () => {
   };
 
   beforeAll(async () => {
-    wallet1 = new WalletHelper('melt-token-1');
+    wallet1 = WalletHelper.getPrecalculatedWallet('melt-token-1');
 
     // Starting the wallets
     await WalletHelper.startMultipleWalletsForTest([wallet1]);
