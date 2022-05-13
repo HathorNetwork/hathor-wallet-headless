@@ -230,6 +230,13 @@ walletRouter.post(
               return false;
             }
 
+            // User might get into confusion using type data and address/value
+            // so I will forbid this
+            if ('address' in value || 'value' in value) {
+              // Mix of p2pkh/p2sh output with data output
+              return false;
+            }
+
             return true;
           }
 
