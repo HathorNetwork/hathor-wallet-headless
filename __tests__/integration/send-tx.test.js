@@ -1609,8 +1609,8 @@ describe('transaction with data script output', () => {
 
   beforeAll(async () => {
     try {
-      wallet1 = new WalletHelper('send-tx-1');
-      wallet2 = new WalletHelper('send-tx-2');
+      wallet1 = WalletHelper.getPrecalculatedWallet('send-tx-data-output-1');
+      wallet2 = WalletHelper.getPrecalculatedWallet('send-tx-data-output-2');
 
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
 
