@@ -1,9 +1,6 @@
-import {
-  getRandomInt,
-  HATHOR_TOKEN_ID,
-  TestUtils,
-  WALLET_CONSTANTS,
-} from './utils/test-utils-integration';
+import { TestUtils } from './utils/test-utils-integration';
+import { HATHOR_TOKEN_ID, WALLET_CONSTANTS } from './configuration/test-constants';
+import { getRandomInt } from './utils/core.util';
 import { WalletHelper } from './utils/wallet-helper';
 
 describe('address-info routes', () => {
@@ -16,12 +13,15 @@ describe('address-info routes', () => {
   beforeAll(async () => {
     try {
       // A random HTR value for the first wallet
-      wallet1 = new WalletHelper('addinfo-1');
+      wallet1 = WalletHelper.getPrecalculatedWallet('addinfo-1');
       // A fixed custom token amount for the second wallet
-      wallet2 = new WalletHelper('addinfo-2');
+      wallet2 = WalletHelper.getPrecalculatedWallet('addinfo-2');
       minerWallet = new WalletHelper(
         WALLET_CONSTANTS.miner.walletId,
-        { words: WALLET_CONSTANTS.miner.words }
+        {
+          words: WALLET_CONSTANTS.miner.words,
+          preCalculatedAddresses: WALLET_CONSTANTS.miner.addresses
+        }
       );
 
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, minerWallet]);

@@ -1,6 +1,11 @@
 /* eslint-disable global-require */
 import { parse } from 'path';
-import { loggers, TxLogger } from './__tests__/integration/txLogger';
+import { loggers, LoggerUtil } from './__tests__/integration/utils/logger.util';
+import { WalletBenchmarkUtil } from './__tests__/integration/utils/benchmark/wallet-benchmark.util';
+import { TxBenchmarkUtil } from './__tests__/integration/utils/benchmark/tx-benchmark.util';
+import {
+  precalculationHelpers, WalletPrecalculationHelper,
+} from './scripts/helpers/wallet-precalculation.helper';
 
 /**
  * Gets the name of the test being executed from a Jasmine's global variable.
@@ -41,7 +46,40 @@ jest.mock(
 beforeAll(async () => {
   // Initializing the Transaction Logger with the test name
   const testName = getTestNameFromGlobalJasmineInstance();
-  const testLogger = new TxLogger(testName);
-  testLogger.init();
+  const testLogger = new LoggerUtil(testName);
+  testLogger.init({ filePrettyPrint: true });
   loggers.test = testLogger;
+
+  // Initializing wallet benchmark logger
+  const walletBenchmarkLog = new LoggerUtil(
+    'wallet-benchmark',
+    { reusableFilename: true }
+  );
+  walletBenchmarkLog.init();
+  loggers.walletBenchmark = walletBenchmarkLog;
+
+  // Initializing transaction benchmark logger
+  const txBenchmarkLog = new LoggerUtil(
+    'tx-benchmark',
+    { reusableFilename: true }
+  );
+  txBenchmarkLog.init();
+  loggers.txBenchmark = txBenchmarkLog;
+
+  // Loading pre-calculated wallets
+  precalculationHelpers.test = new WalletPrecalculationHelper('./tmp/wallets.json');
+  await precalculationHelpers.test.initWithWalletsFile();
+});
+
+afterAll(async () => {
+  // Calculating wallets benchmark summary
+  await WalletBenchmarkUtil.logResults();
+
+  // Calculating transactions benchmark summary
+  const txSummary = TxBenchmarkUtil.calculateSummary();
+  loggers.test.insertLineToLog('Transaction summary', { txSummary });
+  await TxBenchmarkUtil.logResults();
+
+  // Storing data about used precalculated wallets for the next test suites
+  await precalculationHelpers.test.storeDbIntoWalletsFile();
 });

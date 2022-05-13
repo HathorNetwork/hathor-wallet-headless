@@ -1,7 +1,15 @@
 import TestUtils from './test-utils';
+import { WALLET_CONSTANTS } from './integration/configuration/test-constants';
+
+/*
+ * Developer note:
+ * Every test to '/start' must be done with the 'wallet-id': TestUtils.walletId
+ * Calls to other ids will result in the mocked websocket calls not being activated and
+ * leaked connections at the end of the test.
+ */
 
 describe('start api', () => {
-  beforeAll(() => TestUtils.stopWallet());
+  beforeEach(async () => TestUtils.stopWallet());
 
   it('should not start a wallet with an invalid seedKey', async () => {
     const response = await TestUtils.request
@@ -25,6 +33,25 @@ describe('start api', () => {
       .send({ seedKey: TestUtils.seedKey });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
+  });
+
+  it('should accept pre-calculated addresses', async () => {
+    const walletHttpInput = {
+      'wallet-id': TestUtils.walletId,
+      seed: WALLET_CONSTANTS.genesis.words,
+      preCalculatedAddresses: ['addr1', 'addr2'],
+    };
+
+    const response = await TestUtils.request
+      .post('/start')
+      .send(walletHttpInput);
+
+    /*
+     * In the future this test must be expanded to check if the preCalculatedAddresses parameter
+     * was passed to the wallet lib. This could be done either by mocking the HathorWallet class
+     * or by returning a precalculation flag from the start method.
+     */
+    expect(response.body).toHaveProperty('success', true);
   });
 
   it('should require x-first-address if confirmFirstAddress is true', async () => {
@@ -51,9 +78,8 @@ describe('start api', () => {
     global.config.confirmFirstAddress = null;
   });
 
-  it('should start a MultiSig wallet if multisig is true', async () => {
+  it.skip('should start a MultiSig wallet if multisig is true', async () => {
     global.config.multisig = TestUtils.multisigData;
-    TestUtils.stopWallet();
 
     const response1 = await TestUtils.request
       .post('/start')
