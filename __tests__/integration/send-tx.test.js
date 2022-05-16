@@ -1644,6 +1644,11 @@ describe('transaction with data script output', () => {
 
     expect(tx.outputs.length).toBe(2);
 
+    // The output value with data script will have value 1 and not necessarily will
+    // be the first one. Besides that, we currently have no way of identifying the output type
+    const valueCheck = tx.outputs[0].value === 1 || tx.outputs[1].value === 1;
+    expect(valueCheck).toBe(true);
+
     done();
   });
 
