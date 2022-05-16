@@ -1652,12 +1652,10 @@ describe('transaction with data script output', () => {
       outputs: [{
         type: 'data',
         data: 'test'
-      },
-      {
+      }, {
         type: 'data',
         data: 'test2'
-      },
-      {
+      }, {
         address: await wallet2.getAddressAt(3),
         value: 100,
       }],
@@ -1667,7 +1665,8 @@ describe('transaction with data script output', () => {
     expect(tx.hash).toBeDefined();
 
     // Checking wallet balance
-    // the data script created spent 0.01 HTR
+    // each data script output created spent 0.01 HTR
+    // and we created two of them, so we burned 0.02 HTR
     const balance = await wallet1.getBalance();
     expect(balance.available).toBe(897);
     const balance2 = await wallet2.getBalance();
