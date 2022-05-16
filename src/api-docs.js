@@ -1051,8 +1051,7 @@ const apiDoc = {
                         address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
                         value: 100,
                         token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d'
-                      },
-                      {
+                      }, {
                         type: 'data',
                         data: 'test'
                       }
