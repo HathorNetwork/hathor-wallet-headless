@@ -239,4 +239,51 @@ describe('send-tx api', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
   });
+
+  it('should not accept a transaction incomplete output data', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{ type: 'data' }],
+      })
+      .set({ 'x-wallet-id': TestUtils.walletId });
+    expect(response.status).toBe(400);
+  });
+
+  it('should not accept a transaction with both output types: data and p2pkh', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{ type: 'data', data: 'test', address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
+      })
+      .set({ 'x-wallet-id': TestUtils.walletId });
+    expect(response.status).toBe(400);
+  });
+
+  it('should accept a transaction with data output', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{ type: 'data', data: 'test' }]
+      })
+      .set({ 'x-wallet-id': TestUtils.walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeTruthy();
+    expect(response.body.success).toBeTruthy();
+  });
+
+  it('should accept a transaction with data output and p2pkh output', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [
+          { type: 'data', data: 'test' },
+          { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }
+        ]
+      })
+      .set({ 'x-wallet-id': TestUtils.walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeTruthy();
+    expect(response.body.success).toBeTruthy();
+  });
 });
