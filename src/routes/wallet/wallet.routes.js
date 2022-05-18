@@ -15,6 +15,7 @@ const {
   getAddressIndex
 } = require('../../controllers/wallet/wallet.controller');
 const txProposalRouter = require('./tx-proposal.routes');
+const { MAX_DATA_SCRIPT_LENGTH } = require('../../constants');
 
 const walletRouter = Router({ mergeParams: true });
 walletRouter.use(walletMiddleware);
@@ -217,6 +218,11 @@ walletRouter.post(
     'outputs.*.data': {
       in: ['body'],
       isString: true,
+      isLength: {
+        options: {
+          max: MAX_DATA_SCRIPT_LENGTH
+        }
+      },
       optional: true
     },
     'outputs.*': {
@@ -403,7 +409,7 @@ walletRouter.post(
   body('name').isString(),
   body('symbol').isString(),
   body('amount').isInt({ min: 1 }).toInt(),
-  body('data').isString(),
+  body('data').isString().isLength({ max: MAX_DATA_SCRIPT_LENGTH }),
   body('address').isString().optional(),
   body('change_address').isString().optional(),
   body('create_mint').isBoolean().optional().toBoolean(),
