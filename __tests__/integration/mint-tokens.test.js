@@ -1,4 +1,5 @@
-import { TestUtils, WALLET_CONSTANTS } from './utils/test-utils-integration';
+import { TestUtils } from './utils/test-utils-integration';
+import { WALLET_CONSTANTS } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
 
 describe('mint token', () => {
@@ -10,7 +11,7 @@ describe('mint token', () => {
   };
 
   beforeAll(async () => {
-    wallet1 = new WalletHelper('mint-token-1');
+    wallet1 = WalletHelper.getPrecalculatedWallet('mint-token-1');
 
     // Starting the wallets
     await WalletHelper.startMultipleWalletsForTest([wallet1]);

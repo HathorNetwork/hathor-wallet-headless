@@ -1,4 +1,6 @@
-import { getRandomInt, TestUtils, WALLET_CONSTANTS } from './utils/test-utils-integration';
+import { getRandomInt } from './utils/core.util';
+import { TestUtils } from './utils/test-utils-integration';
+import { WALLET_CONSTANTS } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
 
 describe('balance routes', () => {
@@ -12,14 +14,17 @@ describe('balance routes', () => {
   beforeAll(async () => {
     try {
       // First wallet, no balance
-      wallet1 = new WalletHelper('balance1');
+      wallet1 = WalletHelper.getPrecalculatedWallet('balance1');
       // Second wallet, random balance
-      wallet2 = new WalletHelper('balance2');
+      wallet2 = WalletHelper.getPrecalculatedWallet('balance2');
       // Third wallet, balance to be used for custom tokens
-      wallet3 = new WalletHelper('custom3');
+      wallet3 = WalletHelper.getPrecalculatedWallet('custom3');
       minerWallet = new WalletHelper(
         WALLET_CONSTANTS.miner.walletId,
-        { words: WALLET_CONSTANTS.miner.words }
+        {
+          words: WALLET_CONSTANTS.miner.words,
+          preCalculatedAddresses: WALLET_CONSTANTS.miner.addresses
+        }
       );
 
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3, minerWallet]);

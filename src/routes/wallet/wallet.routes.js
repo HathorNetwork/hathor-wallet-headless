@@ -15,6 +15,7 @@ const {
   getAddressIndex
 } = require('../../controllers/wallet/wallet.controller');
 const txProposalRouter = require('./tx-proposal.routes');
+const { MAX_DATA_SCRIPT_LENGTH } = require('../../constants');
 
 const walletRouter = Router({ mergeParams: true });
 walletRouter.use(walletMiddleware);
@@ -192,6 +193,7 @@ walletRouter.post(
     'outputs.*.address': {
       in: ['body'],
       isString: true,
+      optional: true
     },
     'outputs.*.value': {
       in: ['body'],
@@ -200,12 +202,58 @@ walletRouter.post(
           min: 1
         }
       },
-      toInt: true
+      toInt: true,
+      optional: true
     },
     'outputs.*.token': {
       in: ['body'],
       isString: true,
       optional: true
+    },
+    'outputs.*.type': {
+      in: ['body'],
+      isString: true,
+      optional: true
+    },
+    'outputs.*.data': {
+      in: ['body'],
+      isString: true,
+      isLength: {
+        options: {
+          max: MAX_DATA_SCRIPT_LENGTH
+        }
+      },
+      optional: true
+    },
+    'outputs.*': {
+      in: ['body'],
+      isObject: true,
+      custom: {
+        options: (value, { req, location, path }) => {
+          if ('type' in value && value.type === 'data') {
+            // It's a data script outputs, so we must have a 'data' key
+            if (!('data' in value)) {
+              return false;
+            }
+
+            // User might get into confusion using type data and address/value
+            // so I will forbid this
+            if ('address' in value || 'value' in value) {
+              // Mix of p2pkh/p2sh output with data output
+              return false;
+            }
+
+            return true;
+          }
+
+          // It's a P2PKH or P2SH output, so we must have address and value
+          if (!('address' in value) || !('value' in value)) {
+            return false;
+          }
+
+          return true;
+        }
+      }
     },
     inputs: {
       in: ['body'],
@@ -361,7 +409,7 @@ walletRouter.post(
   body('name').isString(),
   body('symbol').isString(),
   body('amount').isInt({ min: 1 }).toInt(),
-  body('data').isString(),
+  body('data').isString().isLength({ max: MAX_DATA_SCRIPT_LENGTH }),
   body('address').isString().optional(),
   body('change_address').isString().optional(),
   body('create_mint').isBoolean().optional().toBoolean(),

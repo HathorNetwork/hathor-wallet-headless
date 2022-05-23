@@ -1,4 +1,5 @@
-import { AUTHORITY_VALUE, TestUtils, TOKEN_DATA } from './utils/test-utils-integration';
+import { TestUtils } from './utils/test-utils-integration';
+import { AUTHORITY_VALUE, TOKEN_DATA } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
 
 describe('create-nft routes', () => {
@@ -13,8 +14,8 @@ describe('create-nft routes', () => {
   };
 
   beforeAll(async () => {
-    wallet1 = new WalletHelper('create-nft-1');
-    wallet2 = new WalletHelper('create-nft-2');
+    wallet1 = WalletHelper.getPrecalculatedWallet('create-nft-1');
+    wallet2 = WalletHelper.getPrecalculatedWallet('create-nft-2');
 
     await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
 

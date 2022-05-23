@@ -1,92 +1,36 @@
 /* eslint-disable no-console */
 
 import supertest from 'supertest';
-import {
-  constants as libConstants,
-  HathorWallet,
-  transaction as transactionUtils,
-  wallet,
-} from '@hathor/wallet-lib';
+import { HathorWallet, wallet } from '@hathor/wallet-lib';
 import app from '../../../src';
-import { loggers } from '../txLogger';
+import { loggers } from './logger.util';
 import testConfig from '../configuration/test.config';
+import { WALLET_EVENTS, WalletBenchmarkUtil } from './benchmark/wallet-benchmark.util';
+import { delay } from './core.util';
+import { TxTimeHelper } from './benchmark/tx-time.helper';
+import { WALLET_CONSTANTS } from '../configuration/test-constants';
+
+export { getRandomInt } from './core.util';
 
 const request = supertest(app);
 
 /**
  * @typedef WalletData
- * @property {string} walletId Id for interacting with the wallet
- * @property {string} [words] optional 24 word seed for the wallet
- * @property {string} [seedKey] optional key that references a seed on configuration
- * @property {string[]} [addresses] Some sample addresses to help with testing
- * @property {boolean} multisig If this should represent a multisig wallet
+ * @description Contains the data to instantiate a wallet.
  *
- * Obs: One of [`words`, `seedKey`] is always required
+ * _Obs_: One of [`words`, `seedKey`] is always required.
  * If both are present, prefer `words`
  *
- * Obs[2]: `multisig` can only be used with `seedKey`
+ * _Obs[2]_: `multisig` can only be used with `seedKey`
  * because of the extra configuration required (pubkeys, minSignatures, total)
  * that are connected to a configured seedKey
+ *
+ * @property {string} walletId Id for interacting with the wallet after starting it
+ * @property {string} [words] 24 word seed for the wallet
+ * @property {string} [seedKey] key that references a seed on configuration
+ * @property {string[]} [addresses] Pre-calculated addresses to start the wallet with
+ * @property {boolean} [multisig=false] If this should represent a multisig wallet
  */
-
-/**
- * @type {Record<string,WalletData>}
- */
-export const WALLET_CONSTANTS = {
-  genesis: {
-    walletId: 'genesiswallet',
-    words: 'avocado spot town typical traffic vault danger century property shallow divorce festival spend attack anchor afford rotate green audit adjust fade wagon depart level',
-    addresses: [
-      'WY1URKUnqCTyiixW1Dw29vmeG99hNN4EW6', // Genesis funds, index 1
-      'WRTFYzhTHkfYwub8EWVtAcUgbdUpsYMBpb', // Miner rewards, index 2
-      'WhpJeUtBLrDHbKDoMC9ffMxwHqvsrNzTFV', // index 3
-    ]
-  },
-  miner: {
-    walletId: 'miner-wallet',
-    words: 'scare more mobile text erupt flush paper snack despair goddess route solar keep search result author bounce pulp shine next butter unknown frozen trap',
-    addresses: [
-      'WTjhJXzQJETVx7BVXdyZmvk396DRRsubdw', // Miner rewards address
-      'Wdf7xQtKDNefhd6KTS68Vna1u4wUAyHjLQ',
-      'WaQf5igKpbdNyxTBzc3Nv8a8n4DRkcbpmX',
-    ]
-  },
-};
-
-export const TOKEN_DATA = {
-  HTR: 0,
-  TOKEN: 1,
-
-  /**
-   * Checks if this token_data indicates this is an authority output, that is, if its 8th bit from
-   * the right is 1.
-   * @see https://github.com/HathorNetwork/rfcs/blob/master/text/0004-tokens.md#token_data-field
-   * @param {number} tokenData "token_data" property from an output
-   * @returns {boolean} True if this is an authority output
-   */
-  isAuthorityToken: tokenData => transactionUtils.isTokenDataAuthority(tokenData)
-
-};
-
-export const AUTHORITY_VALUE = {
-  MINT: libConstants.TOKEN_MINT_MASK,
-  MELT: libConstants.TOKEN_MELT_MASK
-};
-
-export const HATHOR_TOKEN_ID = '00';
-
-/**
- * Generates a random positive integer between the maximum and minimum values,
- * with the default minimum equals zero
- * @param {number} max
- * @param {number} [min=0]
- * @returns {number} Random number
- */
-export function getRandomInt(max, min = 0) {
-  const _min = Math.ceil(min);
-  const _max = Math.floor(max);
-  return Math.floor(Math.random() * (_max - _min + 1)) + _min;
-}
 
 export class TestUtils {
   /**
@@ -95,17 +39,6 @@ export class TestUtils {
    */
   static get request() {
     return request;
-  }
-
-  /**
-   * Simple way to wait asynchronously before continuing the funcion. Does not block the JS thread.
-   * @param {number} ms Amount of milliseconds to delay
-   * @returns {Promise<unknown>}
-   */
-  static async delay(ms) {
-    return new Promise(resolve => {
-      setTimeout(resolve, ms);
-    });
   }
 
   /**
@@ -120,7 +53,7 @@ export class TestUtils {
    * @returns {Promise<void>}
    */
   static async pauseForWsUpdate() {
-    await TestUtils.delay(testConfig.wsUpdateDelay);
+    await delay(testConfig.wsUpdateDelay);
   }
 
   /**
@@ -252,11 +185,22 @@ export class TestUtils {
    */
   static async startWallet(walletObj, options = {}) {
     let response;
+
+    WalletBenchmarkUtil.informWalletEvent(
+      walletObj.walletId,
+      WALLET_EVENTS.startRequest,
+      { multisig: walletObj.multisig }
+    );
+
     // Request the Wallet start
     if (walletObj.words) {
       response = await request
         .post('/start')
-        .send({ seed: walletObj.words, 'wallet-id': walletObj.walletId });
+        .send({
+          seed: walletObj.words,
+          'wallet-id': walletObj.walletId,
+          preCalculatedAddresses: walletObj.addresses
+        });
     } else {
       response = await request
         .post('/start')
@@ -264,8 +208,13 @@ export class TestUtils {
           seedKey: walletObj.seedKey,
           'wallet-id': walletObj.walletId,
           multisig: walletObj.multisig || false,
+          preCalculatedAddresses: walletObj.addresses
         });
     }
+    WalletBenchmarkUtil.informWalletEvent(
+      walletObj.walletId,
+      WALLET_EVENTS.startResponse,
+    );
 
     // Handle errors
     if (response.status !== 200) {
@@ -279,13 +228,11 @@ export class TestUtils {
 
     // Wait until the wallet is actually started
     if (options.waitWalletReady) {
-      while (true) {
-        const walletReady = await TestUtils.isWalletReady(walletObj.walletId);
-        if (walletReady) {
-          break;
-        }
-        await TestUtils.delay(1000);
-      }
+      await TestUtils.poolUntilWalletReady(walletObj.walletId);
+      WalletBenchmarkUtil.informWalletEvent(
+        walletObj.walletId,
+        WALLET_EVENTS.confirmedReady,
+      );
     }
     // Log the success and return
     if (walletObj.words) {
@@ -314,7 +261,21 @@ export class TestUtils {
         throw err;
       });
 
-    return res.body?.statusCode === HathorWallet.READY;
+    const statusCode = res.body?.statusCode;
+    if (statusCode === HathorWallet.ERROR) {
+      throw new Error(`Wallet ${walletId} initialization failed.`);
+    }
+    return statusCode === HathorWallet.READY;
+  }
+
+  static async poolUntilWalletReady(walletId) {
+    while (true) {
+      const walletReady = await TestUtils.isWalletReady(walletId);
+      if (walletReady) {
+        return;
+      }
+      await delay(1000);
+    }
   }
 
   /**
@@ -438,10 +399,13 @@ export class TestUtils {
       value,
       change_address: WALLET_CONSTANTS.genesis.addresses[0]
     };
+
+    const txTimeHelper = new TxTimeHelper('simple-send-tx');
     const response = await TestUtils.request
       .post('/wallet/simple-send-tx')
       .send(requestBody)
       .set(TestUtils.generateHeader(WALLET_CONSTANTS.genesis.walletId));
+    txTimeHelper.informResponse(response.body.hash);
 
     const transaction = TestUtils.handleTransactionResponse({
       methodName: 'injectFundsIntoAddress',
@@ -662,10 +626,12 @@ export class TestUtils {
     const requestBody = { ...params };
     delete requestBody.walletId; // Removing the only attribute that has no relation to the request
 
+    const txTimeHelper = new TxTimeHelper('utxo-consolidation');
     const utxoResponse = await TestUtils.request
       .post('/wallet/utxo-consolidation')
       .send(requestBody)
       .set(this.generateHeader(params.walletId));
+    txTimeHelper.informResponse(utxoResponse.body.txId);
 
     const transaction = TestUtils.handleTransactionResponse({
       methodName: 'consolidateUtxos',
@@ -700,15 +666,17 @@ export class TestUtils {
     const requestBody = { ...params };
     delete requestBody.walletId; // Removing the only attribute that has no relation to the request
 
-    const utxoResponse = await TestUtils.request
+    const txTimeHelper = new TxTimeHelper('create-nft');
+    const nftResponse = await TestUtils.request
       .post('/wallet/create-nft')
       .send(requestBody)
       .set(this.generateHeader(params.walletId));
+    txTimeHelper.informResponse(nftResponse.body.hash);
 
     const transaction = TestUtils.handleTransactionResponse({
       methodName: 'createNft',
       requestBody,
-      txResponse: utxoResponse,
+      txResponse: nftResponse,
       dontLogErrors: params.dontLogErrors
     });
 

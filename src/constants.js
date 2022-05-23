@@ -25,4 +25,7 @@ module.exports = {
    * Do NOT enable this unless you know what you're doing.
    */
   MULTISIG_ENABLED: false,
+
+  // Max length of data script outputs string
+  MAX_DATA_SCRIPT_LENGTH: 150,
 };

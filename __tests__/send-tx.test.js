@@ -1,4 +1,5 @@
 import TestUtils from './test-utils';
+import { MAX_DATA_SCRIPT_LENGTH } from '../src/constants';
 
 describe('send-tx api', () => {
   it('should return 200 with a valid body selecting inputs by query', async () => {
@@ -238,5 +239,74 @@ describe('send-tx api', () => {
       .set({ 'x-wallet-id': TestUtils.walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
+  });
+
+  it('should not accept a transaction incomplete output data', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{ type: 'data' }],
+      })
+      .set({ 'x-wallet-id': TestUtils.walletId });
+    expect(response.status).toBe(400);
+  });
+
+  it('should not accept a transaction with both output types: data and p2pkh', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{ type: 'data', data: 'test', address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
+      })
+      .set({ 'x-wallet-id': TestUtils.walletId });
+    expect(response.status).toBe(400);
+  });
+
+  it('should accept a transaction with data output', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{ type: 'data', data: 'test' }]
+      })
+      .set({ 'x-wallet-id': TestUtils.walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeTruthy();
+    expect(response.body.success).toBeTruthy();
+  });
+
+  it('should accept a transaction with data output and p2pkh output', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [
+          { type: 'data', data: 'test' },
+          { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }
+        ]
+      })
+      .set({ 'x-wallet-id': TestUtils.walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeTruthy();
+    expect(response.body.success).toBeTruthy();
+  });
+
+  it('should not accept a transaction with data size bigger than the maximum', async () => {
+    // Error with MAX + 1
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{ type: 'data', data: 'a'.repeat(MAX_DATA_SCRIPT_LENGTH + 1) }],
+      })
+      .set({ 'x-wallet-id': TestUtils.walletId });
+    expect(response.status).toBe(400);
+
+    // Success with MAX
+    const response2 = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{ type: 'data', data: 'a'.repeat(MAX_DATA_SCRIPT_LENGTH) }],
+      })
+      .set({ 'x-wallet-id': TestUtils.walletId });
+    expect(response2.status).toBe(200);
+    expect(response2.body.hash).toBeTruthy();
+    expect(response2.body.success).toBeTruthy();
   });
 });

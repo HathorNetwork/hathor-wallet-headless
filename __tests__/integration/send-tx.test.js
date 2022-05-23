@@ -29,9 +29,9 @@ describe('send tx (HTR)', () => {
 
   beforeAll(async () => {
     try {
-      wallet1 = new WalletHelper('send-tx-1');
-      wallet2 = new WalletHelper('send-tx-2');
-      wallet3 = new WalletHelper('send-tx-3');
+      wallet1 = WalletHelper.getPrecalculatedWallet('send-tx-1');
+      wallet2 = WalletHelper.getPrecalculatedWallet('send-tx-2');
+      wallet3 = WalletHelper.getPrecalculatedWallet('send-tx-3');
 
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3]);
 
@@ -644,11 +644,11 @@ describe('send tx (custom tokens)', () => {
   const tkaTx1 = { hash: null }; // Token A transaction to have two inputs
 
   beforeAll(async () => {
-    wallet1 = new WalletHelper('custom-tx-1');
-    wallet2 = new WalletHelper('custom-tx-2');
-    wallet3 = new WalletHelper('custom-tx-3');
-    wallet4 = new WalletHelper('custom-tx-4');
-    wallet5 = new WalletHelper('custom-tx-5');
+    wallet1 = WalletHelper.getPrecalculatedWallet('custom-tx-1');
+    wallet2 = WalletHelper.getPrecalculatedWallet('custom-tx-2');
+    wallet3 = WalletHelper.getPrecalculatedWallet('custom-tx-3');
+    wallet4 = WalletHelper.getPrecalculatedWallet('custom-tx-4');
+    wallet5 = WalletHelper.getPrecalculatedWallet('custom-tx-5');
 
     await WalletHelper.startMultipleWalletsForTest(
       [wallet1, wallet2, wallet3, wallet4, wallet5]
@@ -1334,7 +1334,7 @@ describe('filter query + custom tokens', () => {
   };
 
   beforeAll(async () => {
-    wallet1 = new WalletHelper('filter-custom-1');
+    wallet1 = WalletHelper.getPrecalculatedWallet('filter-custom-1');
 
     await WalletHelper.startMultipleWalletsForTest([wallet1]);
 
@@ -1571,6 +1571,115 @@ describe('filter query + custom tokens', () => {
 
     expect(addr5custom.total_amount_available).toBe(1000);
     expect(addr5htr.total_amount_available).toBe(1000);
+    done();
+  });
+
+  // Outputs must have address and value or type and data
+  it('should reject an invalid output object', async done => {
+    // Output with address and without value
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{
+          address: 'invalidAddress',
+        }],
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.status).toBe(400);
+
+    // Output with type 'data' but without data
+    const response2 = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        outputs: [{
+          type: 'data',
+        }],
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response2.status).toBe(400);
+    done();
+  });
+});
+
+describe('transaction with data script output', () => {
+  let wallet1; // Receives funds
+  let wallet2; // Main destination for test transactions
+
+  beforeAll(async () => {
+    try {
+      wallet1 = WalletHelper.getPrecalculatedWallet('send-tx-data-output-1');
+      wallet2 = WalletHelper.getPrecalculatedWallet('send-tx-data-output-2');
+
+      await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
+
+      // Funds
+      await wallet1.injectFunds(1000, 0);
+    } catch (err) {
+      TestUtils.logError(err.stack);
+    }
+  });
+
+  afterAll(async () => {
+    await wallet1.stop();
+    await wallet2.stop();
+  });
+
+  it('should success with an output data script', async done => {
+    const tx = await wallet1.sendTx({
+      outputs: [{
+        type: 'data',
+        data: 'test'
+      }],
+    });
+
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
+
+    // Checking wallet balance
+    // the data script created spent 0.01 HTR
+    const balance = await wallet1.getBalance();
+    expect(balance.available).toBe(999);
+
+    expect(tx.outputs.length).toBe(2);
+
+    // The output value with data script will have value 1 and not necessarily will
+    // be the first one. Besides that, we currently have no way of identifying the output type
+    const valueCheck = tx.outputs[0].value === 1 || tx.outputs[1].value === 1;
+    expect(valueCheck).toBe(true);
+
+    done();
+  });
+
+  it('should success with two output data scripts and p2pkh output script', async done => {
+    const tx = await wallet1.sendTx({
+      outputs: [{
+        type: 'data',
+        data: 'test'
+      }, {
+        type: 'data',
+        data: 'test2'
+      }, {
+        address: await wallet2.getAddressAt(3),
+        value: 100,
+      }],
+    });
+
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
+
+    // Checking wallet balance
+    // each data script output created spent 0.01 HTR
+    // and we created two of them, so we burned 0.02 HTR
+    const balance = await wallet1.getBalance();
+    expect(balance.available).toBe(897);
+    const balance2 = await wallet2.getBalance();
+    expect(balance2.available).toBe(100);
+
+    // Checking specific address balance
+    const destination = await wallet2.getAddressInfo(3);
+    expect(destination.total_amount_available).toBe(100);
     done();
   });
 });

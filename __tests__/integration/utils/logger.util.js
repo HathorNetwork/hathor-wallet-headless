@@ -1,19 +1,21 @@
 /* eslint-disable no-console */
 
 import winston from 'winston';
-import testConfig from './configuration/test.config';
+import testConfig from '../configuration/test.config';
 
 export const loggers = {
   /**
    * @type: TxLogger
    */
-  test: null
+  test: null,
+  walletBenchmark: null,
+  txBenchmark: null,
 };
 
 /**
  * A logger for every transaction on the integration tests for debugging.
  */
-export class TxLogger {
+export class LoggerUtil {
   /**
    * @type: string
    * Stores the log filename, which is built on the constructor.
@@ -33,8 +35,10 @@ export class TxLogger {
    * 20220224T084737-title-integrationTest.log
    * </pre></code>
    * @param {string} [title] Optional title. Keep it short and simple for readability
+   * @param [options]
+   * @param {boolean} [options.reusableFilename] If true, the file will not have a timestamp
    */
-  constructor(title) {
+  constructor(title, options = {}) {
     const date = new Date();
 
     /**
@@ -47,7 +51,9 @@ export class TxLogger {
       .split('.')[0]; // Get only the seconds integer
 
     const additionalTitle = title ? `-${title}` : '';
-    const filename = `${humanReadableTimestamp}${additionalTitle}-integrationTest.log`;
+    const filename = options.reusableFilename
+      ? `${title}.log`
+      : `${humanReadableTimestamp}${additionalTitle}-integrationTest.log`;
     this.#instanceFilename = filename;
   }
 
@@ -57,28 +63,37 @@ export class TxLogger {
 
   /**
    * Initializes the helper with a winston logger instance
+   * @param [options]
+   * @param {boolean} [options.filePrettyPrint] If true, the file will have pretty print
    * @returns {void}
    */
-  init() {
+  init(options = {}) {
+    const consoleOptions = {
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.colorize(),
+      ),
+      level: testConfig.consoleLevel || 'silly',
+    };
+    const fileOptions = {
+      format: options.filePrettyPrint
+        ? winston.format.combine(
+          winston.format.timestamp(),
+          winston.format.prettyPrint()
+        )
+        : winston.format.combine(
+          winston.format.timestamp(),
+          winston.format.json(),
+        ),
+      filename: `${testConfig.logOutputFolder}${this.#instanceFilename}`,
+      level: testConfig.consoleLevel || 'silly',
+    };
+
     this.#logger = winston.createLogger({
-      defaultMeta: { service: 'txLogger' },
+      defaultMeta: { service: 'txLogger', suite: this.#instanceFilename },
       transports: [
-        new winston.transports.Console({
-          format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.colorize(),
-          ),
-          level: testConfig.consoleLevel || 'silly',
-        }),
-        new winston.transports.File({
-          format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.prettyPrint()
-          ),
-          filename: `${testConfig.logOutputFolder}${this.#instanceFilename}`,
-          level: testConfig.consoleLevel || 'silly',
-          colorize: false,
-        })
+        new winston.transports.Console(consoleOptions),
+        new winston.transports.File(fileOptions)
       ]
     });
 
