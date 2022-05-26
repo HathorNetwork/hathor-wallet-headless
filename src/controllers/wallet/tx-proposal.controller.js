@@ -70,6 +70,31 @@ async function getMySignatures(req, res) {
   }
 }
 
+/**
+ * Method to create a Transaction instance from the tx in hex format and
+ * an array of P2SH signatures.
+ *
+ * @param {HathorWallet} wallet The wallet object
+ * @param {string} txHex The transaction in hex format
+ * @param {Array[string]} signatures the serialized P2SHSignatures of this transaction
+ * @returns {Transaction}
+ */
+function assemblePartialTransaction(wallet, txHex, signatures) {
+  if (!wallet.multisig) {
+    // This wallet is not a MultiSig wallet
+    throw new Error('Invalid wallet for this operation.');
+  }
+  if (signatures.length !== wallet.multisig.minSignatures) {
+    throw new Error(
+      `Quantity of signatures different than expected. \
+Expected ${wallet.multisig.minSignatures} Received ${signatures.length}`
+    );
+  }
+  const tx = wallet.assemblePartialTransaction(txHex, signatures);
+  tx.prepareToSend();
+  return tx;
+}
+
 async function signTx(req, res) {
   if (!constants.MULTISIG_ENABLED) {
     res.send({
@@ -88,7 +113,7 @@ async function signTx(req, res) {
   const { txHex } = req.body;
   const signatures = req.body.signatures || [];
   try {
-    const tx = req.wallet.assemblePartialTransaction(txHex, signatures);
+    const tx = assemblePartialTransaction(req.wallet, txHex, signatures);
     res.send({ success: true, txHex: tx.toHex() });
   } catch (err) {
     res.send({ success: false, error: err.message });
@@ -119,8 +144,7 @@ async function signAndPush(req, res) {
   const { txHex } = req.body;
   const signatures = req.body.signatures || [];
   try {
-    const tx = req.wallet.assemblePartialTransaction(txHex, signatures);
-    tx.prepareToSend();
+    const tx = assemblePartialTransaction(req.wallet, txHex, signatures);
 
     const sendTransaction = new SendTransaction({
       transaction: tx,

@@ -3,6 +3,7 @@ import { TestUtils } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
 import { multisigWalletsData } from '../../scripts/helpers/wallet-precalculation.helper';
 import precalculatedMultisig from './configuration/precalculated-multisig-wallets.json';
+import { loggers } from './utils/logger.util';
 
 describe('send tx (HTR)', () => {
   let wallet1;
@@ -103,8 +104,8 @@ describe('send tx (HTR)', () => {
     const tx = {
       input: [fundTx1],
       outputs: [
-        { address: precalculatedMultisig[0].addresses[1], value: 100 },
-        { address: precalculatedMultisig[0].addresses[2], value: 270 },
+        { address: precalculatedMultisig[0].addresses[0], value: 100 },
+        { address: precalculatedMultisig[0].addresses[1], value: 270 },
       ],
     };
 
@@ -113,7 +114,7 @@ describe('send tx (HTR)', () => {
       .post('/wallet/tx-proposal')
       .send(tx)
       .set({ 'x-wallet-id': wallet1.walletId });
-    console.log(JSON.stringify(response.body));
+    loggers.test.insertLineToLog('multisig[should fail lt minsig]: proposal', { body: response.body });
 
     const { txHex } = response.body;
 
@@ -122,57 +123,14 @@ describe('send tx (HTR)', () => {
     expect(sig1).toBeTruthy();
     const sig2 = await wallet2.getSignatures(txHex);
     expect(sig2).toBeTruthy();
+    loggers.test.insertLineToLog('multisig[should fail lt minsig]: signatures', { signatures: [sig1, sig2] });
 
     // try to send
     response = await TestUtils.request
       .post('/wallet/tx-proposal/sign-and-push')
       .send({ txHex, signatures: [sig1, sig2] })
       .set({ 'x-wallet-id': wallet1.walletId });
-    console.log(JSON.stringify(response.body));
-
-    expect(response.status).toBe(200);
-    expect(response.body.success).toBe(false);
-  });
-
-  it('Should fail to send a transaction with more than max signatures', async () => {
-    const tx = {
-      input: [fundTx1],
-      outputs: [
-        { address: precalculatedMultisig[0].addresses[1], value: 100 },
-        { address: precalculatedMultisig[0].addresses[2], value: 270 },
-      ],
-    };
-
-    // wallet1 proposes the transaction
-    let response = await TestUtils.request
-      .post('/wallet/tx-proposal')
-      .send(tx)
-      .set({ 'x-wallet-id': wallet1.walletId });
-    console.log(JSON.stringify(response.body));
-
-    const { txHex } = response.body;
-
-    // collect signatures from all wallets
-    const sig1 = await wallet1.getSignatures(txHex);
-    expect(sig1).toBeTruthy();
-    const sig2 = await wallet2.getSignatures(txHex);
-    expect(sig2).toBeTruthy();
-    const sig3 = await wallet3.getSignatures(txHex);
-    expect(sig3).toBeTruthy();
-    const sig4 = await wallet4.getSignatures(txHex);
-    expect(sig4).toBeTruthy();
-    const sig5 = await wallet5.getSignatures(txHex);
-    expect(sig5).toBeTruthy();
-    // Get an extra signature
-    const sig6 = await walletExtra.getSignatures(txHex);
-    expect(sig6).toBeTruthy();
-
-    // try to send
-    response = await TestUtils.request
-      .post('/wallet/tx-proposal/sign-and-push')
-      .send({ txHex, signatures: [sig1, sig2, sig3, sig4, sig5, sig6] })
-      .set({ 'x-wallet-id': wallet1.walletId });
-    console.log(JSON.stringify(response.body));
+    loggers.test.insertLineToLog('multisig[should fail lt minsig]: sign+push', { body: response.body });
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
@@ -182,8 +140,8 @@ describe('send tx (HTR)', () => {
     const tx = {
       input: [fundTx1],
       outputs: [
-        { address: precalculatedMultisig[0].addresses[1], value: 100 },
-        { address: precalculatedMultisig[0].addresses[2], value: 270 },
+        { address: precalculatedMultisig[0].addresses[0], value: 100 },
+        { address: precalculatedMultisig[0].addresses[1], value: 270 },
       ],
     };
 
@@ -192,6 +150,7 @@ describe('send tx (HTR)', () => {
       .post('/wallet/tx-proposal')
       .send(tx)
       .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('multisig[should fail invalid sig]: proposal', { body: response.body });
 
     const { txHex } = response.body;
 
@@ -205,34 +164,35 @@ describe('send tx (HTR)', () => {
 
     // Change sig3 to be invalid
     const p2shSig = hathorLib.P2SHSignature.deserialize(sig3);
+    const invalidP2shSig = new hathorLib.P2SHSignature(p2shSig.pubkey, {});
     // eslint-disable-next-line no-unused-vars
     for (const [index, sig] of Object.entries(p2shSig.signatures)) {
       const buf = Buffer.from(sig, 'hex');
       for (let i = 0; i < buf.length; i++) {
         buf[i]++;
       }
+      invalidP2shSig.signatures[index] = buf.toString('hex');
     }
-    const invalidSig = p2shSig.serialize();
+    const invalidSig = invalidP2shSig.serialize();
+    loggers.test.insertLineToLog('multisig[should fail invalid sig]: signatures', { signatures: [sig1, sig2, sig3, invalidSig] });
 
     // try to send
     response = await TestUtils.request
       .post('/wallet/tx-proposal/sign-and-push')
       .send({ txHex, signatures: [sig1, sig2, invalidSig] })
       .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('multisig[should fail invalid sig]: response', { body: response.body });
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
   });
 
-  /*
-   * Skipping the actual multisig tests until we find the reason it is failing
-   */
-  it.skip('Should send a transaction with minimum signatures', async () => {
+  it('Should send a transaction with minimum signatures', async () => {
     const tx = {
       input: [fundTx1],
       outputs: [
         { address: precalculatedMultisig[0].addresses[1], value: 100 },
-        { address: precalculatedMultisig[0].addresses[2], value: 270 },
+        { address: precalculatedMultisig[0].addresses[0], value: 270 },
       ],
     };
 
@@ -241,6 +201,7 @@ describe('send tx (HTR)', () => {
       .post('/wallet/tx-proposal')
       .send(tx)
       .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('multisig[should send minsig]: proposal', { body: response.body });
 
     const { txHex } = response.body;
 
@@ -251,6 +212,7 @@ describe('send tx (HTR)', () => {
     expect(sig2).toBeTruthy();
     const sig3 = await wallet3.getSignatures(txHex);
     expect(sig3).toBeTruthy();
+    loggers.test.insertLineToLog('multisig[should send minsig]: signatures', { signatures: [sig1, sig2, sig3] });
 
     // try to send
     response = await TestUtils.request
@@ -258,19 +220,19 @@ describe('send tx (HTR)', () => {
       .send({ txHex, signatures: [sig1, sig2, sig3] })
       .set({ 'x-wallet-id': wallet1.walletId });
 
+    await TestUtils.pauseForWsUpdate();
+
+    loggers.test.insertLineToLog('multisig[should send minsig]: sign+push', { body: response.body });
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
     expect(response.body.hash).toBeDefined();
   });
 
-  /*
-   * Skipping the actual multisig tests until we find the reason it is failing
-   */
-  it.skip('Should send a transaction with max signatures', async () => {
+  it('Should fail to send a transaction with more than min signatures', async () => {
     const tx = {
       outputs: [
-        { address: precalculatedMultisig[0].addresses[1], value: 1 },
-        { address: precalculatedMultisig[0].addresses[2], value: 2 },
+        { address: precalculatedMultisig[0].addresses[0], value: 100 },
+        { address: precalculatedMultisig[0].addresses[1], value: 270 },
       ],
     };
 
@@ -279,10 +241,10 @@ describe('send tx (HTR)', () => {
       .post('/wallet/tx-proposal')
       .send(tx)
       .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('multisig[should fail gt minsig]: proposal', { body: response.body });
 
     const { txHex } = response.body;
 
-    // collect signatures from 5 wallets
     const sig1 = await wallet1.getSignatures(txHex);
     expect(sig1).toBeTruthy();
     const sig2 = await wallet2.getSignatures(txHex);
@@ -291,17 +253,18 @@ describe('send tx (HTR)', () => {
     expect(sig3).toBeTruthy();
     const sig4 = await wallet4.getSignatures(txHex);
     expect(sig4).toBeTruthy();
-    const sig5 = await wallet5.getSignatures(txHex);
-    expect(sig5).toBeTruthy();
+    const signatures = [sig1, sig2, sig3, sig4];
+    loggers.test.insertLineToLog('multisig[should fail gt minsig]: signatures', { signatures });
 
     // try to send
     response = await TestUtils.request
       .post('/wallet/tx-proposal/sign-and-push')
-      .send({ txHex, signatures: [sig1, sig2, sig3, sig4, sig5] })
+      .send({ txHex, signatures })
       .set({ 'x-wallet-id': wallet1.walletId });
 
+    loggers.test.insertLineToLog('multisig[should fail gt minsig]: sign+push', { body: response.body });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.hash).toBeDefined();
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBeDefined();
   });
 });
