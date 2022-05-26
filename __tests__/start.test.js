@@ -84,6 +84,7 @@ describe('start api', () => {
 
   it('should start a MultiSig wallet if multisig is true', async () => {
     global.config.multisig = TestUtils.multisigData;
+    await TestUtils.stopWallet({ walletId });
 
     const response1 = await TestUtils.request
       .post('/start')
@@ -95,6 +96,7 @@ describe('start api', () => {
       .get('/wallet/address')
       .query({ index: 0 })
       .set({ 'x-wallet-id': walletId });
+    console.log(JSON.stringify(response2.body));
     expect(response2.status).toBe(200);
     expect(response2.body.address).toBe(TestUtils.multisigAddresses[0]);
 
