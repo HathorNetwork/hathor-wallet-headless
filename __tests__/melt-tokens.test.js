@@ -1,8 +1,18 @@
 import TestUtils from './test-utils';
 import wsFixtures from './__fixtures__/ws-fixtures';
 
+const walletId = 'stub_melt_tokens';
+
 // TODO: Add a fixture to melt token 01
 describe('melt-tokens api', () => {
+  beforeAll(async () => {
+    await TestUtils.startWallet({ walletId });
+  });
+
+  afterAll(async () => {
+    await TestUtils.stopWallet({ walletId });
+  });
+
   it('should return 200 with a valid body', async () => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
@@ -11,7 +21,7 @@ describe('melt-tokens api', () => {
           '00da712d64e04866c8c9aa8fceca70e80d1693864176b6b443220cf29adab5ed',
         amount: 1,
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
   });
@@ -24,7 +34,7 @@ describe('melt-tokens api', () => {
           '00da712d64e04866c8c9aa8fceca70e80d1693864176b6b443220cf29adab5ed',
         amount: '1',
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
   });
@@ -40,7 +50,7 @@ describe('melt-tokens api', () => {
       const response = await TestUtils.request
         .post('/wallet/melt-tokens')
         .send(token)
-        .set({ 'x-wallet-id': TestUtils.walletId });
+        .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(400);
       expect(response.body.success).toBeFalsy();
     });
@@ -54,7 +64,7 @@ describe('melt-tokens api', () => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send(token)
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
   });
@@ -67,7 +77,7 @@ describe('melt-tokens api', () => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send(token)
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
   });
@@ -80,7 +90,7 @@ describe('melt-tokens api', () => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send(token)
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
   });
@@ -93,7 +103,7 @@ describe('melt-tokens api', () => {
     let response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send(token)
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
 
@@ -110,7 +120,7 @@ describe('melt-tokens api', () => {
         token:
           '00da712d64e04866c8c9aa8fceca70e80d1693864176b6b443220cf29adab5ed',
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.available).toBe(0);
     expect(response.body.locked).toBe(0);
@@ -124,7 +134,7 @@ describe('melt-tokens api', () => {
           '00da712d64e04866c8c9aa8fceca70e80d1693864176b6b443220cf29adab5ed',
         amount: 1,
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     const promise2 = TestUtils.request
       .post('/wallet/melt-tokens')
       .send({
@@ -132,7 +142,7 @@ describe('melt-tokens api', () => {
           '00da712d64e04866c8c9aa8fceca70e80d1693864176b6b443220cf29adab5ed',
         amount: 1,
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
 
     const [response1, response2] = await Promise.all([promise1, promise2]);
     expect(response1.status).toBe(200);

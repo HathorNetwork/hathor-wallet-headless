@@ -105,11 +105,9 @@ class TestUtils {
 
   static async startWallet({
     seedKey = SEED_KEY,
-    walletId = TestUtils.walletId,
+    walletId = WALLET_ID,
     multisig = false,
   } = {}) {
-    TestUtils.walletId = walletId;
-
     const response = await request
       .post('/start')
       .send({ seedKey, 'wallet-id': walletId, multisig });
@@ -134,7 +132,7 @@ class TestUtils {
     }
   }
 
-  static async stopWallet({ walletId = TestUtils.walletId } = {}) {
+  static async stopWallet({ walletId = WALLET_ID } = {}) {
     await request.post('/wallet/stop').set({ 'x-wallet-id': walletId });
   }
 

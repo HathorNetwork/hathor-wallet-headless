@@ -1,17 +1,17 @@
 import hathorLib from '@hathor/wallet-lib';
 import TestUtils from './test-utils';
 
+const walletId = 'stub_create_tx_proposal';
+
 describe('create tx-proposal api', () => {
   beforeAll(async () => {
     global.config.multisig = TestUtils.multisigData;
-    // Stop P2PKH wallet started on setupTests
-    await TestUtils.stopWallet();
-    // Start a MultiSig wallet
-    await TestUtils.startWallet({ multisig: true });
+    await TestUtils.startWallet({ walletId, multisig: true });
   });
 
-  afterAll(() => {
+  afterAll(async () => {
     global.config.multisig = {};
+    await TestUtils.stopWallet({ walletId });
   });
 
   it('should return 200 with a valid body', async () => {
@@ -23,7 +23,7 @@ describe('create tx-proposal api', () => {
           { address: 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau', value: 1 },
         ],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.txHex).toBeDefined();
     expect(response.body.success).toBeTruthy();
@@ -39,7 +39,7 @@ describe('create tx-proposal api', () => {
         inputs: [{ txId: '0000034e42c9f2a7a7ab720e2f34bc6701679bb70437e7b7d53b6328aa3a88ca', index: 1 }],
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.txHex).toBeDefined();
     expect(response.body.success).toBeTruthy();
@@ -59,7 +59,7 @@ describe('create tx-proposal api', () => {
           { address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN', value: '1' },
         ],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.txHex).toBeDefined();
     expect(response.body.success).toBeTruthy();
@@ -71,7 +71,7 @@ describe('create tx-proposal api', () => {
       .send({
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc' }],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
 
@@ -80,7 +80,7 @@ describe('create tx-proposal api', () => {
       .send({
         outputs: [{ value: 1 }],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
   });
@@ -91,7 +91,7 @@ describe('create tx-proposal api', () => {
       .send({
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 0 }],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
   });
@@ -102,7 +102,7 @@ describe('create tx-proposal api', () => {
       .send({
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1, token: '09' }]
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.txHex).toBeTruthy();
     expect(response.body.success).toBeTruthy();
@@ -118,7 +118,7 @@ describe('create tx-proposal api', () => {
           token: 'unfunded-token'
         }],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
   });
@@ -130,7 +130,7 @@ describe('create tx-proposal api', () => {
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
         change_address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeTruthy();
   });
@@ -142,7 +142,7 @@ describe('create tx-proposal api', () => {
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
         change_address: 'weHUcEmv91Lfo2CBYVfDLh8Y3sB3pivcQZ',
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
   });

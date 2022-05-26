@@ -1,18 +1,28 @@
 import { wallet as walletUtils } from '@hathor/wallet-lib';
 import TestUtils from './test-utils';
 
+const walletId = 'stub_address';
+
 describe('address api', () => {
+  beforeAll(async () => {
+    await TestUtils.startWallet({ walletId });
+  });
+
+  afterAll(async () => {
+    await TestUtils.stopWallet({ walletId });
+  });
+
   it('should return 200 with a valid body', async () => {
     let response = await TestUtils.request
       .get('/wallet/address')
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.address).toBe(TestUtils.addresses[4]);
 
     // Should return the same address for a second call
     response = await TestUtils.request
       .get('/wallet/address')
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.address).toBe(TestUtils.addresses[4]);
   });
@@ -21,7 +31,7 @@ describe('address api', () => {
     const response = await TestUtils.request
       .get('/wallet/address')
       .query({ index: 0 })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.address).toBe(TestUtils.addresses[0]);
   });
@@ -30,14 +40,14 @@ describe('address api', () => {
     let response = await TestUtils.request
       .get('/wallet/address')
       .query({ index: 2 })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.address).toBe(TestUtils.addresses[2]);
 
     response = await TestUtils.request
       .get('/wallet/address')
       .query({ index: '2' })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.body.address).toBe(TestUtils.addresses[2]);
   });
 
@@ -49,7 +59,7 @@ describe('address api', () => {
       const response = await TestUtils.request
         .get('/wallet/address')
         .query({ mark_as_used: true })
-        .set({ 'x-wallet-id': TestUtils.walletId });
+        .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(200);
       expect(response.body.address).toBe(TestUtils.addresses[index]);
     }
@@ -57,7 +67,7 @@ describe('address api', () => {
     // Subsequent calls should return the last address as the gap limit was reached
     const response = await TestUtils.request
       .get('/wallet/address')
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.address).toBe(TestUtils.addresses[upperLimit]);
   });

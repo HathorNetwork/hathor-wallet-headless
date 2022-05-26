@@ -1,7 +1,17 @@
 import TestUtils from './test-utils';
 import { MAX_DATA_SCRIPT_LENGTH } from '../src/constants';
 
+const walletId = 'stub_send_tx';
+
 describe('send-tx api', () => {
+  beforeAll(async () => {
+    await TestUtils.startWallet({ walletId });
+  });
+
+  afterAll(async () => {
+    await TestUtils.stopWallet({ walletId });
+  });
+
   it('should return 200 with a valid body selecting inputs by query', async () => {
     const response = await TestUtils.request
       .post('/wallet/send-tx')
@@ -9,7 +19,7 @@ describe('send-tx api', () => {
         inputs: [{ type: 'query', filter_address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN' }],
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
     expect(response.body.success).toBeTruthy();
@@ -25,7 +35,7 @@ describe('send-tx api', () => {
           { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 10, token: '04' }
         ],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
     expect(response.body.success).toBeTruthy();
@@ -37,7 +47,7 @@ describe('send-tx api', () => {
       .send({
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
     expect(response.body.success).toBeTruthy();
@@ -50,7 +60,7 @@ describe('send-tx api', () => {
         inputs: [{ hash: '0000034e42c9f2a7a7ab720e2f34bc6701679bb70437e7b7d53b6328aa3a88ca', index: 0 }],
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
     expect(response.body.success).toBeTruthy();
@@ -65,7 +75,7 @@ describe('send-tx api', () => {
           { address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN', value: '1' },
         ],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
     expect(response.body.success).toBeTruthy();
@@ -77,7 +87,7 @@ describe('send-tx api', () => {
       .send({
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc' }],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
 
@@ -86,7 +96,7 @@ describe('send-tx api', () => {
       .send({
         outputs: [{ value: 1 }],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
   });
@@ -97,7 +107,7 @@ describe('send-tx api', () => {
       .send({
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 0 }],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
   });
@@ -108,13 +118,13 @@ describe('send-tx api', () => {
       .send({
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     const promise2 = TestUtils.request
       .post('/wallet/send-tx')
       .send({
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
 
     const [response1, response2] = await Promise.all([promise1, promise2]);
     expect(response1.status).toBe(200);
@@ -134,7 +144,7 @@ describe('send-tx api', () => {
           symbol: 'stub_token',
         },
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeTruthy();
     expect(response.body.success).toBeTruthy();
@@ -146,7 +156,7 @@ describe('send-tx api', () => {
       .send({
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1, token: '09' }]
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeTruthy();
     expect(response.body.success).toBeTruthy();
@@ -163,7 +173,7 @@ describe('send-tx api', () => {
           symbol: 'stub_token_2',
         },
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
   });
@@ -178,7 +188,7 @@ describe('send-tx api', () => {
           { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1, token: '04' }
         ],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeUndefined();
     expect(response.body.success).toBe(false);
@@ -192,7 +202,7 @@ describe('send-tx api', () => {
       .send({
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1, token: '02' }]
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
   });
@@ -204,7 +214,7 @@ describe('send-tx api', () => {
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
         change_address: 'Wc5YHn861241iLY42mFT8z1dT1UdsNWkfs',
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeTruthy();
   });
@@ -223,7 +233,7 @@ describe('send-tx api', () => {
           outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
           token,
         })
-        .set({ 'x-wallet-id': TestUtils.walletId });
+        .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(400);
       expect(response.body.success).toBeFalsy();
     });
@@ -236,7 +246,7 @@ describe('send-tx api', () => {
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
         change_address: 'WVGxdgZMHkWo2Hdrb1sEFedNdjTXzjvjPg',
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
   });
@@ -247,7 +257,7 @@ describe('send-tx api', () => {
       .send({
         outputs: [{ type: 'data' }],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
   });
 
@@ -257,7 +267,7 @@ describe('send-tx api', () => {
       .send({
         outputs: [{ type: 'data', data: 'test', address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
   });
 
@@ -267,7 +277,7 @@ describe('send-tx api', () => {
       .send({
         outputs: [{ type: 'data', data: 'test' }]
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeTruthy();
     expect(response.body.success).toBeTruthy();
@@ -282,7 +292,7 @@ describe('send-tx api', () => {
           { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }
         ]
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeTruthy();
     expect(response.body.success).toBeTruthy();
@@ -295,7 +305,7 @@ describe('send-tx api', () => {
       .send({
         outputs: [{ type: 'data', data: 'a'.repeat(MAX_DATA_SCRIPT_LENGTH + 1) }],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
 
     // Success with MAX
@@ -304,7 +314,7 @@ describe('send-tx api', () => {
       .send({
         outputs: [{ type: 'data', data: 'a'.repeat(MAX_DATA_SCRIPT_LENGTH) }],
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response2.status).toBe(200);
     expect(response2.body.hash).toBeTruthy();
     expect(response2.body.success).toBeTruthy();
