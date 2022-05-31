@@ -5,7 +5,7 @@ const walletId = 'stub_features';
 describe('feature lock', () => {
   beforeAll(async () => {
     global.constants.MULTISIG_ENABLED = false;
-    await TestUtils.startWallet({ walletId });
+    await TestUtils.startWallet({ walletId, preCalculatedAddresses: TestUtils.addresses });
   });
 
   afterAll(async () => {

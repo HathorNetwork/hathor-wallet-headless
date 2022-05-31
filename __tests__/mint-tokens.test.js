@@ -4,7 +4,7 @@ const walletId = 'stub_mint_tokens';
 
 describe('mint-tokens api', () => {
   beforeAll(async () => {
-    await TestUtils.startWallet({ walletId });
+    await TestUtils.startWallet({ walletId, preCalculatedAddresses: TestUtils.addresses });
   });
 
   afterAll(async () => {

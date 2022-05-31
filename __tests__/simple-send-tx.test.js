@@ -4,7 +4,7 @@ const walletId = 'stub_simple_send_tx';
 
 describe('simple-send-tx api', () => {
   beforeAll(async () => {
-    await TestUtils.startWallet({ walletId });
+    await TestUtils.startWallet({ walletId, preCalculatedAddresses: TestUtils.addresses });
   });
 
   afterAll(async () => {

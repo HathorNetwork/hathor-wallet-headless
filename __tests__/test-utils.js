@@ -110,10 +110,19 @@ class TestUtils {
     seedKey = SEED_KEY,
     walletId = WALLET_ID,
     multisig = false,
+    preCalculatedAddresses = null,
   } = {}) {
+    const params = {
+      'wallet-id': walletId,
+      seedKey,
+      multisig,
+    };
+    if (preCalculatedAddresses != null) {
+      params.preCalculatedAddresses = preCalculatedAddresses;
+    }
     const response = await request
       .post('/start')
-      .send({ seedKey, 'wallet-id': walletId, multisig });
+      .send(params);
 
     if (response.status !== 200) {
       throw new Error('Unable to start the wallet');

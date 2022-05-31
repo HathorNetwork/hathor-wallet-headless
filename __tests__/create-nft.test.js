@@ -5,7 +5,7 @@ const walletId = 'stub_create_nft';
 
 describe('create-nft api', () => {
   beforeAll(async () => {
-    await TestUtils.startWallet({ walletId });
+    await TestUtils.startWallet({ walletId, preCalculatedAddresses: TestUtils.addresses });
   });
 
   afterAll(async () => {
