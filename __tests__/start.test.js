@@ -66,6 +66,7 @@ describe('start api', () => {
       .send({ seedKey: TestUtils.seedKey, 'wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeTruthy();
+    await TestUtils.waitReady({ walletId });
 
     response = await TestUtils.request
       .get('/wallet/balance')
