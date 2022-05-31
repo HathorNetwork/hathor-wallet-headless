@@ -8,6 +8,7 @@ import app from '../src/index';
 import config from '../src/config';
 import httpFixtures from './__fixtures__/http-fixtures';
 import wsFixtures from './__fixtures__/ws-fixtures';
+import { HathorWallet } from '@hathor/wallet-lib';
 
 const WALLET_ID = 'stub_wallet';
 const SEED_KEY = 'stub_seed';
@@ -144,9 +145,50 @@ class TestUtils {
     }
   }
 
+  static async walletStatus({ walletId = WALLET_ID }) {
+    const response = await request.get('/wallet/status').set({ 'x-wallet-id': walletId });
+    TestUtils.logger.debug('[TestUtil] wallet status', { walletId, body: response.body });
+    return response.body?.statusCode;
+  }
+
+  static async isWalletReady({ walletId = WALLET_ID }) {
+    const statusCode = await TestUtils.walletStatus({ walletId });
+    if ((!statusCode) || (statusCode === HathorWallet.ERROR)) {
+      throw new Error(`Wallet ${walletId} initialization failed.`);
+    }
+    return statusCode === HathorWallet.READY;
+  }
+
   static async stopWallet({ walletId = WALLET_ID } = {}) {
-    const response = await request.post('/wallet/stop').set({ 'x-wallet-id': walletId });
-    TestUtils.logger.debug('[TestUtil] stop wallet', { walletId, body: response.body });
+    const checkAndStop = async tries => {
+      if (tries >= 5) {
+        TestUtils.logger.info('[TestUtils:stopWallet] wallet could not be stopped', { tries, walletId });
+        throw new Error(`Too many retries trying to stop the wallet ${walletId}`);
+      }
+      const statusCode = await TestUtils.walletStatus({ walletId });
+      let response;
+
+      switch (statusCode) {
+        case HathorWallet.CONNECTING:
+        case HathorWallet.SYNCING:
+          // we nee to wait and try again
+          TestUtils.logger.info('[TestUtils:stopWallet] wallet is not ready', { statusCode, walletId });
+          return checkAndStop(tries + 1);
+        case HathorWallet.READY:
+          response = await request.post('/wallet/stop').set({ 'x-wallet-id': walletId });
+          TestUtils.logger.debug('[TestUtil:stopWallet] stop wallet request', { walletId, body: response.body });
+          break;
+        case HathorWallet.CLOSED:
+          TestUtils.logger.info('[TestUtils:stopWallet] wallet is already closed', { statusCode, walletId });
+          break;
+        case HathorWallet.ERROR:
+        default:
+          TestUtils.logger.info('[TestUtils:stopWallet] something has happened', { statusCode, walletId });
+      }
+      return Promise.resolve();
+    };
+
+    return checkAndStop(0);
   }
 
   static startMocks() {
