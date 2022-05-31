@@ -107,15 +107,24 @@ class TestUtils {
     return request;
   }
 
-  static async walletStatus({ walletId = WALLET_ID }) {
-    const response = await request.get('/wallet/status').set({ 'x-wallet-id': walletId });
+  static async walletStatus({ walletId = WALLET_ID, firstAddress = null }) {
+    const params = { 'x-wallet-id': walletId };
+    if (firstAddress) {
+      params['x-first-address'] = firstAddress;
+    }
+    const response = await request.get('/wallet/status').set(params);
     TestUtils.logger.debug('[TestUtil:walletStatus] wallet status', { walletId, body: response.body });
     return response;
   }
 
-  static async waitReady({ walletId = WALLET_ID, exitIfClosed = false, retries = 3 } = {}) {
+  static async waitReady({
+    walletId = WALLET_ID,
+    exitIfClosed = false,
+    retries = 3,
+    firstAddress = null,
+  } = {}) {
     for (let i = 0; i < retries; i++) {
-      const res = await TestUtils.walletStatus({ walletId });
+      const res = await TestUtils.walletStatus({ walletId, firstAddress });
       if (res.body?.success !== false) {
         return true;
       }
