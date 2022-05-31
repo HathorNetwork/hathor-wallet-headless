@@ -113,8 +113,8 @@ class TestUtils {
     return response;
   }
 
-  static async waitReady({ walletId = WALLET_ID, exitIfClosed = false } = {}) {
-    for (let i = 0; i < 3; i++) {
+  static async waitReady({ walletId = WALLET_ID, exitIfClosed = false, retries = 3 } = {}) {
+    for (let i = 0; i < retries; i++) {
       const res = await TestUtils.walletStatus({ walletId });
       if (res.body?.success !== false) {
         return true;
@@ -162,7 +162,7 @@ class TestUtils {
       throw new Error(response.body.message);
     }
 
-    await TestUtils.waitReady({ walletId });
+    await TestUtils.waitReady({ walletId, retries: 10 });
   }
 
   static async stopWallet({ walletId = WALLET_ID } = {}) {
