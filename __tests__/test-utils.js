@@ -119,6 +119,10 @@ class TestUtils {
       if (res.body?.success !== false) {
         return true;
       }
+      if (res.body?.message === 'Invalid wallet id parameter.') {
+        // The wallet does not exist
+        return false;
+      }
       if (res.body?.statusCode === HathorWallet.ERROR) {
         throw new Error(res.body?.message);
       }
