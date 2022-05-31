@@ -84,13 +84,13 @@ describe('start api', () => {
 
   it('should start a MultiSig wallet if multisig is true', async () => {
     global.config.multisig = TestUtils.multisigData;
-    await TestUtils.stopWallet({ walletId });
 
     const response1 = await TestUtils.request
       .post('/start')
       .send({ seedKey: TestUtils.seedKey, 'wallet-id': walletId, multisig: true });
     expect(response1.status).toBe(200);
     expect(response1.body.success).toBeTruthy();
+    await TestUtils.waitReady({ walletId });
 
     const response2 = await TestUtils.request
       .get('/wallet/address')
