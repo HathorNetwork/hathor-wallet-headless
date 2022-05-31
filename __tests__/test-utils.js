@@ -1,13 +1,13 @@
 import supertest from 'supertest';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import axios from 'axios';
+import winston from 'winston';
 import MockAdapter from 'axios-mock-adapter';
 import { Server } from 'mock-socket';
 import app from '../src/index';
 import config from '../src/config';
 import httpFixtures from './__fixtures__/http-fixtures';
 import wsFixtures from './__fixtures__/ws-fixtures';
-import winston, { transports } from 'winston';
 
 const WALLET_ID = 'stub_wallet';
 const SEED_KEY = 'stub_seed';
