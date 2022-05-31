@@ -7,6 +7,7 @@ import app from '../src/index';
 import config from '../src/config';
 import httpFixtures from './__fixtures__/http-fixtures';
 import wsFixtures from './__fixtures__/ws-fixtures';
+import winston, { transports } from 'winston';
 
 const WALLET_ID = 'stub_wallet';
 const SEED_KEY = 'stub_seed';
@@ -47,6 +48,8 @@ class TestUtils {
   static multisigXpub = MULTISIG_XPUB;
 
   static multisigData = MULTISIG_DATA;
+
+  static logger = null;
 
   static addresses = [
     'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN',
@@ -133,7 +136,8 @@ class TestUtils {
   }
 
   static async stopWallet({ walletId = WALLET_ID } = {}) {
-    await request.post('/wallet/stop').set({ 'x-wallet-id': walletId });
+    const response = await request.post('/wallet/stop').set({ 'x-wallet-id': walletId });
+    TestUtils.logger.debug('[TestUtil] stop wallet', { walletId, body: response.body });
   }
 
   static startMocks() {
@@ -176,6 +180,18 @@ class TestUtils {
 
   static reorderHandlers() {
     Object.values(httpMock.handlers).forEach(handler => handler.reverse());
+  }
+
+  static initLogger() {
+    TestUtils.logger = winston.createLogger({
+      level: 'silly',
+      transports: [
+        new winston.transports.Console({
+          format: winston.format.simple(),
+          level: 'silly',
+        }),
+      ],
+    });
   }
 }
 

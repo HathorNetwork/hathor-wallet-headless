@@ -96,7 +96,7 @@ describe('start api', () => {
       .get('/wallet/address')
       .query({ index: 0 })
       .set({ 'x-wallet-id': walletId });
-    console.log(JSON.stringify(response2.body));
+    TestUtils.logger.info('[start api] multisig response', response2.body);
     expect(response2.status).toBe(200);
     expect(response2.body.address).toBe(TestUtils.multisigAddresses[0]);
 

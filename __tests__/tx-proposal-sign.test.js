@@ -34,7 +34,6 @@ describe('tx-proposal sign api', () => {
       .post('/wallet/tx-proposal/sign')
       .send({ txHex: '0123456789abcdef', signatures: ['123'] })
       .set({ 'x-wallet-id': walletId });
-    console.log(JSON.stringify(response.body));
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
   });
