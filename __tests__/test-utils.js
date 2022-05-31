@@ -4,11 +4,11 @@ import axios from 'axios';
 import winston from 'winston';
 import MockAdapter from 'axios-mock-adapter';
 import { Server } from 'mock-socket';
+import { HathorWallet } from '@hathor/wallet-lib';
 import app from '../src/index';
 import config from '../src/config';
 import httpFixtures from './__fixtures__/http-fixtures';
 import wsFixtures from './__fixtures__/ws-fixtures';
-import { HathorWallet } from '@hathor/wallet-lib';
 
 const WALLET_ID = 'stub_wallet';
 const SEED_KEY = 'stub_seed';
