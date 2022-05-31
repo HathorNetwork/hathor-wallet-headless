@@ -109,12 +109,12 @@ class TestUtils {
 
   static async walletStatus({ walletId = WALLET_ID }) {
     const response = await request.get('/wallet/status').set({ 'x-wallet-id': walletId });
-    TestUtils.logger.debug('[TestUtil] wallet status', { walletId, body: response.body });
+    TestUtils.logger.debug('[TestUtil:walletStatus] wallet status', { walletId, body: response.body });
     return response;
   }
 
   static async waitReady({ walletId = WALLET_ID, exitIfClosed = false } = {}) {
-    while (true) {
+    for (let i = 0; i < 3; i++) {
       const res = await TestUtils.walletStatus({ walletId });
       if (res.body?.success !== false) {
         return true;
@@ -133,6 +133,8 @@ class TestUtils {
         setTimeout(resolve, 500);
       });
     }
+    TestUtils.logger.debug('[TestUtil:waitReady] too many attempts', { walletId });
+    return false;
   }
 
   static async startWallet({
