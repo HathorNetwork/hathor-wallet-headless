@@ -5,7 +5,11 @@ const walletId = 'stub_get_my_signatures';
 describe('get-my-signatures api', () => {
   beforeAll(async () => {
     global.config.multisig = TestUtils.multisigData;
-    await TestUtils.startWallet({ walletId, multisig: true });
+    await TestUtils.startWallet({
+      walletId,
+      preCalculatedAddresses: TestUtils.multisigAddresses,
+      multisig: true
+    });
   });
 
   afterAll(async () => {

@@ -5,7 +5,11 @@ const walletId = 'stub_tx_proposal_sign';
 describe('tx-proposal sign api', () => {
   beforeAll(async () => {
     global.config.multisig = TestUtils.multisigData;
-    return TestUtils.startWallet({ walletId, multisig: true });
+    return TestUtils.startWallet({
+      walletId,
+      preCalculatedAddresses: TestUtils.multisigAddresses,
+      multisig: true
+    });
   });
 
   afterAll(async () => {

@@ -5,7 +5,11 @@ const walletId = 'stub_decode';
 describe('decode api', () => {
   beforeAll(async () => {
     global.config.multisig = TestUtils.multisigData;
-    await TestUtils.startWallet({ walletId, multisig: true });
+    await TestUtils.startWallet({
+      walletId,
+      preCalculatedAddresses: TestUtils.multisigAddresses,
+      multisig: true
+    });
   });
 
   afterAll(async () => {

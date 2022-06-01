@@ -13,6 +13,16 @@ import wsFixtures from './__fixtures__/ws-fixtures';
 const WALLET_ID = 'stub_wallet';
 const SEED_KEY = 'stub_seed';
 
+// XXX: These words are not used on the tests but are here to document which words generated
+// the multisig xpubs below which are used on tests. The first which generated the MULTISIG_XPUB
+// is the same as the words on the config fixture used for p2pkh tests.
+const MULTISIG_WORDS = [
+  'upon tennis increase embark dismiss diamond monitor face magnet jungle scout salute rural master shoulder cry juice jeans radar present close meat antenna mind',
+  'sample garment fun depart various renew require surge service undo cinnamon squeeze hundred nasty gasp ridge surge defense relax turtle wet antique october occur',
+  'intact wool rigid diary mountain issue tiny ugly swing rib alone base fold satoshi drift poverty autumn mansion state globe plug ancient pudding hope',
+  'monster opinion bracket aspect mask labor obvious hat matrix exact canoe race shift episode plastic debris dash sort motion juice leg mushroom maximum evidence',
+  'tilt lab swear uncle prize favorite river myth assault transfer venue soap lady someone marine reject fork brain swallow notice glad salt sudden pottery',
+];
 const MULTISIG_XPUB = 'xpub6CvvCBtHqFfErbcW2Rv28TmZ3MqcFuWQVKGg8xDzLeAwEAHRz9LBTgSFSj7B99scSvZGbq6TxAyyATA9b6cnwsgduNs9NGKQJnEQr3PYtwK';
 const MULTISIG_DATA = {
   stub_seed: {
