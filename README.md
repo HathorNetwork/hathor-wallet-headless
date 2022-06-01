@@ -319,3 +319,8 @@ work above economy captain advance bread logic paddle copper change maze tongue 
 ## Multisig
 
 Check out how to configure and use as a MultiSig wallet on [MULTISIG.md](./MULTISIG.md)
+
+## Testing
+
+This application has two different contexts for testing.
+Refer to [TESTING.md](./TESTING.md) for more information on this.
