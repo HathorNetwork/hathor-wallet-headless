@@ -50,7 +50,7 @@ These data storages are:
 - The pre-calculated wallets file
 
 ### The Blockchain
-<img src="privatenet diagram.svg"/>
+<img src="assets/privatenet diagram.svg"/>
 
 On its default configuration, the test privatenet's fullnode stores blockchain information only on memory. This means that state is kept between each call of `test_network_up` and `test_network_down`.
 
@@ -69,7 +69,7 @@ When calling `npm run test_integration`, in case the test is fully successful, t
 > ```
 
 ### The pre-calculated wallets file
-<img src="precalculated wallets diagram.svg" />
+<img src="assets/precalculated wallets diagram.svg" />
 
 On `test_network_up` the `precalculated-wallets.json` file is copied to the `./tmp/wallets.json` file to be used by the tests, saving time on the calculation of wallet addresses.
 
