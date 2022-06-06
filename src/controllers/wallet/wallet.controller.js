@@ -16,13 +16,20 @@ const { initializedWallets } = require('../../services/wallets.service');
 
 function getStatus(req, res) {
   const { wallet } = req;
-  res.send({
+  const data = {
     statusCode: wallet.state,
     statusMessage: friendlyWalletState[wallet.state],
     network: wallet.getNetwork(),
     serverUrl: wallet.getServerUrl(),
     serverInfo: wallet.serverInfo,
-  });
+  };
+  if (wallet.multisig) {
+    data.multisig = {
+      numSignatures: wallet.multisig.numSignatures,
+      totalParticipants: wallet.multisig.pubkeys.length,
+    };
+  }
+  res.send(data);
 }
 
 async function getBalance(req, res) {
