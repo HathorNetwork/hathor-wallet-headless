@@ -1,30 +1,34 @@
 import TestUtils from './test-utils';
 
+const walletId = 'stub_decode';
+
 describe('decode api', () => {
   beforeAll(async () => {
     global.config.multisig = TestUtils.multisigData;
-    // Stop P2PKH wallet started on setupTests
-    await TestUtils.stopWallet();
-    // Start a MultiSig wallet
-    return TestUtils.startWallet({ multisig: true });
+    await TestUtils.startWallet({
+      walletId,
+      preCalculatedAddresses: TestUtils.multisigAddresses,
+      multisig: true
+    });
   });
 
-  afterAll(() => {
+  afterAll(async () => {
     global.config.multisig = {};
+    await TestUtils.stopWallet({ walletId });
   });
 
   it('should fail if txHex is not a hex string', async () => {
     let response = await TestUtils.request
       .post('/wallet/decode')
       .send({ txHex: 123 })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
 
     response = await TestUtils.request
       .post('/wallet/decode')
       .send({ txHex: '0123g' })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
   });
@@ -33,7 +37,7 @@ describe('decode api', () => {
     const response = await TestUtils.request
       .post('/wallet/decode')
       .send({ txHex: '0123456789abcdef' })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
   });
@@ -48,14 +52,14 @@ describe('decode api', () => {
     let response = await TestUtils.request
       .post('/wallet/tx-proposal')
       .send(tx)
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
 
     const { txHex } = response.body;
 
     response = await TestUtils.request
       .post('/wallet/decode')
       .send({ txHex })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeTruthy();
     expect(response.body.tx).toBeDefined();

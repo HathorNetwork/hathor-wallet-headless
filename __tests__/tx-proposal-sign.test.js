@@ -1,30 +1,34 @@
 import TestUtils from './test-utils';
 
+const walletId = 'stub_tx_proposal_sign';
+
 describe('tx-proposal sign api', () => {
   beforeAll(async () => {
     global.config.multisig = TestUtils.multisigData;
-    // Stop P2PKH wallet started on setupTests
-    await TestUtils.stopWallet();
-    // Start a MultiSig wallet
-    return TestUtils.startWallet({ multisig: true });
+    return TestUtils.startWallet({
+      walletId,
+      preCalculatedAddresses: TestUtils.multisigAddresses,
+      multisig: true
+    });
   });
 
-  afterAll(() => {
+  afterAll(async () => {
     global.config.multisig = {};
+    await TestUtils.stopWallet({ walletId });
   });
 
   it('should fail if txHex is not a hex string', async () => {
     let response = await TestUtils.request
       .post('/wallet/tx-proposal/sign')
       .send({ txHex: 123, signatures: ['1'] })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
 
     response = await TestUtils.request
       .post('/wallet/tx-proposal/sign')
       .send({ txHex: '0123g', signatures: ['1'] })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
   });
@@ -33,8 +37,7 @@ describe('tx-proposal sign api', () => {
     const response = await TestUtils.request
       .post('/wallet/tx-proposal/sign')
       .send({ txHex: '0123456789abcdef', signatures: ['123'] })
-      .set({ 'x-wallet-id': TestUtils.walletId });
-    console.log(JSON.stringify(response.body));
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
   });
@@ -43,14 +46,14 @@ describe('tx-proposal sign api', () => {
     let response = await TestUtils.request
       .post('/wallet/tx-proposal/sign')
       .send({ txHex: '0123456789abcdef', signatures: [123] })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
 
     response = await TestUtils.request
       .post('/wallet/tx-proposal/sign')
       .send({ txHex: '0123456789abcdef', signatures: [] })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
   });
@@ -65,21 +68,21 @@ describe('tx-proposal sign api', () => {
     let response = await TestUtils.request
       .post('/wallet/tx-proposal')
       .send(tx)
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
 
     const { txHex } = response.body;
 
     response = await TestUtils.request
       .post('/wallet/tx-proposal/get-my-signatures')
       .send({ txHex })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
 
     const signature = response.body.signatures;
 
     response = await TestUtils.request
       .post('/wallet/tx-proposal/sign')
       .send({ txHex, signatures: [signature, signature, signature] })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.body.success).toBeTruthy();
   });
 });
