@@ -82,7 +82,7 @@ describe('wallet addresses precalculation', () => {
       words: multisigWalletsData.words[0],
       multisig: {
         wordsArray: multisigWalletsData.words,
-        minSignatures: 3
+        numSignatures: 3
       }
     });
 
@@ -97,7 +97,7 @@ describe('wallet addresses precalculation', () => {
 
     const generatedWallets = WalletPrecalculationHelper.generateMultisigWalletsForWords({
       wordsArray: multisigWalletsData.words,
-      minSignatures: 3
+      numSignatures: 3
     });
 
     expect(mock).toHaveBeenCalledTimes(multisigWalletsData.words.length);
@@ -105,7 +105,7 @@ describe('wallet addresses precalculation', () => {
       words: multisigWalletsData.words[0],
       multisig: {
         wordsArray: multisigWalletsData.words,
-        minSignatures: 3
+        numSignatures: 3
       }
     });
 

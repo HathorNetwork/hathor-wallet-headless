@@ -93,12 +93,12 @@ function start(req, res) {
     // validate multisig configuration:
     //   (i) Should have all fields
     //  (ii) `pubkeys` length should match `total`
-    // (iii) `minSignatures` should be less or equal to `total`
+    // (iii) `numSignatures` should be less or equal to `total`
     const mconfig = config.multisig[seedKey];
     if (!(mconfig
-           && (mconfig.total && mconfig.minSignatures && mconfig.pubkeys)
+           && (mconfig.total && mconfig.numSignatures && mconfig.pubkeys)
            && (mconfig.pubkeys.length === mconfig.total)
-           && (mconfig.minSignatures <= mconfig.total))) {
+           && (mconfig.numSignatures <= mconfig.total))) {
       // Missing multisig items
       res.send({
         success: false,
@@ -107,11 +107,11 @@ function start(req, res) {
       return;
     }
     multisigData = {
-      minSignatures: mconfig.minSignatures,
+      numSignatures: mconfig.numSignatures,
       pubkeys: mconfig.pubkeys,
     };
     console.log(`Starting multisig wallet with ${multisigData.pubkeys.length} pubkeys `
-                + `and ${multisigData.minSignatures} minSignatures`);
+                + `and ${multisigData.numSignatures} numSignatures`);
   }
 
   const connection = new Connection({

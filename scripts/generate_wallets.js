@@ -45,7 +45,7 @@ const GENERATION_SCRIPT_MODES = {
  * const words = multisigWalletsData.words[4];
  * const multisigInput = {
  *   wordsArray: multisigWalletsData.words,
- *   minSignatures: 2
+ *   numSignatures: 2
  * };
  */
 
@@ -63,7 +63,7 @@ const GENERATION_SCRIPT_MODES = {
  * const executionMode = GENERATION_SCRIPT_MODES.manyMultisigWallets;
  * const multisigInput = {
  *   wordsArray: multisigWalletsData.words,
- *   minSignatures: 3
+ *   numSignatures: 3
  * };
  */
 
@@ -77,7 +77,7 @@ const executionMode = GENERATION_SCRIPT_MODES.singleMultisigWallet;
 const words = multisigWalletsData.words[4];
 const multisigInput = {
   wordsArray: multisigWalletsData.words,
-  minSignatures: 2
+  numSignatures: 2
 };
 const outputFileForMultipleWallets = './tmp/multiple-output.json';
 
@@ -105,7 +105,7 @@ switch (executionMode) {
 
   case GENERATION_SCRIPT_MODES.manyMultisigWallets:
     walletsArray = WalletPrecalculationHelper.generateMultisigWalletsForWords({
-      minSignatures: multisigInput.minSignatures,
+      numSignatures: multisigInput.numSignatures,
       wordsArray: multisigInput.wordsArray
     });
     break;

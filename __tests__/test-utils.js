@@ -26,7 +26,7 @@ const MULTISIG_WORDS = [
 const MULTISIG_XPUB = 'xpub6CvvCBtHqFfErbcW2Rv28TmZ3MqcFuWQVKGg8xDzLeAwEAHRz9LBTgSFSj7B99scSvZGbq6TxAyyATA9b6cnwsgduNs9NGKQJnEQr3PYtwK';
 const MULTISIG_DATA = {
   stub_seed: {
-    minSignatures: 3,
+    numSignatures: 3,
     total: 5,
     pubkeys: [
       MULTISIG_XPUB,

@@ -84,10 +84,10 @@ function assemblePartialTransaction(wallet, txHex, signatures) {
     // This wallet is not a MultiSig wallet
     throw new Error('Invalid wallet for this operation.');
   }
-  if (signatures.length !== wallet.multisig.minSignatures) {
+  if (signatures.length !== wallet.multisig.numSignatures) {
     throw new Error(
       `Quantity of signatures different than expected. \
-Expected ${wallet.multisig.minSignatures} Received ${signatures.length}`
+Expected ${wallet.multisig.numSignatures} Received ${signatures.length}`
     );
   }
   const tx = wallet.assemblePartialTransaction(txHex, signatures);
