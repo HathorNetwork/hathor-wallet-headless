@@ -36,6 +36,7 @@
     "no-plusplus": "off",
     "guard-for-in": "off"
   },
+  "ignorePatterns": [ "src/config.js", "src/config.*.js" ],
   "overrides": [
     {
       "files": [

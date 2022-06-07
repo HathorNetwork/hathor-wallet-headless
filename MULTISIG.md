@@ -13,7 +13,7 @@ Example of a 2-of-4 MultiSig:
 'multisig': {
   'default': {
     'total': 4,
-    'minSignatures': 2,
+    'numSignatures': 2,
     'pubkeys': [
       'xpub0...',
       'xpub1...',
@@ -32,12 +32,12 @@ When using Docker you need to configure using arguments or environment variables
 Considering the seedKey `abc` the arguments would be:
 - `--multisig_seed_abc_pubkeys`        or `HEADLESS_MULTISIG_SEED_ABC_PUBKEYS`        : Space separated list of participant xpubs
 - `--multisig_seed_abc_max_signatures` or `HEADLESS_MULTISIG_SEED_ABC_MAX_SIGNATURES` : Number of participants
-- `--multisig_seed_abc_min_signatures` or `HEADLESS_MULTISIG_SEED_ABC_MIN_SIGNATURES` : Minimum number of signatures needed to send a transaction
+- `--multisig_seed_abc_num_signatures` or `HEADLESS_MULTISIG_SEED_ABC_NUM_SIGNATURES` : Number of signatures needed to send a transaction
 
 ### == IMPORTANT ==
 
-The MultiSig addresses are determined by the participants xpubs AND the minimum number of signatures.
-Changing the minimum number of signatures will generate a different MultiSig wallet.
+The MultiSig addresses are determined by the participants xpubs AND the required number of signatures to send a transaction.
+Changing the required number of signatures will generate a different MultiSig wallet.
 The order of the pubkeys is not important.
 
 ## Collect pubkeys

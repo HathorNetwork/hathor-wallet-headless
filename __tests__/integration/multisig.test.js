@@ -38,7 +38,7 @@ describe('send tx (HTR)', () => {
       'multisig-extra': {
         pubkeys,
         total: 5,
-        minSignatures: 2, // Having a different minSignatures will change the wallet completely
+        numSignatures: 2, // Having a different numSignatures will change the wallet completely
       },
     };
     try {

@@ -123,7 +123,7 @@ describe('start api', () => {
     expect(response2.body.success).toBeFalsy();
 
     global.config.multisig[TestUtils.seedKey].total = 5;
-    global.config.multisig[TestUtils.seedKey].minSignatures = 6;
+    global.config.multisig[TestUtils.seedKey].numSignatures = 6;
 
     const response3 = await TestUtils.request
       .post('/start')
