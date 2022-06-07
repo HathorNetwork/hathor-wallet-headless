@@ -24,6 +24,9 @@ export const initHathorLib = () => {
   if (config.txMiningApiKey) {
     hathorLibConfig.setTxMiningApiKey(config.txMiningApiKey);
   }
+
+  // Set package version in user agent
+  hathorLibConfig.setUserAgent(`Hathor Wallet Headless / ${version}`);
 };
 
 initHathorLib();
