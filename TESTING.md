@@ -13,7 +13,7 @@ To run the integration tests:
 npm run test_integration
 ```
 
-The data that is used on static code/coverage analysis on GitHub come from the mocked context. So, when adding new code it's important to add tests on the _mocked context_ to cover it. As we see further on this document, this is because the _integration tests_ do not need to cover all edge cases of the code. 
+The data that is used on static code/coverage analysis on GitHub come from the mocked context. So, when adding new code it's important to add tests on the _mocked context_ to cover it.
 
 # Mocked Context
 These tests tend to be faster and are focused on the input/output data treatment. Since there is no connection to a live network, there is no state change: all communications are static and hardcoded. 
