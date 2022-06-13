@@ -12,7 +12,7 @@ const {
   getMySignatures,
   signTx,
   signAndPush,
-} = require('../../controllers/wallet/tx-proposal.controller');
+} = require('../../../controllers/wallet/p2sh/tx-proposal.controller');
 
 const txProposalRouter = Router({ mergeParams: true });
 

@@ -50,7 +50,7 @@ describe('decode api', () => {
       ],
     };
     let response = await TestUtils.request
-      .post('/wallet/tx-proposal')
+      .post('/wallet/p2sh/tx-proposal')
       .send(tx)
       .set({ 'x-wallet-id': walletId });
 
