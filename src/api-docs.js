@@ -524,7 +524,7 @@ const apiDoc = {
         },
       },
     },
-    '/wallet/tx-proposal': {
+    '/wallet/p2sh/tx-proposal': {
       post: {
         summary: 'Get the hex representation of a transaction without input data.',
         parameters: [
@@ -704,7 +704,7 @@ const apiDoc = {
         },
       },
     },
-    '/wallet/tx-proposal/get-my-signatures': {
+    '/wallet/p2sh/tx-proposal/get-my-signatures': {
       post: {
         summary: 'Get the signatures for all inputs from the wallet',
         parameters: [
@@ -761,7 +761,7 @@ const apiDoc = {
         },
       },
     },
-    '/wallet/tx-proposal/sign': {
+    '/wallet/p2sh/tx-proposal/sign': {
       post: {
         summary: 'Returns a transaction hex with input data calculated from the arguments',
         parameters: [
@@ -822,7 +822,7 @@ const apiDoc = {
         },
       },
     },
-    '/wallet/tx-proposal/sign-and-push': {
+    '/wallet/p2sh/tx-proposal/sign-and-push': {
       post: {
         summary: 'Send a transaction from the transaction hex and collected signatures',
         parameters: [

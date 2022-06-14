@@ -67,13 +67,13 @@ Same as the start on [README.md](./README.md), but include the parameter `"multi
 
 If a participant wishes to send a transaction from the MultiSig wallet funds he should follow these steps:
 
-1. Use the `/wallet/tx-proposal` endpoint to get the `txHex` of the desired transaction and send to the participants.
+1. Use the `/wallet/p2sh/tx-proposal` endpoint to get the `txHex` of the desired transaction and send to the participants.
 1. Each participant should send the `txHex` to the `/wallet/decode` endpoint to check the transaction.
-    1. If approved, the participant should send the `txHex` to the `/wallet/tx-proposal/get-my-signatures` endpoint to get the signatures.
+    1. If approved, the participant should send the `txHex` to the `/wallet/p2sh/tx-proposal/get-my-signatures` endpoint to get the signatures.
     1. Send the signatures string to a participant for collection (can be any participant).
-1. Once enough signatures are collected any participant can use the `/wallet/tx-proposal/sign-and-push` to send the transaction.
+1. Once enough signatures are collected any participant can use the `/wallet/p2sh/tx-proposal/sign-and-push` to send the transaction.
 
-## POST /wallet/tx-proposal
+## POST /wallet/p2sh/tx-proposal
 
 Create a transaction with multiple inputs and outputs.
 
@@ -81,7 +81,7 @@ You must provide an 'outputs' array in which each element is an object with `add
 The `value` parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.
 
 ```bash
-$ curl -X POST -H "X-Wallet-Id: 123" -H "Content-type: application/json" --data '{"outputs": [{"address":"WXf4xPLBn7HUC7F1U2vY4J5zwpsDS12bT6","value":1,"token":"00"}]}' http://localhost:8000/wallet/tx-proposal
+$ curl -X POST -H "X-Wallet-Id: 123" -H "Content-type: application/json" --data '{"outputs": [{"address":"WXf4xPLBn7HUC7F1U2vY4J5zwpsDS12bT6","value":1,"token":"00"}]}' http://localhost:8000/wallet/p2sh/tx-proposal
 {
     "success": true,
     "txHex": "000100010100c7797738d890d1517f637f2af079d8daa4449fdfd098d2d636bb0e30c809d10100000000000100001976a914628a732435664063116fec3af91b8bf17e46d3ea88ac7ff8000000000000000000000000000000",
@@ -114,24 +114,24 @@ $ curl -X POST -H "X-Wallet-Id: 123" -H "Content-type: application/json" --data 
 }
 ```
 
-## POST /wallet/tx-proposal/get-my-signatures
+## POST /wallet/p2sh/tx-proposal/get-my-signatures
 
 Get the signatures for the transaction hex.
 
 ```bash
-$ curl -X POST -H "X-Wallet-Id: 123" -H "Content-type: application/json" --data "{\"txHex\":\"{txHex}\"}" http://localhost:8000/wallet/tx-proposal/get-my-signatures
+$ curl -X POST -H "X-Wallet-Id: 123" -H "Content-type: application/json" --data "{\"txHex\":\"{txHex}\"}" http://localhost:8000/wallet/p2sh/tx-proposal/get-my-signatures
 {
   "success": true,
   "signatures": "...",
 }
 ```
 
-## POST /wallet/tx-proposal/sign-and-push
+## POST /wallet/p2sh/tx-proposal/sign-and-push
 
 Assemble a transaction with the participant signatures and send it to the network.
 
 ```bash
-$ curl -X POST -H "X-Wallet-Id: 123" -H "Content-type: application/json" --data '{"txHex": "...", "signatures":["sigstr0...","sigstr1..."]}' http://localhost:8000/wallet/tx-proposal/sign-and-push
+$ curl -X POST -H "X-Wallet-Id: 123" -H "Content-type: application/json" --data '{"txHex": "...", "signatures":["sigstr0...","sigstr1..."]}' http://localhost:8000/wallet/p2sh/tx-proposal/sign-and-push
 {
   "success": true,
   "hash": "00004fb4e4b2db216e6314f1e6e9be73118b3974ea7180044edf5851d0a31045",

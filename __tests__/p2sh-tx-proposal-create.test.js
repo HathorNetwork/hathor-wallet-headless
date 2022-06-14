@@ -16,7 +16,7 @@ describe('create tx-proposal api', () => {
 
   it('should return 200 with a valid body', async () => {
     const response = await TestUtils.request
-      .post('/wallet/tx-proposal')
+      .post('/wallet/p2sh/tx-proposal')
       .send({
         outputs: [
           { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 },
@@ -34,7 +34,7 @@ describe('create tx-proposal api', () => {
 
   it('should return 200 with a valid body selecting inputs', async () => {
     const response = await TestUtils.request
-      .post('/wallet/tx-proposal')
+      .post('/wallet/p2sh/tx-proposal')
       .send({
         inputs: [{ txId: '0000034e42c9f2a7a7ab720e2f34bc6701679bb70437e7b7d53b6328aa3a88ca', index: 1 }],
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
@@ -52,7 +52,7 @@ describe('create tx-proposal api', () => {
 
   it('should accept value as string', async () => {
     const response = await TestUtils.request
-      .post('/wallet/tx-proposal')
+      .post('/wallet/p2sh/tx-proposal')
       .send({
         outputs: [
           { address: 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau', value: 1 },
@@ -67,7 +67,7 @@ describe('create tx-proposal api', () => {
 
   it('should not accept transactions without address or value', async () => {
     let response = await TestUtils.request
-      .post('/wallet/tx-proposal')
+      .post('/wallet/p2sh/tx-proposal')
       .send({
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc' }],
       })
@@ -76,7 +76,7 @@ describe('create tx-proposal api', () => {
     expect(response.body.success).toBeFalsy();
 
     response = await TestUtils.request
-      .post('/wallet/tx-proposal')
+      .post('/wallet/p2sh/tx-proposal')
       .send({
         outputs: [{ value: 1 }],
       })
@@ -87,7 +87,7 @@ describe('create tx-proposal api', () => {
 
   it('should not accept transactions with 0 value', async () => {
     const response = await TestUtils.request
-      .post('/wallet/tx-proposal')
+      .post('/wallet/p2sh/tx-proposal')
       .send({
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 0 }],
       })
@@ -98,7 +98,7 @@ describe('create tx-proposal api', () => {
 
   it('should accept a custom token transaction', async () => {
     const response = await TestUtils.request
-      .post('/wallet/tx-proposal')
+      .post('/wallet/p2sh/tx-proposal')
       .send({
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1, token: '09' }]
       })
@@ -110,7 +110,7 @@ describe('create tx-proposal api', () => {
 
   it('should not accept a custom token transaction without funds to cover it', async () => {
     const response = await TestUtils.request
-      .post('/wallet/tx-proposal')
+      .post('/wallet/p2sh/tx-proposal')
       .send({
         outputs: [{
           address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc',
@@ -125,7 +125,7 @@ describe('create tx-proposal api', () => {
 
   it('should accept a transaction with a change_address that does belong to the wallet', async () => {
     const response = await TestUtils.request
-      .post('/wallet/tx-proposal')
+      .post('/wallet/p2sh/tx-proposal')
       .send({
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
         change_address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
@@ -137,7 +137,7 @@ describe('create tx-proposal api', () => {
 
   it('should not accept a transaction with a change_address that does not belong to the wallet', async () => {
     const response = await TestUtils.request
-      .post('/wallet/tx-proposal')
+      .post('/wallet/p2sh/tx-proposal')
       .send({
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
         change_address: 'weHUcEmv91Lfo2CBYVfDLh8Y3sB3pivcQZ',

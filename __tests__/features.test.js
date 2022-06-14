@@ -24,7 +24,7 @@ describe('feature lock', () => {
 
   it('[MULTISIG:DISABLED] should not get multisig signatures', async () => {
     const response = await TestUtils.request
-      .post('/wallet/tx-proposal/get-my-signatures')
+      .post('/wallet/p2sh/tx-proposal/get-my-signatures')
       .send({ txHex: '123abc' })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
@@ -34,7 +34,7 @@ describe('feature lock', () => {
 
   it('[MULTISIG:DISABLED] should not create signed multisig tx', async () => {
     const response = await TestUtils.request
-      .post('/wallet/tx-proposal/sign')
+      .post('/wallet/p2sh/tx-proposal/sign')
       .send({ txHex: '123abc', signatures: ['123'] })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
@@ -44,7 +44,7 @@ describe('feature lock', () => {
 
   it('[MULTISIG:DISABLED] should not send multisig tx', async () => {
     const response = await TestUtils.request
-      .post('/wallet/tx-proposal/sign-and-push')
+      .post('/wallet/p2sh/tx-proposal/sign-and-push')
       .send({ txHex: '123abc', signatures: ['123'] })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);

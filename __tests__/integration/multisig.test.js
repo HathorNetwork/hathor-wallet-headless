@@ -111,7 +111,7 @@ describe('send tx (HTR)', () => {
 
     // wallet1 proposes the transaction
     let response = await TestUtils.request
-      .post('/wallet/tx-proposal')
+      .post('/wallet/p2sh/tx-proposal')
       .send(tx)
       .set({ 'x-wallet-id': wallet1.walletId });
     loggers.test.insertLineToLog('multisig[should fail lt minsig]: proposal', { body: response.body });
@@ -127,7 +127,7 @@ describe('send tx (HTR)', () => {
 
     // try to send
     response = await TestUtils.request
-      .post('/wallet/tx-proposal/sign-and-push')
+      .post('/wallet/p2sh/tx-proposal/sign-and-push')
       .send({ txHex, signatures: [sig1, sig2] })
       .set({ 'x-wallet-id': wallet1.walletId });
     loggers.test.insertLineToLog('multisig[should fail lt minsig]: sign+push', { body: response.body });
@@ -147,7 +147,7 @@ describe('send tx (HTR)', () => {
 
     // wallet1 proposes the transaction
     let response = await TestUtils.request
-      .post('/wallet/tx-proposal')
+      .post('/wallet/p2sh/tx-proposal')
       .send(tx)
       .set({ 'x-wallet-id': wallet1.walletId });
     loggers.test.insertLineToLog('multisig[should fail invalid sig]: proposal', { body: response.body });
@@ -178,7 +178,7 @@ describe('send tx (HTR)', () => {
 
     // try to send
     response = await TestUtils.request
-      .post('/wallet/tx-proposal/sign-and-push')
+      .post('/wallet/p2sh/tx-proposal/sign-and-push')
       .send({ txHex, signatures: [sig1, sig2, invalidSig] })
       .set({ 'x-wallet-id': wallet1.walletId });
     loggers.test.insertLineToLog('multisig[should fail invalid sig]: response', { body: response.body });
@@ -198,7 +198,7 @@ describe('send tx (HTR)', () => {
 
     // wallet1 proposes the transaction
     let response = await TestUtils.request
-      .post('/wallet/tx-proposal')
+      .post('/wallet/p2sh/tx-proposal')
       .send(tx)
       .set({ 'x-wallet-id': wallet1.walletId });
     loggers.test.insertLineToLog('multisig[should send minsig]: proposal', { body: response.body });
@@ -216,7 +216,7 @@ describe('send tx (HTR)', () => {
 
     // try to send
     response = await TestUtils.request
-      .post('/wallet/tx-proposal/sign-and-push')
+      .post('/wallet/p2sh/tx-proposal/sign-and-push')
       .send({ txHex, signatures: [sig1, sig2, sig3] })
       .set({ 'x-wallet-id': wallet1.walletId });
 
@@ -238,7 +238,7 @@ describe('send tx (HTR)', () => {
 
     // wallet1 proposes the transaction
     let response = await TestUtils.request
-      .post('/wallet/tx-proposal')
+      .post('/wallet/p2sh/tx-proposal')
       .send(tx)
       .set({ 'x-wallet-id': wallet1.walletId });
     loggers.test.insertLineToLog('multisig[should fail gt minsig]: proposal', { body: response.body });
@@ -258,7 +258,7 @@ describe('send tx (HTR)', () => {
 
     // try to send
     response = await TestUtils.request
-      .post('/wallet/tx-proposal/sign-and-push')
+      .post('/wallet/p2sh/tx-proposal/sign-and-push')
       .send({ txHex, signatures })
       .set({ 'x-wallet-id': wallet1.walletId });
 

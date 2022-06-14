@@ -558,7 +558,7 @@ export class TestUtils {
    */
   static async getSignatures(txHex, walletId) {
     const response = await TestUtils.request
-      .post('/wallet/tx-proposal/get-my-signatures')
+      .post('/wallet/p2sh/tx-proposal/get-my-signatures')
       .send({ txHex })
       .set(TestUtils.generateHeader(walletId));
 

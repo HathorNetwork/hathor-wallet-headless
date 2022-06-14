@@ -1,8 +1,8 @@
 import TestUtils from './test-utils';
 
-const walletId = 'stub_tx_proposal_sign_and_push';
+const walletId = 'stub_tx_proposal_sign';
 
-describe('tx-proposal sign-and-push api', () => {
+describe('tx-proposal sign api', () => {
   beforeAll(async () => {
     global.config.multisig = TestUtils.multisigData;
     return TestUtils.startWallet({
@@ -19,14 +19,14 @@ describe('tx-proposal sign-and-push api', () => {
 
   it('should fail if txHex is not a hex string', async () => {
     let response = await TestUtils.request
-      .post('/wallet/tx-proposal/sign-and-push')
+      .post('/wallet/p2sh/tx-proposal/sign')
       .send({ txHex: 123, signatures: ['1'] })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
 
     response = await TestUtils.request
-      .post('/wallet/tx-proposal/sign-and-push')
+      .post('/wallet/p2sh/tx-proposal/sign')
       .send({ txHex: '0123g', signatures: ['1'] })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
@@ -35,7 +35,7 @@ describe('tx-proposal sign-and-push api', () => {
 
   it('should fail if txHex is an invalid transaction', async () => {
     const response = await TestUtils.request
-      .post('/wallet/tx-proposal/sign-and-push')
+      .post('/wallet/p2sh/tx-proposal/sign')
       .send({ txHex: '0123456789abcdef', signatures: ['123'] })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
@@ -44,14 +44,14 @@ describe('tx-proposal sign-and-push api', () => {
 
   it('should fail if signatures is an invalid array', async () => {
     let response = await TestUtils.request
-      .post('/wallet/tx-proposal/sign-and-push')
+      .post('/wallet/p2sh/tx-proposal/sign')
       .send({ txHex: '0123456789abcdef', signatures: [123] })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
 
     response = await TestUtils.request
-      .post('/wallet/tx-proposal/sign-and-push')
+      .post('/wallet/p2sh/tx-proposal/sign')
       .send({ txHex: '0123456789abcdef', signatures: [] })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
@@ -66,21 +66,21 @@ describe('tx-proposal sign-and-push api', () => {
       ],
     };
     let response = await TestUtils.request
-      .post('/wallet/tx-proposal')
+      .post('/wallet/p2sh/tx-proposal')
       .send(tx)
       .set({ 'x-wallet-id': walletId });
 
     const { txHex } = response.body;
 
     response = await TestUtils.request
-      .post('/wallet/tx-proposal/get-my-signatures')
+      .post('/wallet/p2sh/tx-proposal/get-my-signatures')
       .send({ txHex })
       .set({ 'x-wallet-id': walletId });
 
     const signature = response.body.signatures;
 
     response = await TestUtils.request
-      .post('/wallet/tx-proposal/sign-and-push')
+      .post('/wallet/p2sh/tx-proposal/sign')
       .send({ txHex, signatures: [signature, signature, signature] })
       .set({ 'x-wallet-id': walletId });
     expect(response.body.success).toBeTruthy();
