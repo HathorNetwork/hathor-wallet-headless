@@ -8,7 +8,6 @@
 const { walletUtils, errors, Connection, HathorWallet } = require('@hathor/wallet-lib');
 const apiDocs = require('../api-docs');
 const config = require('../config');
-const constants = require('../constants');
 const { initializedWallets } = require('../services/wallets.service');
 
 function welcome(req, res) {
@@ -81,7 +80,7 @@ function start(req, res) {
   }
 
   let multisigData = null;
-  if (constants.MULTISIG_ENABLED && ('multisig' in req.body) && (req.body.multisig !== false)) {
+  if (('multisig' in req.body) && (req.body.multisig !== false)) {
     if (!(config.multisig && (seedKey in config.multisig))) {
       // Trying to start a multisig without proper configuration
       res.send({
@@ -191,14 +190,6 @@ function start(req, res) {
 }
 
 function multisigPubkey(req, res) {
-  if (!constants.MULTISIG_ENABLED) {
-    res.send({
-      success: false,
-      message: 'The MultiSig feature is disabled',
-    });
-    return;
-  }
-
   if (!('seedKey' in req.body)) {
     res.send({
       success: false,
