@@ -8,7 +8,6 @@
 const { walletUtils, errors, Connection, HathorWallet } = require('@hathor/wallet-lib');
 const apiDocs = require('../api-docs');
 const config = require('../config');
-const constants = require('../constants');
 const { initializedWallets } = require('../services/wallets.service');
 
 function welcome(req, res) {

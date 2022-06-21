@@ -11,7 +11,6 @@ const {
   helpersUtils
 } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../../helpers/validations.helper');
-const constants = require('../../../constants');
 const { lock, lockTypes } = require('../../../lock');
 const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 const { mapTxReturn } = require('../../../helpers/tx.helper');
