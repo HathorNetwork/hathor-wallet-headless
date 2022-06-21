@@ -14,6 +14,7 @@ const {
   utxoConsolidation, createNft, getAddressInfo, stop,
   getAddressIndex
 } = require('../../controllers/wallet/wallet.controller');
+const { partialTxOrTxHexSchema } = require('../../schemas');
 const p2shRouter = require('./p2sh/p2sh.routes');
 const { MAX_DATA_SCRIPT_LENGTH } = require('../../constants');
 
@@ -157,20 +158,7 @@ walletRouter.post(
 
 walletRouter.post(
   '/decode',
-  checkSchema({
-    txHex: {
-      in: ['body'],
-      errorMessage: 'Invalid txHex',
-      isString: true,
-      custom: {
-        options: (value, { req, location, path }) => {
-          // Test if txHex is actually hex
-          if (!(/^[0-9a-fA-F]+$/.test(value))) return false;
-          return true;
-        }
-      },
-    },
-  }),
+  checkSchema(partialTxOrTxHexSchema),
   decodeTx
 );
 
