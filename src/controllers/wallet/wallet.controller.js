@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { constants: hathorLibConstants, helpersUtils, errors, tokensUtils } = require('@hathor/wallet-lib');
+const { constants: hathorLibConstants, helpersUtils, errors, tokensUtils, PartialTx } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../lock');
@@ -209,9 +209,28 @@ async function decodeTx(req, res) {
     return;
   }
 
-  const { txHex } = req.body;
+  const txHex = req.body.txHex || null;
+  const partialTx = req.body.txHex || null;
+
+  if (
+    (txHex === null && partialTx === null)
+    || (txHex !== null && partialTx !== null)
+  ) {
+    res.status(400).json({
+      success: false,
+      message: 'Required only one of txHex or partialTx',
+    });
+    return;
+  }
+
   try {
-    const tx = helpersUtils.createTxFromHex(txHex, req.wallet.getNetworkObject());
+    let tx;
+    if (txHex !== null) {
+      tx = helpersUtils.createTxFromHex(txHex, req.wallet.getNetworkObject());
+    } else {
+      const partial = PartialTx.deserialize(partialTx);
+      tx = partial.getTx();
+    }
     const data = {
       tokens: tx.tokens,
       inputs: tx.inputs.map(input => ({ txId: input.hash, index: input.index })),
