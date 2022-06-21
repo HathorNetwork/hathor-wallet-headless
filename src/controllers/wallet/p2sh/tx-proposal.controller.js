@@ -47,14 +47,6 @@ async function buildTxProposal(req, res) {
 }
 
 async function getMySignatures(req, res) {
-  if (!constants.MULTISIG_ENABLED) {
-    res.send({
-      success: false,
-      message: 'The MultiSig feature is disabled',
-    });
-    return;
-  }
-
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     res.status(400).json(validationResult);
@@ -96,14 +88,6 @@ Expected ${wallet.multisig.numSignatures} Received ${signatures.length}`
 }
 
 async function signTx(req, res) {
-  if (!constants.MULTISIG_ENABLED) {
-    res.send({
-      success: false,
-      message: 'The MultiSig feature is disabled',
-    });
-    return;
-  }
-
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     res.status(400).json(validationResult);
@@ -121,14 +105,6 @@ async function signTx(req, res) {
 }
 
 async function signAndPush(req, res) {
-  if (!constants.MULTISIG_ENABLED) {
-    res.send({
-      success: false,
-      message: 'The MultiSig feature is disabled',
-    });
-    return;
-  }
-
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     res.status(400).json(validationResult);
