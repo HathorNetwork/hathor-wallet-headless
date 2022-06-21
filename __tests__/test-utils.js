@@ -1,8 +1,10 @@
 import supertest from 'supertest';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import axios from 'axios';
+import winston from 'winston';
 import MockAdapter from 'axios-mock-adapter';
 import { Server } from 'mock-socket';
+import { HathorWallet } from '@hathor/wallet-lib';
 import app from '../src/index';
 import config from '../src/config';
 import httpFixtures from './__fixtures__/http-fixtures';
@@ -11,10 +13,19 @@ import wsFixtures from './__fixtures__/ws-fixtures';
 const WALLET_ID = 'stub_wallet';
 const SEED_KEY = 'stub_seed';
 
+/* eslint-disable max-len */
+// XXX: These words are not used on the tests but are here to document which words generated the multisig xpubs below which are used on tests.
+// The first one generated the MULTISIG_XPUB and is the same as the words on the config fixture used for p2pkh tests.
+// 'upon tennis increase embark dismiss diamond monitor face magnet jungle scout salute rural master shoulder cry juice jeans radar present close meat antenna mind'
+// 'sample garment fun depart various renew require surge service undo cinnamon squeeze hundred nasty gasp ridge surge defense relax turtle wet antique october occur'
+// 'intact wool rigid diary mountain issue tiny ugly swing rib alone base fold satoshi drift poverty autumn mansion state globe plug ancient pudding hope'
+// 'monster opinion bracket aspect mask labor obvious hat matrix exact canoe race shift episode plastic debris dash sort motion juice leg mushroom maximum evidence'
+// 'tilt lab swear uncle prize favorite river myth assault transfer venue soap lady someone marine reject fork brain swallow notice glad salt sudden pottery'
+/* eslint-enable max-len */
 const MULTISIG_XPUB = 'xpub6CvvCBtHqFfErbcW2Rv28TmZ3MqcFuWQVKGg8xDzLeAwEAHRz9LBTgSFSj7B99scSvZGbq6TxAyyATA9b6cnwsgduNs9NGKQJnEQr3PYtwK';
 const MULTISIG_DATA = {
   stub_seed: {
-    minSignatures: 3,
+    numSignatures: 3,
     total: 5,
     pubkeys: [
       MULTISIG_XPUB,
@@ -47,6 +58,8 @@ class TestUtils {
   static multisigXpub = MULTISIG_XPUB;
 
   static multisigData = MULTISIG_DATA;
+
+  static logger = null;
 
   static addresses = [
     'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN',
@@ -103,16 +116,62 @@ class TestUtils {
     return request;
   }
 
+  static async walletStatus({ walletId = WALLET_ID, firstAddress = null }) {
+    const params = { 'x-wallet-id': walletId };
+    if (firstAddress) {
+      params['x-first-address'] = firstAddress;
+    }
+    const response = await request.get('/wallet/status').set(params);
+    TestUtils.logger.debug('[TestUtil:walletStatus] wallet status', { walletId, body: response.body });
+    return response;
+  }
+
+  static async waitReady({
+    walletId = WALLET_ID,
+    exitIfClosed = false,
+    retries = 3,
+    firstAddress = null,
+  } = {}) {
+    for (let i = 0; i < retries; i++) {
+      const res = await TestUtils.walletStatus({ walletId, firstAddress });
+      if (res.body?.success !== false) {
+        return true;
+      }
+      if (res.body?.message === 'Invalid wallet id parameter.') {
+        // The wallet does not exist
+        return false;
+      }
+      if (res.body?.statusCode === HathorWallet.ERROR) {
+        throw new Error(res.body?.message);
+      }
+      if (exitIfClosed && res.body?.statusCode === HathorWallet.CLOSED) {
+        return false;
+      }
+      await new Promise(resolve => {
+        setTimeout(resolve, 500);
+      });
+    }
+    TestUtils.logger.debug('[TestUtil:waitReady] too many attempts', { walletId });
+    return false;
+  }
+
   static async startWallet({
     seedKey = SEED_KEY,
-    walletId = TestUtils.walletId,
+    walletId = WALLET_ID,
     multisig = false,
+    preCalculatedAddresses = null,
   } = {}) {
-    TestUtils.walletId = walletId;
-
+    const params = {
+      'wallet-id': walletId,
+      seedKey,
+      multisig,
+    };
+    if (preCalculatedAddresses != null) {
+      params.preCalculatedAddresses = preCalculatedAddresses;
+    }
     const response = await request
       .post('/start')
-      .send({ seedKey, 'wallet-id': walletId, multisig });
+      .send(params);
 
     if (response.status !== 200) {
       throw new Error('Unable to start the wallet');
@@ -121,21 +180,17 @@ class TestUtils {
       throw new Error(response.body.message);
     }
 
-    while (true) {
-      const res = await request
-        .get('/wallet/status')
-        .set({ 'x-wallet-id': walletId });
-      if (res.body && res.body.success !== false) {
-        break;
-      }
-      await new Promise(resolve => {
-        setTimeout(resolve, 500);
-      });
-    }
+    await TestUtils.waitReady({ walletId, retries: 10 });
   }
 
-  static async stopWallet({ walletId = TestUtils.walletId } = {}) {
-    await request.post('/wallet/stop').set({ 'x-wallet-id': walletId });
+  static async stopWallet({ walletId = WALLET_ID } = {}) {
+    const isReady = await TestUtils.waitReady({ walletId, exitIfClosed: true });
+    if (!isReady) {
+      TestUtils.logger.debug('[TestUtil:stopWallet] wallet is already stopped', { walletId });
+      return;
+    }
+    const response = await request.post('/wallet/stop').set({ 'x-wallet-id': walletId });
+    TestUtils.logger.debug('[TestUtil:stopWallet] stop wallet request', { walletId, body: response.body });
   }
 
   static startMocks() {
@@ -178,6 +233,18 @@ class TestUtils {
 
   static reorderHandlers() {
     Object.values(httpMock.handlers).forEach(handler => handler.reverse());
+  }
+
+  static initLogger() {
+    TestUtils.logger = winston.createLogger({
+      level: 'silly',
+      transports: [
+        new winston.transports.Console({
+          format: winston.format.simple(),
+          level: 'silly',
+        }),
+      ],
+    });
   }
 }
 

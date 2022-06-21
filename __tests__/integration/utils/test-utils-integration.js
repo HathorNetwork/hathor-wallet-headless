@@ -22,7 +22,7 @@ const request = supertest(app);
  * If both are present, prefer `words`
  *
  * _Obs[2]_: `multisig` can only be used with `seedKey`
- * because of the extra configuration required (pubkeys, minSignatures, total)
+ * because of the extra configuration required (pubkeys, numSignatures, total)
  * that are connected to a configured seedKey
  *
  * @property {string} walletId Id for interacting with the wallet after starting it
@@ -558,7 +558,7 @@ export class TestUtils {
    */
   static async getSignatures(txHex, walletId) {
     const response = await TestUtils.request
-      .post('/wallet/tx-proposal/get-my-signatures')
+      .post('/wallet/p2sh/tx-proposal/get-my-signatures')
       .send({ txHex })
       .set(TestUtils.generateHeader(walletId));
 

@@ -1,6 +1,16 @@
 import TestUtils from './test-utils';
 
+const walletId = 'stub_create_token';
+
 describe('create-token api', () => {
+  beforeAll(async () => {
+    await TestUtils.startWallet({ walletId, preCalculatedAddresses: TestUtils.addresses });
+  });
+
+  afterAll(async () => {
+    await TestUtils.stopWallet({ walletId });
+  });
+
   it('should return 200 with a valid body', async () => {
     const response = await TestUtils.request
       .post('/wallet/create-token')
@@ -9,7 +19,7 @@ describe('create-token api', () => {
         symbol: '03',
         amount: 1,
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeTruthy();
     expect(response.body.hash).toBeDefined();
@@ -23,7 +33,7 @@ describe('create-token api', () => {
         symbol: '03',
         amount: '1',
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeTruthy();
     expect(response.body.hash).toBeDefined();
@@ -40,7 +50,7 @@ describe('create-token api', () => {
       const response = await TestUtils.request
         .post('/wallet/create-token')
         .send(token)
-        .set({ 'x-wallet-id': TestUtils.walletId });
+        .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(400);
       expect(response.body.success).toBeFalsy();
     });
@@ -54,7 +64,7 @@ describe('create-token api', () => {
         symbol: '03',
         amount: 10 ** 9,
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
   });
@@ -67,7 +77,7 @@ describe('create-token api', () => {
         symbol: '03',
         amount: 1,
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     const promise2 = TestUtils.request
       .post('/wallet/create-token')
       .send({
@@ -75,7 +85,7 @@ describe('create-token api', () => {
         symbol: '03',
         amount: 1,
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
 
     const [response1, response2] = await Promise.all([promise1, promise2]);
     expect(response1.status).toBe(200);
@@ -95,7 +105,7 @@ describe('create-token api', () => {
         symbol: 'HTR',
         amount: 1,
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
   });

@@ -14,12 +14,12 @@ const {
   utxoConsolidation, createNft, getAddressInfo, stop,
   getAddressIndex
 } = require('../../controllers/wallet/wallet.controller');
-const txProposalRouter = require('./tx-proposal.routes');
+const p2shRouter = require('./p2sh/p2sh.routes');
 const { MAX_DATA_SCRIPT_LENGTH } = require('../../constants');
 
 const walletRouter = Router({ mergeParams: true });
 walletRouter.use(walletMiddleware);
-walletRouter.use('/tx-proposal', txProposalRouter);
+walletRouter.use('/p2sh', p2shRouter);
 
 /**
  * GET request to get the status of a wallet

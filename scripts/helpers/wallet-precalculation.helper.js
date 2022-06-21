@@ -36,7 +36,7 @@ export const multisigWalletsData = {
   walletConfig: {
     pubkeys: [],
     total: 5,
-    minSignatures: 3,
+    numSignatures: 3,
   }
 };
 multisigWalletsData.walletConfig.pubkeys = multisigWalletsData.pubkeys;
@@ -61,7 +61,7 @@ export class WalletPrecalculationHelper {
    *    If empty on common wallets, generates a random seed of 24 words and derives its addresses.
    * @param {number} [params.addressIntervalStart=0] Optional interval start index ( including )
    * @param {number} [params.addressIntervalEnd=22] Optional interval end index ( excluding )
-   * @param {{minSignatures:number,wordsArray:string[]}} [params.multisig] Optional multisig object
+   * @param {{numSignatures:number,wordsArray:string[]}} [params.multisig] Optional multisig object
    * @returns {{addresses: string[], words: string}}
    */
   static generateAddressesForWordsSeed(params = {}) {
@@ -79,7 +79,7 @@ export class WalletPrecalculationHelper {
       for (let i = addressIntervalStart; i < addressIntervalEnd; ++i) {
         const redeemScript = walletUtils.createP2SHRedeemScript(
           pubkeys,
-          params.multisig.minSignatures,
+          params.multisig.numSignatures,
           i
         );
         const address = Address.payingTo(Script.fromBuffer(redeemScript), config.network);
@@ -88,7 +88,7 @@ export class WalletPrecalculationHelper {
         // Informing debug data
         multisigDebugData = {
           total: pubkeys.length,
-          minSignatures: params.multisig.minSignatures,
+          numSignatures: params.multisig.numSignatures,
           pubkeys,
         };
       }
@@ -203,7 +203,7 @@ export class WalletPrecalculationHelper {
    * Generates wallets for each of the seed words on a same multisig wallet
    * @param params
    * @param {string[]} params.wordsArray An array with each element containing 24 words
-   * @param {number} params.minSignatures Minimum of signatures for this multisig wallet
+   * @param {number} params.numSignatures Required of signatures for this multisig wallet
    * @returns {unknown[]}
    */
   static generateMultisigWalletsForWords(params = {}) {
@@ -213,7 +213,7 @@ export class WalletPrecalculationHelper {
         words: walletWords,
         multisig: {
           wordsArray: params.wordsArray,
-          minSignatures: params.minSignatures
+          numSignatures: params.numSignatures
         }
       });
       resultingWallets.push(multisigWallet);

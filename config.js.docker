@@ -87,15 +87,15 @@ for (const x of seeds) {
   const multisigPubkeys = getParam(`multisig_seed_${x}_pubkeys`);
   const multisig = {
     total:          getParam(`multisig_seed_${x}_max_signatures`),
-    minSignatures:  getParam(`multisig_seed_${x}_min_signatures`),
+    numSignatures:  getParam(`multisig_seed_${x}_num_signatures`),
   };
-  if (!(multisigPubkeys || multisig.total || multisig.minSignatures)) {
+  if (!(multisigPubkeys || multisig.total || multisig.numSignatures)) {
     // No multisig parameters means this is not a multisig.
     continue;
   }
-  if (!(multisigPubkeys && multisig.total && multisig.minSignatures)) {
+  if (!(multisigPubkeys && multisig.total && multisig.numSignatures)) {
     // If this is a multisig seed, all multisig parameters should be present
-    throw `Multisig improperly configured, need all of [--multisig_seed_${x}_max_signatures, --multisig_seed_${x}_min_signatures, --multisig_seed_${x}_pubkeys] or envvars [HEADLESS_MULTISIG_SEED_${x.toUpperCase()}_MAX_SIGNATURES, HEADLESS_MULTISIG_SEED_${x.toUpperCase()}_MIN_SIGNATURES, HEADLESS_MULTISIG_SEED_${x.toUpperCase()}_PUBKEYS, ]`
+    throw `Multisig improperly configured, need all of [--multisig_seed_${x}_max_signatures, --multisig_seed_${x}_num_signatures, --multisig_seed_${x}_pubkeys] or envvars [HEADLESS_MULTISIG_SEED_${x.toUpperCase()}_MAX_SIGNATURES, HEADLESS_MULTISIG_SEED_${x.toUpperCase()}_NUM_SIGNATURES, HEADLESS_MULTISIG_SEED_${x.toUpperCase()}_PUBKEYS, ]`
   }
   multisig.pubkeys = multisigPubkeys.split(' ');
   if (multisig.pubkeys.length != multisig.total) {

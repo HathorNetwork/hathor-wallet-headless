@@ -10,11 +10,10 @@ const {
   SendTransaction,
   helpersUtils
 } = require('@hathor/wallet-lib');
-const { parametersValidation } = require('../../helpers/validations.helper');
-const constants = require('../../constants');
-const { lock, lockTypes } = require('../../lock');
-const { cantSendTxErrorMessage } = require('../../helpers/constants');
-const { mapTxReturn } = require('../../helpers/tx.helper');
+const { parametersValidation } = require('../../../helpers/validations.helper');
+const { lock, lockTypes } = require('../../../lock');
+const { cantSendTxErrorMessage } = require('../../../helpers/constants');
+const { mapTxReturn } = require('../../../helpers/tx.helper');
 
 async function buildTxProposal(req, res) {
   const validationResult = parametersValidation(req);
@@ -47,14 +46,6 @@ async function buildTxProposal(req, res) {
 }
 
 async function getMySignatures(req, res) {
-  if (!constants.MULTISIG_ENABLED) {
-    res.send({
-      success: false,
-      message: 'The MultiSig feature is disabled',
-    });
-    return;
-  }
-
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     res.status(400).json(validationResult);
@@ -70,15 +61,32 @@ async function getMySignatures(req, res) {
   }
 }
 
-async function signTx(req, res) {
-  if (!constants.MULTISIG_ENABLED) {
-    res.send({
-      success: false,
-      message: 'The MultiSig feature is disabled',
-    });
-    return;
+/**
+ * Method to create a Transaction instance from the tx in hex format and
+ * an array of P2SH signatures.
+ *
+ * @param {HathorWallet} wallet The wallet object
+ * @param {string} txHex The transaction in hex format
+ * @param {Array[string]} signatures the serialized P2SHSignatures of this transaction
+ * @returns {Transaction}
+ */
+function assemblePartialTransaction(wallet, txHex, signatures) {
+  if (!wallet.multisig) {
+    // This wallet is not a MultiSig wallet
+    throw new Error('Invalid wallet for this operation.');
   }
+  if (signatures.length !== wallet.multisig.numSignatures) {
+    throw new Error(
+      `Quantity of signatures different than expected. \
+Expected ${wallet.multisig.numSignatures} Received ${signatures.length}`
+    );
+  }
+  const tx = wallet.assemblePartialTransaction(txHex, signatures);
+  tx.prepareToSend();
+  return tx;
+}
 
+async function signTx(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     res.status(400).json(validationResult);
@@ -88,7 +96,7 @@ async function signTx(req, res) {
   const { txHex } = req.body;
   const signatures = req.body.signatures || [];
   try {
-    const tx = req.wallet.assemblePartialTransaction(txHex, signatures);
+    const tx = assemblePartialTransaction(req.wallet, txHex, signatures);
     res.send({ success: true, txHex: tx.toHex() });
   } catch (err) {
     res.send({ success: false, error: err.message });
@@ -96,14 +104,6 @@ async function signTx(req, res) {
 }
 
 async function signAndPush(req, res) {
-  if (!constants.MULTISIG_ENABLED) {
-    res.send({
-      success: false,
-      message: 'The MultiSig feature is disabled',
-    });
-    return;
-  }
-
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     res.status(400).json(validationResult);
@@ -119,8 +119,7 @@ async function signAndPush(req, res) {
   const { txHex } = req.body;
   const signatures = req.body.signatures || [];
   try {
-    const tx = req.wallet.assemblePartialTransaction(txHex, signatures);
-    tx.prepareToSend();
+    const tx = assemblePartialTransaction(req.wallet, txHex, signatures);
 
     const sendTransaction = new SendTransaction({
       transaction: tx,

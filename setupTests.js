@@ -5,9 +5,6 @@ import TestUtils from './__tests__/test-utils';
 // eslint-disable-next-line no-extend-native
 Promise.prototype.finally = Promise.prototype.then;
 
-// Default wallet id
-const WALLET_ID = 'stub_wallet';
-
 // Mock Websockets
 jest.mock('isomorphic-ws', () => require('mock-socket').WebSocket);
 
@@ -36,11 +33,10 @@ jest.mock(
 // Start the stub wallet
 beforeAll(async () => {
   TestUtils.startMocks();
-  await TestUtils.startWallet({ walletId: WALLET_ID });
+  TestUtils.initLogger();
 });
 
 // Stop the stub wallet
 afterAll(async () => {
-  await TestUtils.stopWallet({ walletId: WALLET_ID });
   await TestUtils.stopMocks();
 });

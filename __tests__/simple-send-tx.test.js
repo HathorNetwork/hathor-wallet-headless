@@ -1,6 +1,16 @@
 import TestUtils from './test-utils';
 
+const walletId = 'stub_simple_send_tx';
+
 describe('simple-send-tx api', () => {
+  beforeAll(async () => {
+    await TestUtils.startWallet({ walletId, preCalculatedAddresses: TestUtils.addresses });
+  });
+
+  afterAll(async () => {
+    await TestUtils.stopWallet({ walletId });
+  });
+
   it('should return 200 with a valid body', async () => {
     const response = await TestUtils.request
       .post('/wallet/simple-send-tx')
@@ -8,7 +18,7 @@ describe('simple-send-tx api', () => {
         address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc',
         value: 1,
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
     expect(response.body.success).toBeTruthy();
@@ -21,7 +31,7 @@ describe('simple-send-tx api', () => {
         address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc',
         value: '1',
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
     expect(response.body.success).toBeTruthy();
@@ -34,7 +44,7 @@ describe('simple-send-tx api', () => {
         address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc',
         value: 0,
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.succes).toBeFalsy();
   });
@@ -45,7 +55,7 @@ describe('simple-send-tx api', () => {
       .send({
         value: 1,
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.succes).toBeFalsy();
 
@@ -54,7 +64,7 @@ describe('simple-send-tx api', () => {
       .send({
         address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc',
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.succes).toBeFalsy();
   });
@@ -66,14 +76,14 @@ describe('simple-send-tx api', () => {
         address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc',
         value: 1,
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     const promise2 = TestUtils.request
       .post('/wallet/simple-send-tx')
       .send({
         address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc',
         value: 1,
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
 
     const [response1, response2] = await Promise.all([promise1, promise2]);
     expect(response1.status).toBe(200);
@@ -90,7 +100,7 @@ describe('simple-send-tx api', () => {
         address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc',
         value: 1,
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     const promise2 = TestUtils.request
       .post('/wallet/create-token')
       .send({
@@ -98,7 +108,7 @@ describe('simple-send-tx api', () => {
         symbol: '03',
         amount: 1,
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
 
     const [response1, response2] = await Promise.all([promise1, promise2]);
     expect(response1.status).toBe(200);
@@ -120,7 +130,7 @@ describe('simple-send-tx api', () => {
           symbol: 'stub_token',
         },
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
     expect(response.body.success).toBeTruthy();
@@ -134,7 +144,7 @@ describe('simple-send-tx api', () => {
         value: 1,
         token: '09',
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
     expect(response.body.success).toBeTruthy();
@@ -152,7 +162,7 @@ describe('simple-send-tx api', () => {
           symbol: 'stub_token_2',
         },
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
   });
@@ -165,7 +175,7 @@ describe('simple-send-tx api', () => {
         value: 1,
         token: '02'
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
   });
@@ -178,7 +188,7 @@ describe('simple-send-tx api', () => {
         value: 1,
         change_address: 'Wc5YHn861241iLY42mFT8z1dT1UdsNWkfs',
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeTruthy();
   });
@@ -198,7 +208,7 @@ describe('simple-send-tx api', () => {
           value: 1,
           token,
         })
-        .set({ 'x-wallet-id': TestUtils.walletId });
+        .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(400);
       expect(response.body.success).toBeFalsy();
     });
@@ -212,7 +222,7 @@ describe('simple-send-tx api', () => {
         value: 1,
         change_address: 'WVGxdgZMHkWo2Hdrb1sEFedNdjTXzjvjPg',
       })
-      .set({ 'x-wallet-id': TestUtils.walletId });
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
   });
