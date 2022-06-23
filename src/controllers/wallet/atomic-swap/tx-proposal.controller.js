@@ -6,6 +6,7 @@
  */
 
 const {
+  constants: hathorLibConstants,
   wallet: walletLib,
   SendTransaction,
   PartialTxProposal,
@@ -35,38 +36,40 @@ async function buildTxProposal(req, res) {
   const partialTx = req.body.partial_tx || null;
   const markAsSelected = req.body.lock || true;
 
-  if (!(
-    inputs.length === 0
-    || outputs.length === 0
-    || sendTokens.length === 0
-    || receiveTokens.length === 0
-  )) {
-    res.status(400).json({ success: false });
+  if (inputs.length === 0
+    && outputs.length === 0
+    && sendTokens.length === 0
+    && receiveTokens.length === 0
+  ) {
+    res.status(400).json({ success: false, error: ['Should have at least one operation'] });
     return;
   }
 
-  const proposal = PartialTxProposal({ partialTx, network });
+  const proposal = new PartialTxProposal({ partialTx, network });
 
   for (const input of inputs) {
-    await proposal.addInput(input.hash, input.index, { markAsSelected });
+    await proposal.addInput(input.txId, input.index, { markAsSelected });
   }
 
   for (const send of sendTokens) {
-    await proposal.addSend(send.token, send.value, { changeAddress, markAsSelected });
+    const token = send.token || hathorLibConstants.HATHOR_TOKEN_CONFIG.uid;
+    await proposal.addSend(token, send.value, { changeAddress, markAsSelected });
   }
 
   for (const output of outputs) {
-    await proposal.addOutput(output.token, output.value, output.address);
+    const token = output.token || hathorLibConstants.HATHOR_TOKEN_CONFIG.uid;
+    await proposal.addOutput(token, output.value, output.address);
   }
 
   for (const receive of receiveTokens) {
-    proposal.addReceive(receive.token, receive.value);
+    const token = receive.token || hathorLibConstants.HATHOR_TOKEN_CONFIG.uid;
+    proposal.addReceive(token, receive.value);
   }
 
   res.send({
     success: true,
     data: proposal.partialTx.serialize(),
-    isComplete: proposal.isComplete(),
+    isComplete: proposal.partialTx.isComplete(),
   });
 }
 
@@ -79,7 +82,7 @@ async function getMySignatures(req, res) {
 
   const network = req.wallet.getNetworkObject();
   const partialTx = req.body.partial_tx;
-  const proposal = PartialTxProposal({ partialTx, network });
+  const proposal = new PartialTxProposal({ partialTx, network });
 
   try {
     proposal.signData('123');
@@ -101,7 +104,7 @@ async function signTx(req, res) {
   const { partialTx } = req.body;
   const signatures = req.body.signatures || [];
 
-  const proposal = PartialTxProposal({ partialTx, network });
+  const proposal = new PartialTxProposal({ partialTx, network });
 
   try {
     proposal.signData('123');
@@ -133,7 +136,7 @@ async function signAndPush(req, res) {
   const { partialTx } = req.body;
   const signatures = req.body.signatures || [];
 
-  const proposal = PartialTxProposal({ partialTx, network });
+  const proposal = new PartialTxProposal({ partialTx, network });
 
   try {
     proposal.signData('123');
@@ -273,4 +276,5 @@ module.exports = {
   signAndPush,
   getInputData,
   getLockedUTXOs,
+  unlockInputs,
 };

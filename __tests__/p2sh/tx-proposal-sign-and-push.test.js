@@ -1,6 +1,6 @@
-import TestUtils from './test-utils';
+import TestUtils from '../test-utils';
 
-const walletId = 'stub_tx_proposal_sign_and_push';
+const walletId = 'stub_p2sh_tx_proposal_sign_and_push';
 
 describe('tx-proposal sign-and-push api', () => {
   beforeAll(async () => {

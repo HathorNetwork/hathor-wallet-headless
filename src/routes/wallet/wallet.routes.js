@@ -16,10 +16,12 @@ const {
 } = require('../../controllers/wallet/wallet.controller');
 const { partialTxOrTxHexSchema } = require('../../schemas');
 const p2shRouter = require('./p2sh/p2sh.routes');
+const atomicSwapRouter = require('./atomic-swap/atomic-swap.routes');
 const { MAX_DATA_SCRIPT_LENGTH } = require('../../constants');
 
 const walletRouter = Router({ mergeParams: true });
 walletRouter.use(walletMiddleware);
+walletRouter.use('/atomic-swap', atomicSwapRouter);
 walletRouter.use('/p2sh', p2shRouter);
 
 /**

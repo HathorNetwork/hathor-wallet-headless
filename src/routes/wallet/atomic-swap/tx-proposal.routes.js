@@ -32,6 +32,7 @@ txProposalRouter.post(
       errorMessage: 'Invalid outputs array',
       isArray: true,
       notEmpty: true,
+      optional: true,
     },
     'outputs.*.address': {
       in: ['body'],
@@ -78,6 +79,66 @@ txProposalRouter.post(
       errorMessage: 'Invalid input value',
       isInt: true,
       toInt: true,
+    },
+    send_tokens: {
+      in: ['body'],
+      errorMessage: 'Invalid send_tokens array',
+      isArray: true,
+      notEmpty: true,
+      optional: true,
+    },
+    'send_tokens.*.token': {
+      in: ['body'],
+      errorMessage: 'Invalid token uid',
+      isString: true,
+      optional: true,
+    },
+    'send_tokens.*.value': {
+      in: ['body'],
+      errorMessage: 'Invalid value',
+      isInt: {
+        options: {
+          min: 1,
+        },
+      },
+      toInt: true,
+    },
+    receive_tokens: {
+      in: ['body'],
+      errorMessage: 'Invalid receive_tokens array',
+      isArray: true,
+      notEmpty: true,
+      optional: true,
+    },
+    'receive_tokens.*.token': {
+      in: ['body'],
+      errorMessage: 'Invalid token uid',
+      isString: true,
+      optional: true,
+    },
+    'receive_tokens.*.value': {
+      in: ['body'],
+      errorMessage: 'Invalid value',
+      isInt: {
+        options: {
+          min: 1,
+        },
+      },
+      toInt: true,
+    },
+    partial_tx: {
+      in: ['body'],
+      errorMessage: 'Invalid partial tx',
+      isString: true,
+      optional: true,
+      default: null
+    },
+    lock: {
+      in: ['body'],
+      errorMessage: 'Invalid lock argument',
+      isBoolean: true,
+      optional: true,
+      default: true,
     },
     change_address: {
       in: ['body'],
