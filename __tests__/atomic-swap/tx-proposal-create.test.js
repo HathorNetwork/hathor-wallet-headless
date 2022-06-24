@@ -4,6 +4,7 @@ import TestUtils from '../test-utils';
 const walletId = 'stub_atomic_swap_create_tx_proposal';
 
 describe('create tx-proposal api', () => {
+  const fakeTxId = '00003392e185c6e72d7d8073ef94649023777fd23c828514f505a7955abf0caf';
   const fakeUid = '0000219a831aaa7b011973981a286142b3002cd04763002e23ba6fec7dadda44';
   const spy = jest.spyOn(hathorLib.txApi, 'getTransaction')
     .mockImplementation(async (txId, cb) => (
@@ -12,17 +13,18 @@ describe('create tx-proposal api', () => {
           resolve({
             success: true,
             tx: {
+              tx_id: fakeTxId,
               tokens: [{ uid: fakeUid, symbol: 'FTK', name: 'Fake Token' }],
               outputs: [
                 {
                   token_data: 0, // HTR
                   value: 10,
-                  decoded: { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc' }
+                  decoded: { address: TestUtils.addresses[0] }
                 },
                 {
                   token_data: 1, // fake token
                   value: 10,
-                  decoded: { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc' }
+                  decoded: { address: TestUtils.addresses[1] }
                 },
               ]
             }
@@ -145,7 +147,7 @@ describe('create tx-proposal api', () => {
     const response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
-        outputs: [{ token: '00', value: 10, address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc' }],
+        outputs: [{ token: '00', value: 10, address: TestUtils.addresses[2] }],
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
@@ -167,7 +169,7 @@ describe('create tx-proposal api', () => {
     const response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
-        inputs: [{ txId: '00003392e185c6e72d7d8073ef94649023777fd23c828514f505a7955abf0caf', index: 0 }],
+        inputs: [{ txId: fakeTxId, index: 0 }],
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
@@ -189,7 +191,7 @@ describe('create tx-proposal api', () => {
     const spyInputs = jest.spyOn(hathorLib.wallet, 'getInputsFromAmount').mockImplementation(() => ({
       inputsAmount: 10,
       inputs: [
-        { index: 0, tx_id: '00003392e185c6e72d7d8073ef94649023777fd23c828514f505a7955abf0caf' }
+        { index: 0, tx_id: fakeTxId }
       ]
     }));
     const response = await TestUtils.request
@@ -220,7 +222,7 @@ describe('create tx-proposal api', () => {
     const spyInputs = jest.spyOn(hathorLib.wallet, 'getInputsFromAmount').mockImplementation(() => ({
       inputsAmount: 10,
       inputs: [
-        { index: 0, tx_id: '00003392e185c6e72d7d8073ef94649023777fd23c828514f505a7955abf0caf' }
+        { index: 0, tx_id: fakeTxId }
       ]
     }));
     const response = await TestUtils.request
@@ -251,14 +253,14 @@ describe('create tx-proposal api', () => {
     const spyInputs = jest.spyOn(hathorLib.wallet, 'getInputsFromAmount').mockImplementation(() => ({
       inputsAmount: 10,
       inputs: [
-        { index: 0, tx_id: '00003392e185c6e72d7d8073ef94649023777fd23c828514f505a7955abf0caf' }
+        { index: 0, tx_id: fakeTxId }
       ]
     }));
     const response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
         send_tokens: [{ value: 5 }],
-        outputs: [{ value: 5, address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc' }],
+        outputs: [{ value: 5, address: TestUtils.addresses[3] }],
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
@@ -283,17 +285,17 @@ describe('create tx-proposal api', () => {
     const spyInputs = jest.spyOn(hathorLib.wallet, 'getInputsFromAmount').mockImplementation(() => ({
       inputsAmount: 10,
       inputs: [
-        { index: 1, tx_id: '00003392e185c6e72d7d8073ef94649023777fd23c828514f505a7955abf0caf' }
+        { index: 1, tx_id: fakeTxId }
       ]
     }));
     const response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
         send_tokens: [{ value: 5, token: fakeUid }],
-        inputs: [{ index: 0, txId: '00003392e185c6e72d7d8073ef94649023777fd23c828514f505a7955abf0caf' }],
+        inputs: [{ index: 0, txId: fakeTxId }],
         outputs: [
-          { value: 5, token: fakeUid, address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc' },
-          { value: 10, address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc' },
+          { value: 5, token: fakeUid, address: TestUtils.addresses[4] },
+          { value: 10, address: TestUtils.addresses[5] },
         ],
       })
       .set({ 'x-wallet-id': walletId });

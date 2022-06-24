@@ -55,6 +55,14 @@ txProposalRouter.post(
       isString: true,
       optional: true,
     },
+    'outputs.*.timelock': {
+      in: ['body'],
+      errorMessage: 'Invalid timelock',
+      isInt: true,
+      toInt: true,
+      optional: true,
+      default: null,
+    },
     inputs: {
       in: ['body'],
       errorMessage: 'Invalid inputs array',
@@ -125,6 +133,21 @@ txProposalRouter.post(
         },
       },
       toInt: true,
+    },
+    'receive_tokens.*.timelock': {
+      in: ['body'],
+      errorMessage: 'Invalid timelock',
+      isInt: true,
+      toInt: true,
+      optional: true,
+      default: null,
+    },
+    'receive_tokens.*.address': {
+      in: ['body'],
+      errorMessage: 'Invalid address',
+      isString: true,
+      optional: true,
+      default: null,
     },
     partial_tx: {
       in: ['body'],

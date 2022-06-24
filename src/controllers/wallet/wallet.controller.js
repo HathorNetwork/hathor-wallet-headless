@@ -228,7 +228,7 @@ async function decodeTx(req, res) {
     if (txHex !== null) {
       tx = helpersUtils.createTxFromHex(txHex, req.wallet.getNetworkObject());
     } else {
-      const partial = PartialTx.deserialize(partialTx);
+      const partial = await PartialTx.deserialize(partialTx, req.wallet.getNetworkObject());
       tx = partial.getTx();
     }
     const data = {
@@ -237,6 +237,7 @@ async function decodeTx(req, res) {
       outputs: [],
     };
     for (const output of tx.outputs) {
+      output.parseScript(req.wallet.getNetworkObject());
       const outputData = {
         value: output.value,
         tokenData: output.tokenData,
