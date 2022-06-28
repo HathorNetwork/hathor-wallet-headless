@@ -218,7 +218,7 @@ async function decodeTx(req, res) {
   ) {
     res.status(400).json({
       success: false,
-      message: 'Required only one of txHex or partialTx',
+      error: 'Required only one of txHex or partialTx',
     });
     return;
   }

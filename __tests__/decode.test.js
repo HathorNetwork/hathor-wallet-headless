@@ -1,3 +1,5 @@
+import { PartialTx, ProposalInput, ProposalOutput } from '@hathor/wallet-lib/lib/models/partial_tx';
+import { Network, Address, P2PKH, txApi } from '@hathor/wallet-lib';
 import TestUtils from './test-utils';
 
 const walletId = 'stub_decode';
@@ -74,5 +76,126 @@ describe('decode api', () => {
     expect(response.body.tx.outputs[0].value).toBe(tx.outputs[0].value);
     expect(response.body.tx.outputs[1].decoded.address).toBe(tx.outputs[1].address);
     expect(response.body.tx.outputs[1].value).toBe(tx.outputs[1].value);
+  });
+
+  it('should return even if the transaction is not complete', async () => {
+    const partialTx = 'PartialTx|0001000000000000000000000062bb48b50000000000';
+    const txHex = '0001000000000000000000000062bb48b50000000000';
+    const expected = {
+      success: true,
+      tx: {
+        tokens: [],
+        inputs: [],
+        outputs: [],
+      }
+    };
+
+    let response = await TestUtils.request
+      .post('/wallet/decode')
+      .send({ txHex })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(expected);
+
+    response = await TestUtils.request
+      .post('/wallet/decode')
+      .send({ partial_tx: partialTx })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(expected);
+  });
+
+  it('should fail if there is not only one of txHex or partialTx', async () => {
+    const partialTx = 'PartialTx|0001000000000000000000000062bb48b50000000000';
+    const txHex = '0001000000000000000000000062bb48b50000000000';
+
+    let response = await TestUtils.request
+      .post('/wallet/decode')
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBeFalsy();
+
+    response = await TestUtils.request
+      .post('/wallet/decode')
+      .send({ txHex, partial_tx: partialTx })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBeFalsy();
+  });
+
+  it('should return the inputs and outputs of a partialTx', async () => {
+    const fakeToken1 = '00007f27e1970643427b0ea235d4c9b4cc700d0f6925e2cf1044b30a3259a995';
+    const fakeToken2 = '0000540e59bc09ce5aa25f1f7c21702e58e6e5dd8149d1eceb033bb606682590';
+    const fakeInputHash = '0000adf1516e44876ffba27de0345fe847aa85146515a5c4ea34732ddb3708f4';
+    const spy = jest.spyOn(txApi, 'getTransaction')
+      .mockImplementation(async (txId, cb) => (
+        new Promise(resolve => {
+          process.nextTick(() => {
+            resolve({
+              success: true,
+              tx: {
+                tx_id: fakeInputHash,
+                tokens: [{ uid: fakeToken2, symbol: 'FTK', name: 'Fake Token' }],
+                outputs: [
+                  {
+                    token_data: 0, // HTR
+                    value: 10,
+                    decoded: { address: TestUtils.addresses[0] }
+                  },
+                  {
+                    token_data: 1, // fake token
+                    value: 20,
+                    decoded: { address: TestUtils.addresses[1] }
+                  },
+                ]
+              }
+            });
+          });
+        }).then(data => {
+          cb(data);
+        })
+      ));
+
+    const partialTx = new PartialTx(new Network('testnet'));
+
+    let address = new Address(TestUtils.addresses[0]);
+    let script = new P2PKH(address);
+    partialTx.outputs.push(new ProposalOutput(10, script.createScript(), fakeToken1, false));
+
+    address = new Address(TestUtils.addresses[1]);
+    script = new P2PKH(address);
+    partialTx.outputs.push(new ProposalOutput(20, script.createScript(), '00', false));
+
+    partialTx.inputs.push(new ProposalInput(fakeInputHash, 1, fakeToken2, 30, address.base58));
+
+    // 1 input, 2 outputs
+    const response = await TestUtils.request
+      .post('/wallet/decode')
+      .send({ partial_tx: partialTx.serialize() })
+      .set({ 'x-wallet-id': walletId });
+    TestUtils.logger.debug('decode[partial tx] response', { body: response.body, partial_tx: partialTx.serialize() });
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      success: true,
+      tx: expect.objectContaining({
+        tokens: [fakeToken1, fakeToken2],
+        inputs: [{ txId: fakeInputHash, index: 1 }],
+        outputs: [
+          expect.objectContaining({
+            value: 10,
+            tokenData: 1,
+            token: fakeToken1,
+            decoded: expect.objectContaining({ address: TestUtils.addresses[0] })
+          }),
+          expect.objectContaining({
+            value: 20,
+            tokenData: 0,
+            decoded: expect.objectContaining({ address: TestUtils.addresses[1] })
+          }),
+        ],
+      }),
+    });
+
+    spy.mockRestore();
   });
 });
