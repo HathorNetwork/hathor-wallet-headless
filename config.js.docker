@@ -112,4 +112,4 @@ if (debugPath) {
   };
 }
 
-export default config;
+module.exports = config;
