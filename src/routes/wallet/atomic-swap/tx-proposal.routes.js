@@ -9,7 +9,7 @@ const { Router } = require('express');
 const { checkSchema } = require('express-validator');
 const {
   txHexSchema,
-  txHexSignatureSchema,
+  partialTxSignatureSchema,
   partialTxSchema,
 } = require('../../../schemas');
 const {
@@ -190,19 +190,19 @@ txProposalRouter.get(
  */
 txProposalRouter.post(
   '/get-my-signatures',
-  checkSchema(txHexSchema),
+  checkSchema(partialTxSchema),
   getMySignatures,
 );
 
 txProposalRouter.post(
   '/sign',
-  checkSchema(txHexSignatureSchema),
+  checkSchema(partialTxSignatureSchema),
   signTx,
 );
 
 txProposalRouter.post(
   '/sign-and-push',
-  checkSchema(txHexSignatureSchema),
+  checkSchema(partialTxSignatureSchema),
   signAndPush,
 );
 

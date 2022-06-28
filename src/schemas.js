@@ -21,7 +21,7 @@ export const txHexSchema = {
 };
 
 export const partialTxSchema = {
-  partialTx: {
+  partial_tx: {
     in: ['body'],
     errorMessage: 'Invalid partial tx',
     isString: true,
@@ -35,6 +35,23 @@ export const txHexSignatureSchema = {
     errorMessage: 'Invalid signatures array',
     isArray: true,
     notEmpty: true,
+  },
+  'signatures.*': {
+    in: ['body'],
+    errorMessage: 'Invalid signature',
+    isString: true,
+  },
+};
+
+export const partialTxSignatureSchema = {
+  ...partialTxSchema,
+  signatures: {
+    in: ['body'],
+    errorMessage: 'Invalid signatures array',
+    isArray: true,
+    notEmpty: true,
+    optional: true,
+    default: null,
   },
   'signatures.*': {
     in: ['body'],

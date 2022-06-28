@@ -87,11 +87,15 @@ async function getMySignatures(req, res) {
 
   const network = req.wallet.getNetworkObject();
   const partialTx = req.body.partial_tx;
-  const proposal = PartialTxProposal.fromPartialTx(partialTx, network);
+  const proposal = await PartialTxProposal.fromPartialTx(partialTx, network);
 
   try {
     proposal.signData('123');
-    res.send({ success: true, signatures: proposal.signatures.serialize() });
+    res.send({
+      success: true,
+      signatures: proposal.signatures.serialize(),
+      isComplete: proposal.signatures.isComplete(),
+    });
   } catch (err) {
     res.send({ success: false, error: err.message });
   }
@@ -106,15 +110,18 @@ async function signTx(req, res) {
 
   const network = req.wallet.getNetworkObject();
 
-  const { partialTx } = req.body;
+  const partialTx = req.body.partial_tx;
   const signatures = req.body.signatures || [];
 
-  const proposal = PartialTxProposal.fromPartialTx(partialTx, network);
+  const proposal = await PartialTxProposal.fromPartialTx(partialTx, network);
 
   try {
     proposal.signData('123');
     for (const signature of signatures) {
       proposal.signatures.addSignatures(signature);
+    }
+    if (!proposal.isComplete()) {
+      throw new Error('Transaction is not complete');
     }
     const tx = proposal.prepareTx();
     res.send({ success: true, txHex: tx.toHex() });
@@ -138,15 +145,18 @@ async function signAndPush(req, res) {
 
   const network = req.wallet.getNetworkObject();
 
-  const { partialTx } = req.body;
+  const partialTx = req.body.partial_tx;
   const signatures = req.body.signatures || [];
 
-  const proposal = PartialTxProposal.fromPartialTx(partialTx, network);
+  const proposal = await PartialTxProposal.fromPartialTx(partialTx, network);
 
   try {
     proposal.signData('123');
     for (const signature of signatures) {
       proposal.signatures.addSignatures(signature);
+    }
+    if (!proposal.isComplete()) {
+      throw new Error('Transaction is not complete');
     }
     const tx = proposal.prepareTx();
 
@@ -190,12 +200,6 @@ async function getInputData(req, res) {
 }
 
 async function getLockedUTXOs(req, res) {
-  const validationResult = parametersValidation(req);
-  if (!validationResult.success) {
-    res.status(400).json(validationResult);
-    return;
-  }
-
   try {
     const utxos = [];
     const historyTransactions = req.wallet.getFullHistory();
@@ -228,7 +232,7 @@ async function unlockInputs(req, res) {
   }
 
   const txHex = req.body.txHex || null;
-  const partialTx = req.body.txHex || null;
+  const partialTx = req.body.partial_tx || null;
   const historyTransactions = req.wallet.getFullHistory();
 
   if (
@@ -247,7 +251,7 @@ async function unlockInputs(req, res) {
     if (txHex !== null) {
       tx = helpersUtils.createTxFromHex(txHex, req.wallet.getNetworkObject());
     } else {
-      const partial = PartialTx.deserialize(partialTx);
+      const partial = await PartialTx.deserialize(partialTx, req.wallet.getNetworkObject());
       tx = partial.getTx();
     }
 

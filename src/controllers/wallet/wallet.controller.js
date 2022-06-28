@@ -210,7 +210,7 @@ async function decodeTx(req, res) {
   }
 
   const txHex = req.body.txHex || null;
-  const partialTx = req.body.partialTx || null;
+  const partialTx = req.body.partial_tx || null;
 
   if (
     (txHex === null && partialTx === null)
