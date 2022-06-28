@@ -5,17 +5,17 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { Router } = require('express');
-const { query, checkSchema, body } = require('express-validator');
-const { walletMiddleware } = require('../../middlewares/wallet.middleware');
-const {
+import { Router } from 'express';
+import { query, checkSchema, body } from 'express-validator';
+import { walletMiddleware } from '../../middlewares/wallet.middleware';
+import {
   getStatus, getBalance, getAddress, getAddresses, getTxHistory, getTransaction,
   simpleSendTx, decodeTx, sendTx, createToken, mintTokens, meltTokens, utxoFilter,
   utxoConsolidation, createNft, getAddressInfo, stop,
   getAddressIndex
-} = require('../../controllers/wallet/wallet.controller');
-const p2shRouter = require('./p2sh/p2sh.routes');
-const { MAX_DATA_SCRIPT_LENGTH } = require('../../constants');
+} from '../../controllers/wallet/wallet.controller';
+import p2shRouter from './p2sh/p2sh.routes';
+import { MAX_DATA_SCRIPT_LENGTH } from '../../constants';
 
 const walletRouter = Router({ mergeParams: true });
 walletRouter.use(walletMiddleware);

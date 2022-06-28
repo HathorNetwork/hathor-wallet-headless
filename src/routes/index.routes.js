@@ -5,11 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { Router } = require('express');
-const rootControllers = require('../controllers/index.controller');
+import { Router } from 'express';
+import rootControllers from '../controllers/index.controller';
+import walletRouter from './wallet/wallet.routes';
 
 const mainRouter = Router({ mergeParams: true });
-const walletRouter = require('./wallet/wallet.routes');
 
 mainRouter.get('/', rootControllers.welcome);
 mainRouter.get('/docs', rootControllers.docs);

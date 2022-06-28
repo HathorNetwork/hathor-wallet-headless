@@ -5,9 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const friendlyWalletState = require('../helpers/constants');
-const { initializedWallets } = require('../services/wallets.service');
-const config = require('../config');
+import friendlyWalletState from '../helpers/constants';
+import { initializedWallets } from '../services/wallets.service';
+import config from '../config';
 
 function walletMiddleware(req, res, next) {
   const sendError = (message, state) => {

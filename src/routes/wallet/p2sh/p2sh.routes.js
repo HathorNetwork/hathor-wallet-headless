@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { Router } = require('express');
-const txProposalRouter = require('./tx-proposal.routes');
+import { Router } from 'express';
+import txProposalRouter from './tx-proposal.routes';
 
 const p2shRouter = Router({ mergeParams: true });
 p2shRouter.use('/tx-proposal', txProposalRouter);

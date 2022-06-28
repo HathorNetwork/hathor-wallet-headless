@@ -5,15 +5,15 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const {
-  constants: hathorLibConstants,
+import {
+  constants as hathorLibConstants,
   SendTransaction,
   helpersUtils
-} = require('@hathor/wallet-lib');
-const { parametersValidation } = require('../../../helpers/validations.helper');
-const { lock, lockTypes } = require('../../../lock');
-const { cantSendTxErrorMessage } = require('../../../helpers/constants');
-const { mapTxReturn } = require('../../../helpers/tx.helper');
+} from '@hathor/wallet-lib';
+import { parametersValidation } from '../../../helpers/validations.helper';
+import { lock, lockTypes } from '../../../lock';
+import { cantSendTxErrorMessage } from '../../../helpers/constants';
+import { mapTxReturn } from '../../../helpers/tx.helper';
 
 async function buildTxProposal(req, res) {
   const validationResult = parametersValidation(req);

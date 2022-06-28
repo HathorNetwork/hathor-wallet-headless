@@ -5,14 +5,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { Router } = require('express');
-const { checkSchema } = require('express-validator');
-const {
+import { Router } from 'express';
+import { checkSchema } from 'express-validator';
+import {
   buildTxProposal,
   getMySignatures,
   signTx,
   signAndPush,
-} = require('../../../controllers/wallet/p2sh/tx-proposal.controller');
+} from '../../../controllers/wallet/p2sh/tx-proposal.controller';
 
 const txProposalRouter = Router({ mergeParams: true });
 

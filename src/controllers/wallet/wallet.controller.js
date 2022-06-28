@@ -5,14 +5,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { constants: hathorLibConstants, helpersUtils, errors } = require('@hathor/wallet-lib');
-const { matchedData } = require('express-validator');
-const { parametersValidation } = require('../../helpers/validations.helper');
-const { lock, lockTypes } = require('../../lock');
-const { cantSendTxErrorMessage, friendlyWalletState } = require('../../helpers/constants');
-const { mapTxReturn, getUtxosToFillTx } = require('../../helpers/tx.helper');
-const logger = require('../../logger');
-const { initializedWallets } = require('../../services/wallets.service');
+import { constants as hathorLibConstants, helpersUtils, errors } from '@hathor/wallet-lib';
+import { matchedData } from 'express-validator';
+import { parametersValidation } from '../../helpers/validations.helper';
+import { lock, lockTypes } from '../../lock';
+import { cantSendTxErrorMessage, friendlyWalletState } from '../../helpers/constants';
+import { mapTxReturn, getUtxosToFillTx } from '../../helpers/tx.helper';
+import logger from '../../logger';
+import { initializedWallets } from '../../services/wallets.service';
 
 function getStatus(req, res) {
   const { wallet } = req;

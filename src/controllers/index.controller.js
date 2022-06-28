@@ -5,10 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { walletUtils, errors, Connection, HathorWallet } = require('@hathor/wallet-lib');
-const apiDocs = require('../api-docs');
-const config = require('../config');
-const { initializedWallets } = require('../services/wallets.service');
+import { walletUtils, errors, Connection, HathorWallet } from '@hathor/wallet-lib';
+import apiDocs from '../api-docs';
+import config from '../config.js';
+import { initializedWallets } from '../services/wallets.service';
 
 function welcome(req, res) {
   res.send('<html><body><h1>Welcome to Hathor Wallet API!</h1>'
