@@ -1,5 +1,5 @@
 import { PartialTx, ProposalInput, ProposalOutput } from '@hathor/wallet-lib/lib/models/partial_tx';
-import { Network, Address, P2PKH, txApi } from '@hathor/wallet-lib';
+import { Network, Address, P2PKH } from '@hathor/wallet-lib';
 import TestUtils from './test-utils';
 
 const walletId = 'stub_decode';
@@ -79,7 +79,7 @@ describe('decode api', () => {
   });
 
   it('should return even if the transaction is not complete', async () => {
-    const partialTx = 'PartialTx|0001000000000000000000000062bb48b50000000000';
+    const partialTx = 'PartialTx|0001000000000000000000000062bb48b50000000000||';
     const txHex = '0001000000000000000000000062bb48b50000000000';
     const expected = {
       success: true,
@@ -106,7 +106,7 @@ describe('decode api', () => {
   });
 
   it('should fail if there is not only one of txHex or partialTx', async () => {
-    const partialTx = 'PartialTx|0001000000000000000000000062bb48b50000000000';
+    const partialTx = 'PartialTx|0001000000000000000000000062bb48b50000000000||';
     const txHex = '0001000000000000000000000062bb48b50000000000';
 
     let response = await TestUtils.request
@@ -127,46 +127,20 @@ describe('decode api', () => {
     const fakeToken1 = '00007f27e1970643427b0ea235d4c9b4cc700d0f6925e2cf1044b30a3259a995';
     const fakeToken2 = '0000540e59bc09ce5aa25f1f7c21702e58e6e5dd8149d1eceb033bb606682590';
     const fakeInputHash = '0000adf1516e44876ffba27de0345fe847aa85146515a5c4ea34732ddb3708f4';
-    const spy = jest.spyOn(txApi, 'getTransaction')
-      .mockImplementation(async (txId, cb) => (
-        new Promise(resolve => {
-          process.nextTick(() => {
-            resolve({
-              success: true,
-              tx: {
-                tx_id: fakeInputHash,
-                tokens: [{ uid: fakeToken2, symbol: 'FTK', name: 'Fake Token' }],
-                outputs: [
-                  {
-                    token_data: 0, // HTR
-                    value: 10,
-                    decoded: { address: TestUtils.addresses[0] }
-                  },
-                  {
-                    token_data: 1, // fake token
-                    value: 20,
-                    decoded: { address: TestUtils.addresses[1] }
-                  },
-                ]
-              }
-            });
-          });
-        }).then(data => {
-          cb(data);
-        })
-      ));
+    const spy = jest.spyOn(PartialTx.prototype, 'validate')
+      .mockImplementation(async () => true);
 
     const partialTx = new PartialTx(new Network('testnet'));
 
     let address = new Address(TestUtils.addresses[0]);
     let script = new P2PKH(address);
-    partialTx.outputs.push(new ProposalOutput(10, script.createScript(), fakeToken1, false));
+    partialTx.outputs.push(new ProposalOutput(10, script.createScript(), 1, { token: fakeToken1 }));
 
     address = new Address(TestUtils.addresses[1]);
     script = new P2PKH(address);
-    partialTx.outputs.push(new ProposalOutput(20, script.createScript(), '00', false));
+    partialTx.outputs.push(new ProposalOutput(20, script.createScript(), 0));
 
-    partialTx.inputs.push(new ProposalInput(fakeInputHash, 1, fakeToken2, 30, address.base58));
+    partialTx.inputs.push(new ProposalInput(fakeInputHash, 1, 30, 1, { token: fakeToken2 }));
 
     // 1 input, 2 outputs
     const response = await TestUtils.request

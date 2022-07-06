@@ -228,7 +228,12 @@ async function decodeTx(req, res) {
     if (txHex !== null) {
       tx = helpersUtils.createTxFromHex(txHex, req.wallet.getNetworkObject());
     } else {
-      const partial = await PartialTx.deserialize(partialTx, req.wallet.getNetworkObject());
+      const partial = PartialTx.deserialize(partialTx, req.wallet.getNetworkObject());
+      // Validate will check with the fullnode if the partial-tx inputs exists and are valid
+      const valid = await partial.validate();
+      if (!valid) {
+        throw new Error('Partial transaction inconsistent with backend');
+      }
       tx = partial.getTx();
     }
     const data = {

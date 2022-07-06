@@ -6,34 +6,6 @@ const walletId = 'stub_atomic_swap_create_tx_proposal';
 describe('create tx-proposal api', () => {
   const fakeTxId = '00003392e185c6e72d7d8073ef94649023777fd23c828514f505a7955abf0caf';
   const fakeUid = '0000219a831aaa7b011973981a286142b3002cd04763002e23ba6fec7dadda44';
-  const spy = jest.spyOn(hathorLib.txApi, 'getTransaction')
-    .mockImplementation(async (txId, cb) => (
-      new Promise(resolve => {
-        process.nextTick(() => {
-          resolve({
-            success: true,
-            tx: {
-              tx_id: fakeTxId,
-              tokens: [{ uid: fakeUid, symbol: 'FTK', name: 'Fake Token' }],
-              outputs: [
-                {
-                  token_data: 0, // HTR
-                  value: 10,
-                  decoded: { address: TestUtils.addresses[0] }
-                },
-                {
-                  token_data: 1, // fake token
-                  value: 10,
-                  decoded: { address: TestUtils.addresses[1] }
-                },
-              ]
-            }
-          });
-        });
-      }).then(data => {
-        cb(data);
-      })
-    ));
 
   beforeAll(async () => {
     await TestUtils.startWallet({ walletId, preCalculatedAddresses: TestUtils.addresses });
@@ -41,8 +13,6 @@ describe('create tx-proposal api', () => {
 
   afterAll(async () => {
     await TestUtils.stopWallet({ walletId });
-    // cleanup mock
-    spy.mockRestore();
   });
 
   it('should return 400 with an invalid body', async () => {
@@ -136,7 +106,7 @@ describe('create tx-proposal api', () => {
     }));
 
     const dataParts = response.body.data.split('|');
-    expect(dataParts).toHaveLength(2);
+    expect(dataParts).toHaveLength(4);
 
     const tx = hathorLib.helpersUtils.createTxFromHex(dataParts[1], new hathorLib.Network('testnet'));
     expect(tx.inputs).toHaveLength(0);
@@ -158,7 +128,7 @@ describe('create tx-proposal api', () => {
     }));
 
     const dataParts = response.body.data.split('|');
-    expect(dataParts).toHaveLength(2);
+    expect(dataParts).toHaveLength(4);
 
     const tx = hathorLib.helpersUtils.createTxFromHex(dataParts[1], new hathorLib.Network('testnet'));
     expect(tx.inputs).toHaveLength(0);
@@ -169,7 +139,7 @@ describe('create tx-proposal api', () => {
     const response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
-        inputs: [{ txId: fakeTxId, index: 0 }],
+        inputs: [{ txId: fakeTxId, index: 0, value: 1 }],
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
@@ -180,7 +150,7 @@ describe('create tx-proposal api', () => {
     }));
 
     const dataParts = response.body.data.split('|');
-    expect(dataParts).toHaveLength(2);
+    expect(dataParts).toHaveLength(4);
 
     const tx = hathorLib.helpersUtils.createTxFromHex(dataParts[1], new hathorLib.Network('testnet'));
     expect(tx.inputs).toHaveLength(1);
@@ -193,6 +163,11 @@ describe('create tx-proposal api', () => {
       inputs: [
         { index: 0, tx_id: fakeTxId }
       ]
+    }));
+    const spyHistory = jest.spyOn(hathorLib.wallet, 'getWalletData').mockImplementation(() => ({
+      historyTransactions: {
+        [fakeTxId]: { outputs: [{ value: 10, token: '00' }] }
+      }
     }));
     const response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
@@ -208,7 +183,7 @@ describe('create tx-proposal api', () => {
     }));
 
     const dataParts = response.body.data.split('|');
-    expect(dataParts).toHaveLength(2);
+    expect(dataParts).toHaveLength(4);
 
     const tx = hathorLib.helpersUtils.createTxFromHex(dataParts[1], new hathorLib.Network('testnet'));
     expect(tx.inputs).toHaveLength(1);
@@ -216,6 +191,7 @@ describe('create tx-proposal api', () => {
 
     // cleanup mock
     spyInputs.mockRestore();
+    spyHistory.mockRestore();
   });
 
   it('should return 200 with send_tokens with change', async () => {
@@ -224,6 +200,11 @@ describe('create tx-proposal api', () => {
       inputs: [
         { index: 0, tx_id: fakeTxId }
       ]
+    }));
+    const spyHistory = jest.spyOn(hathorLib.wallet, 'getWalletData').mockImplementation(() => ({
+      historyTransactions: {
+        [fakeTxId]: { outputs: [{ value: 10, token: '00' }] }
+      }
     }));
     const response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
@@ -239,7 +220,7 @@ describe('create tx-proposal api', () => {
     }));
 
     const dataParts = response.body.data.split('|');
-    expect(dataParts).toHaveLength(3); // 1 change output
+    expect(dataParts).toHaveLength(4);
 
     const tx = hathorLib.helpersUtils.createTxFromHex(dataParts[1], new hathorLib.Network('testnet'));
     expect(tx.inputs).toHaveLength(1);
@@ -247,6 +228,7 @@ describe('create tx-proposal api', () => {
 
     // cleanup mock
     spyInputs.mockRestore();
+    spyHistory.mockRestore();
   });
 
   it('should return isComplete true if inputs match outputs', async () => {
@@ -255,6 +237,11 @@ describe('create tx-proposal api', () => {
       inputs: [
         { index: 0, tx_id: fakeTxId }
       ]
+    }));
+    const spyHistory = jest.spyOn(hathorLib.wallet, 'getWalletData').mockImplementation(() => ({
+      historyTransactions: {
+        [fakeTxId]: { outputs: [{ value: 10, token: '00' }] }
+      }
     }));
     const response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
@@ -271,7 +258,7 @@ describe('create tx-proposal api', () => {
     }));
 
     const dataParts = response.body.data.split('|');
-    expect(dataParts).toHaveLength(3); // 1 change output
+    expect(dataParts).toHaveLength(4);
 
     const tx = hathorLib.helpersUtils.createTxFromHex(dataParts[1], new hathorLib.Network('testnet'));
     expect(tx.inputs).toHaveLength(1);
@@ -279,6 +266,7 @@ describe('create tx-proposal api', () => {
 
     // cleanup mock
     spyInputs.mockRestore();
+    spyHistory.mockRestore();
   });
 
   it('should be complete with custom tokens', async () => {
@@ -288,17 +276,26 @@ describe('create tx-proposal api', () => {
         { index: 1, tx_id: fakeTxId }
       ]
     }));
+    const spyHistory = jest.spyOn(hathorLib.wallet, 'getWalletData').mockImplementation(() => ({
+      historyTransactions: {
+        [fakeTxId]: { outputs: [
+          { value: 10, token: '00' },
+          { value: 10, token: fakeUid },
+        ] }
+      }
+    }));
     const response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
         send_tokens: [{ value: 5, token: fakeUid }],
-        inputs: [{ index: 0, txId: fakeTxId }],
+        inputs: [{ index: 0, txId: fakeTxId, value: 10 }],
         outputs: [
           { value: 5, token: fakeUid, address: TestUtils.addresses[4] },
           { value: 10, address: TestUtils.addresses[5] },
         ],
       })
       .set({ 'x-wallet-id': walletId });
+    TestUtils.logger.debug('atomic-swap[complete with custom tokens] response', { body: response.body });
     expect(response.status).toBe(200);
     expect(response.body).toEqual(expect.objectContaining({
       success: true,
@@ -307,7 +304,7 @@ describe('create tx-proposal api', () => {
     }));
 
     const dataParts = response.body.data.split('|');
-    expect(dataParts).toHaveLength(3); // 1 change output
+    expect(dataParts).toHaveLength(4);
 
     const tx = hathorLib.helpersUtils.createTxFromHex(dataParts[1], new hathorLib.Network('testnet'));
     expect(tx.inputs).toHaveLength(2); // 1 from send_tokens and another from inputs
@@ -315,5 +312,6 @@ describe('create tx-proposal api', () => {
 
     // cleanup mock
     spyInputs.mockRestore();
+    spyHistory.mockRestore();
   });
 });

@@ -1,39 +1,30 @@
 import hathorLib from '@hathor/wallet-lib';
+import { ProposalInput, ProposalOutput, PartialTx } from '@hathor/wallet-lib/lib/models/partial_tx';
 import TestUtils from '../test-utils';
 
 const walletId = 'stub_atomic_swap_tx_proposal_sign_and_push';
 
 describe('tx-proposal sign-and-push api', () => {
+  const testnet = new hathorLib.Network('testnet');
   const fakeTxId = '00003392e185c6e72d7d8073ef94649023777fd23c828514f505a7955abf0caf';
   const fakeUid = '0000219a831aaa7b011973981a286142b3002cd04763002e23ba6fec7dadda44';
-  const spy = jest.spyOn(hathorLib.txApi, 'getTransaction')
-    .mockImplementation(async (txId, cb) => (
-      new Promise(resolve => {
-        process.nextTick(() => {
-          resolve({
-            success: true,
-            tx: {
-              tx_id: fakeTxId,
-              tokens: [{ uid: fakeUid, symbol: 'FTK', name: 'Fake Token' }],
-              outputs: [
-                {
-                  token_data: 0, // HTR
-                  value: 10,
-                  decoded: { address: TestUtils.addresses[0] }
-                },
-                {
-                  token_data: 1, // fake token
-                  value: 10,
-                  decoded: { address: TestUtils.addresses[1] }
-                },
-              ]
-            }
-          });
-        });
-      }).then(data => {
-        cb(data);
-      })
-    ));
+  const createProposal = (inputs, outputs) => {
+    const partialTx = new PartialTx(testnet);
+    partialTx.inputs = inputs;
+    partialTx.outputs = outputs;
+
+    const proposal = new hathorLib.PartialTxProposal(testnet);
+    proposal.partialTx = partialTx;
+    return proposal;
+  };
+  const scriptFromAddress = base58 => {
+    const p2pkh = new hathorLib.P2PKH(new hathorLib.Address(base58, { network: testnet }));
+    return p2pkh.createScript();
+  };
+
+  const spy = jest.spyOn(hathorLib.PartialTxProposal, 'fromPartialTx');
+  const spyValidate = jest.spyOn(PartialTx.prototype, 'validate')
+    .mockImplementation(async () => true);
 
   beforeAll(async () => {
     await TestUtils.startWallet({ walletId, preCalculatedAddresses: TestUtils.addresses });
@@ -43,6 +34,11 @@ describe('tx-proposal sign-and-push api', () => {
     await TestUtils.stopWallet({ walletId });
     // cleanup mock
     spy.mockRestore();
+    spyValidate.mockRestore();
+  });
+
+  afterEach(() => {
+    spy.mockClear();
   });
 
   it('should fail if partial_tx is not a string', async () => {
@@ -71,91 +67,45 @@ describe('tx-proposal sign-and-push api', () => {
   });
 
   it('should reject an incomplete transaction', async () => {
-    const spyInputs = jest.spyOn(hathorLib.wallet, 'getInputsFromAmount').mockImplementation(() => ({
-      inputsAmount: 10,
-      inputs: [
-        { index: 0, tx_id: fakeTxId }
-      ]
-    }));
-    let response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal')
-      .send({
-        send_tokens: [{ value: 10 }],
-        receive_tokens: [
-          { address: TestUtils.addresses[2], value: 10 },
-          { token: fakeUid, value: 10 }
-        ],
-      })
-      .set({ 'x-wallet-id': walletId });
-    TestUtils.logger.debug('[atomic-swap:sign] should return sigs: create tx-proposal', { body: response.body });
+    spy.mockImplementation((pt, nt) => createProposal(
+      [
+        new ProposalInput(fakeTxId, 0, 10, 0, { address: TestUtils.addresses[0] }),
+      ],
+      [
+        new ProposalOutput(10, scriptFromAddress(TestUtils.addresses[1]), 0),
+        new ProposalOutput(10, scriptFromAddress(TestUtils.addresses[2]), 1, { token: fakeUid }),
+      ],
+    ));
 
-    const { data } = response.body;
-
-    response = await TestUtils.request
+    const response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/sign-and-push')
-      .send({ partial_tx: data })
+      .send({ partial_tx: 'partial-tx-data' })
       .set({ 'x-wallet-id': walletId });
-    TestUtils.logger.debug('[atomic-swap:sign] should return sigs: create tx-proposal', { body: response.body });
+    TestUtils.logger.debug('[atomic-swap:sign] should return sigs: sign+push', { body: response.body });
+    expect(spy).toHaveBeenCalled();
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
       success: false,
       error: expect.any(String),
     });
-
-    // cleanup mock
-    spyInputs.mockRestore();
-  });
-
-  it('should return the signatures for the inputs we own on the transaction', async () => {
-    const spyInputs = jest.spyOn(hathorLib.wallet, 'getInputsFromAmount').mockImplementation(() => ({
-      inputsAmount: 10,
-      inputs: [
-        { index: 0, tx_id: fakeTxId }
-      ]
-    }));
-    let response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal')
-      .send({
-        send_tokens: [{ value: 10 }],
-        receive_tokens: [{ address: TestUtils.addresses[2], value: 10 }],
-      })
-      .set({ 'x-wallet-id': walletId });
-
-    const { data } = response.body;
-
-    response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal/sign-and-push')
-      .send({ partial_tx: data })
-      .set({ 'x-wallet-id': walletId });
-    expect(response.body.success).toBeTruthy();
-
-    // cleanup mock
-    spyInputs.mockRestore();
   });
 
   it('should add signatures on the input data', async () => {
-    const spyInputs = jest.spyOn(hathorLib.wallet, 'getInputsFromAmount').mockImplementation(() => ({
-      inputsAmount: 10,
-      inputs: [
-        { index: 0, tx_id: fakeTxId }
-      ]
-    }));
+    spy.mockImplementation((pt, nt) => createProposal(
+      [
+        new ProposalInput(fakeTxId, 0, 10, 0, { address: TestUtils.addresses[0] }),
+      ],
+      [
+        new ProposalOutput(10, scriptFromAddress(TestUtils.addresses[1]), 0),
+      ],
+    ));
+
     let response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal')
-      .send({
-        send_tokens: [{ value: 10 }],
-        receive_tokens: [{ address: TestUtils.addresses[2], value: 10 }],
-      })
-      .set({ 'x-wallet-id': walletId });
-    TestUtils.logger.debug('[atomic-swap:sign-and-push] should overwrite sigs: create tx-proposal', { body: response.body });
-
-    const { data } = response.body;
-
-    response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/get-my-signatures')
-      .send({ partial_tx: data })
+      .send({ partial_tx: 'partial-tx-data' })
       .set({ 'x-wallet-id': walletId });
     TestUtils.logger.debug('[atomic-swap:sign-and-push] should overwrite sigs: get-my-signature', { body: response.body });
+    expect(spy).toHaveBeenCalled();
 
     const realSigs = response.body.signatures;
     const parts = realSigs.split('|');
@@ -164,12 +114,10 @@ describe('tx-proposal sign-and-push api', () => {
 
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/sign-and-push')
-      .send({ partial_tx: data, signatures })
+      .send({ partial_tx: 'partial-tx-data', signatures })
       .set({ 'x-wallet-id': walletId });
     TestUtils.logger.debug('[atomic-swap:sign-and-push] should overwrite sigs: sign', { body: response.body });
+    expect(spy).toHaveBeenCalled();
     expect(response.body.success).toBeTruthy();
-
-    // cleanup mock
-    spyInputs.mockRestore();
   });
 });

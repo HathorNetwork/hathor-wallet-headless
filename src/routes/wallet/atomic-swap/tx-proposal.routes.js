@@ -11,6 +11,7 @@ const {
   txHexSchema,
   partialTxSignatureSchema,
   partialTxSchema,
+  atomicSwapCreateSchema,
 } = require('../../../schemas');
 const {
   buildTxProposal,
@@ -26,150 +27,7 @@ const txProposalRouter = Router({ mergeParams: true });
 
 txProposalRouter.post(
   '/',
-  checkSchema({
-    outputs: {
-      in: ['body'],
-      errorMessage: 'Invalid outputs array',
-      isArray: true,
-      notEmpty: true,
-      optional: true,
-    },
-    'outputs.*.address': {
-      in: ['body'],
-      errorMessage: 'Invalid output address',
-      isString: true,
-    },
-    'outputs.*.value': {
-      in: ['body'],
-      errorMessage: 'Invalid output value',
-      isInt: {
-        options: {
-          min: 1,
-        },
-      },
-      toInt: true,
-    },
-    'outputs.*.token': {
-      in: ['body'],
-      errorMessage: 'Invalid token uid',
-      isString: true,
-      optional: true,
-    },
-    'outputs.*.timelock': {
-      in: ['body'],
-      errorMessage: 'Invalid timelock',
-      isInt: true,
-      toInt: true,
-      optional: true,
-      default: null,
-    },
-    inputs: {
-      in: ['body'],
-      errorMessage: 'Invalid inputs array',
-      isArray: true,
-      notEmpty: true,
-      optional: true,
-    },
-    'inputs.*.txId': {
-      in: ['body'],
-      errorMessage: 'Invalid input txId',
-      isString: true,
-      custom: {
-        options: (value, { req, location, path }) => {
-          // Test if txId is a 64 character hex string
-          if (!(/^[0-9a-fA-F]{64}$/.test(value))) return false;
-          return true;
-        }
-      },
-    },
-    'inputs.*.index': {
-      in: ['body'],
-      errorMessage: 'Invalid input value',
-      isInt: true,
-      toInt: true,
-    },
-    send_tokens: {
-      in: ['body'],
-      errorMessage: 'Invalid send_tokens array',
-      isArray: true,
-      notEmpty: true,
-      optional: true,
-    },
-    'send_tokens.*.token': {
-      in: ['body'],
-      errorMessage: 'Invalid token uid',
-      isString: true,
-      optional: true,
-    },
-    'send_tokens.*.value': {
-      in: ['body'],
-      errorMessage: 'Invalid value',
-      isInt: {
-        options: {
-          min: 1,
-        },
-      },
-      toInt: true,
-    },
-    receive_tokens: {
-      in: ['body'],
-      errorMessage: 'Invalid receive_tokens array',
-      isArray: true,
-      notEmpty: true,
-      optional: true,
-    },
-    'receive_tokens.*.token': {
-      in: ['body'],
-      errorMessage: 'Invalid token uid',
-      isString: true,
-      optional: true,
-    },
-    'receive_tokens.*.value': {
-      in: ['body'],
-      errorMessage: 'Invalid value',
-      isInt: {
-        options: {
-          min: 1,
-        },
-      },
-      toInt: true,
-    },
-    'receive_tokens.*.timelock': {
-      in: ['body'],
-      errorMessage: 'Invalid timelock',
-      isInt: true,
-      toInt: true,
-      optional: true,
-      default: null,
-    },
-    'receive_tokens.*.address': {
-      in: ['body'],
-      errorMessage: 'Invalid address',
-      isString: true,
-      optional: true,
-      default: null,
-    },
-    partial_tx: {
-      in: ['body'],
-      errorMessage: 'Invalid partial tx',
-      isString: true,
-      optional: true,
-      default: null
-    },
-    lock: {
-      in: ['body'],
-      errorMessage: 'Invalid lock argument',
-      isBoolean: true,
-      optional: true,
-      default: true,
-    },
-    change_address: {
-      in: ['body'],
-      errorMessage: 'Invalid change address',
-      isString: true,
-      optional: true,
-    },
-  }),
+  checkSchema(atomicSwapCreateSchema),
   buildTxProposal,
 );
 
