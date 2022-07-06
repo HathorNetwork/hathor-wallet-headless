@@ -6,7 +6,6 @@
  */
 
 const {
-  constants: hathorLibConstants,
   wallet: walletLib,
   SendTransaction,
   PartialTxProposal,
@@ -233,37 +232,18 @@ async function unlockInputs(req, res) {
     return;
   }
 
-  const txHex = req.body.txHex || null;
-  const partialTx = req.body.partial_tx || null;
+  const partialTx = req.body.partial_tx;
   const historyTransactions = req.wallet.getFullHistory();
 
-  if (
-    (txHex === null && partialTx === null)
-    || (txHex !== null && partialTx !== null)
-  ) {
-    res.status(400).json({
-      success: false,
-      message: 'Required only one of txHex or partialTx',
-    });
-    return;
-  }
-
   try {
-    let tx;
-    if (txHex !== null) {
-      tx = helpersUtils.createTxFromHex(txHex, req.wallet.getNetworkObject());
-    } else {
-      const partial = PartialTx.deserialize(partialTx, req.wallet.getNetworkObject());
-      tx = partial.getTx();
-    }
+    const partial = PartialTx.deserialize(partialTx, req.wallet.getNetworkObject());
+    const tx = partial.getTx();
 
     for (const input of tx.inputs) {
       // Check that it exists in history
-      if (tx.hash in historyTransactions) {
-        if (historyTransactions[tx.hash].outputs.length > input.index) {
+      if (historyTransactions[input.hash] && historyTransactions[input.hash].outputs[input.index]) {
         // unlock in history
-          historyTransactions[tx.hash].outputs[input.index].selected_as_input = false;
-        }
+        historyTransactions[input.hash].outputs[input.index].selected_as_input = false;
       }
     }
     // save historyTransactions
