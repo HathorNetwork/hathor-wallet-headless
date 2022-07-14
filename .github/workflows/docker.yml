@@ -3,8 +3,6 @@ on:
   push:
     tags:
     - v*
-    branches:
-    - ci/push-images-to-ecr
 jobs:
   build:
     runs-on: ubuntu-latest
