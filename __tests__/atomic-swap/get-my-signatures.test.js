@@ -52,10 +52,10 @@ describe('get-my-signatures api', () => {
   it('should return the signatures for the inputs we own on the transaction', async () => {
     spy.mockImplementation((pt, nt) => createProposal(
       [
-        new ProposalInput(fakeTxId, 0, 10, 0, { address: TestUtils.addresses[0] }),
+        new ProposalInput(fakeTxId, 0, 10, TestUtils.addresses[0]),
       ],
       [
-        new ProposalOutput(10, scriptFromAddress(TestUtils.addresses[1]), 0),
+        new ProposalOutput(10, scriptFromAddress(TestUtils.addresses[1])),
       ],
     ));
 

@@ -69,11 +69,15 @@ describe('tx-proposal sign-and-push api', () => {
   it('should reject an incomplete transaction', async () => {
     spy.mockImplementation((pt, nt) => createProposal(
       [
-        new ProposalInput(fakeTxId, 0, 10, 0, { address: TestUtils.addresses[0] }),
+        new ProposalInput(fakeTxId, 0, 10, TestUtils.addresses[0]),
       ],
       [
-        new ProposalOutput(10, scriptFromAddress(TestUtils.addresses[1]), 0),
-        new ProposalOutput(10, scriptFromAddress(TestUtils.addresses[2]), 1, { token: fakeUid }),
+        new ProposalOutput(10, scriptFromAddress(TestUtils.addresses[1])),
+        new ProposalOutput(
+          10,
+          scriptFromAddress(TestUtils.addresses[2]),
+          { token: fakeUid, tokenData: 1 },
+        ),
       ],
     ));
 
@@ -93,10 +97,10 @@ describe('tx-proposal sign-and-push api', () => {
   it('should add signatures on the input data', async () => {
     spy.mockImplementation((pt, nt) => createProposal(
       [
-        new ProposalInput(fakeTxId, 0, 10, 0, { address: TestUtils.addresses[0] }),
+        new ProposalInput(fakeTxId, 0, 10, TestUtils.addresses[0]),
       ],
       [
-        new ProposalOutput(10, scriptFromAddress(TestUtils.addresses[1]), 0),
+        new ProposalOutput(10, scriptFromAddress(TestUtils.addresses[1])),
       ],
     ));
 

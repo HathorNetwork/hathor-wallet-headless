@@ -6,12 +6,12 @@
  */
 
 const {
-  wallet: walletLib,
   SendTransaction,
   PartialTxProposal,
   helpersUtils,
   PartialTxInputData,
   PartialTx,
+  txApi,
 } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
@@ -48,16 +48,36 @@ async function buildTxProposal(req, res) {
     ? PartialTxProposal.fromPartialTx(partialTx, network) : new PartialTxProposal(network);
 
   for (const input of inputs) {
-    proposal.addInput(
-      input.txId,
-      input.index,
-      input.value,
-      { token: input.token, markAsSelected },
-    );
+    let error = null;
+    txApi.getTransaction(input.txId, data => {
+      if (!data.success) {
+        error = `Utxo for transaction ${input.txId} and input ${input.index} not found`;
+        return;
+      }
+
+      const txout = data.tx.outputs[input.index];
+      proposal.addInput(
+        req.wallet,
+        txout.txId,
+        txout.index,
+        txout.value,
+        txout.decoded.address,
+        {
+          markAsSelected,
+          token_data: txout.token_data,
+          token: txout.token,
+        },
+      );
+    });
+
+    if (error) {
+      res.status(400).json({ success: false, errors: [error] });
+      return;
+    }
   }
 
   for (const send of sendTokens) {
-    proposal.addSend(send.token, send.value, { changeAddress, markAsSelected });
+    proposal.addSend(req.wallet, send.token, send.value, { changeAddress, markAsSelected });
   }
 
   for (const output of outputs) {
@@ -66,6 +86,7 @@ async function buildTxProposal(req, res) {
 
   for (const receive of receiveTokens) {
     proposal.addReceive(
+      req.wallet,
       receive.token,
       receive.value,
       { timelock: receive.timelock, address: receive.address }
@@ -233,26 +254,14 @@ async function unlockInputs(req, res) {
   }
 
   const partialTx = req.body.partial_tx;
-  const historyTransactions = req.wallet.getFullHistory();
 
   try {
     const partial = PartialTx.deserialize(partialTx, req.wallet.getNetworkObject());
     const tx = partial.getTx();
 
     for (const input of tx.inputs) {
-      // Check that it exists in history
-      if (historyTransactions[input.hash] && historyTransactions[input.hash].outputs[input.index]) {
-        // unlock in history
-        historyTransactions[input.hash].outputs[input.index].selected_as_input = false;
-      }
+      req.wallet.markUtxoSelected(input.hash, input.index, false);
     }
-    // save historyTransactions
-    // XXX: This should be ok since we use getFullHistory which sets the store to this wallet
-    //      We do not change the history, only the 'selected_as_input' of some UTXOs
-    //      so no other change is needed (e.g. allTokens)
-    const data = walletLib.getWalletData();
-    data.historyTransactions = historyTransactions;
-    walletLib.setWalletData(data);
 
     res.send({ success: true });
   } catch (err) {

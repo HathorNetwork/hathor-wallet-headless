@@ -136,19 +136,6 @@ export const atomicSwapCreateSchema = {
     isInt: true,
     toInt: true,
   },
-  'inputs.*.value': {
-    in: ['body'],
-    errorMessage: 'Invalid input value',
-    isInt: true,
-    toInt: true,
-  },
-  'inputs.*.token': {
-    in: ['body'],
-    errorMessage: 'Invalid input token',
-    isString: true,
-    optional: true,
-    default: HATHOR_TOKEN_CONFIG.uid,
-  },
   send_tokens: {
     in: ['body'],
     errorMessage: 'Invalid send_tokens array',

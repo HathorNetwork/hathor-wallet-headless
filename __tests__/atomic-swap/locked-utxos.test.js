@@ -57,29 +57,6 @@ describe('locked utxos api', () => {
   });
 
   it('should unlock utxos from a partial-tx', async () => {
-    const history = {
-      hash1: {
-        tx_id: 'hash1',
-        outputs: [
-          { selected_as_input: true },
-          { foo: true },
-          { selected_as_input: true },
-        ]
-      },
-      hash2: {
-        tx_id: 'hash2',
-        outputs: [
-          { foo: true },
-          { foo: true },
-          { foo: true },
-        ]
-      },
-    };
-    const spyHistory = jest.spyOn(hathorLib.HathorWallet.prototype, 'getFullHistory')
-      .mockImplementation(() => history);
-    const spyGetData = jest.spyOn(hathorLib.wallet, 'getWalletData')
-      .mockImplementationOnce(() => ({}));
-    const spySetData = jest.spyOn(hathorLib.wallet, 'setWalletData');
     const spyDeserialize = jest.spyOn(PartialTx, 'deserialize')
       .mockImplementation(() => {
         const partialTx = new PartialTx(new hathorLib.Network('testnet'));
@@ -90,24 +67,23 @@ describe('locked utxos api', () => {
         ];
         return partialTx;
       });
+    const spyMark = jest.spyOn(hathorLib.HathorWallet.prototype, 'markUtxoSelected').mockImplementation(() => {});
 
     const response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/unlock')
       .send({ partial_tx: 'partial-tx-data' })
       .set({ 'x-wallet-id': walletId });
     TestUtils.logger.debug('[atomic-swap:get-locked-utxos] response', { body: response.body });
-    expect(spySetData).toHaveBeenCalled();
+
+    expect(spyMark).toHaveBeenCalledTimes(3);
+    expect(spyMark).toHaveBeenNthCalledWith(1, 'hash1', 0, false);
+    expect(spyMark).toHaveBeenNthCalledWith(2, 'hash1', 1, false);
+    expect(spyMark).toHaveBeenNthCalledWith(3, 'hash3', 1, false);
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ success: true });
 
-    history.hash1.outputs[0].selected_as_input = false;
-    // history.hash1.outputs[1].selected_as_input = false;
-    expect(spySetData.mock.calls[0][0]).toEqual({ historyTransactions: history });
-
     // cleanup mock
-    spyHistory.mockRestore();
-    spyGetData.mockRestore();
-    spySetData.mockRestore();
+    spyMark.mockRestore();
     spyDeserialize.mockRestore();
   });
 });
