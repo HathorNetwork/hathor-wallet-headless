@@ -10,7 +10,7 @@ import { HathorWallet } from '@hathor/wallet-lib';
 
 const API_ERROR_CODES = Object.freeze({
   WALLET_ALREADY_STARTED: 'WALLET_ALREADY_STARTED'
-})
+});
 
 module.exports = {
   friendlyWalletState: {
