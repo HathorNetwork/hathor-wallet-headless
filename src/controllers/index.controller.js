@@ -168,7 +168,7 @@ function start(req, res) {
     console.error('Error starting wallet because this wallet-id is already in use. You must stop the wallet first.');
     res.send({
       success: false,
-      message: `Failed to start wallet with wallet id ${walletID}`,
+      message: `There is a wallet already with wallet id ${walletID}`,
     });
     return;
   }
