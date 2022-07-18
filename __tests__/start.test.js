@@ -53,7 +53,7 @@ describe('start api', () => {
       .send({ seedKey: TestUtils.seedKey, 'wallet-id': walletId });
     expect(response2.status).toBe(200);
     expect(response2.body.success).toBeFalsy();
-    expect(response2.body.errorCode).toEqual("WALLET_ALREADY_STARTED")
+    expect(response2.body.errorCode).toEqual('WALLET_ALREADY_STARTED');
   });
 
   it('should accept pre-calculated addresses', async () => {
