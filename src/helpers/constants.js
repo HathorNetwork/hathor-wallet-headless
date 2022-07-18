@@ -8,6 +8,10 @@
 // eslint-disable-next-line import/no-import-module-exports
 import { HathorWallet } from '@hathor/wallet-lib';
 
+const API_ERROR_CODES = Object.freeze({
+  WALLET_ALREADY_STARTED: 'WALLET_ALREADY_STARTED'
+})
+
 module.exports = {
   friendlyWalletState: {
     [HathorWallet.CLOSED]: 'Closed',
@@ -18,5 +22,6 @@ module.exports = {
   },
 
   // Error message when the user tries to send a transaction while the lock is active
-  cantSendTxErrorMessage: 'You already have a transaction being sent. Please wait until it\'s done to send another.'
+  cantSendTxErrorMessage: 'You already have a transaction being sent. Please wait until it\'s done to send another.',
+  API_ERROR_CODES,
 };
