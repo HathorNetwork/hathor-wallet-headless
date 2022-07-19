@@ -5,6 +5,7 @@ COPY .babelrc package.json package-lock.json ./
 RUN npm install
 
 COPY ./src/ ./src/
+COPY ./scripts/ ./scripts/
 COPY config.js.docker ./src/config.js
 
 EXPOSE 8000
