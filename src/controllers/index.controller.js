@@ -9,6 +9,7 @@ const { walletUtils, errors, Connection, HathorWallet } = require('@hathor/walle
 const apiDocs = require('../api-docs');
 const config = require('../config');
 const { initializedWallets } = require('../services/wallets.service');
+const { API_ERROR_CODES } = require('../helpers/constants');
 
 function welcome(req, res) {
   res.send('<html><body><h1>Welcome to Hathor Wallet API!</h1>'
@@ -169,6 +170,7 @@ function start(req, res) {
     res.send({
       success: false,
       message: `Failed to start wallet with wallet id ${walletID}`,
+      errorCode: API_ERROR_CODES.WALLET_ALREADY_STARTED
     });
     return;
   }
