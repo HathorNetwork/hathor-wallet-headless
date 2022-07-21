@@ -39,6 +39,23 @@ describe('start api', () => {
     expect(response.body.success).toBeFalsy();
   });
 
+  it('should not start two wallets with same wallet-id', async () => {
+    // First start
+    const response = await TestUtils.request
+      .post('/start')
+      .send({ seedKey: TestUtils.seedKey, 'wallet-id': walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBeTruthy();
+
+    // Second start
+    const response2 = await TestUtils.request
+      .post('/start')
+      .send({ seedKey: TestUtils.seedKey, 'wallet-id': walletId });
+    expect(response2.status).toBe(200);
+    expect(response2.body.success).toBeFalsy();
+    expect(response2.body.errorCode).toEqual('WALLET_ALREADY_STARTED');
+  });
+
   it('should accept pre-calculated addresses', async () => {
     const walletHttpInput = {
       'wallet-id': walletId,

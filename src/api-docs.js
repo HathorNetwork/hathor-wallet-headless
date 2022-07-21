@@ -89,6 +89,10 @@ const apiDoc = {
                     summary: 'No wallet id parameter',
                     value: { success: false, message: "Parameter 'wallet-id' is required." }
                   },
+                  'wallet-already-started': {
+                    summary: 'Wallet with same id was already started.',
+                    value: { success: false, message: 'Failed to start wallet with id X', errorCode: 'WALLET_ALREADY_STARTED' }
+                  },
                   'start-failed': {
                     summary: 'Wallet failed to start.',
                     value: { success: false, message: 'Failed to start wallet with id X' }

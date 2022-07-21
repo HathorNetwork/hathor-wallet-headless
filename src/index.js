@@ -10,7 +10,7 @@ import morgan from 'morgan';
 import { config as hathorLibConfig, wallet as oldWalletUtils } from '@hathor/wallet-lib';
 
 import config from './config';
-import apiKeyAuth from './api-key-auth';
+import apiKeyAuth from './middlewares/api-key-auth.middleware';
 import logger from './logger';
 import version from './version';
 import mainRouter from './routes/index.routes';
