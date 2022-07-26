@@ -2,9 +2,7 @@
 
 Follow these steps to create a new release of hathor-wallet-headless:
 
-1. Make sure the API Docs in `src/api-docs.js` were updated in case any change in the API is made in this release.
-
-1. Create a PR to the `dev` branch to bump the versions in `package.json` and `package-lock.json`. We follow the [semantic versioning](https://semver.org/) directives when assigning versions.
+1. Create a PR to the `dev` branch to bump the versions in `package.json`, `package-lock.json` and `src/api-docs.js`. We follow the [semantic versioning](https://semver.org/) directives when assigning versions.
 
 1. Create a Release PR from `dev` to `master` and merge it.
 
