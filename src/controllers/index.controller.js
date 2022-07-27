@@ -5,11 +5,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { walletUtils, errors, Connection, HathorWallet } = require('@hathor/wallet-lib');
+const { walletApi, tokensUtils, walletUtils, errors, Connection, HathorWallet } = require('@hathor/wallet-lib');
 const apiDocs = require('../api-docs');
 const config = require('../config');
 const { initializedWallets } = require('../services/wallets.service');
 const { API_ERROR_CODES } = require('../helpers/constants');
+const { parametersValidation } = require('../helpers/validations.helper');
 
 function welcome(req, res) {
   res.send('<html><body><h1>Welcome to Hathor Wallet API!</h1>'
@@ -222,9 +223,35 @@ function multisigPubkey(req, res) {
   });
 }
 
+async function getConfigurationString(req, res) {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    res.status(400).json(validationResult);
+    return;
+  }
+
+  // Expects token uid
+  const token = req.query.token;
+  const result = await new Promise((resolve) => {
+    return walletApi.getGeneralTokenInfo(token, resolve);
+  });
+
+  if (!result.success) {
+    res.send({
+      success: false,
+      message: 'Invalid token uid.',
+    });
+    return;
+  }
+
+  const { name, symbol } = result;
+  res.send({ configurationString: tokensUtils.getConfigurationString(token, name, symbol) });
+}
+
 module.exports = {
   welcome,
   docs,
   start,
   multisigPubkey,
+  getConfigurationString,
 };
