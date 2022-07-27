@@ -134,13 +134,23 @@ describe('decode api', () => {
 
     let address = new Address(TestUtils.addresses[0]);
     let script = new P2PKH(address);
-    partialTx.outputs.push(new ProposalOutput(10, script.createScript(), 1, { token: fakeToken1 }));
+    partialTx.outputs.push(
+      new ProposalOutput(10, script.createScript(), { token: fakeToken1, tokenData: 1 })
+    );
 
     address = new Address(TestUtils.addresses[1]);
     script = new P2PKH(address);
-    partialTx.outputs.push(new ProposalOutput(20, script.createScript(), 0));
+    partialTx.outputs.push(new ProposalOutput(20, script.createScript()));
 
-    partialTx.inputs.push(new ProposalInput(fakeInputHash, 1, 30, 1, { token: fakeToken2 }));
+    partialTx.inputs.push(
+      new ProposalInput(
+        fakeInputHash,
+        1,
+        30,
+        TestUtils.addresses[2],
+        { token: fakeToken2, tokenData: 1 },
+      )
+    );
 
     // 1 input, 2 outputs
     const response = await TestUtils.request
