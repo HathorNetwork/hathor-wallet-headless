@@ -86,8 +86,8 @@ describe('create-nft routes', () => {
     expect(nftTx.configurationString)
       .toBe(tokensUtils.getConfigurationString(nftTx.hash, nftData.name, nftData.symbol));
 
-    const configString = await TestUtils.getConfigurationString(nftTx.hash);
-    expect(nftTx.configurationString).toBe(configString);
+    const configStringResponse = await TestUtils.getConfigurationString(nftTx.hash);
+    expect(nftTx.configurationString).toBe(configStringResponse.configurationString);
 
     // No authority tokens
     for (const output of nftTx.outputs) {

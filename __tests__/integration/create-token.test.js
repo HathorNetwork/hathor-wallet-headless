@@ -194,8 +194,8 @@ describe('create token', () => {
     expect(response.body.configurationString)
       .toBe(tokensUtils.getConfigurationString(response.body.hash, tokenA.name, tokenA.symbol));
 
-    const configString = await TestUtils.getConfigurationString(response.body.hash);
-    expect(response.body.configurationString).toBe(configString);
+    const configStringResponse = await TestUtils.getConfigurationString(response.body.hash);
+    expect(response.body.configurationString).toBe(configStringResponse.configurationString);
 
     await TestUtils.pauseForWsUpdate();
 
