@@ -391,7 +391,11 @@ async function createToken(req, res) {
   const changeAddress = req.body.change_address || null;
   try {
     const response = await wallet.createNewToken(name, symbol, amount, { changeAddress, address });
-    const configurationString = tokensUtils.getConfigurationString(response.hash, response.name, response.symbol);
+    const configurationString = tokensUtils.getConfigurationString(
+      response.hash,
+      response.name,
+      response.symbol
+    );
     res.send({ success: true, configurationString, ...mapTxReturn(response) });
   } catch (err) {
     res.send({ success: false, error: err.message });
@@ -534,7 +538,11 @@ async function createNft(req, res) {
       data,
       { address, changeAddress, createMint, createMelt }
     );
-    const configurationString = tokensUtils.getConfigurationString(response.hash, response.name, response.symbol);
+    const configurationString = tokensUtils.getConfigurationString(
+      response.hash,
+      response.name,
+      response.symbol
+    );
     res.send({ success: true, configurationString, ...mapTxReturn(response) });
   } catch (err) {
     res.send({ success: false, error: err.message });

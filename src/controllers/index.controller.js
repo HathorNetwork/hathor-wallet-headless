@@ -223,7 +223,7 @@ function multisigPubkey(req, res) {
   });
 }
 
-async function getConfigurationString(req, res) {
+function getConfigurationString(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     res.status(400).json(validationResult);
@@ -231,21 +231,21 @@ async function getConfigurationString(req, res) {
   }
 
   // Expects token uid
-  const token = req.query.token;
-  const result = await new Promise((resolve) => {
-    return walletApi.getGeneralTokenInfo(token, resolve);
+  const { token } = req.query;
+  walletApi.getGeneralTokenInfo(token, response => {
+    if (response.success) {
+      const { name, symbol } = response;
+      res.send({
+        success: true,
+        configurationString: tokensUtils.getConfigurationString(token, name, symbol)
+      });
+    } else {
+      res.send({
+        success: false,
+        message: 'Invalid token uid.',
+      });
+    }
   });
-
-  if (!result.success) {
-    res.send({
-      success: false,
-      message: 'Invalid token uid.',
-    });
-    return;
-  }
-
-  const { name, symbol } = result;
-  res.send({ configurationString: tokensUtils.getConfigurationString(token, name, symbol) });
 }
 
 module.exports = {
