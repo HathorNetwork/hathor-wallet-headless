@@ -937,4 +937,23 @@ export default {
       timestamp: 123456,
     },
   },
+  '/thin_wallet/token': {
+    name: 'Test 1',
+    symbol: 'TST1',
+    success: true,
+    mint: [
+      {
+        tx_id: '007c9d497135e10dcba984f0b893804d7cb06721c800064cfbe05fafc138faca',
+        index: 1
+      }
+    ],
+    melt: [
+      {
+        tx_id: '007c9d497135e10dcba984f0b893804d7cb06721c800064cfbe05fafc138faca',
+        index: 2
+      }
+    ],
+    total: 100,
+    transactions_count: 1
+  },
 };
