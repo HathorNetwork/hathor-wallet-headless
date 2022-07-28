@@ -685,4 +685,17 @@ export class TestUtils {
 
     return transaction;
   }
+
+  /**
+   * Returns the configuration string of a token
+   * @param {string} token Token uid to get configuration string
+   * @returns {Promise<{ configurationString: string }>}
+   */
+  static async getConfigurationString(token) {
+    const response = await TestUtils.request
+      .get('/configuration-string')
+      .query({ token });
+
+    return response.body;
+  }
 }
