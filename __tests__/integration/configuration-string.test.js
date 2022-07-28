@@ -7,7 +7,7 @@ describe('configuration string', () => {
   // the code here to inject funds to test something that is already being tested
   it('should return 400 without required token parameter', async done => {
     const response = await TestUtils.request
-      .get('/configuration-string')
+      .get('/configuration-string');
 
     expect(response.status).toBe(400);
     done();
