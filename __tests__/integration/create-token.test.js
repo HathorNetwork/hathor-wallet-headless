@@ -195,6 +195,7 @@ describe('create token', () => {
       .toBe(tokensUtils.getConfigurationString(response.body.hash, tokenA.name, tokenA.symbol));
 
     const configStringResponse = await TestUtils.getConfigurationString(response.body.hash);
+    expect(response.body.success).toBe(true);
     expect(response.body.configurationString).toBe(configStringResponse.configurationString);
 
     await TestUtils.pauseForWsUpdate();
