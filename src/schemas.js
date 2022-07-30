@@ -53,7 +53,6 @@ export const partialTxSignatureSchema = {
     isArray: true,
     notEmpty: true,
     optional: true,
-    default: null,
   },
   'signatures.*': {
     in: ['body'],
@@ -101,7 +100,6 @@ export const atomicSwapCreateSchema = {
     errorMessage: 'Invalid token uid',
     isString: true,
     optional: true,
-    default: HATHOR_TOKEN_CONFIG.uid,
   },
   'outputs.*.timelock': {
     in: ['body'],
@@ -109,7 +107,6 @@ export const atomicSwapCreateSchema = {
     isInt: true,
     toInt: true,
     optional: true,
-    default: null,
   },
   inputs: {
     in: ['body'],
@@ -148,7 +145,6 @@ export const atomicSwapCreateSchema = {
     errorMessage: 'Invalid token uid',
     isString: true,
     optional: true,
-    default: HATHOR_TOKEN_CONFIG.uid,
   },
   'send_tokens.*.value': {
     in: ['body'],
@@ -172,7 +168,6 @@ export const atomicSwapCreateSchema = {
     errorMessage: 'Invalid token uid',
     isString: true,
     optional: true,
-    default: HATHOR_TOKEN_CONFIG.uid,
   },
   'receive_tokens.*.value': {
     in: ['body'],
@@ -190,28 +185,24 @@ export const atomicSwapCreateSchema = {
     isInt: true,
     toInt: true,
     optional: true,
-    default: null,
   },
   'receive_tokens.*.address': {
     in: ['body'],
     errorMessage: 'Invalid address',
     isString: true,
     optional: true,
-    default: null,
   },
   partial_tx: {
     in: ['body'],
     errorMessage: 'Invalid partial tx',
     isString: true,
     optional: true,
-    default: null
   },
   lock: {
     in: ['body'],
     errorMessage: 'Invalid lock argument',
     isBoolean: true,
     optional: true,
-    default: true,
   },
   change_address: {
     in: ['body'],

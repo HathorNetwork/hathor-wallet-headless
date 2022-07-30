@@ -12,6 +12,8 @@ const {
   PartialTxInputData,
   PartialTx,
   txApi,
+  storage,
+  constants: { HATHOR_TOKEN_CONFIG },
 } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
@@ -33,7 +35,10 @@ async function buildTxProposal(req, res) {
   const receiveTokens = req.body.receive_tokens || [];
   const changeAddress = req.body.change_address || null;
   const partialTx = req.body.partial_tx || null;
-  const markAsSelected = req.body.lock || true;
+  let markAsSelected = true;
+  if (req.body.lock !== undefined) {
+    markAsSelected = req.body.lock;
+  }
 
   if (inputs.length === 0
     && outputs.length === 0
@@ -77,19 +82,24 @@ async function buildTxProposal(req, res) {
   }
 
   for (const send of sendTokens) {
-    proposal.addSend(req.wallet, send.token, send.value, { changeAddress, markAsSelected });
+    const token = send.token || HATHOR_TOKEN_CONFIG.uid;
+    proposal.addSend(req.wallet, token, send.value, { changeAddress, markAsSelected });
   }
 
   for (const output of outputs) {
-    proposal.addOutput(output.token, output.value, output.address);
+    const token = output.token || HATHOR_TOKEN_CONFIG.uid;
+    proposal.addOutput(token, output.value, output.address);
   }
 
   for (const receive of receiveTokens) {
+    const token = receive.token || HATHOR_TOKEN_CONFIG.uid;
+    const timelock = receive.timelock || null;
+    const address = receive.address || null;
     proposal.addReceive(
       req.wallet,
-      receive.token,
+      token,
       receive.value,
-      { timelock: receive.timelock, address: receive.address }
+      { timelock, address }
     );
   }
 
@@ -112,6 +122,7 @@ async function getMySignatures(req, res) {
   const proposal = PartialTxProposal.fromPartialTx(partialTx, network);
 
   try {
+    storage.setStore(req.wallet.store);
     await proposal.signData('123');
     res.send({
       success: true,
