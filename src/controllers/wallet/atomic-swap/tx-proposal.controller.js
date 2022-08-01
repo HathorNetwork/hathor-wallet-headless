@@ -184,6 +184,7 @@ async function signAndPush(req, res) {
   const proposal = PartialTxProposal.fromPartialTx(partialTx, network);
 
   try {
+    storage.setStore(req.wallet.store);
     await proposal.signData('123');
     for (const signature of signatures) {
       proposal.signatures.addSignatures(signature);
@@ -215,10 +216,10 @@ async function getInputData(req, res) {
 
   try {
     const tx = helpersUtils.createTxFromHex(txHex, network);
-    const signatures = new PartialTxInputData(tx.getDataToSign(), tx.inputs.length);
+    const signatures = new PartialTxInputData(tx.getDataToSign().toString('hex'), tx.inputs.length);
 
     for (const [index, input] of tx.inputs.entries()) {
-      if (input.data === null || input.data.length === 0) {
+      if ((!input.data) || input.data.length === 0) {
         // input without data to be added
         continue;
       }

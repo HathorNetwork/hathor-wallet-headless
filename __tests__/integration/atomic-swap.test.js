@@ -103,7 +103,7 @@ describe('send tx (HTR)', () => {
     // wallet1 proposes the transaction
     let response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
-      .send({ send_tokens: [{ token: tokenTx1.tx_id, value: 10 }] })
+      .send({ send_tokens: [{ token: tokenTx1.hash, value: 10 }] })
       .set({ 'x-wallet-id': wallet1.walletId });
     loggers.test.insertLineToLog('atomic-swap[1TK P2PKH]: proposal', { body: response.body });
 
@@ -114,7 +114,7 @@ describe('send tx (HTR)', () => {
     // wallet2 updates the proposal
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
-      .send({ partial_tx: data, receive_tokens: [{ token: tokenTx1.tx_id, value: 10 }] })
+      .send({ partial_tx: data, receive_tokens: [{ token: tokenTx1.hash, value: 10 }] })
       .set({ 'x-wallet-id': wallet2.walletId });
     loggers.test.insertLineToLog('atomic-swap[1TK P2PKH]: update proposal', { body: response.body });
     expect(response.body.isComplete).toBe(true);
@@ -150,8 +150,8 @@ describe('send tx (HTR)', () => {
     let response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
-        send_tokens: [{ token: tokenTx1.tx_id, value: 5 }, { token: '00', value: 10 }],
-        receive_tokens: [{ token: tokenTx2.tx_id, value: 15 }],
+        send_tokens: [{ token: tokenTx1.hash, value: 5 }, { token: '00', value: 10 }],
+        receive_tokens: [{ token: tokenTx2.hash, value: 15 }],
       })
       .set({ 'x-wallet-id': wallet1.walletId });
     loggers.test.insertLineToLog('atomic-swap[2TK P2PKH]: proposal', { body: response.body });
@@ -165,8 +165,8 @@ describe('send tx (HTR)', () => {
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
         partial_tx: data,
-        receive_tokens: [{ token: tokenTx1.tx_id, value: 5 }, { value: 10 }],
-        send_tokens: [{ token: tokenTx2.tx_id, value: 15 }],
+        receive_tokens: [{ token: tokenTx1.hash, value: 5 }, { value: 10 }],
+        send_tokens: [{ token: tokenTx2.hash, value: 15 }],
       })
       .set({ 'x-wallet-id': wallet2.walletId });
     loggers.test.insertLineToLog('atomic-swap[2TK P2PKH]: update proposal', { body: response.body });
@@ -205,8 +205,8 @@ describe('send tx (HTR)', () => {
       .send({
         send_tokens: [{ value: 200 }], // HTR
         receive_tokens: [
-          { token: tokenTx2.tx_id, value: 50 },
-          { token: tokenTx1.tx_id, value: 50 },
+          { token: tokenTx2.hash, value: 50 },
+          { token: tokenTx1.hash, value: 50 },
         ],
       })
       .set({ 'x-wallet-id': walletMultisig.walletId });
@@ -221,7 +221,7 @@ describe('send tx (HTR)', () => {
       .send({
         partial_tx: data,
         receive_tokens: [{ value: 60 }],
-        send_tokens: [{ token: tokenTx1.tx_id, value: 50 }],
+        send_tokens: [{ token: tokenTx1.hash, value: 50 }],
       })
       .set({ 'x-wallet-id': wallet1.walletId });
     loggers.test.insertLineToLog('atomic-swap[P2SH]: update proposal 1', { body: response.body });
@@ -235,7 +235,7 @@ describe('send tx (HTR)', () => {
       .send({
         partial_tx: data,
         receive_tokens: [{ value: 140 }],
-        send_tokens: [{ token: tokenTx2.tx_id, value: 50 }],
+        send_tokens: [{ token: tokenTx2.hash, value: 50 }],
       })
       .set({ 'x-wallet-id': wallet2.walletId });
     loggers.test.insertLineToLog('atomic-swap[P2SH]: update proposal 2', { body: response.body });
@@ -283,7 +283,7 @@ describe('send tx (HTR)', () => {
       .post('/wallet/atomic-swap/tx-proposal/get-input-data')
       .send({ txHex })
       .set({ 'x-wallet-id': walletMultisig.walletId });
-    loggers.test.insertLineToLog('atomic-swap[P2SH]: p2sh sign tx', { body: response.body });
+    loggers.test.insertLineToLog('atomic-swap[P2SH]: get input data', { body: response.body });
     expect(response.body).toEqual({
       success: true,
       signatures: expect.any(String),
@@ -296,7 +296,7 @@ describe('send tx (HTR)', () => {
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/sign-and-push')
       .send({ partial_tx: data, signatures: [signatureP2PKH, signatureP2SH] })
-      .set({ 'x-wallet-id': wallet2.walletId });
+      .set({ 'x-wallet-id': wallet1.walletId });
     loggers.test.insertLineToLog('atomic-swap[2TK P2PKH]: push', { body: response.body });
     expect(response.body.success).toBe(true);
 
