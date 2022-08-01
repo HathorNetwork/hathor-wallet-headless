@@ -202,6 +202,7 @@ class TestUtils {
     httpMock.onPost('push_tx').reply(200, httpFixtures['/v1a/push_tx']);
     httpMock.onPost('submit-job').reply(200, httpFixtures['submit-job']);
     httpMock.onGet('job-status').reply(200, httpFixtures['job-status']);
+    httpMock.onGet('/thin_wallet/token').reply(200, httpFixtures['/thin_wallet/token']);
 
     // websocket mocks
     wsMock.on('connection', socket => {

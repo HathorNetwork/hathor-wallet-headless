@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { constants: hathorLibConstants, helpersUtils, errors } = require('@hathor/wallet-lib');
+const { constants: hathorLibConstants, helpersUtils, errors, tokensUtils } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../lock');
@@ -391,7 +391,12 @@ async function createToken(req, res) {
   const changeAddress = req.body.change_address || null;
   try {
     const response = await wallet.createNewToken(name, symbol, amount, { changeAddress, address });
-    res.send({ success: true, ...mapTxReturn(response) });
+    const configurationString = tokensUtils.getConfigurationString(
+      response.hash,
+      response.name,
+      response.symbol
+    );
+    res.send({ success: true, configurationString, ...mapTxReturn(response) });
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {
@@ -533,7 +538,12 @@ async function createNft(req, res) {
       data,
       { address, changeAddress, createMint, createMelt }
     );
-    res.send({ success: true, ...mapTxReturn(response) });
+    const configurationString = tokensUtils.getConfigurationString(
+      response.hash,
+      response.name,
+      response.symbol
+    );
+    res.send({ success: true, configurationString, ...mapTxReturn(response) });
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {

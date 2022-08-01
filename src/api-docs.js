@@ -6,7 +6,7 @@ const apiDoc = {
   info: {
     title: 'Headless Hathor Wallet API',
     description: 'This wallet is fully controlled through an HTTP API.',
-    version: '0.8.2',
+    version: '0.16.0',
   },
   produces: ['application/json'],
   components: {
@@ -1173,7 +1173,7 @@ const apiDoc = {
                   },
                   success: {
                     summary: 'Success',
-                    value: { hash: '00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277', nonce: 200, timestamp: 1610730485, version: 2, weight: 8.000001, parents: ['006814ba6ac14d8dc69a888dcf79e3c9ad597b31449edd086a82160698ea229d', '001ac1d7ff68e9bf4bf67b81fee517f08b06be564d7a28b13e41fea158b4cf54'], inputs: [{ tx_id: '00efbc1f99dc50a3c7ff7e7193ebfaa3df28eec467bcd0555eaf703ae773ab5c', index: 1, data: 'RzBFAiEAxFEPpgauWvPzCoM3zknUdOsWL2RwBu8JSOS6yKGufRICIAOf/mKgLka73wiwXUzVLC/kMYXKmqYSnA2oki6pm9qBIQOyMiKwc3u+O4mBUuN7BFLMwW9hmvUL+KmYPr1N0fl8ww==' }], outputs: [{ value: 6290, token_data: 0, script: 'dqkUPzRQOMrZ7k25txm/8V0PVr7dGwSIrA==' }, { value: 1000, token_data: 1, script: 'dqkUPzRQOMrZ7k25txm/8V0PVr7dGwSIrA==' }, { value: 1, token_data: 129, script: 'dqkUL2o1cHLbOQZfj+yVFP0rof9S+WGIrA==' }, { value: 2, token_data: 129, script: 'dqkUVawHzE0m6oUvfyzz2cAUdvYlP/SIrA==' }], tokens: [], token_name: 'Test', token_symbol: 'TST' }
+                    value: { hash: '00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277', nonce: 200, timestamp: 1610730485, version: 2, weight: 8.000001, parents: ['006814ba6ac14d8dc69a888dcf79e3c9ad597b31449edd086a82160698ea229d', '001ac1d7ff68e9bf4bf67b81fee517f08b06be564d7a28b13e41fea158b4cf54'], inputs: [{ tx_id: '00efbc1f99dc50a3c7ff7e7193ebfaa3df28eec467bcd0555eaf703ae773ab5c', index: 1, data: 'RzBFAiEAxFEPpgauWvPzCoM3zknUdOsWL2RwBu8JSOS6yKGufRICIAOf/mKgLka73wiwXUzVLC/kMYXKmqYSnA2oki6pm9qBIQOyMiKwc3u+O4mBUuN7BFLMwW9hmvUL+KmYPr1N0fl8ww==' }], outputs: [{ value: 6290, token_data: 0, script: 'dqkUPzRQOMrZ7k25txm/8V0PVr7dGwSIrA==' }, { value: 1000, token_data: 1, script: 'dqkUPzRQOMrZ7k25txm/8V0PVr7dGwSIrA==' }, { value: 1, token_data: 129, script: 'dqkUL2o1cHLbOQZfj+yVFP0rof9S+WGIrA==' }, { value: 2, token_data: 129, script: 'dqkUVawHzE0m6oUvfyzz2cAUdvYlP/SIrA==' }], tokens: [], token_name: 'Test', token_symbol: 'TST', configurationString: '[Test:TST:00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277:a233sac]' }
                   },
                   'wallet-not-ready': {
                     summary: 'Wallet is not ready yet',
@@ -1470,7 +1470,7 @@ const apiDoc = {
                   },
                   success: {
                     summary: 'Success',
-                    value: { hash: '00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277', nonce: 200, timestamp: 1610730485, version: 2, weight: 8.000001, parents: ['006814ba6ac14d8dc69a888dcf79e3c9ad597b31449edd086a82160698ea229d', '001ac1d7ff68e9bf4bf67b81fee517f08b06be564d7a28b13e41fea158b4cf54'], inputs: [{ tx_id: '00efbc1f99dc50a3c7ff7e7193ebfaa3df28eec467bcd0555eaf703ae773ab5c', index: 1, data: 'RzBFAiEAxFEPpgauWvPzCoM3zknUdOsWL2RwBu8JSOS6yKGufRICIAOf/mKgLka73wiwXUzVLC/kMYXKmqYSnA2oki6pm9qBIQOyMiKwc3u+O4mBUuN7BFLMwW9hmvUL+KmYPr1N0fl8ww==' }], outputs: [{ value: 6290, token_data: 0, script: 'dqkUPzRQOMrZ7k25txm/8V0PVr7dGwSIrA==' }, { value: 1000, token_data: 1, script: 'dqkUPzRQOMrZ7k25txm/8V0PVr7dGwSIrA==' }, { value: 1, token_data: 129, script: 'dqkUL2o1cHLbOQZfj+yVFP0rof9S+WGIrA==' }, { value: 2, token_data: 129, script: 'dqkUVawHzE0m6oUvfyzz2cAUdvYlP/SIrA==' }], tokens: [], token_name: 'Test', token_symbol: 'TST' }
+                    value: { hash: '00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277', nonce: 200, timestamp: 1610730485, version: 2, weight: 8.000001, parents: ['006814ba6ac14d8dc69a888dcf79e3c9ad597b31449edd086a82160698ea229d', '001ac1d7ff68e9bf4bf67b81fee517f08b06be564d7a28b13e41fea158b4cf54'], inputs: [{ tx_id: '00efbc1f99dc50a3c7ff7e7193ebfaa3df28eec467bcd0555eaf703ae773ab5c', index: 1, data: 'RzBFAiEAxFEPpgauWvPzCoM3zknUdOsWL2RwBu8JSOS6yKGufRICIAOf/mKgLka73wiwXUzVLC/kMYXKmqYSnA2oki6pm9qBIQOyMiKwc3u+O4mBUuN7BFLMwW9hmvUL+KmYPr1N0fl8ww==' }], outputs: [{ value: 6290, token_data: 0, script: 'dqkUPzRQOMrZ7k25txm/8V0PVr7dGwSIrA==' }, { value: 1000, token_data: 1, script: 'dqkUPzRQOMrZ7k25txm/8V0PVr7dGwSIrA==' }, { value: 1, token_data: 129, script: 'dqkUL2o1cHLbOQZfj+yVFP0rof9S+WGIrA==' }, { value: 2, token_data: 129, script: 'dqkUVawHzE0m6oUvfyzz2cAUdvYlP/SIrA==' }], tokens: [], token_name: 'Test', token_symbol: 'TST', configurationString: '[Test:TST:00c9b977ddb2d0256db38e6c846eac84e0cf7ab8eded2f37119d84ee6edd4277:a233sac]' }
                   },
                   'wallet-not-ready': {
                     summary: 'Wallet is not ready yet',
@@ -1907,6 +1907,41 @@ const apiDoc = {
                   'invalid-parameter': {
                     summary: 'Invalid parameter',
                     value: { success: false, error: [{ value: '"1"', msg: 'Invalid value', param: 'address', location: 'query' }] }
+                  }
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/configuration-string': {
+      get: {
+        summary: 'Get configuration string of a token.',
+        parameters: [
+          {
+            name: 'token',
+            in: 'query',
+            description: 'Token to get the configuration string.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Configuration string of the token or error in case of invalid token uid.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, configurationString: '[Test 1:TST1:007c9d497135e10dcba984f0b893804d7cb06721c800064cfbe05fafc138faca:5dd518cc]' },
+                  },
+                  'invalid-token': {
+                    summary: 'Token uid is invalid',
+                    value: { success: false, message: 'Invalid token uid.' }
                   }
                 },
               },

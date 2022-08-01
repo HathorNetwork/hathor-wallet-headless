@@ -1,3 +1,4 @@
+import { tokensUtils } from '@hathor/wallet-lib';
 import { getRandomInt } from './utils/core.util';
 import { TestUtils } from './utils/test-utils-integration';
 import { WALLET_CONSTANTS } from './configuration/test-constants';
@@ -190,6 +191,12 @@ describe('create token', () => {
 
     expect(response.body.success).toBe(true);
     expect(response.body.hash).toBeDefined();
+    expect(response.body.configurationString)
+      .toBe(tokensUtils.getConfigurationString(response.body.hash, tokenA.name, tokenA.symbol));
+
+    const configStringResponse = await TestUtils.getConfigurationString(response.body.hash);
+    expect(response.body.success).toBe(true);
+    expect(response.body.configurationString).toBe(configStringResponse.configurationString);
 
     await TestUtils.pauseForWsUpdate();
 

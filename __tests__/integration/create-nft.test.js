@@ -1,3 +1,4 @@
+import { tokensUtils } from '@hathor/wallet-lib';
 import { TestUtils } from './utils/test-utils-integration';
 import { AUTHORITY_VALUE, TOKEN_DATA } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
@@ -82,6 +83,11 @@ describe('create-nft routes', () => {
     expect(response.body.success).toBe(true);
     const nftTx = response.body;
     expect(nftTx.hash).toBeDefined();
+    expect(nftTx.configurationString)
+      .toBe(tokensUtils.getConfigurationString(nftTx.hash, nftData.name, nftData.symbol));
+
+    const configStringResponse = await TestUtils.getConfigurationString(nftTx.hash);
+    expect(nftTx.configurationString).toBe(configStringResponse.configurationString);
 
     // No authority tokens
     for (const output of nftTx.outputs) {

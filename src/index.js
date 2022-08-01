@@ -29,6 +29,13 @@ export const initHathorLib = () => {
   // We use this string to parse the version from user agent
   // in some of our services, so changing this might break another service
   hathorLibConfig.setUserAgent(`Hathor Wallet Headless / ${version}`);
+
+  // Those configurations will be set when starting the wallet
+  // however we can already set them because they are fixed
+  // for all wallets and it's useful if we need to run any request
+  // to the full node before starting a wallet
+  hathorLibConfig.setServerUrl(config.server);
+  hathorLibConfig.setNetwork(config.network);
 };
 
 initHathorLib();
