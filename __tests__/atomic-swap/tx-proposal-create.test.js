@@ -177,7 +177,7 @@ describe('create tx-proposal api', () => {
     const spyUtxos = jest.spyOn(hathorLib.HathorWallet.prototype, 'getUtxosForAmount').mockImplementation(() => ({
       changeAmount: 0,
       utxos: [
-        { index: 0, txId: fakeTxId, value: 10, address: TestUtils.addresses[1], token: '00' },
+        { index: 0, txId: fakeTxId, value: 10, address: TestUtils.addresses[1], tokenId: '00' },
       ]
     }));
     const spyHistory = jest.spyOn(hathorLib.HathorWallet.prototype, 'getFullHistory').mockImplementation(() => ({
@@ -212,7 +212,7 @@ describe('create tx-proposal api', () => {
     const spyUtxos = jest.spyOn(hathorLib.HathorWallet.prototype, 'getUtxosForAmount').mockImplementation(() => ({
       changeAmount: 9,
       utxos: [
-        { index: 0, txId: fakeTxId, value: 10, address: TestUtils.addresses[1], token: '00' },
+        { index: 0, txId: fakeTxId, value: 10, address: TestUtils.addresses[1], tokenId: '00' },
       ]
     }));
     const spyHistory = jest.spyOn(hathorLib.HathorWallet.prototype, 'getFullHistory').mockImplementation(() => ({
@@ -247,7 +247,7 @@ describe('create tx-proposal api', () => {
     const spyUtxos = jest.spyOn(hathorLib.HathorWallet.prototype, 'getUtxosForAmount').mockImplementation(() => ({
       changeAmount: 5,
       utxos: [
-        { index: 0, txId: fakeTxId, value: 10, address: TestUtils.addresses[1], token: '00' },
+        { index: 0, txId: fakeTxId, value: 10, address: TestUtils.addresses[1], tokenId: '00' },
       ]
     }));
     const spyHistory = jest.spyOn(hathorLib.HathorWallet.prototype, 'getFullHistory').mockImplementation(() => ({
@@ -283,7 +283,7 @@ describe('create tx-proposal api', () => {
     const spyUtxos = jest.spyOn(hathorLib.HathorWallet.prototype, 'getUtxosForAmount').mockImplementation(() => ({
       changeAmount: 5,
       utxos: [
-        { index: 1, txId: fakeTxId, value: 10, address: TestUtils.addresses[1], token: fakeUid },
+        { index: 1, txId: fakeTxId, value: 10, address: TestUtils.addresses[1], tokenId: fakeUid },
       ]
     }));
     const spyHistory = jest.spyOn(hathorLib.HathorWallet.prototype, 'getFullHistory').mockImplementation(() => ({
