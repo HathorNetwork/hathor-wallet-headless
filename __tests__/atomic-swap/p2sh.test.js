@@ -1,17 +1,16 @@
-import hathorLib from '@hathor/wallet-lib';
-import { Input, Output, Transaction } from '@hathor/wallet-lib';
+import { Input, Output, Transaction, Network, Address, P2PKH, P2SH, helpersUtils } from '@hathor/wallet-lib';
 import TestUtils from '../test-utils';
 
 const walletId = 'stub_atomic_swap_p2sh';
 
 describe('atomic-swap with p2sh', () => {
-  const testnet = new hathorLib.Network('testnet');
+  const testnet = new Network('testnet');
   const scriptFromAddress = (base58, isMultisig) => {
     let script;
     if (isMultisig) {
-      script = new hathorLib.P2SH(new hathorLib.Address(base58, { network: testnet }));
+      script = new P2SH(new Address(base58, { network: testnet }));
     } else {
-      script = new hathorLib.P2PKH(new hathorLib.Address(base58, { network: testnet }));
+      script = new P2PKH(new Address(base58, { network: testnet }));
     }
 
     return script.createScript();
@@ -47,7 +46,7 @@ describe('atomic-swap with p2sh', () => {
   });
 
   it('should allow p2sh wallets to participate on an atomic-swap', async () => {
-    const spy = jest.spyOn(hathorLib.helpersUtils, 'createTxFromHex')
+    const spy = jest.spyOn(helpersUtils, 'createTxFromHex')
       .mockImplementation((txh, nt) => new Transaction(
         [
           new Input('hash1', 0, { data: Buffer.from('dead01', 'hex') }),
@@ -62,7 +61,7 @@ describe('atomic-swap with p2sh', () => {
         ],
       ));
 
-    const spyDataToSign = jest.spyOn(hathorLib.Transaction.prototype, 'getDataToSign')
+    const spyDataToSign = jest.spyOn(Transaction.prototype, 'getDataToSign')
       .mockImplementation(() => Buffer.from('cafe', 'hex'));
 
     const response = await TestUtils.request
