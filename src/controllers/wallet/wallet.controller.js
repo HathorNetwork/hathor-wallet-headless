@@ -212,17 +212,6 @@ async function decodeTx(req, res) {
   const txHex = req.body.txHex || null;
   const partialTx = req.body.partial_tx || null;
 
-  if (
-    (txHex === null && partialTx === null)
-    || (txHex !== null && partialTx !== null)
-  ) {
-    res.status(400).json({
-      success: false,
-      error: 'Required only one of txHex or partialTx',
-    });
-    return;
-  }
-
   try {
     let tx;
     if (txHex !== null) {

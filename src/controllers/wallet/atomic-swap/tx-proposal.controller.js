@@ -122,6 +122,7 @@ async function getMySignatures(req, res) {
   const proposal = PartialTxProposal.fromPartialTx(partialTx, network);
 
   try {
+    // TODO remove this when we create a method to sign inputs in the wallet facade
     storage.setStore(req.wallet.store);
     await proposal.signData('123');
     res.send({
@@ -149,6 +150,8 @@ async function signTx(req, res) {
   const proposal = PartialTxProposal.fromPartialTx(partialTx, network);
 
   try {
+    // TODO remove this when we create a method to sign inputs in the wallet facade
+    storage.setStore(req.wallet.store);
     await proposal.signData('123');
     for (const signature of signatures) {
       proposal.signatures.addSignatures(signature);
@@ -184,6 +187,7 @@ async function signAndPush(req, res) {
   const proposal = PartialTxProposal.fromPartialTx(partialTx, network);
 
   try {
+    // TODO remove this when we create a method to sign inputs in the wallet facade
     storage.setStore(req.wallet.store);
     await proposal.signData('123');
     for (const signature of signatures) {
@@ -265,6 +269,12 @@ async function unlockInputs(req, res) {
     return;
   }
 
+  const canStart = lock.lock(lockTypes.SEND_TX);
+  if (!canStart) {
+    res.send({ success: false, error: 'Cannot run this method while a transaction is being sent.' });
+    return;
+  }
+
   const partialTx = req.body.partial_tx;
 
   try {
@@ -278,6 +288,8 @@ async function unlockInputs(req, res) {
     res.send({ success: true });
   } catch (err) {
     res.send({ success: false, error: err.message });
+  } finally {
+    lock.unlock(lockTypes.SEND_TX);
   }
 }
 

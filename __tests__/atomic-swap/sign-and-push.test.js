@@ -41,10 +41,34 @@ describe('tx-proposal sign-and-push api', () => {
     spy.mockClear();
   });
 
-  it('should fail if partial_tx is not a string', async () => {
-    const response = await TestUtils.request
+  it('should fail if params are invalid', async () => {
+    // partial_tx is not a string
+    let response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/sign-and-push')
       .send({ partial_tx: 123, signatures: ['1'] })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBeFalsy();
+
+    // No partial_tx
+    response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/sign-and-push')
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBeFalsy();
+
+    // signatures are empty
+    response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/sign-and-push')
+      .send({ partial_tx: '123', signatures: [] })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBeFalsy();
+
+    // signatures items are not string
+    response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/sign-and-push')
+      .send({ partial_tx: '123', signatures: ['1', 1] })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();

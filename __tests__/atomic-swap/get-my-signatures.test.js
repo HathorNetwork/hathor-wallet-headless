@@ -40,10 +40,16 @@ describe('get-my-signatures api', () => {
     spy.mockClear();
   });
 
-  it('should fail if partial_tx is not a string', async () => {
-    const response = await TestUtils.request
+  it('should fail if partial_tx is invalid', async () => {
+    let response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/get-my-signatures')
       .send({ partial_tx: 123 })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBeFalsy();
+
+    response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/get-my-signatures')
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();

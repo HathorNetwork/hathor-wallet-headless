@@ -5,8 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { constants: { HATHOR_TOKEN_CONFIG } } = require('@hathor/wallet-lib');
-
 export const txHexSchema = {
   txHex: {
     in: ['body'],
@@ -61,17 +59,6 @@ export const partialTxSignatureSchema = {
   },
 };
 
-export const partialTxOrTxHexSchema = {
-  txHex: {
-    ...txHexSchema.txHex,
-    optional: true,
-  },
-  partialTx: {
-    ...partialTxSchema.partialTx,
-    optional: true,
-  },
-};
-
 export const atomicSwapCreateSchema = {
   outputs: {
     in: ['body'],
@@ -104,7 +91,11 @@ export const atomicSwapCreateSchema = {
   'outputs.*.timelock': {
     in: ['body'],
     errorMessage: 'Invalid timelock',
-    isInt: true,
+    isInt: {
+      options: {
+        min: 1,
+      },
+    },
     toInt: true,
     optional: true,
   },
@@ -130,7 +121,11 @@ export const atomicSwapCreateSchema = {
   'inputs.*.index': {
     in: ['body'],
     errorMessage: 'Invalid input index',
-    isInt: true,
+    isInt: {
+      options: {
+        min: 0,
+      },
+    },
     toInt: true,
   },
   send_tokens: {
@@ -182,7 +177,11 @@ export const atomicSwapCreateSchema = {
   'receive_tokens.*.timelock': {
     in: ['body'],
     errorMessage: 'Invalid timelock',
-    isInt: true,
+    isInt: {
+      options: {
+        min: 1,
+      },
+    },
     toInt: true,
     optional: true,
   },

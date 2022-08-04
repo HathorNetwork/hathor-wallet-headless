@@ -56,6 +56,23 @@ describe('locked utxos api', () => {
     spy.mockRestore();
   });
 
+  it('should not allow invalid partial_tx', async () => {
+    let response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/unlock')
+      .send({ partial_tx: 123 })
+      .set({ 'x-wallet-id': walletId });
+    TestUtils.logger.debug('[atomic-swap:invalid-locked-params] response', { body: response.body });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBeFalsy();
+
+    response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/unlock')
+      .set({ 'x-wallet-id': walletId });
+    TestUtils.logger.debug('[atomic-swap:invalid-locked-params] response', { body: response.body });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBeFalsy();
+  });
+
   it('should unlock utxos from a partial-tx', async () => {
     const spyDeserialize = jest.spyOn(PartialTx, 'deserialize')
       .mockImplementation(() => {

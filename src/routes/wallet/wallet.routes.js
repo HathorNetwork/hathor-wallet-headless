@@ -6,7 +6,7 @@
  */
 
 const { Router } = require('express');
-const { query, checkSchema, body } = require('express-validator');
+const { query, checkSchema, oneOf, body } = require('express-validator');
 const { walletMiddleware } = require('../../middlewares/wallet.middleware');
 const {
   getStatus, getBalance, getAddress, getAddresses, getTxHistory, getTransaction,
@@ -14,7 +14,7 @@ const {
   utxoConsolidation, createNft, getAddressInfo, stop,
   getAddressIndex
 } = require('../../controllers/wallet/wallet.controller');
-const { partialTxOrTxHexSchema } = require('../../schemas');
+const { txHexSchema, partialTxSchema } = require('../../schemas');
 const p2shRouter = require('./p2sh/p2sh.routes');
 const atomicSwapRouter = require('./atomic-swap/atomic-swap.routes');
 const { MAX_DATA_SCRIPT_LENGTH } = require('../../constants');
@@ -160,7 +160,10 @@ walletRouter.post(
 
 walletRouter.post(
   '/decode',
-  checkSchema(partialTxOrTxHexSchema),
+  oneOf([
+    checkSchema(txHexSchema),
+    checkSchema(partialTxSchema),
+  ], 'Required only one of txHex or partialTx'),
   decodeTx
 );
 
