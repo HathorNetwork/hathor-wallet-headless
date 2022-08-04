@@ -291,8 +291,7 @@ describe('send tx (HTR)', () => {
 
     const signatureP2SH = response.body.signatures;
 
-    // wallet2: sign-and-push data
-    //
+    // wallet1: sign-and-push data
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/sign-and-push')
       .send({ partial_tx: data, signatures: [signatureP2PKH, signatureP2SH] })

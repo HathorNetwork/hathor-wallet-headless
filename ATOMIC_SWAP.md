@@ -51,7 +51,7 @@ $ curl -X POST -H "X-Wallet-Id: 123" -H "Content-type: application/json" --data 
 ## How to: negotiation phase
 
 This phase consists of participants creating a proposal which will be serialized to a string which will be passed among participants.
-Each participan will add the tokens they want to send and receive from the transaction, once the transaction is complete the participants can move to the signing phase.
+Each participant will add the tokens they want to send and receive from the transaction, once the transaction is complete the participants can move to the signing phase.
 
 1. Use the `/wallet/atomic-swap/tx-proposal` endpoint to get the proposal string and send to the participants.
 1. Each participant should update the proposal string using the `/wallet/atomic-swap/tx-proposal` endpoint and add their tokens and what they expect to receive.
