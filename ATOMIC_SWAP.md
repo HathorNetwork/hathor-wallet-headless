@@ -36,14 +36,28 @@ $ curl -X POST -H "X-Wallet-Id: 123" -H "Content-type: application/json" --data 
         "txId": "00c7797738d890d1517f637f2af079d8daa4449fdfd098d2d636bb0e30c809d1",
         "index": 1
       }
+      {
+        "txId": "0000f9e7e382c8927208c15aa9cb59d3c39c1c6c7b631fbec3c1d9e455427c06",
+        "index": 0
+      }
+      {
+        "txId": "00006e5abb9138c7f5b504cad2af25a96f4ae2ed48310a93f5a4da825d420b33",
+        "index": 0
+      }
     ],
     "outputs": [
       {
         "address": "WXf4xPLBn7HUC7F1U2vY4J5zwpsDS12bT6",
-        "value": 1,
+        "value": 100,
         "tokenData": 0
       }
-    ]
+      {
+        "address": "WXN7sf6WzhpESgUuRCBrjzjzHtWTCfV8Cq",
+        "value": 50,
+        "tokenData": 1
+      }
+    ],
+    "tokens": []
   }
 }
 ```
@@ -62,7 +76,7 @@ Each participant will add the tokens they want to send and receive from the tran
 ### POST /wallet/atomic-swap/tx-proposal
 
 Create a transaction proposal with multiple inputs and outputs.
-inputs, outputs, send_tokens, receive_tokens are operations which will add inputs and outputs to the partial_tx, can use one or many operations at once.
+`inputs`, `outputs`, `send_tokens`, `receive_tokens` are operations which will add inputs and outputs to the `partial_tx`, can use one or many operations at once.
 
 *Body*:
 - partial_tx
