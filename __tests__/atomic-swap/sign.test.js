@@ -22,7 +22,7 @@ describe('tx-proposal sign api', () => {
     return p2pkh.createScript();
   };
 
-  const spy = jest.spyOn(hathorLib.PartialTxProposal, 'fromPartialTx');
+  const fromPartialTxSpy = jest.spyOn(hathorLib.PartialTxProposal, 'fromPartialTx');
   const spyValidate = jest.spyOn(PartialTx.prototype, 'validate')
     .mockImplementation(async () => true);
 
@@ -33,12 +33,12 @@ describe('tx-proposal sign api', () => {
   afterAll(async () => {
     await TestUtils.stopWallet({ walletId });
     // cleanup mock
-    spy.mockRestore();
+    fromPartialTxSpy.mockRestore();
     spyValidate.mockRestore();
   });
 
   afterEach(() => {
-    spy.mockClear();
+    fromPartialTxSpy.mockClear();
   });
 
   it('should fail if partial_tx is not a string', async () => {
@@ -51,7 +51,7 @@ describe('tx-proposal sign api', () => {
   });
 
   it('should fail if an Error is thrown', async () => {
-    spy.mockImplementation((pt, nt) => {
+    fromPartialTxSpy.mockImplementation((pt, nt) => {
       throw new Error('custom error');
     });
 
@@ -65,7 +65,7 @@ describe('tx-proposal sign api', () => {
       error: 'custom error',
     });
 
-    spy.mockImplementation((pt, nt) => createProposal(
+    fromPartialTxSpy.mockImplementation((pt, nt) => createProposal(
       [
         new ProposalInput(fakeTxId, 0, 10, TestUtils.addresses[0]),
       ],
@@ -107,7 +107,7 @@ describe('tx-proposal sign api', () => {
   });
 
   it('should reject an incomplete transaction', async () => {
-    spy.mockImplementation((pt, nt) => createProposal(
+    fromPartialTxSpy.mockImplementation((pt, nt) => createProposal(
       [
         new ProposalInput(fakeTxId, 0, 10, TestUtils.addresses[0]),
       ],
@@ -126,7 +126,7 @@ describe('tx-proposal sign api', () => {
       .send({ partial_tx: 'partial-tx-data' })
       .set({ 'x-wallet-id': walletId });
     TestUtils.logger.debug('[atomic-swap:sign] should return sigs: create tx-proposal', { body: response.body });
-    expect(spy).toHaveBeenCalled();
+    expect(fromPartialTxSpy).toHaveBeenCalled();
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -136,7 +136,7 @@ describe('tx-proposal sign api', () => {
   });
 
   it('should return the signatures for the inputs we own on the transaction', async () => {
-    spy.mockImplementation((pt, nt) => createProposal(
+    fromPartialTxSpy.mockImplementation((pt, nt) => createProposal(
       [
         new ProposalInput(fakeTxId, 0, 10, TestUtils.addresses[0]),
       ],
@@ -150,7 +150,7 @@ describe('tx-proposal sign api', () => {
       .send({ partial_tx: 'partial-tx-data' })
       .set({ 'x-wallet-id': walletId });
     TestUtils.logger.debug('[atomic-swap:sign] should return sigs: create tx-proposal', { body: response.body });
-    expect(spy).toHaveBeenCalled();
+    expect(fromPartialTxSpy).toHaveBeenCalled();
 
     expect(response.body).toEqual({
       success: true,
@@ -159,7 +159,7 @@ describe('tx-proposal sign api', () => {
   });
 
   it('should add signatures on the input data', async () => {
-    spy.mockImplementation((pt, nt) => createProposal(
+    fromPartialTxSpy.mockImplementation((pt, nt) => createProposal(
       [
         new ProposalInput(fakeTxId, 0, 10, TestUtils.addresses[0]),
       ],
@@ -172,7 +172,7 @@ describe('tx-proposal sign api', () => {
       .post('/wallet/atomic-swap/tx-proposal/get-my-signatures')
       .send({ partial_tx: 'partial-tx-data' })
       .set({ 'x-wallet-id': walletId });
-    expect(spy).toHaveBeenCalled();
+    expect(fromPartialTxSpy).toHaveBeenCalled();
     TestUtils.logger.debug('[atomic-swap:sign] should overwrite sigs: get-my-signature', { body: response.body });
 
     const realSigs = response.body.signatures;
@@ -185,7 +185,7 @@ describe('tx-proposal sign api', () => {
       .send({ partial_tx: 'partial-tx', signatures })
       .set({ 'x-wallet-id': walletId });
     TestUtils.logger.debug('[atomic-swap:sign] should overwrite sigs: sign', { body: response.body });
-    expect(spy).toHaveBeenCalled();
+    expect(fromPartialTxSpy).toHaveBeenCalled();
     expect(response.body).toEqual({
       success: true,
       txHex: expect.any(String),

@@ -21,7 +21,7 @@ describe('get-my-signatures api', () => {
     return p2pkh.createScript();
   };
 
-  const spy = jest.spyOn(hathorLib.PartialTxProposal, 'fromPartialTx');
+  const fromPartialTxSpy = jest.spyOn(hathorLib.PartialTxProposal, 'fromPartialTx');
   const spyValidate = jest.spyOn(PartialTx.prototype, 'validate')
     .mockImplementation(async () => true);
 
@@ -32,12 +32,12 @@ describe('get-my-signatures api', () => {
   afterAll(async () => {
     await TestUtils.stopWallet({ walletId });
     // cleanup mock
-    spy.mockRestore();
+    fromPartialTxSpy.mockRestore();
     spyValidate.mockRestore();
   });
 
   afterEach(() => {
-    spy.mockClear();
+    fromPartialTxSpy.mockClear();
   });
 
   it('should fail if partial_tx is invalid', async () => {
@@ -56,7 +56,7 @@ describe('get-my-signatures api', () => {
   });
 
   it('should fail if an Error is thrown', async () => {
-    spy.mockImplementation((pt, nt) => {
+    fromPartialTxSpy.mockImplementation((pt, nt) => {
       throw new Error('custom error');
     });
 
@@ -70,8 +70,8 @@ describe('get-my-signatures api', () => {
       error: 'custom error',
     });
 
-    spy.mockRestore();
-    spy.mockImplementation((pt, nt) => createProposal(
+    fromPartialTxSpy.mockRestore();
+    fromPartialTxSpy.mockImplementation((pt, nt) => createProposal(
       [
         new ProposalInput(fakeTxId, 0, 10, TestUtils.addresses[0]),
       ],
@@ -97,7 +97,7 @@ describe('get-my-signatures api', () => {
   });
 
   it('should return the signatures for the inputs we own on the transaction', async () => {
-    spy.mockImplementation((pt, nt) => createProposal(
+    fromPartialTxSpy.mockImplementation((pt, nt) => createProposal(
       [
         new ProposalInput(fakeTxId, 0, 10, TestUtils.addresses[0]),
       ],
@@ -111,7 +111,7 @@ describe('get-my-signatures api', () => {
       .send({ partial_tx: 'partial-tx-data' })
       .set({ 'x-wallet-id': walletId });
     TestUtils.logger.debug('[atomic-swap:get-my-signatures] should return sigs: sign', { body: response.body });
-    expect(spy).toHaveBeenCalled();
+    expect(fromPartialTxSpy).toHaveBeenCalled();
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({

@@ -22,7 +22,7 @@ describe('tx-proposal sign-and-push api', () => {
     return p2pkh.createScript();
   };
 
-  const spy = jest.spyOn(hathorLib.PartialTxProposal, 'fromPartialTx');
+  const fromPartialTxSpy = jest.spyOn(hathorLib.PartialTxProposal, 'fromPartialTx');
   const spyValidate = jest.spyOn(PartialTx.prototype, 'validate')
     .mockImplementation(async () => true);
 
@@ -33,12 +33,12 @@ describe('tx-proposal sign-and-push api', () => {
   afterAll(async () => {
     await TestUtils.stopWallet({ walletId });
     // cleanup mock
-    spy.mockRestore();
+    fromPartialTxSpy.mockRestore();
     spyValidate.mockRestore();
   });
 
   afterEach(() => {
-    spy.mockClear();
+    fromPartialTxSpy.mockClear();
   });
 
   it('should fail if params are invalid', async () => {
@@ -91,7 +91,7 @@ describe('tx-proposal sign-and-push api', () => {
   });
 
   it('should fail if an Error is thrown', async () => {
-    spy.mockImplementation((pt, nt) => {
+    fromPartialTxSpy.mockImplementation((pt, nt) => {
       throw new Error('custom error');
     });
 
@@ -107,7 +107,7 @@ describe('tx-proposal sign-and-push api', () => {
   });
 
   it('should reject an incomplete transaction', async () => {
-    spy.mockImplementation((pt, nt) => createProposal(
+    fromPartialTxSpy.mockImplementation((pt, nt) => createProposal(
       [
         new ProposalInput(fakeTxId, 0, 10, TestUtils.addresses[0]),
       ],
@@ -126,42 +126,11 @@ describe('tx-proposal sign-and-push api', () => {
       .send({ partial_tx: 'partial-tx-data' })
       .set({ 'x-wallet-id': walletId });
     TestUtils.logger.debug('[atomic-swap:sign] should return sigs: sign+push', { body: response.body });
-    expect(spy).toHaveBeenCalled();
+    expect(fromPartialTxSpy).toHaveBeenCalled();
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
       success: false,
       error: expect.any(String),
     });
-  });
-
-  it('should add signatures on the input data', async () => {
-    spy.mockImplementation((pt, nt) => createProposal(
-      [
-        new ProposalInput(fakeTxId, 0, 10, TestUtils.addresses[0]),
-      ],
-      [
-        new ProposalOutput(10, scriptFromAddress(TestUtils.addresses[1])),
-      ],
-    ));
-
-    let response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal/get-my-signatures')
-      .send({ partial_tx: 'partial-tx-data' })
-      .set({ 'x-wallet-id': walletId });
-    TestUtils.logger.debug('[atomic-swap:sign-and-push] should overwrite sigs: get-my-signature', { body: response.body });
-    expect(spy).toHaveBeenCalled();
-
-    const realSigs = response.body.signatures;
-    const parts = realSigs.split('|');
-    parts.splice(-1, 1, '0:cafe');
-    const signatures = [parts.join('|')];
-
-    response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal/sign-and-push')
-      .send({ partial_tx: 'partial-tx-data', signatures })
-      .set({ 'x-wallet-id': walletId });
-    TestUtils.logger.debug('[atomic-swap:sign-and-push] should overwrite sigs: sign', { body: response.body });
-    expect(spy).toHaveBeenCalled();
-    expect(response.body.success).toBeTruthy();
   });
 });

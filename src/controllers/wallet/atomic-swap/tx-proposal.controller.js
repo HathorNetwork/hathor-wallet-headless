@@ -45,7 +45,7 @@ async function buildTxProposal(req, res) {
     && sendTokens.length === 0
     && receiveTokens.length === 0
   ) {
-    res.status(400).json({ success: false, error: ['Should have at least one operation'] });
+    res.status(400).json({ success: false, error: 'Should have at least one operation' });
     return;
   }
 
@@ -53,14 +53,17 @@ async function buildTxProposal(req, res) {
     ? PartialTxProposal.fromPartialTx(partialTx, network) : new PartialTxProposal(network);
 
   for (const input of inputs) {
-    let error = null;
-    txApi.getTransaction(input.txId, data => {
-      if (!data.success) {
-        error = `Utxo for transaction ${input.txId} and input ${input.index} not found`;
-        return;
+    try {
+      const txData = await new Promise((resolve, reject) => {
+        txApi.getTransaction(input.txId, data => resolve(data))
+          .catch(err => reject(err));
+      });
+
+      if (!txData.success) {
+        throw new Error(`Utxo for transaction ${input.txId} and input ${input.index} not found`);
       }
 
-      const txout = data.tx.outputs[input.index];
+      const txout = txData.tx.outputs[input.index];
       proposal.addInput(
         req.wallet,
         txout.txId,
@@ -73,10 +76,8 @@ async function buildTxProposal(req, res) {
           token: txout.token,
         },
       );
-    });
-
-    if (error) {
-      res.status(400).json({ success: false, errors: [error] });
+    } catch (err) {
+      res.status(400).json({ success: false, error: err.message });
       return;
     }
   }

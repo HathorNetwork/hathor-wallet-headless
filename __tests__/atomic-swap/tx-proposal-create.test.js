@@ -41,10 +41,10 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body).toEqual(expect.objectContaining({
+    expect(response.body).toMatchObject({
       success: false,
       error: expect.anything(),
-    }));
+    });
 
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
@@ -53,10 +53,10 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body).toEqual(expect.objectContaining({
+    expect(response.body).toMatchObject({
       success: false,
       error: expect.anything(),
-    }));
+    });
 
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
@@ -65,10 +65,10 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body).toEqual(expect.objectContaining({
+    expect(response.body).toMatchObject({
       success: false,
       error: expect.anything(),
-    }));
+    });
 
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
@@ -77,20 +77,20 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body).toEqual(expect.objectContaining({
+    expect(response.body).toMatchObject({
       success: false,
       error: expect.anything(),
-    }));
+    });
 
     // No body
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body).toEqual(expect.objectContaining({
+    expect(response.body).toMatchObject({
       success: false,
       error: expect.anything(),
-    }));
+    });
 
     // Invalid change address
     response = await TestUtils.request
@@ -101,10 +101,10 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body).toEqual(expect.objectContaining({
+    expect(response.body).toMatchObjectg({
       success: false,
       error: expect.anything(),
-    }));
+    });
   });
 
   it('should return 200 with receive_tokens', async () => {
@@ -115,11 +115,11 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body).toEqual(expect.objectContaining({
+    expect(response.body).toMatchObjectg({
       success: true,
       isComplete: false,
       data: expect.any(String),
-    }));
+    });
 
     const dataParts = response.body.data.split('|');
     expect(dataParts).toHaveLength(4);
@@ -137,11 +137,11 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body).toEqual(expect.objectContaining({
+    expect(response.body).toMatchObjectg({
       success: true,
       isComplete: false,
       data: expect.any(String),
-    }));
+    });
 
     const dataParts = response.body.data.split('|');
     expect(dataParts).toHaveLength(4);
@@ -159,11 +159,11 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body).toEqual(expect.objectContaining({
+    expect(response.body).toMatchObject({
       success: true,
       isComplete: false,
       data: expect.any(String),
-    }));
+    });
 
     const dataParts = response.body.data.split('|');
     expect(dataParts).toHaveLength(4);
@@ -190,11 +190,11 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body).toEqual(expect.objectContaining({
+    expect(response.body).toMatchObjectg({
       success: true,
       isComplete: false,
       data: expect.any(String),
-    }));
+    });
 
     const dataParts = response.body.data.split('|');
     expect(dataParts).toHaveLength(4);
@@ -225,11 +225,11 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body).toEqual(expect.objectContaining({
+    expect(response.body).toMatchObjectg({
       success: true,
       isComplete: false,
       data: expect.any(String),
-    }));
+    });
 
     const dataParts = response.body.data.split('|');
     expect(dataParts).toHaveLength(4);
@@ -261,11 +261,11 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body).toEqual(expect.objectContaining({
+    expect(response.body).toMatchObjectg({
       success: true,
       isComplete: true,
       data: expect.any(String),
-    }));
+    });
 
     const dataParts = response.body.data.split('|');
     expect(dataParts).toHaveLength(4);
@@ -303,11 +303,11 @@ describe('create tx-proposal api', () => {
       .set({ 'x-wallet-id': walletId });
     TestUtils.logger.debug('atomic-swap[complete with custom tokens] response', { body: response.body });
     expect(response.status).toBe(200);
-    expect(response.body).toEqual(expect.objectContaining({
+    expect(response.body).toMatchObjectg({
       success: true,
       isComplete: true,
       data: expect.any(String),
-    }));
+    });
 
     const dataParts = response.body.data.split('|');
     expect(dataParts).toHaveLength(4);
