@@ -90,6 +90,22 @@ describe('tx-proposal sign-and-push api', () => {
     expect(response.body.success).toBeFalsy();
   });
 
+  it('should fail if an Error is thrown', async () => {
+    spy.mockImplementation((pt, nt) => {
+      throw new Error('custom error');
+    });
+
+    const response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/sign-and-push')
+      .send({ partial_tx: '123' })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      success: false,
+      error: 'custom error',
+    });
+  });
+
   it('should reject an incomplete transaction', async () => {
     spy.mockImplementation((pt, nt) => createProposal(
       [

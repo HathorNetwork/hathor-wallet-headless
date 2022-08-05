@@ -50,6 +50,46 @@ describe('tx-proposal sign api', () => {
     expect(response.body.success).toBeFalsy();
   });
 
+  it('should fail if an Error is thrown', async () => {
+    spy.mockImplementation((pt, nt) => {
+      throw new Error('custom error');
+    });
+
+    let response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/sign')
+      .send({ partial_tx: '123' })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      success: false,
+      error: 'custom error',
+    });
+
+    spy.mockImplementation((pt, nt) => createProposal(
+      [
+        new ProposalInput(fakeTxId, 0, 10, TestUtils.addresses[0]),
+      ],
+      [
+        new ProposalOutput(10, scriptFromAddress(TestUtils.addresses[1])),
+      ],
+    ));
+    const spySign = jest.spyOn(hathorLib.PartialTxProposal.prototype, 'signData')
+      .mockImplementation(async () => {
+        throw new Error('custom error 2');
+      });
+    response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/sign')
+      .send({ partial_tx: '123' })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      success: false,
+      error: 'custom error 2',
+    });
+
+    spySign.mockRestore();
+  });
+
   it('should fail if signatures is an invalid array', async () => {
     let response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/sign')
