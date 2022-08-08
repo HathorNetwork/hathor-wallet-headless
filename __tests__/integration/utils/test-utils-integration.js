@@ -723,9 +723,12 @@ export class TestUtils {
    * @returns {Promise<*>}
    */
   static async getFullNodeTransactionData(txId) {
-    const response = await new Promise((resolve) => {
-      return txApi.getTransaction(txId, resolve);
-    });
+    // Disabling this eslint rule because of the way API call is done in the lib
+    // otherwise the code would need to be more complex
+    // We should change this when we refactor the way we call APIs in the lib
+    // (this comment also applies for the getMiningInfo call)
+    // eslint-disable-next-line no-promise-executor-return
+    const response = await new Promise(resolve => txApi.getTransaction(txId, resolve));
 
     if (!response.success) {
       throw new Error('Failed to get transaction data from full node.');
@@ -739,9 +742,12 @@ export class TestUtils {
    * @returns {Promise<number>}
    */
   static async getFullNodeNetworkHeight() {
-    const response = await new Promise((resolve) => {
-      return walletApi.getMiningInfo(resolve);
-    });
+    // Disabling this eslint rule because of the way API call is done in the lib
+    // otherwise the code would need to be more complex
+    // We should change this when we refactor the way we call APIs in the lib
+    // (this comment also applies for the getMiningInfo call)
+    // eslint-disable-next-line no-promise-executor-return
+    const response = await new Promise(resolve => walletApi.getMiningInfo(resolve));
 
     if (!response.success) {
       throw new Error('Failed to get network height from full node.');
@@ -767,7 +773,7 @@ export class TestUtils {
 
     let networkHeight = baseHeight;
 
-    while(networkHeight === baseHeight) {
+    while (networkHeight === baseHeight) {
       networkHeight = await TestUtils.getFullNodeNetworkHeight();
 
       await delay(1000);

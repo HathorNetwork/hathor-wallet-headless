@@ -46,7 +46,10 @@ describe('transaction api', () => {
 
 describe('transaction blocks confirmation number', () => {
   beforeAll(async () => {
-    await TestUtils.startWallet({ walletId: walletIdConfirmation, preCalculatedAddresses: TestUtils.addresses });
+    await TestUtils.startWallet({
+      walletId: walletIdConfirmation,
+      preCalculatedAddresses: TestUtils.addresses
+    });
   });
 
   afterAll(async () => {

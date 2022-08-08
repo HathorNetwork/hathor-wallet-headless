@@ -180,9 +180,13 @@ async function getTxConfirmationBlocks(req, res) {
   }
 
   // First get transaction data from full node
-  const txDataResponse = await new Promise((resolve) => {
-    return txApi.getTransaction(id, resolve);
-  });
+
+  // Disabling this eslint rule because of the way API call is done in the lib
+  // otherwise the code would need to be more complex
+  // We should change this when we refactor the way we call APIs in the lib
+  // (this comment also applies for the getMiningInfo call)
+  // eslint-disable-next-line no-promise-executor-return
+  const txDataResponse = await new Promise(resolve => txApi.getTransaction(id, resolve));
 
   if (!txDataResponse.success) {
     res.send({ success: false, error: 'Failed to get transaction data from the full node.' });
@@ -190,9 +194,8 @@ async function getTxConfirmationBlocks(req, res) {
   }
 
   // Now we get the current height of the network
-  const networkHeightResponse = await new Promise((resolve) => {
-    return walletApi.getMiningInfo(resolve);
-  });
+  // eslint-disable-next-line no-promise-executor-return
+  const networkHeightResponse = await new Promise(resolve => walletApi.getMiningInfo(resolve));
 
   if (!networkHeightResponse.success) {
     res.send({ success: false, error: 'Failed to get network heigth from the full node.' });
