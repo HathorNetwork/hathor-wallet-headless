@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 import supertest from 'supertest';
-import { HathorWallet, wallet } from '@hathor/wallet-lib';
+import { HathorWallet, wallet, network } from '@hathor/wallet-lib';
 import app from '../../../src';
 import { loggers } from './logger.util';
 import testConfig from '../configuration/test.config';
@@ -9,6 +9,7 @@ import { WALLET_EVENTS, WalletBenchmarkUtil } from './benchmark/wallet-benchmark
 import { delay } from './core.util';
 import { TxTimeHelper } from './benchmark/tx-time.helper';
 import { WALLET_CONSTANTS } from '../configuration/test-constants';
+import { Address as bitcoreAddress } from 'bitcore-lib';
 
 export { getRandomInt } from './core.util';
 
@@ -697,5 +698,15 @@ export class TestUtils {
       .query({ token });
 
     return response.body;
+  }
+
+  /**
+   * Returns a valid address to send tokens for burning
+   * i.e. the tokens will be irrecoverable if sent to this address.
+   * @returns {string}
+   */
+  static getBurnAddress() {
+    // The buffer with 20 bytes zero will serve as the pubkey hash
+    return bitcoreAddress(Buffer.alloc(20), network.getNetwork()).toString();
   }
 }

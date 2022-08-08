@@ -267,4 +267,35 @@ describe('send tx (HTR)', () => {
     expect(response.body.success).toBe(false);
     expect(response.body.error).toBeDefined();
   });
+
+  it('should mount the transaction with the correct change outputs', async () => {
+    const network = hathorLib.Network('privatenet');
+    const burnAddress = TestUtils.getBurnAddress();
+    const response = await TestUtils.request
+      .post('/wallet/p2sh/tx-proposal')
+      .send({
+        outputs: [{ address: burnAddress, value: 10 }]
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('multisig[change outputs]: proposal', { body: response.body });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+
+    const { txHex } = response.body;
+
+    const tx = hathorLib.helpersUtils.createTxFromHex(txHex, network);
+
+    for (const output of tx.outputs) {
+      const decoded = output.parseScript(network);
+      if (decoded.address.base58 === burnAddress) {
+        // This is the intended output
+        expect(decoded.getType()).toBe('p2pkh');
+        expect(output.value).toBe(10);
+        continue;
+      }
+
+      // this is a change address and should be p2sh
+      expect(decoded.getType()).toBe('p2sh');
+    }
+  });
 });
