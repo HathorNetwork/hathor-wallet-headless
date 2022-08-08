@@ -269,7 +269,7 @@ describe('send tx (HTR)', () => {
   });
 
   it('should mount the transaction with the correct change outputs', async () => {
-    const network = hathorLib.Network('privatenet');
+    const network = new hathorLib.Network('privatenet');
     const burnAddress = TestUtils.getBurnAddress();
     const response = await TestUtils.request
       .post('/wallet/p2sh/tx-proposal')
