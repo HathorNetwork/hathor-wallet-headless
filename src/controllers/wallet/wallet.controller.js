@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { constants: hathorLibConstants, helpersUtils, errors, tokensUtils } = require('@hathor/wallet-lib');
+const { txApi, walletApi, constants: hathorLibConstants, helpersUtils, errors, tokensUtils } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../lock');
@@ -160,6 +160,53 @@ function getTransaction(req, res) {
   } else {
     res.send({ success: false, error: `Wallet does not contain transaction with id ${id}` });
   }
+}
+
+async function getTxConfirmationBlocks(req, res) {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    res.status(400).json(validationResult);
+    return;
+  }
+
+  const { wallet } = req;
+  const { id } = req.query;
+  // This is O(1) operation, so we can use it to check if this tx belongs to the wallet
+  const tx = wallet.getTx(id);
+  if (!tx) {
+    // We allow only to get data for transactions from the wallet
+    res.send({ success: false, error: `Wallet does not contain transaction with id ${id}` });
+    return;
+  }
+
+  // First get transaction data from full node
+  const txDataResponse = await new Promise((resolve) => {
+    return txApi.getTransaction(id, resolve);
+  });
+
+  if (!txDataResponse.success) {
+    res.send({ success: false, error: 'Failed to get transaction data from the full node.' });
+    return;
+  }
+
+  // Now we get the current height of the network
+  const networkHeightResponse = await new Promise((resolve) => {
+    return walletApi.getMiningInfo(resolve);
+  });
+
+  if (!networkHeightResponse.success) {
+    res.send({ success: false, error: 'Failed to get network heigth from the full node.' });
+    return;
+  }
+
+  let confirmationNumber = 0;
+
+  // first_block_height will be null until a block confirms this transaction
+  if (txDataResponse.meta && txDataResponse.meta.first_block_height) {
+    confirmationNumber = networkHeightResponse.blocks - txDataResponse.meta.first_block_height;
+  }
+
+  res.send({ success: true, confirmationNumber });
 }
 
 async function simpleSendTx(req, res) {
@@ -569,6 +616,7 @@ module.exports = {
   getAddressInfo,
   getTxHistory,
   getTransaction,
+  getTxConfirmationBlocks,
   simpleSendTx,
   decodeTx,
   sendTx,

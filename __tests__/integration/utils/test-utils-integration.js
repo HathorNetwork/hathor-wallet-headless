@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 import supertest from 'supertest';
-import { HathorWallet, wallet } from '@hathor/wallet-lib';
+import { txApi, walletApi, HathorWallet, wallet } from '@hathor/wallet-lib';
 import app from '../../../src';
 import { loggers } from './logger.util';
 import testConfig from '../configuration/test.config';
@@ -697,5 +697,82 @@ export class TestUtils {
       .query({ token });
 
     return response.body;
+  }
+
+  /**
+   * Get the number of blocks confirming a transaction
+   * @param {string} walletId
+   * @param {string} txId
+   * @returns {Promise<number>}
+   */
+  static async getTransactionConfirmationNumber(walletId, txId) {
+    const response = await TestUtils.request
+      .get('/wallet/tx-confirmation-blocks')
+      .query({ id: txId })
+      .set(TestUtils.generateHeader(walletId));
+
+    if (!response.body.success) {
+      throw new Error(response.text);
+    }
+    return response.body.confirmationNumber;
+  }
+
+  /**
+   * Get the transaction data from the full node
+   * @param {string} txId
+   * @returns {Promise<*>}
+   */
+  static async getFullNodeTransactionData(txId) {
+    const response = await new Promise((resolve) => {
+      return txApi.getTransaction(txId, resolve);
+    });
+
+    if (!response.success) {
+      throw new Error('Failed to get transaction data from full node.');
+    }
+
+    return response;
+  }
+
+  /**
+   * Get the current network height from the full node
+   * @returns {Promise<number>}
+   */
+  static async getFullNodeNetworkHeight() {
+    const response = await new Promise((resolve) => {
+      return walletApi.getMiningInfo(resolve);
+    });
+
+    if (!response.success) {
+      throw new Error('Failed to get network height from full node.');
+    }
+
+    return response.blocks;
+  }
+
+  /**
+   * Wait until a new block is mined in the best chain. Returns the new block height.
+   *
+   * @param {number} currentHeight height to be used as base to wait for a new block
+   *                               if not sent, we get the current height of the network
+   *
+   * @returns {Promise<number>}
+   */
+  static async waitNewBlock(currentHeight = null) {
+    let baseHeight = currentHeight;
+
+    if (!baseHeight) {
+      baseHeight = await TestUtils.getFullNodeNetworkHeight();
+    }
+
+    let networkHeight = baseHeight;
+
+    while(networkHeight === baseHeight) {
+      networkHeight = await TestUtils.getFullNodeNetworkHeight();
+
+      await delay(1000);
+    }
+
+    return networkHeight;
   }
 }

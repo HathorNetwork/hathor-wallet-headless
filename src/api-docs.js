@@ -1543,6 +1543,62 @@ const apiDoc = {
         },
       },
     },
+    '/wallet/tx-confirmation-blocks': {
+      get: {
+        summary: 'Return the number of blocks confirming the transaction, if it exists in the wallet',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'id',
+            in: 'query',
+            description: 'Transaction id (hash) to get blocks confirmation number.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Return the transaction data',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, confirmationNumber: 15 }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                  'tx-does-not-belong-to-wallet': {
+                    summary: 'Wallet does not have transaction requested.',
+                    value: { success: false, error: 'Wallet does not contain transaction with id <TX_ID>' }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     '/wallet/tx-history': {
       get: {
         summary: 'Return the transaction history',

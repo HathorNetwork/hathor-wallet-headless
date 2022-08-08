@@ -1,6 +1,7 @@
 import TestUtils from './test-utils';
 
 const walletId = 'stub_transaction';
+const walletIdConfirmation = 'stub_transaction_confirmation_number';
 
 describe('transaction api', () => {
   beforeAll(async () => {
@@ -39,6 +40,46 @@ describe('transaction api', () => {
     const response = await TestUtils.request
       .get('/wallet/transaction')
       .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+  });
+});
+
+describe('transaction blocks confirmation number', () => {
+  beforeAll(async () => {
+    await TestUtils.startWallet({ walletId: walletIdConfirmation, preCalculatedAddresses: TestUtils.addresses });
+  });
+
+  afterAll(async () => {
+    await TestUtils.stopWallet({ walletId: walletIdConfirmation });
+  });
+
+  it('should return 200 with a valid body', async () => {
+    const response = await TestUtils.request
+      .get('/wallet/transaction')
+      .query({
+        id: '00000008707722cde59ac9e7f4d44efbd3a5bd5f244223816ee676d328943b1b',
+      })
+      .set({ 'x-wallet-id': walletIdConfirmation });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.confirmationNumber).toBe(8);
+  });
+
+  it('should not find an invalid transaction', async () => {
+    const response = await TestUtils.request
+      .get('/wallet/transaction')
+      .query({
+        id: '1',
+      })
+      .set({ 'x-wallet-id': walletIdConfirmation });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBeFalsy();
+  });
+
+  it('should return 400 for missing parameter id', async () => {
+    const response = await TestUtils.request
+      .get('/wallet/transaction')
+      .set({ 'x-wallet-id': walletIdConfirmation });
     expect(response.status).toBe(400);
   });
 });
