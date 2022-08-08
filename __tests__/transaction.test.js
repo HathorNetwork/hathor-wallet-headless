@@ -58,7 +58,7 @@ describe('transaction blocks confirmation number', () => {
 
   it('should return 200 with a valid body', async () => {
     const response = await TestUtils.request
-      .get('/wallet/transaction')
+      .get('/wallet/tx-confirmation-blocks')
       .query({
         id: '00000008707722cde59ac9e7f4d44efbd3a5bd5f244223816ee676d328943b1b',
       })
@@ -70,7 +70,7 @@ describe('transaction blocks confirmation number', () => {
 
   it('should not find an invalid transaction', async () => {
     const response = await TestUtils.request
-      .get('/wallet/transaction')
+      .get('/wallet/tx-confirmation-blocks')
       .query({
         id: '1',
       })
@@ -81,7 +81,7 @@ describe('transaction blocks confirmation number', () => {
 
   it('should return 400 for missing parameter id', async () => {
     const response = await TestUtils.request
-      .get('/wallet/transaction')
+      .get('/wallet/tx-confirmation-blocks')
       .set({ 'x-wallet-id': walletIdConfirmation });
     expect(response.status).toBe(400);
   });
