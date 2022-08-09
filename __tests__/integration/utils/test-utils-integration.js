@@ -1,8 +1,7 @@
 /* eslint-disable no-console */
 
 import supertest from 'supertest';
-import { HathorWallet, wallet, network } from '@hathor/wallet-lib';
-import { Address as bitcoreAddress } from 'bitcore-lib';
+import { HathorWallet, wallet } from '@hathor/wallet-lib';
 import app from '../../../src';
 import { loggers } from './logger.util';
 import testConfig from '../configuration/test.config';
@@ -706,7 +705,8 @@ export class TestUtils {
    * @returns {string}
    */
   static getBurnAddress() {
-    // The buffer with 20 bytes zero will serve as the pubkey hash
-    return bitcoreAddress(Buffer.alloc(20), network.getNetwork()).toString();
+    // The address is a P2PKH generated with pubkeyhash of Buffer.alloc(20) (all 0x00 bytes)
+    // This is only valid for privatenet
+    return 'WNg2svm2qApxheBKndKGQ9sRwporvRgRpT';
   }
 }
