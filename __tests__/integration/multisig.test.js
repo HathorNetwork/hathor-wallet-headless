@@ -298,8 +298,9 @@ describe('send tx (HTR)', () => {
       expect(decoded.getType()).toBe('p2sh');
       // This will test that the change address belongs to the wallet
       const response2 = await TestUtils.request
-        .get(`/wallet/address-index?address=${decoded.address}`)
+        .get(`/wallet/address-index?address=${decoded.address.base58}`)
         .set({ 'x-wallet-id': wallet1.walletId });
+      loggers.test.insertLineToLog('multisig[change outputs]: check address', { body: response2.body });
       expect(response2.status).toBe(200);
       expect(response2.body.success).toBeTruthy();
     }
