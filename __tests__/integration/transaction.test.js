@@ -73,12 +73,11 @@ describe('transaction routes', () => {
 
     let firstBlockHeight = txData1.meta.first_block_height;
     if (firstBlockHeight === null) {
-      // With this await here we know that we have at least one block confirming it
-      firstBlockHeight = Math.min(await TestUtils.waitNewBlock(height), height + 1);
+      await TestUtils.waitNewBlock(height);
+      const txData2 = await TestUtils.getFullNodeTransactionData(txId);
+      firstBlockHeight = txData2.meta.first_block_height;
+      expect(firstBlockHeight).not.toBeNull();
     }
-
-    const txData2 = await TestUtils.getFullNodeTransactionData(txId);
-    expect(txData2.meta.first_block_height).toBe(firstBlockHeight);
 
     await TestUtils.waitNewBlock(firstBlockHeight);
 
