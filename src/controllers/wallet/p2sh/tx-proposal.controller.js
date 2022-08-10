@@ -34,6 +34,7 @@ async function buildTxProposal(req, res) {
     }
   }
   try {
+    // XXX: This is a temporary fix until the wallet-lib solves this storage issue
     storage.setStore(req.wallet.store);
     const sendTransaction = new SendTransaction({ outputs, inputs, changeAddress, network });
     const tx = helpersUtils.createTxFromData(

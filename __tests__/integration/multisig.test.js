@@ -296,6 +296,12 @@ describe('send tx (HTR)', () => {
 
       // this is a change address and should be p2sh
       expect(decoded.getType()).toBe('p2sh');
+      // This will test that the change address belongs to the wallet
+      const response2 = await TestUtils.request
+        .get(`/wallet/address-index?address=${decoded.address}`)
+        .set({ 'x-wallet-id': wallet1.walletId });
+      expect(response2.status).toBe(200);
+      expect(response2.body.success).toBeTruthy();
     }
   });
 });
