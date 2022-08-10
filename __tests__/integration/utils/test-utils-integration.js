@@ -726,7 +726,6 @@ export class TestUtils {
     // Disabling this eslint rule because of the way API call is done in the lib
     // otherwise the code would need to be more complex
     // We should change this when we refactor the way we call APIs in the lib
-    // (this comment also applies for the getMiningInfo call)
     // eslint-disable-next-line no-promise-executor-return
     const response = await new Promise(resolve => txApi.getTransaction(txId, resolve));
 
@@ -745,7 +744,6 @@ export class TestUtils {
     // Disabling this eslint rule because of the way API call is done in the lib
     // otherwise the code would need to be more complex
     // We should change this when we refactor the way we call APIs in the lib
-    // (this comment also applies for the getMiningInfo call)
     // eslint-disable-next-line no-promise-executor-return
     const response = await new Promise(resolve => walletApi.getMiningInfo(resolve));
 
@@ -759,8 +757,8 @@ export class TestUtils {
   /**
    * Wait until a new block is mined in the best chain. Returns the new block height.
    *
-   * @param {number} currentHeight height to be used as base to wait for a new block
-   *                               if not sent, we get the current height of the network
+   * @param {number} [currentHeight=null] height to be used as base to wait for a new block if
+   *                                      not sent, we get the current height of the network
    *
    * @returns {Promise<number>}
    */
