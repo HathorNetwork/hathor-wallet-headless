@@ -65,6 +65,7 @@ describe('transaction blocks confirmation number', () => {
       .set({ 'x-wallet-id': walletIdConfirmation });
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
+    // The expected number 8 comes from the hardcoded fixtures file of API responses
     expect(response.body.confirmationNumber).toBe(8);
   });
 
