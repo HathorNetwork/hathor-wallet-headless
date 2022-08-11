@@ -70,7 +70,7 @@ describe('get-my-signatures api', () => {
       error: 'custom error',
     });
 
-    fromPartialTxSpy.mockRestore();
+    fromPartialTxSpy.mockClear();
     fromPartialTxSpy.mockImplementation((pt, nt) => createProposal(
       [
         new ProposalInput(fakeTxId, 0, 10, TestUtils.addresses[0]),
