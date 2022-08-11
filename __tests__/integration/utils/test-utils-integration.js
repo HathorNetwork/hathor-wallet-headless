@@ -700,6 +700,17 @@ export class TestUtils {
   }
 
   /**
+   * Returns a valid address to send tokens for burning
+   * i.e. the tokens will be irrecoverable if sent to this address.
+   * @returns {string}
+   */
+  static getBurnAddress() {
+    // The address is a P2PKH generated with pubkeyhash of Buffer.alloc(20) (all 0x00 bytes)
+    // This is only valid for privatenet
+    return 'WNg2svm2qApxheBKndKGQ9sRwporvRgRpT';
+  }
+
+  /**
    * Get the number of blocks confirming a transaction
    * @param {string} walletId
    * @param {string} txId

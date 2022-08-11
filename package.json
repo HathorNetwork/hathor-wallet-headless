@@ -12,7 +12,7 @@
     "@babel/node": "^7.13.0",
     "@babel/plugin-proposal-class-properties": "^7.13.0",
     "@babel/preset-env": "^7.13.5",
-    "@hathor/wallet-lib": "^0.38.2",
+    "@hathor/wallet-lib": "^0.40.3",
     "express": "^4.17.1",
     "express-validator": "^6.10.0",
     "morgan": "^1.10.0",
