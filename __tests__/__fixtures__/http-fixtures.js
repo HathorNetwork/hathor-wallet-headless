@@ -956,4 +956,17 @@ export default {
     total: 100,
     transactions_count: 1
   },
+  '/transaction': {
+    success: true,
+    tx: {
+      hash: '00000008707722cde59ac9e7f4d44efbd3a5bd5f244223816ee676d328943b1b'
+    },
+    meta: {
+      first_block_height: 1234,
+    },
+  },
+  '/getmininginfo': {
+    success: true,
+    blocks: 1242,
+  },
 };
