@@ -101,7 +101,7 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body).toMatchObjectg({
+    expect(response.body).toMatchObject({
       success: false,
       error: expect.anything(),
     });
@@ -115,7 +115,7 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body).toMatchObjectg({
+    expect(response.body).toMatchObject({
       success: true,
       isComplete: false,
       data: expect.any(String),
@@ -137,7 +137,7 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body).toMatchObjectg({
+    expect(response.body).toMatchObject({
       success: true,
       isComplete: false,
       data: expect.any(String),
@@ -190,7 +190,7 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body).toMatchObjectg({
+    expect(response.body).toMatchObject({
       success: true,
       isComplete: false,
       data: expect.any(String),
@@ -225,7 +225,7 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body).toMatchObjectg({
+    expect(response.body).toMatchObject({
       success: true,
       isComplete: false,
       data: expect.any(String),
@@ -261,7 +261,7 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body).toMatchObjectg({
+    expect(response.body).toMatchObject({
       success: true,
       isComplete: true,
       data: expect.any(String),
@@ -303,7 +303,7 @@ describe('create tx-proposal api', () => {
       .set({ 'x-wallet-id': walletId });
     TestUtils.logger.debug('atomic-swap[complete with custom tokens] response', { body: response.body });
     expect(response.status).toBe(200);
-    expect(response.body).toMatchObjectg({
+    expect(response.body).toMatchObject({
       success: true,
       isComplete: true,
       data: expect.any(String),
