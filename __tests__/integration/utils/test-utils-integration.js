@@ -724,13 +724,14 @@ export class TestUtils {
    */
   static async getFullNodeTransactionData(txId) {
     const errorMessage = 'Failed to get transaction data from full node.';
+    let response;
 
     try {
       // Disabling this eslint rule because of the way API call is done in the lib
       // otherwise the code would need to be more complex
       // We should change this when we refactor the way we call APIs in the lib
       // eslint-disable-next-line no-promise-executor-return
-      const response = await new Promise(resolve => txApi.getTransaction(txId, resolve));
+      response = await new Promise(resolve => txApi.getTransaction(txId, resolve));
     } catch (e) {
       throw new Error(errorMessage);
     }
@@ -748,13 +749,14 @@ export class TestUtils {
    */
   static async getFullNodeNetworkHeight() {
     const errorMessage = 'Failed to get network height from full node.';
+    let response;
 
     try {
       // Disabling this eslint rule because of the way API call is done in the lib
       // otherwise the code would need to be more complex
       // We should change this when we refactor the way we call APIs in the lib
       // eslint-disable-next-line no-promise-executor-return
-      const response = await new Promise(resolve => walletApi.getMiningInfo(resolve));
+      response = await new Promise(resolve => walletApi.getMiningInfo(resolve));
     } catch (e) {
       throw new Error(errorMessage);
     }
