@@ -12,7 +12,7 @@ const {
   getStatus, getBalance, getAddress, getAddresses, getTxHistory, getTransaction,
   simpleSendTx, decodeTx, sendTx, createToken, mintTokens, meltTokens, utxoFilter,
   utxoConsolidation, createNft, getAddressInfo, stop,
-  getAddressIndex
+  getAddressIndex, getTxConfirmationBlocks
 } = require('../../controllers/wallet/wallet.controller');
 const { txHexSchema, partialTxSchema } = require('../../schemas');
 const p2shRouter = require('./p2sh/p2sh.routes');
@@ -96,6 +96,16 @@ walletRouter.get(
   '/transaction',
   query('id').isString(),
   getTransaction
+);
+
+/**
+ * GET request to get the number of blocks confirming this tx
+ * For the docs, see api-docs.js
+ */
+walletRouter.get(
+  '/tx-confirmation-blocks',
+  query('id').isString(),
+  getTxConfirmationBlocks
 );
 
 /**
