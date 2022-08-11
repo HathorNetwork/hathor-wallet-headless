@@ -723,14 +723,20 @@ export class TestUtils {
    * @returns {Promise<*>}
    */
   static async getFullNodeTransactionData(txId) {
-    // Disabling this eslint rule because of the way API call is done in the lib
-    // otherwise the code would need to be more complex
-    // We should change this when we refactor the way we call APIs in the lib
-    // eslint-disable-next-line no-promise-executor-return
-    const response = await new Promise(resolve => txApi.getTransaction(txId, resolve));
+    const errorMessage = 'Failed to get transaction data from full node.';
+
+    try {
+      // Disabling this eslint rule because of the way API call is done in the lib
+      // otherwise the code would need to be more complex
+      // We should change this when we refactor the way we call APIs in the lib
+      // eslint-disable-next-line no-promise-executor-return
+      const response = await new Promise(resolve => txApi.getTransaction(txId, resolve));
+    } catch (e) {
+      throw new Error(errorMessage);
+    }
 
     if (!response.success) {
-      throw new Error('Failed to get transaction data from full node.');
+      throw new Error(errorMessage);
     }
 
     return response;
@@ -741,14 +747,20 @@ export class TestUtils {
    * @returns {Promise<number>}
    */
   static async getFullNodeNetworkHeight() {
-    // Disabling this eslint rule because of the way API call is done in the lib
-    // otherwise the code would need to be more complex
-    // We should change this when we refactor the way we call APIs in the lib
-    // eslint-disable-next-line no-promise-executor-return
-    const response = await new Promise(resolve => walletApi.getMiningInfo(resolve));
+    const errorMessage = 'Failed to get network height from full node.';
+
+    try {
+      // Disabling this eslint rule because of the way API call is done in the lib
+      // otherwise the code would need to be more complex
+      // We should change this when we refactor the way we call APIs in the lib
+      // eslint-disable-next-line no-promise-executor-return
+      const response = await new Promise(resolve => walletApi.getMiningInfo(resolve));
+    } catch (e) {
+      throw new Error(errorMessage);
+    }
 
     if (!response.success) {
-      throw new Error('Failed to get network height from full node.');
+      throw new Error(errorMessage);
     }
 
     return response.blocks;
