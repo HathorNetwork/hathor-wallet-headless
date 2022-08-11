@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 import supertest from 'supertest';
-import { HathorWallet, wallet } from '@hathor/wallet-lib';
+import { txApi, walletApi, HathorWallet, wallet } from '@hathor/wallet-lib';
 import app from '../../../src';
 import { loggers } from './logger.util';
 import testConfig from '../configuration/test.config';
@@ -708,5 +708,100 @@ export class TestUtils {
     // The address is a P2PKH generated with pubkeyhash of Buffer.alloc(20) (all 0x00 bytes)
     // This is only valid for privatenet
     return 'WNg2svm2qApxheBKndKGQ9sRwporvRgRpT';
+  }
+
+  /**
+   * Get the number of blocks confirming a transaction
+   * @param {string} walletId
+   * @param {string} txId
+   * @returns {Promise<number>}
+   */
+  static async getTransactionConfirmationNumber(walletId, txId) {
+    const response = await TestUtils.request
+      .get('/wallet/tx-confirmation-blocks')
+      .query({ id: txId })
+      .set(TestUtils.generateHeader(walletId));
+
+    if (!response.body.success) {
+      throw new Error(response.text);
+    }
+    return response.body.confirmationNumber;
+  }
+
+  /**
+   * Get the transaction data from the full node
+   * @param {string} txId
+   * @returns {Promise<*>}
+   */
+  static async getFullNodeTransactionData(txId) {
+    const errorMessage = 'Failed to get transaction data from full node.';
+    let response;
+
+    try {
+      // Disabling this eslint rule because of the way API call is done in the lib
+      // otherwise the code would need to be more complex
+      // We should change this when we refactor the way we call APIs in the lib
+      // eslint-disable-next-line no-promise-executor-return
+      response = await new Promise(resolve => txApi.getTransaction(txId, resolve));
+    } catch (e) {
+      throw new Error(errorMessage);
+    }
+
+    if (!response.success) {
+      throw new Error(errorMessage);
+    }
+
+    return response;
+  }
+
+  /**
+   * Get the current network height from the full node
+   * @returns {Promise<number>}
+   */
+  static async getFullNodeNetworkHeight() {
+    const errorMessage = 'Failed to get network height from full node.';
+    let response;
+
+    try {
+      // Disabling this eslint rule because of the way API call is done in the lib
+      // otherwise the code would need to be more complex
+      // We should change this when we refactor the way we call APIs in the lib
+      // eslint-disable-next-line no-promise-executor-return
+      response = await new Promise(resolve => walletApi.getMiningInfo(resolve));
+    } catch (e) {
+      throw new Error(errorMessage);
+    }
+
+    if (!response.success) {
+      throw new Error(errorMessage);
+    }
+
+    return response.blocks;
+  }
+
+  /**
+   * Wait until a new block is mined in the best chain. Returns the new block height.
+   *
+   * @param {number} [currentHeight=null] height to be used as base to wait for a new block if
+   *                                      not sent, we get the current height of the network
+   *
+   * @returns {Promise<number>}
+   */
+  static async waitNewBlock(currentHeight = null) {
+    let baseHeight = currentHeight;
+
+    if (!baseHeight) {
+      baseHeight = await TestUtils.getFullNodeNetworkHeight();
+    }
+
+    let networkHeight = baseHeight;
+
+    while (networkHeight === baseHeight) {
+      networkHeight = await TestUtils.getFullNodeNetworkHeight();
+
+      await delay(1000);
+    }
+
+    return networkHeight;
   }
 }
