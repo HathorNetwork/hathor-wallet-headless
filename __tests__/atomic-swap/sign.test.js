@@ -55,7 +55,7 @@ describe('tx-proposal sign api', () => {
       throw new Error('custom error');
     });
 
-    let response = await TestUtils.request
+    const response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/sign')
       .send({ partial_tx: '123' })
       .set({ 'x-wallet-id': walletId });
@@ -64,30 +64,6 @@ describe('tx-proposal sign api', () => {
       success: false,
       error: 'custom error',
     });
-
-    fromPartialTxSpy.mockImplementation((pt, nt) => createProposal(
-      [
-        new ProposalInput(fakeTxId, 0, 10, TestUtils.addresses[0]),
-      ],
-      [
-        new ProposalOutput(10, scriptFromAddress(TestUtils.addresses[1])),
-      ],
-    ));
-    const spySign = jest.spyOn(hathorLib.PartialTxProposal.prototype, 'signData')
-      .mockImplementation(async () => {
-        throw new Error('custom error 2');
-      });
-    response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal/sign')
-      .send({ partial_tx: '123' })
-      .set({ 'x-wallet-id': walletId });
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual({
-      success: false,
-      error: 'custom error 2',
-    });
-
-    spySign.mockRestore();
   });
 
   it('should fail if signatures is an invalid array', async () => {
@@ -132,29 +108,6 @@ describe('tx-proposal sign api', () => {
     expect(response.body).toEqual({
       success: false,
       error: expect.any(String),
-    });
-  });
-
-  it('should return the signatures for the inputs we own on the transaction', async () => {
-    fromPartialTxSpy.mockImplementation((pt, nt) => createProposal(
-      [
-        new ProposalInput(fakeTxId, 0, 10, TestUtils.addresses[0]),
-      ],
-      [
-        new ProposalOutput(10, scriptFromAddress(TestUtils.addresses[1])),
-      ],
-    ));
-
-    const response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal/sign')
-      .send({ partial_tx: 'partial-tx-data' })
-      .set({ 'x-wallet-id': walletId });
-    TestUtils.logger.debug('[atomic-swap:sign] should return sigs: create tx-proposal', { body: response.body });
-    expect(fromPartialTxSpy).toHaveBeenCalled();
-
-    expect(response.body).toEqual({
-      success: true,
-      txHex: expect.any(String),
     });
   });
 

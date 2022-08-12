@@ -15,6 +15,7 @@ const {
   storage,
   constants: { HATHOR_TOKEN_CONFIG },
 } = require('@hathor/wallet-lib');
+const { assembleTransaction } = require('../../../services/atomic-swap.service');
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
 const { cantSendTxErrorMessage } = require('../../../helpers/constants');
@@ -121,10 +122,10 @@ async function getMySignatures(req, res) {
   const network = req.wallet.getNetworkObject();
   const partialTx = req.body.partial_tx;
 
+  storage.setStore(req.wallet.store);
   try {
     const proposal = PartialTxProposal.fromPartialTx(partialTx, network);
     // TODO remove this when we create a method to sign inputs in the wallet facade
-    storage.setStore(req.wallet.store);
     await proposal.signData('123');
     res.send({
       success: true,
@@ -148,18 +149,10 @@ async function signTx(req, res) {
   const partialTx = req.body.partial_tx;
   const signatures = req.body.signatures || [];
 
+  storage.setStore(req.wallet.store);
   try {
-    const proposal = PartialTxProposal.fromPartialTx(partialTx, network);
-    // TODO remove this when we create a method to sign inputs in the wallet facade
-    storage.setStore(req.wallet.store);
-    await proposal.signData('123');
-    for (const signature of signatures) {
-      proposal.signatures.addSignatures(signature);
-    }
-    if (!proposal.isComplete()) {
-      throw new Error('Transaction is not complete');
-    }
-    const tx = proposal.prepareTx();
+    const tx = assembleTransaction(partialTx, signatures, network);
+
     res.send({ success: true, txHex: tx.toHex() });
   } catch (err) {
     res.send({ success: false, error: err.message });
@@ -184,21 +177,11 @@ async function signAndPush(req, res) {
   const partialTx = req.body.partial_tx;
   const sigs = req.body.signatures || [];
 
+  storage.setStore(req.wallet.store);
   try {
-    const proposal = PartialTxProposal.fromPartialTx(partialTx, network);
+    const transaction = assembleTransaction(partialTx, sigs, network);
 
-    let tx = proposal.partialTx.getTx();
-    const signatures = new PartialTxInputData(tx.getDataToSign().toString('hex'), tx.inputs.length);
-    for (const sig of sigs) {
-      signatures.addSignatures(sig);
-    }
-    proposal.signatures = signatures;
-    if (!proposal.isComplete()) {
-      throw new Error('Transaction is not complete');
-    }
-    tx = proposal.prepareTx();
-
-    const sendTransaction = new SendTransaction({ transaction: tx, network });
+    const sendTransaction = new SendTransaction({ transaction, network });
     const response = await sendTransaction.runFromMining();
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
@@ -295,10 +278,10 @@ async function unlockInputs(req, res) {
 
 module.exports = {
   buildTxProposal,
-  getMySignatures,
-  signTx,
-  signAndPush,
   getInputData,
   getLockedUTXOs,
+  getMySignatures,
+  signAndPush,
+  signTx,
   unlockInputs,
 };
