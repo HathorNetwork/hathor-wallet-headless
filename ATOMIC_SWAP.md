@@ -6,7 +6,7 @@ Both P2PKH and P2SH (MultiSig) can participate on the atomic-swap.
 ## Description
 
 An atomic-swap transaction is a transaction with multiple tokens and inputs from different wallets.
-The atomic-swap process is how participants can safely coordinate the content and signing of the transaction.
+The atomic-swap process is how participants can safely coordinate the content and signing of a transaction.
 
 ## Atomic-swap process
 
@@ -16,6 +16,24 @@ The process can be divided in 2 phases:
 1. Signing phase
   - Participants will sign the proposed transaction and exchange the signatures.
   - A participant will collect the signatures and push the signed transaction on the network.
+
+### Simulation
+
+Let's divide the steps from an atomic-swap using a simulated exchange between Alice and Bob.
+
+1. Alice and Bob agree that Bob will send 10 HTR to Alice in exchange for 20 TKa (Token Alice).
+2. Bob starts a proposal with his side of the swap (sending 10 HTR and receiving 20 TKa to one of his addresses).
+    - Uses `POST /wallet/atomic-swap/tx-proposal`
+    - He will send the serialized proposal to Alice.
+    - Alice will check the contents of the proposal with the decode api
+3. Alice will update the proposal with her side of the swap (sending 20 TKa and receiving 10 HTR to one of her addresses).
+    - Uses `POST /wallet/atomic-swap/tx-proposal`
+    - The serialized proposal generated here will be complete and should be used by both participants for signing.
+    - Both participants should use the decode api to check
+4. Alice and Bob will use the get-my-signatures to generate their signatures.
+    - Uses `POST /wallet/atomic-swap/get-my-signatures`
+5. Either Bob or Alice will collect all signatures and use the sign-and-push api to send the transaction to the network.
+    - Uses `POST /wallet/atomic-swap/sign-and-push`
 
 ## Decoding the proposal string
 
@@ -244,6 +262,50 @@ Once you arrive at the signing phase you should extract the transaction hex from
 
 The transaction hex is the second element when spliting the proposal string by the `|` character.
 Proposal string: `PartialTx|<txHex>|...|...`
+
+### Simulation
+
+Let's use the same simulation from the P2PKH but in this case Bob is a MultiSig wallet of Bob and Carl.
+To better understand the actors, we have:
+- Alice, Bob and Carl, each with their own wallet-headless running on their infrastructure.
+- Alice and Alices wallet are used interchangeably since it's a P2PKH with 1 owner.
+- [Bob,Carl] will the used to reference the MultiSig wallet of Bob and Carl.
+
+1. Alice, Bob and Carl agree that [Bob,Carl] will send 10 HTR to Alice in exchange for 20 TKa (Token Alice).
+2. Bob starts a proposal with his side of the swap (sending 10 HTR and receiving 20 TKa to one of his addresses).
+    - Uses `POST /wallet/atomic-swap/tx-proposal`
+    - He will send the serialized proposal to Alice.
+    - Alice will check the contents of the proposal with the decode api
+3. Alice will update the proposal with her side of the swap (sending 20 TKa and receiving 10 HTR to one of her addresses).
+    - Uses `POST /wallet/atomic-swap/tx-proposal`
+    - The serialized proposal generated here will be complete and should be sent to all participants.
+    - All participants should use the decode api to check the proposal.
+4. Alice will use the get-my-signatures to generate their signatures.
+    - Uses `POST /wallet/atomic-swap/get-my-signatures`
+5. Bob and Carl will use the `p2sh` APIs to sign the txHex of the complete proposal.
+    - Uses `POST /wallet/p2sh/tx-proposal/get-my-signatures`
+    - The result will be a transaction hex with only the inputs from [Bob,Carl] signed.
+6. Bob will extract the signatures from the transaction hex generated.
+    - Uses `POST /wallet/atomic-swap/tx-proposal/get-input-data`
+    - Will return a serialized signature to be used on the atomic-swap APIs
+5. Either Alice, Bob or Carl will collect all signatures and use the sign-and-push api to send the transaction to the network.
+    - Uses `POST /wallet/atomic-swap/sign-and-push`
+
+### POST /wallet/atomic-swap/tx-proposal/get-input-data
+
+Will extract the input data from a txHex and return a serialized PartialTxInputData.
+
+```bash
+$ curl  -X POST \
+        -H "X-Wallet-Id: 123" \
+        -H "Content-type: application/json" \
+        --data "{\"txHex\":\"<transaction hex>\"}" \
+        http://localhost:8000/wallet/atomic-swap/tx-proposal/get-input-data
+{
+  "success": true,
+  "signatures": "..."
+}
+```
 
 ## Lock mechanism
 
