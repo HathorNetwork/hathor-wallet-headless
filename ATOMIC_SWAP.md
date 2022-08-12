@@ -268,7 +268,7 @@ Proposal string: `PartialTx|<txHex>|...|...`
 Let's use the same simulation from the P2PKH but in this case Bob is a MultiSig wallet of Bob and Carl.
 To better understand the actors, we have:
 - Alice, Bob and Carl, each with their own wallet-headless running on their infrastructure.
-- Alice and Alices wallet are used interchangeably since it's a P2PKH with 1 owner.
+- Alice and Alice's wallet are used interchangeably since it's a P2PKH with 1 owner.
 - [Bob,Carl] will the used to reference the MultiSig wallet of Bob and Carl.
 
 1. Alice, Bob and Carl agree that [Bob,Carl] will send 10 HTR to Alice in exchange for 20 TKa (Token Alice).
