@@ -130,7 +130,6 @@ async function getMySignatures(req, res) {
     res.send({
       success: true,
       signatures: proposal.signatures.serialize(),
-      isComplete: proposal.signatures.isComplete(),
     });
   } catch (err) {
     res.send({ success: false, error: err.message });

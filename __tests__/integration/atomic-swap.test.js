@@ -85,7 +85,6 @@ describe('send tx (HTR)', () => {
     loggers.test.insertLineToLog('atomic-swap[HTR P2PKH]: get signatures1', { body: response.body });
     expect(response.body).toEqual({
       success: true,
-      isComplete: true,
       signatures: expect.any(String),
     });
     const signatureWallet1 = response.body.signatures;
@@ -98,7 +97,6 @@ describe('send tx (HTR)', () => {
     loggers.test.insertLineToLog('atomic-swap[HTR P2PKH]: get signatures2', { body: response.body });
     expect(response.body).toEqual({
       success: true,
-      isComplete: false,
       signatures: expect.any(String),
     });
     const signatureWallet2 = response.body.signatures;
@@ -146,7 +144,6 @@ describe('send tx (HTR)', () => {
     loggers.test.insertLineToLog('atomic-swap[1TK P2PKH]: get signatures1', { body: response.body });
     expect(response.body).toEqual({
       success: true,
-      isComplete: true,
       signatures: expect.any(String),
     });
     const signatureWallet1 = response.body.signatures;
@@ -159,7 +156,6 @@ describe('send tx (HTR)', () => {
     loggers.test.insertLineToLog('atomic-swap[1TK P2PKH]: get signatures2', { body: response.body });
     expect(response.body).toEqual({
       success: true,
-      isComplete: false,
       signatures: expect.any(String),
     });
     const signatureWallet2 = response.body.signatures;
@@ -220,7 +216,6 @@ describe('send tx (HTR)', () => {
     loggers.test.insertLineToLog('atomic-swap[2TK P2PKH]: get signatures1', { body: response.body });
     expect(response.body).toEqual({
       success: true,
-      isComplete: false,
       signatures: expect.any(String),
     });
     const signatureWallet1 = response.body.signatures;
@@ -233,7 +228,6 @@ describe('send tx (HTR)', () => {
     loggers.test.insertLineToLog('atomic-swap[2TK P2PKH]: get signatures2', { body: response.body });
     expect(response.body).toEqual({
       success: true,
-      isComplete: false,
       signatures: expect.any(String),
     });
     const signatureWallet2 = response.body.signatures;
@@ -312,7 +306,6 @@ describe('send tx (HTR)', () => {
     loggers.test.insertLineToLog('atomic-swap[P2SH]: get signatures p2pkh 1', { body: response.body });
     expect(response.body).toEqual({
       success: true,
-      isComplete: false,
       signatures: expect.any(String),
     });
     const signatureP2PKH1 = response.body.signatures;
@@ -325,7 +318,6 @@ describe('send tx (HTR)', () => {
     loggers.test.insertLineToLog('atomic-swap[P2SH]: get signatures p2pkh 2', { body: response.body });
     expect(response.body).toEqual({
       success: true,
-      isComplete: false,
       signatures: expect.any(String),
     });
     const signatureP2PKH2 = response.body.signatures;

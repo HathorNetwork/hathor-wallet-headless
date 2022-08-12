@@ -117,7 +117,6 @@ describe('get-my-signatures api', () => {
     expect(response.body).toEqual({
       success: true,
       signatures: expect.any(String),
-      isComplete: true,
     });
   });
 });
