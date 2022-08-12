@@ -225,7 +225,7 @@ describe('send tx (HTR)', () => {
     });
     const signatureWallet1 = response.body.signatures;
 
-    // wallet1: sign data
+    // wallet2: sign data
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/get-my-signatures')
       .send({ partial_tx: data })
@@ -368,7 +368,7 @@ describe('send tx (HTR)', () => {
     // wallet1: build and push data
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/sign-and-push')
-      .send({ partial_tx: data, signatures: [signatureP2PKH2, signatureP2PKH2, signatureP2SH] })
+      .send({ partial_tx: data, signatures: [signatureP2PKH1, signatureP2PKH2, signatureP2SH] })
       .set({ 'x-wallet-id': wallet1.walletId });
     loggers.test.insertLineToLog('atomic-swap[2TK P2PKH]: push', { body: response.body });
     expect(response.body.success).toBe(true);
