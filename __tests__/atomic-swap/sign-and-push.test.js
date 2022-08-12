@@ -125,7 +125,7 @@ describe('tx-proposal sign-and-push api', () => {
       .post('/wallet/atomic-swap/tx-proposal/sign-and-push')
       .send({ partial_tx: 'partial-tx-data' })
       .set({ 'x-wallet-id': walletId });
-    TestUtils.logger.debug('[atomic-swap:sign] should return sigs: sign+push', { body: response.body });
+    TestUtils.logger.debug('[atomic-swap:sign-and-push] should return sigs: sign+push', { body: response.body });
     expect(fromPartialTxSpy).toHaveBeenCalled();
     expect(response.status).toBe(200);
     expect(response.body).toEqual({

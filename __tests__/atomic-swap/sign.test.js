@@ -41,10 +41,50 @@ describe('tx-proposal sign api', () => {
     fromPartialTxSpy.mockClear();
   });
 
-  it('should fail if partial_tx is not a string', async () => {
-    const response = await TestUtils.request
+  it('should fail if params are invalid', async () => {
+    // partial_tx is not a string
+    let response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/sign')
       .send({ partial_tx: 123, signatures: ['1'] })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBeFalsy();
+
+    // No partial_tx
+    response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/sign')
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBeFalsy();
+
+    // signatures are empty
+    response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/sign')
+      .send({ partial_tx: '123', signatures: [] })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBeFalsy();
+
+    // signatures items are not string
+    response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/sign')
+      .send({ partial_tx: '123', signatures: ['1', 1] })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBeFalsy();
+  });
+
+  it('should fail if signatures is an invalid array', async () => {
+    let response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/sign')
+      .send({ partial_tx: '1', signatures: [123] })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBeFalsy();
+
+    response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/sign')
+      .send({ partial_tx: '0123456789abcdef', signatures: [] })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
@@ -66,22 +106,6 @@ describe('tx-proposal sign api', () => {
     });
   });
 
-  it('should fail if signatures is an invalid array', async () => {
-    let response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal/sign')
-      .send({ partial_tx: '1', signatures: [123] })
-      .set({ 'x-wallet-id': walletId });
-    expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
-
-    response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal/sign')
-      .send({ partial_tx: '0123456789abcdef', signatures: [] })
-      .set({ 'x-wallet-id': walletId });
-    expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
-  });
-
   it('should reject an incomplete transaction', async () => {
     fromPartialTxSpy.mockImplementation((pt, nt) => createProposal(
       [
@@ -101,47 +125,12 @@ describe('tx-proposal sign api', () => {
       .post('/wallet/atomic-swap/tx-proposal/sign')
       .send({ partial_tx: 'partial-tx-data' })
       .set({ 'x-wallet-id': walletId });
-    TestUtils.logger.debug('[atomic-swap:sign] should return sigs: create tx-proposal', { body: response.body });
+    TestUtils.logger.debug('[atomic-swap:sign] should return sigs: sign', { body: response.body });
     expect(fromPartialTxSpy).toHaveBeenCalled();
-
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
       success: false,
       error: expect.any(String),
-    });
-  });
-
-  it('should add signatures on the input data', async () => {
-    fromPartialTxSpy.mockImplementation((pt, nt) => createProposal(
-      [
-        new ProposalInput(fakeTxId, 0, 10, TestUtils.addresses[0]),
-      ],
-      [
-        new ProposalOutput(10, scriptFromAddress(TestUtils.addresses[1])),
-      ],
-    ));
-
-    let response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal/get-my-signatures')
-      .send({ partial_tx: 'partial-tx-data' })
-      .set({ 'x-wallet-id': walletId });
-    expect(fromPartialTxSpy).toHaveBeenCalled();
-    TestUtils.logger.debug('[atomic-swap:sign] should overwrite sigs: get-my-signature', { body: response.body });
-
-    const realSigs = response.body.signatures;
-    const parts = realSigs.split('|');
-    parts.splice(-1, 1, '0:cafe');
-    const signatures = [parts.join('|')];
-
-    response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal/sign')
-      .send({ partial_tx: 'partial-tx', signatures })
-      .set({ 'x-wallet-id': walletId });
-    TestUtils.logger.debug('[atomic-swap:sign] should overwrite sigs: sign', { body: response.body });
-    expect(fromPartialTxSpy).toHaveBeenCalled();
-    expect(response.body).toEqual({
-      success: true,
-      txHex: expect.any(String),
     });
   });
 });
