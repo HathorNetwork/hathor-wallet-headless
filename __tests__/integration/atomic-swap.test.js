@@ -54,6 +54,10 @@ describe('send tx (HTR)', () => {
   });
 
   it('should exchange HTR between 2 wallets', async () => {
+    // Get the balance state before the swap
+    const startBalance1 = await wallet1.getBalance();
+    const startBalance2 = await wallet2.getBalance();
+
     // wallet1 proposes the transaction
     // wallet1 will send 10 HTR
     let response = await TestUtils.request
@@ -110,9 +114,21 @@ describe('send tx (HTR)', () => {
     expect(response.body.success).toBe(true);
 
     await TestUtils.pauseForWsUpdate();
+
+    // Get the balance state after the swap
+    const finalBalance1 = await wallet1.getBalance();
+    const finalBalance2 = await wallet2.getBalance();
+
+    // Expect both balances to be changed by 10
+    expect(finalBalance1.available - startBalance1.available).toEqual(-10);
+    expect(finalBalance2.available - startBalance2.available).toEqual(10);
   });
 
   it('should exchange custom tokens between 2 wallets', async () => {
+    // Get the balance state before the swap
+    const startBalance1 = await wallet1.getBalance(tokenTx1.hash);
+    const startBalance2 = await wallet2.getBalance(tokenTx1.hash);
+
     // wallet1 proposes the transaction
     // wallet1 will send 10 TKW1
     let response = await TestUtils.request
@@ -169,9 +185,28 @@ describe('send tx (HTR)', () => {
     expect(response.body.success).toBe(true);
 
     await TestUtils.pauseForWsUpdate();
+
+    // Get the balance state after the swap
+    const finalBalance1 = await wallet1.getBalance(tokenTx1.hash);
+    const finalBalance2 = await wallet2.getBalance(tokenTx1.hash);
+
+    // Expect both balances to be changed by 10
+    expect(finalBalance1.available - startBalance1.available).toEqual(-10);
+    expect(finalBalance2.available - startBalance2.available).toEqual(10);
   });
 
   it('should exchange multiple tokens between 2 wallets', async () => {
+    // Get the balance state before the swap
+    // balances for wallet1 (HTR, token 1 and token 2)
+    const startHTRBalance1 = await wallet1.getBalance();
+    const startTK1Balance1 = await wallet1.getBalance(tokenTx1.hash);
+    const startTK2Balance1 = await wallet1.getBalance(tokenTx2.hash);
+
+    // balances for wallet2 (HTR, token 1 and token 2)
+    const startHTRBalance2 = await wallet2.getBalance();
+    const startTK1Balance2 = await wallet2.getBalance(tokenTx1.hash);
+    const startTK2Balance2 = await wallet2.getBalance(tokenTx2.hash);
+
     // wallet1 proposes the transaction
     // wallet1 will:
     //  - send 5 TKW1
@@ -192,7 +227,7 @@ describe('send tx (HTR)', () => {
 
     // wallet2 updates the proposal
     // wallet2 will:
-    //  - send 15 TKW1
+    //  - send 15 TKW2
     //  - receive 5 TKW1
     //  - receive 10 HTR
     response = await TestUtils.request
@@ -241,9 +276,49 @@ describe('send tx (HTR)', () => {
     expect(response.body.success).toBe(true);
 
     await TestUtils.pauseForWsUpdate();
+
+    // Get the balance state after the swap
+    // balances for wallet1 (HTR, token 1 and token 2)
+    const finalHTRBalance1 = await wallet1.getBalance();
+    const finalTK1Balance1 = await wallet1.getBalance(tokenTx1.hash);
+    const finalTK2Balance1 = await wallet1.getBalance(tokenTx2.hash);
+
+    // balances for wallet2 (HTR, token 1 and token 2)
+    const finalHTRBalance2 = await wallet2.getBalance();
+    const finalTK1Balance2 = await wallet2.getBalance(tokenTx1.hash);
+    const finalTK2Balance2 = await wallet2.getBalance(tokenTx2.hash);
+
+    // Expect balances to have changed
+    // HTR
+    expect(finalHTRBalance1.available - startHTRBalance1.available).toEqual(-10);
+    expect(finalHTRBalance2.available - startHTRBalance2.available).toEqual(10);
+
+    // Token 1
+    expect(finalTK1Balance1.available - startTK1Balance1.available).toEqual(-5);
+    expect(finalTK1Balance2.available - startTK1Balance2.available).toEqual(5);
+
+    // Token 2
+    expect(finalTK2Balance1.available - startTK2Balance1.available).toEqual(15);
+    expect(finalTK2Balance2.available - startTK2Balance2.available).toEqual(-15);
   });
 
   it('should allow multisig wallets to participate', async () => {
+    // Get the balance state before the swap
+    // balances for wallet1 (HTR, token 1 and token 2)
+    const startHTRBalance1 = await wallet1.getBalance();
+    const startTK1Balance1 = await wallet1.getBalance(tokenTx1.hash);
+    const startTK2Balance1 = await wallet1.getBalance(tokenTx2.hash);
+
+    // balances for wallet2 (HTR, token 1 and token 2)
+    const startHTRBalance2 = await wallet2.getBalance();
+    const startTK1Balance2 = await wallet2.getBalance(tokenTx1.hash);
+    const startTK2Balance2 = await wallet2.getBalance(tokenTx2.hash);
+
+    // balances for walletMultisig (HTR, token 1 and token 2)
+    const startHTRBalanceMs = await walletMultisig.getBalance();
+    const startTK1BalanceMs = await walletMultisig.getBalance(tokenTx1.hash);
+    const startTK2BalanceMs = await walletMultisig.getBalance(tokenTx2.hash);
+
     // walletMultisig proposes the transaction
     // walletMultisig will:
     //  - send 200 HTR
@@ -366,5 +441,37 @@ describe('send tx (HTR)', () => {
     expect(response.body.success).toBe(true);
 
     await TestUtils.pauseForWsUpdate();
+
+    // Get the balance state after the swap
+    // balances for wallet1 (HTR, token 1 and token 2)
+    const finalHTRBalance1 = await wallet1.getBalance();
+    const finalTK1Balance1 = await wallet1.getBalance(tokenTx1.hash);
+    const finalTK2Balance1 = await wallet1.getBalance(tokenTx2.hash);
+
+    // balances for wallet2 (HTR, token 1 and token 2)
+    const finalHTRBalance2 = await wallet2.getBalance();
+    const finalTK1Balance2 = await wallet2.getBalance(tokenTx1.hash);
+    const finalTK2Balance2 = await wallet2.getBalance(tokenTx2.hash);
+
+    // balances for walletMultisig (HTR, token 1 and token 2)
+    const finalHTRBalanceMs = await walletMultisig.getBalance();
+    const finalTK1BalanceMs = await walletMultisig.getBalance(tokenTx1.hash);
+    const finalTK2BalanceMs = await walletMultisig.getBalance(tokenTx2.hash);
+
+    // Expect balances to have changed
+    // HTR
+    expect(finalHTRBalance1.available - startHTRBalance1.available).toEqual(60);
+    expect(finalHTRBalance2.available - startHTRBalance2.available).toEqual(140);
+    expect(finalHTRBalanceMs.available - startHTRBalanceMs.available).toEqual(-200);
+
+    // Token 1
+    expect(finalTK1Balance1.available - startTK1Balance1.available).toEqual(-50);
+    expect(finalTK1Balance2.available - startTK1Balance2.available).toEqual(0);
+    expect(finalTK1BalanceMs.available - startTK1BalanceMs.available).toEqual(50);
+
+    // Token 2
+    expect(finalTK2Balance1.available - startTK2Balance1.available).toEqual(0);
+    expect(finalTK2Balance2.available - startTK2Balance2.available).toEqual(-50);
+    expect(finalTK2BalanceMs.available - startTK2BalanceMs.available).toEqual(50);
   });
 });
