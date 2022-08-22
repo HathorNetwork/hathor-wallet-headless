@@ -122,10 +122,10 @@ async function getMySignatures(req, res) {
   const network = req.wallet.getNetworkObject();
   const partialTx = req.body.partial_tx;
 
+  // TODO remove this when we create a method to sign inputs in the wallet facade
   storage.setStore(req.wallet.store);
   try {
     const proposal = PartialTxProposal.fromPartialTx(partialTx, network);
-    // TODO remove this when we create a method to sign inputs in the wallet facade
     await proposal.signData('123');
     res.send({
       success: true,
@@ -148,6 +148,7 @@ async function signTx(req, res) {
   const partialTx = req.body.partial_tx;
   const signatures = req.body.signatures || [];
 
+  // TODO remove this when we create a method to sign inputs in the wallet facade
   storage.setStore(req.wallet.store);
   try {
     const tx = assembleTransaction(partialTx, signatures, network);
@@ -176,6 +177,7 @@ async function signAndPush(req, res) {
   const partialTx = req.body.partial_tx;
   const sigs = req.body.signatures || [];
 
+  // TODO remove this when we create a method to sign inputs in the wallet facade
   storage.setStore(req.wallet.store);
   try {
     const transaction = assembleTransaction(partialTx, sigs, network);
