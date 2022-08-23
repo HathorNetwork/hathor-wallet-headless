@@ -60,55 +60,16 @@ export const partialTxSignatureSchema = {
 };
 
 export const atomicSwapCreateSchema = {
-  outputs: {
+  'send.utxos': {
     in: ['body'],
-    errorMessage: 'Invalid outputs array',
+    errorMessage: 'Invalid utxos array',
     isArray: true,
     notEmpty: true,
     optional: true,
   },
-  'outputs.*.address': {
+  'send.utxos.*.txId': {
     in: ['body'],
-    errorMessage: 'Invalid output address',
-    isString: true,
-  },
-  'outputs.*.value': {
-    in: ['body'],
-    errorMessage: 'Invalid output value',
-    isInt: {
-      options: {
-        min: 1,
-      },
-    },
-    toInt: true,
-  },
-  'outputs.*.token': {
-    in: ['body'],
-    errorMessage: 'Invalid token uid',
-    isString: true,
-    optional: true,
-  },
-  'outputs.*.timelock': {
-    in: ['body'],
-    errorMessage: 'Invalid timelock',
-    isInt: {
-      options: {
-        min: 1,
-      },
-    },
-    toInt: true,
-    optional: true,
-  },
-  inputs: {
-    in: ['body'],
-    errorMessage: 'Invalid inputs array',
-    isArray: true,
-    notEmpty: true,
-    optional: true,
-  },
-  'inputs.*.txId': {
-    in: ['body'],
-    errorMessage: 'Invalid input txId',
+    errorMessage: 'Invalid utxo txId',
     isString: true,
     custom: {
       options: (value, { req, location, path }) => {
@@ -118,9 +79,9 @@ export const atomicSwapCreateSchema = {
       }
     },
   },
-  'inputs.*.index': {
+  'send.utxos.*.index': {
     in: ['body'],
-    errorMessage: 'Invalid input index',
+    errorMessage: 'Invalid utxo index',
     isInt: {
       options: {
         min: 0,
@@ -128,20 +89,20 @@ export const atomicSwapCreateSchema = {
     },
     toInt: true,
   },
-  send_tokens: {
+  'send.tokens': {
     in: ['body'],
-    errorMessage: 'Invalid send_tokens array',
+    errorMessage: 'Invalid send.tokens array',
     isArray: true,
     notEmpty: true,
     optional: true,
   },
-  'send_tokens.*.token': {
+  'send.tokens.*.token': {
     in: ['body'],
     errorMessage: 'Invalid token uid',
     isString: true,
     optional: true,
   },
-  'send_tokens.*.value': {
+  'send.tokens.*.value': {
     in: ['body'],
     errorMessage: 'Invalid value',
     isInt: {
@@ -151,20 +112,13 @@ export const atomicSwapCreateSchema = {
     },
     toInt: true,
   },
-  receive_tokens: {
-    in: ['body'],
-    errorMessage: 'Invalid receive_tokens array',
-    isArray: true,
-    notEmpty: true,
-    optional: true,
-  },
-  'receive_tokens.*.token': {
+  'receive.tokens.*.token': {
     in: ['body'],
     errorMessage: 'Invalid token uid',
     isString: true,
     optional: true,
   },
-  'receive_tokens.*.value': {
+  'receive.tokens.*.value': {
     in: ['body'],
     errorMessage: 'Invalid value',
     isInt: {
@@ -174,7 +128,7 @@ export const atomicSwapCreateSchema = {
     },
     toInt: true,
   },
-  'receive_tokens.*.timelock': {
+  'receive.tokens.*.timelock': {
     in: ['body'],
     errorMessage: 'Invalid timelock',
     isInt: {
@@ -185,7 +139,7 @@ export const atomicSwapCreateSchema = {
     toInt: true,
     optional: true,
   },
-  'receive_tokens.*.address': {
+  'receive.tokens.*.address': {
     in: ['body'],
     errorMessage: 'Invalid address',
     isString: true,
