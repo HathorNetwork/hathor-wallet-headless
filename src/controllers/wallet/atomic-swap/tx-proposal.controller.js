@@ -48,7 +48,7 @@ async function buildTxProposal(req, res) {
   const proposal = partialTx
     ? PartialTxProposal.fromPartialTx(partialTx, network) : new PartialTxProposal(network);
 
-  if (sendTokens.utxos) {
+  if (sendTokens.utxos && sendTokens.utxos.length > 0) {
     try {
       for (const utxo of sendTokens.utxos) {
         const txData = await new Promise((resolve, reject) => {
