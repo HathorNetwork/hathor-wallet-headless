@@ -13,7 +13,9 @@ const {
   PartialTx,
   txApi,
   storage,
-  constants: { HATHOR_TOKEN_CONFIG },
+  constants: { HATHOR_TOKEN_CONFIG, HATHOR_BIP44_CODE },
+  wallet: oldWallet,
+  dateFormatter,
 } = require('@hathor/wallet-lib');
 const { assembleTransaction } = require('../../../services/atomic-swap.service');
 const { parametersValidation } = require('../../../helpers/validations.helper');
@@ -50,6 +52,7 @@ async function buildTxProposal(req, res) {
 
   if (sendTokens.utxos && sendTokens.utxos.length > 0) {
     try {
+      const currentTs = dateFormatter.dateToTimestamp(new Date());
       for (const utxo of sendTokens.utxos) {
         const txData = await new Promise((resolve, reject) => {
           txApi.getTransaction(utxo.txId, data => resolve(data))
@@ -57,17 +60,42 @@ async function buildTxProposal(req, res) {
         });
 
         if (!txData.success) {
-          throw new Error(`Utxo for transaction ${utxo.txId} and input ${utxo.index} not found`);
+          throw new Error(`Utxo for transaction ${utxo.txId} and index ${utxo.index} not found`);
+        }
+
+        let heightLocked = false;
+        if (txData.tx.height) {
+          const blocksMined = (oldWallet.getNetworkHeight() - txData.tx.height);
+          heightLocked = blocksMined < oldWallet.getRewardLockConstant();
+          if (heightLocked) {
+            throw new Error(`Utxo for transaction ${utxo.txId} and index ${utxo.index} is a block reward and require ${oldWallet.getRewardLockConstant() - blocksMined} more block(s) to be mined before it can be spent.`);
+          }
         }
 
         const txout = txData.tx.outputs[utxo.index];
+
+        const addressPath = `m/44'/${HATHOR_BIP44_CODE}'/0'/0/${req.wallet.getAddressIndex(txout.decoded.address)}`;
+        const authorities = oldWallet.isAuthorityOutput(txout) ? txout.value : 0;
+        const timeLocked = txout.decoded.timelock ? txout.decoded.timelock > currentTs : false;
+
+        if (timeLocked) {
+          throw new Error(`Utxo for transaction ${utxo.txId} and index ${utxo.index} is locked until ${dateFormatter.parseTimestamp(txout.decoded.timelock)}`);
+        }
+
+        const locked = timeLocked || heightLocked;
+
         utxos.push({
           txId: utxo.txId,
           index: utxo.index,
+          tokenId: txout.token,
           value: txout.value,
           address: txout.decoded.address,
+          timelock: txout.decoded.timelock,
+          authorities,
+          locked,
+          addressPath,
+          heightlock: null,
           tokenData: txout.token_data,
-          token: txout.token,
         });
       }
     } catch (err) {

@@ -112,6 +112,13 @@ export const atomicSwapCreateSchema = {
     },
     toInt: true,
   },
+  'receive.tokens': {
+    in: ['body'],
+    errorMessage: 'Invalid receive.tokens array',
+    isArray: true,
+    notEmpty: true,
+    optional: true,
+  },
   'receive.tokens.*.token': {
     in: ['body'],
     errorMessage: 'Invalid token uid',
