@@ -104,28 +104,35 @@ async function buildTxProposal(req, res) {
     }
   }
 
-  for (const send of sendTokens.tokens) {
-    const token = send.token || HATHOR_TOKEN_CONFIG.uid;
-    proposal.addSend(req.wallet, token, send.value, { utxos, changeAddress, markAsSelected });
-  }
+  try {
+    for (const send of sendTokens.tokens) {
+      const token = send.token || HATHOR_TOKEN_CONFIG.uid;
+      proposal.addSend(req.wallet, token, send.value, { utxos, changeAddress, markAsSelected });
+    }
 
-  for (const receive of receiveTokens.tokens) {
-    const token = receive.token || HATHOR_TOKEN_CONFIG.uid;
-    const timelock = receive.timelock || null;
-    const address = receive.address || null;
-    proposal.addReceive(
-      req.wallet,
-      token,
-      receive.value,
-      { timelock, address }
-    );
-  }
+    for (const receive of receiveTokens.tokens) {
+      const token = receive.token || HATHOR_TOKEN_CONFIG.uid;
+      const timelock = receive.timelock || null;
+      const address = receive.address || null;
+      proposal.addReceive(
+        req.wallet,
+        token,
+        receive.value,
+        { timelock, address }
+      );
+    }
 
-  res.send({
-    success: true,
-    data: proposal.partialTx.serialize(),
-    isComplete: proposal.partialTx.isComplete(),
-  });
+    res.send({
+      success: true,
+      data: proposal.partialTx.serialize(),
+      isComplete: proposal.partialTx.isComplete(),
+    });
+  } catch (err) {
+    res.send({
+      success: false,
+      error: err.message,
+    });
+  }
 }
 
 async function getMySignatures(req, res) {
@@ -244,7 +251,7 @@ async function getLockedUTXOs(req, res) {
     for (const tx of Object.values(historyTransactions)) {
       const marked = [];
       for (const [index, output] of tx.outputs.entries()) {
-        if (output.selected_as_input === true) {
+        if ((!output.spent_by) && output.selected_as_input === true) {
           marked.push(index);
         }
       }

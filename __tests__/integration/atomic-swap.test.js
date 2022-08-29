@@ -8,6 +8,8 @@ describe('send tx (HTR)', () => {
   let wallet2;
   let walletMultisig;
 
+  let fundsTx1;
+  let fundsTx1B;
   let tokenTx1;
   let tokenTx2;
 
@@ -31,12 +33,15 @@ describe('send tx (HTR)', () => {
       ]);
 
       // Funds for single input/output tests
-      await wallet1.injectFunds(1000, 0);
+      fundsTx1 = await wallet1.injectFunds(1000, 0);
       await wallet2.injectFunds(1000, 0);
       await walletMultisig.injectFunds(1000, 0);
 
-      tokenTx1 = await wallet1.createToken({ amount: 100, name: 'Token wallet1', symbol: 'TKW1' });
-      tokenTx2 = await wallet2.createToken({ amount: 100, name: 'Token wallet2', symbol: 'TKW2' });
+      tokenTx1 = await wallet1.createToken({ amount: 1000, name: 'Token wallet1', symbol: 'TKW1' });
+      loggers.test.insertLineToLog('atomic swap create token for wallet-1', { response: tokenTx1 });
+      tokenTx2 = await wallet2.createToken({ amount: 1000, name: 'Token wallet2', symbol: 'TKW2' });
+
+      fundsTx1B = await wallet1.injectFunds(10, 0);
 
       // Awaiting for updated balances to be received by the websocket
       await TestUtils.pauseForWsUpdate();
@@ -53,6 +58,156 @@ describe('send tx (HTR)', () => {
     await walletMultisig.stop();
   });
 
+  /* XXX: The first 2 tests MUST be the first and seconds ones to run
+   * We use the hash from the injectFunds transaction as an utxo
+   * it MUST to be unspent when running these tests.
+   *
+   * The first will test locking and unlocking of utxos when creating proposals
+   * but will not spend any utxos, leaving the utxos unlocked.
+   *
+   * The second test will spend the utxos from injectFunds and createToken
+   * by explicitly selecting them, which requires them to be unspent and unlocked.
+   */
+  it.only('should lock utxos when adding them to a partial_tx', async () => {
+    // wallet1 will add tokens to a proposal
+    let response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal')
+      .send({
+        send: {
+          tokens: [
+            { token: '00', value: 100 },
+            { token: tokenTx1.hash, value: 5 },
+          ],
+        },
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('atomic-swap[lock]: proposal with lock', { body: response.body });
+
+    let proposal = response.data;
+
+    // check that both utxos are locked
+    // The transaction should be the tokenTx1 because the fundsTx1B only has 10 HTR
+    // This makes the wallet-lib choose the change change from creating TKW1 since it has 990 HTR
+    response = await TestUtils.request
+      .get('/wallet/atomic-swap/tx-proposal/get-locked-utxos')
+      .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('atomic-swap[lock]: check with lock', { body: response.body });
+    expect(response.body).toEqual({
+      success: true,
+      locked_utxos: [
+        { tx_id: tokenTx1.hash, outputs: [0, 1] }, // HTR + token TKW1
+      ]
+    });
+
+    // Unlock utxos
+    response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/unlock')
+      .send({ partial_tx: proposal })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('atomic-swap[lock]: unlock', { body: response.body });
+    expect(response.body).toEqual({ success: true });
+
+    // check that both utxos were freed
+    response = await TestUtils.request
+      .get('/wallet/atomic-swap/tx-proposal/get-locked-utxos')
+      .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('atomic-swap[lock]: check with lock', { body: response.body });
+    expect(response.body).toEqual({
+      success: true,
+      locked_utxos: [],
+    });
+
+    // Will attempt the same request with lock = false
+    response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal')
+      .send({
+        send: {
+          tokens: [
+            { token: '00', value: 100 },
+            { token: tokenTx1.hash, value: 5 },
+          ],
+        },
+        lock: false,
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('atomic-swap[lock]: proposal with lock=false', { body: response.body });
+
+    proposal = response.data;
+
+    // Check that no utxos were locked from the last request
+    response = await TestUtils.request
+      .get('/wallet/atomic-swap/tx-proposal/get-locked-utxos')
+      .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('atomic-swap[lock]: check with lock=false', { body: response.body });
+    expect(response.body).toEqual({
+      success: true,
+      locked_utxos: [],
+    });
+  });
+
+  it('should choose utxos from the allocated pool of utxos', async () => {
+    // wallet1 will add HTR and TKW1 to the proposal
+    let response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal')
+      .send({
+        send: {
+          tokens: [
+            { token: '00', value: 1 },
+            { token: tokenTx1.hash, value: 2 },
+          ],
+          utxos: [
+            { txId: tokenTx1.hash, index: 0 },
+            { txId: tokenTx1.hash, index: 1 },
+          ],
+        },
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('atomic-swap[utxos]: proposal', { body: response.body });
+
+    const proposal = response.data;
+
+    // check that the correct utxos are locked
+    response = await TestUtils.request
+      .get('/wallet/atomic-swap/tx-proposal/get-locked-utxos')
+      .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('atomic-swap[utxos]: check', { body: response.body });
+    expect(response.body).toEqual({
+      success: true,
+      locked_utxos: [
+        { tx_id: fundsTx1.hash, outputs: [1] },
+      ]
+    });
+
+    // Unlock utxos
+    response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/unlock')
+      .send({ partial_tx: proposal })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('atomic-swap[utxos]: unlock', { body: response.body });
+    expect(response.body).toEqual({ success: true });
+
+    // Will attempt to send 11 HTR with fundsTx1B
+    response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal')
+      .send({
+        send: {
+          tokens: [
+            { token: '00', value: 11 },
+          ],
+          utxos: [
+            { txId: fundsTx1B.hash, index: 0 },
+          ],
+        },
+        lock: false,
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('atomic-swap[utxos]: proposal with insufficient tokens', { body: response.body });
+    expect(response.body).toMatchObject({
+      success: false,
+      error: 'Don\'t have enough utxos to fill total amount.'
+    });
+  });
+
   it('should exchange HTR between 2 wallets', async () => {
     // Get the balance state before the swap
     const startBalance1 = await wallet1.getBalance();
@@ -62,7 +217,9 @@ describe('send tx (HTR)', () => {
     // wallet1 will send 10 HTR
     let response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
-      .send({ send_tokens: [{ value: 10 }] })
+      .send({ send: {
+        tokens: [{ value: 10 }],
+      } })
       .set({ 'x-wallet-id': wallet1.walletId });
     loggers.test.insertLineToLog('atomic-swap[HTR P2PKH]: proposal', { body: response.body });
 
@@ -74,7 +231,12 @@ describe('send tx (HTR)', () => {
     // wallet2 will receive 10 HTR
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
-      .send({ partial_tx: data, receive_tokens: [{ value: 10 }] })
+      .send({
+        partial_tx: data,
+        receive: {
+          tokens: [{ value: 10 }],
+        }
+      })
       .set({ 'x-wallet-id': wallet2.walletId });
     loggers.test.insertLineToLog('atomic-swap[HTR P2PKH]: update proposal', { body: response.body });
     expect(response.body.isComplete).toBe(true);
@@ -133,7 +295,11 @@ describe('send tx (HTR)', () => {
     // wallet1 will send 10 TKW1
     let response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
-      .send({ send_tokens: [{ token: tokenTx1.hash, value: 10 }] })
+      .send({
+        send: {
+          tokens: [{ token: tokenTx1.hash, value: 10 }],
+        }
+      })
       .set({ 'x-wallet-id': wallet1.walletId });
     loggers.test.insertLineToLog('atomic-swap[1TK P2PKH]: proposal', { body: response.body });
 
@@ -145,7 +311,12 @@ describe('send tx (HTR)', () => {
     // wallet2 will receive 10 TKW1
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
-      .send({ partial_tx: data, receive_tokens: [{ token: tokenTx1.hash, value: 10 }] })
+      .send({
+        partial_tx: data,
+        receive: {
+          tokens: [{ token: tokenTx1.hash, value: 10 }],
+        },
+      })
       .set({ 'x-wallet-id': wallet2.walletId });
     loggers.test.insertLineToLog('atomic-swap[1TK P2PKH]: update proposal', { body: response.body });
     expect(response.body.isComplete).toBe(true);
@@ -215,8 +386,15 @@ describe('send tx (HTR)', () => {
     let response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
-        send_tokens: [{ token: tokenTx1.hash, value: 5 }, { token: '00', value: 10 }],
-        receive_tokens: [{ token: tokenTx2.hash, value: 15 }],
+        send: {
+          tokens: [
+            { token: tokenTx1.hash, value: 5 },
+            { token: '00', value: 10 },
+          ],
+        },
+        receive: {
+          tokens: [{ token: tokenTx2.hash, value: 15 }],
+        },
       })
       .set({ 'x-wallet-id': wallet1.walletId });
     loggers.test.insertLineToLog('atomic-swap[2TK P2PKH]: proposal', { body: response.body });
@@ -234,8 +412,15 @@ describe('send tx (HTR)', () => {
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
         partial_tx: data,
-        receive_tokens: [{ token: tokenTx1.hash, value: 5 }, { value: 10 }],
-        send_tokens: [{ token: tokenTx2.hash, value: 15 }],
+        receive: {
+          tokens: [
+            { token: tokenTx1.hash, value: 5 },
+            { value: 10 }
+          ],
+        },
+        send: {
+          tokens: [{ token: tokenTx2.hash, value: 15 }],
+        },
       })
       .set({ 'x-wallet-id': wallet2.walletId });
     loggers.test.insertLineToLog('atomic-swap[2TK P2PKH]: update proposal', { body: response.body });
@@ -327,11 +512,15 @@ describe('send tx (HTR)', () => {
     let response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
-        send_tokens: [{ value: 200 }], // HTR
-        receive_tokens: [
-          { token: tokenTx2.hash, value: 50 },
-          { token: tokenTx1.hash, value: 50 },
-        ],
+        send: {
+          tokens: [{ value: 200 }], // HTR
+        },
+        receive: {
+          tokens: [
+            { token: tokenTx2.hash, value: 50 },
+            { token: tokenTx1.hash, value: 50 },
+          ],
+        },
       })
       .set({ 'x-wallet-id': walletMultisig.walletId });
     loggers.test.insertLineToLog('atomic-swap[P2SH]: proposal', { body: response.body });
@@ -347,8 +536,12 @@ describe('send tx (HTR)', () => {
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
         partial_tx: data,
-        receive_tokens: [{ value: 60 }],
-        send_tokens: [{ token: tokenTx1.hash, value: 50 }],
+        receive: {
+          tokens: [{ value: 60 }],
+        },
+        send: {
+          tokens: [{ token: tokenTx1.hash, value: 50 }],
+        },
       })
       .set({ 'x-wallet-id': wallet1.walletId });
     loggers.test.insertLineToLog('atomic-swap[P2SH]: update proposal 1', { body: response.body });
@@ -364,8 +557,12 @@ describe('send tx (HTR)', () => {
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
         partial_tx: data,
-        receive_tokens: [{ value: 140 }],
-        send_tokens: [{ token: tokenTx2.hash, value: 50 }],
+        receive: {
+          tokens: [{ value: 140 }],
+        },
+        send: {
+          tokens: [{ token: tokenTx2.hash, value: 50 }],
+        },
       })
       .set({ 'x-wallet-id': wallet2.walletId });
     loggers.test.insertLineToLog('atomic-swap[P2SH]: update proposal 2', { body: response.body });
