@@ -14,24 +14,23 @@ describe('create tx-proposal api', () => {
     spyApi.mockImplementation(async (txId, cb) => {
       cb({
         success: true,
-        tx: { outputs: [
-          {
-            // txId: fakeTxId,
-            // index: 0,
-            value: 10,
-            token: hathorLib.constants.HATHOR_TOKEN_CONFIG.uid,
-            token_data: 0,
-            decoded: { address: TestUtils.addresses[0] },
-          },
-          {
-            // txId: fakeTxId,
-            // index: 1,
-            value: 10,
-            token: fakeUid,
-            token_data: 1,
-            decoded: { address: TestUtils.addresses[1] },
-          },
-        ] },
+        tx: {
+          tokens: [{ uid: fakeUid }],
+          outputs: [
+            {
+              value: 10,
+              token: hathorLib.constants.HATHOR_TOKEN_CONFIG.uid,
+              token_data: 0,
+              decoded: { address: TestUtils.addresses[0] },
+            },
+            {
+              value: 10,
+              token: fakeUid,
+              token_data: 1,
+              decoded: { address: TestUtils.addresses[1] },
+            },
+          ]
+        },
       });
     });
     spyUtxos.mockImplementation((hwallet, token) => ([{
