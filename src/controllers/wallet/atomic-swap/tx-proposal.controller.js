@@ -68,7 +68,9 @@ async function buildTxProposal(req, res) {
           const blocksMined = (oldWallet.getNetworkHeight() - txData.tx.height);
           heightLocked = blocksMined < oldWallet.getRewardLockConstant();
           if (heightLocked) {
-            throw new Error(`Utxo for transaction ${utxo.txId} and index ${utxo.index} is a block reward and require ${oldWallet.getRewardLockConstant() - blocksMined} more block(s) to be mined before it can be spent.`);
+            throw new Error(`Utxo for transaction ${utxo.txId} and index ${utxo.index} \
+is a block reward and require ${oldWallet.getRewardLockConstant() - blocksMined} more block(s) \
+to be mined before it can be spent.`);
           }
         }
 
@@ -80,7 +82,8 @@ async function buildTxProposal(req, res) {
         const timeLocked = txout.decoded.timelock ? txout.decoded.timelock > currentTs : false;
 
         if (timeLocked) {
-          throw new Error(`Utxo for transaction ${utxo.txId} and index ${utxo.index} is locked until ${dateFormatter.parseTimestamp(txout.decoded.timelock)}`);
+          throw new Error(`Utxo for transaction ${utxo.txId} and index ${utxo.index} is \
+locked until ${dateFormatter.parseTimestamp(txout.decoded.timelock)}`);
         }
 
         const locked = timeLocked || heightLocked;
