@@ -74,7 +74,8 @@ async function buildTxProposal(req, res) {
 
         const txout = txData.tx.outputs[utxo.index];
 
-        const addressPath = `m/44'/${HATHOR_BIP44_CODE}'/0'/0/${req.wallet.getAddressIndex(txout.decoded.address)}`;
+        const addressIndex = req.wallet.getAddressIndex(txout.decoded.address);
+        const addressPath = addressIndex ? `m/44'/${HATHOR_BIP44_CODE}'/0'/0/${addressIndex}` : '';
         const authorities = oldWallet.isAuthorityOutput(txout) ? txout.value : 0;
         const timeLocked = txout.decoded.timelock ? txout.decoded.timelock > currentTs : false;
 
@@ -83,14 +84,18 @@ async function buildTxProposal(req, res) {
         }
 
         const locked = timeLocked || heightLocked;
+        const tokenIndex = oldWallet.getTokenIndex(txout.token_data) - 1;
+        const tokenId = txout.token_data === 0
+          ? HATHOR_TOKEN_CONFIG.uid
+          : txData.tx.tokens[tokenIndex].uid;
 
         utxos.push({
           txId: utxo.txId,
           index: utxo.index,
-          tokenId: txout.token,
           value: txout.value,
           address: txout.decoded.address,
           timelock: txout.decoded.timelock,
+          tokenId,
           authorities,
           locked,
           addressPath,

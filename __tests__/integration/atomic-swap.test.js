@@ -8,7 +8,6 @@ describe('send tx (HTR)', () => {
   let wallet2;
   let walletMultisig;
 
-  let fundsTx1;
   let fundsTx1B;
   let tokenTx1;
   let tokenTx2;
@@ -33,7 +32,7 @@ describe('send tx (HTR)', () => {
       ]);
 
       // Funds for single input/output tests
-      fundsTx1 = await wallet1.injectFunds(1000, 0);
+      await wallet1.injectFunds(1000, 0);
       await wallet2.injectFunds(1000, 0);
       await walletMultisig.injectFunds(1000, 0);
 
@@ -61,14 +60,8 @@ describe('send tx (HTR)', () => {
   /* XXX: The first 2 tests MUST be the first and seconds ones to run
    * We use the hash from the injectFunds transaction as an utxo
    * it MUST to be unspent when running these tests.
-   *
-   * The first will test locking and unlocking of utxos when creating proposals
-   * but will not spend any utxos, leaving the utxos unlocked.
-   *
-   * The second test will spend the utxos from injectFunds and createToken
-   * by explicitly selecting them, which requires them to be unspent and unlocked.
    */
-  it.only('should lock utxos when adding them to a partial_tx', async () => {
+  it('should lock utxos when adding them to a partial_tx', async () => {
     // wallet1 will add tokens to a proposal
     let response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
@@ -83,7 +76,7 @@ describe('send tx (HTR)', () => {
       .set({ 'x-wallet-id': wallet1.walletId });
     loggers.test.insertLineToLog('atomic-swap[lock]: proposal with lock', { body: response.body });
 
-    let proposal = response.data;
+    let proposal = response.body.data;
 
     // check that both utxos are locked
     // The transaction should be the tokenTx1 because the fundsTx1B only has 10 HTR
@@ -163,8 +156,14 @@ describe('send tx (HTR)', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
     loggers.test.insertLineToLog('atomic-swap[utxos]: proposal', { body: response.body });
+    await TestUtils.pauseForWsUpdate();
+    expect(response.body).toEqual({
+      success: true,
+      data: expect.any(String),
+      isComplete: false,
+    });
 
-    const proposal = response.data;
+    const proposal = response.body.data;
 
     // check that the correct utxos are locked
     response = await TestUtils.request
@@ -174,7 +173,7 @@ describe('send tx (HTR)', () => {
     expect(response.body).toEqual({
       success: true,
       locked_utxos: [
-        { tx_id: fundsTx1.hash, outputs: [1] },
+        { tx_id: tokenTx1.hash, outputs: [0, 1] },
       ]
     });
 
