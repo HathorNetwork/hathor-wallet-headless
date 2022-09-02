@@ -40,9 +40,14 @@ export const importPlugin = async pluginConfig => {
  */
 export const loadPlugins = async () => {
   const promises = [];
+  const enabledPlugins = config.enabled_plugins || [];
+  const pluginsConfig = config.plugin_config || {};
 
-  for (const pluginId of config.enabled_plugins) {
-    const pluginConfig = config.plugin_config[pluginId];
+  for (const pluginId of enabledPlugins) {
+    const pluginConfig = pluginsConfig[pluginId];
+    if (!pluginConfig) {
+      continue;
+    }
     promises.push(importPlugin(pluginConfig));
   }
 
