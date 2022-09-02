@@ -5,46 +5,46 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import fs from 'fs';
 import path from 'path';
 import config from './config';
 
 /**
- * Get the module path from the plugin name.
+ * Get the module path from the plugin filename.
  *
- * @param {string} plugname Plugin name
+ * @param {string} pluginFile Plugin file name
  *
  * @returns {string} Plugin module path
  */
-export const getPluginPath = plugname => plugname;
+export const getPluginPath = pluginFile => {
+  const pluginDir = config.pluginDir || './src/plugins';
+  return path.resolve(path.join(pluginDir, pluginFile));
+};
 
 /**
- * Import the plugin from the plugin name
+ * Find and import a plugin returning the exported methods.
  *
- * @param {string} plugname Plugin name
+ * @param {Object} pluginConfig Plugin configuration
  *
- * @returns {Promise<unknown>} Module object with exports
+ * @returns {Promise<unknown>} Module object with the exported methods
  */
-export const importPlugin = async plugname => import(getPluginPath(plugname));
+export const importPlugin = async pluginConfig => {
+  const filename = getPluginPath(pluginConfig.file);
+
+  return import(filename);
+};
 
 /**
- * Import all plugins from the plugins dir.
+ * Import all configured plugins and return the module objects.
  *
- * @returns {Promise<unknown>[]} List of module object with exports from plugins.
+ * @returns {Promise<unknown>[]} Array of plugin modules.
  */
 export const loadPlugins = async () => {
-  const pluginDir = config.pluginDir || './src/plugins';
-
-  const files = fs.readdirSync(pluginDir);
-
   const promises = [];
 
-  // TODO: conditionally import files from config options
-  files.forEach(file => {
-    const plugname = path.resolve(path.join(pluginDir, file));
-    console.log(plugname);
-    promises.push(importPlugin(plugname));
-  });
+  for (const pluginId of config.enabled_plugins) {
+    const pluginConfig = config.plugin_config[pluginId];
+    promises.push(importPlugin(pluginConfig));
+  }
 
   return Promise.all(promises);
 };

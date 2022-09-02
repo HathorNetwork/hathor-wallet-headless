@@ -5,17 +5,18 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-export const init = async (bus, app) => {
+import { notificationBus } from '../services/notification.service';
+
+export const init = async (server, app) => {
   const latestTxs = {};
-  bus.on('wallet:new-tx', data => {
+  notificationBus.on('wallet:new-tx', data => {
     latestTxs[data.walletId] = data.tx;
   });
 
-  bus.on('conn:wallet-load-partial-update', data => {
+  notificationBus.on('conn:wallet-load-partial-update', data => {
     const { walletId, wsData } = data;
     const { historyTransactions } = wsData;
 
-    console.log(JSON.stringify(historyTransactions));
     if (!historyTransactions) {
       return;
     }

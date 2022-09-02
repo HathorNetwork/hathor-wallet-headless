@@ -1,6 +1,6 @@
 import { config as hathorLibConfig } from '@hathor/wallet-lib';
 
-import { initHathorLib } from '../src/index';
+import { initHathorLib } from '../src/app';
 
 describe('wallet lib config', () => {
   it('correctly sets the tx-mining-service api-key', () => {

@@ -5,10 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { eventBusName } from '../services/notification.service';
+import { eventBusName, notificationBus } from '../services/notification.service';
 
-export const init = async (bus, app) => {
-  bus.on(eventBusName, data => {
+export const init = async (server, app) => {
+  notificationBus.on(eventBusName, data => {
     const message = JSON.stringify(data);
     switch (data.type) {
       case 'wallet:state':

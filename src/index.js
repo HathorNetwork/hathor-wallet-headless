@@ -5,18 +5,19 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import http from 'http';
 import { config as hathorLibConfig } from '@hathor/wallet-lib';
 
 import config from './config';
 import createApp from './app';
 import { loadPlugins } from './loader';
-import { notificationBus } from './services/notification.service';
 
 import version from './version';
 
 const main = async () => {
   const plugins = await loadPlugins();
   const app = createApp();
+  const server = http.createServer(app);
 
   // Start plugins
 
@@ -25,7 +26,7 @@ const main = async () => {
      * Startup of each plugin will be async
      * because some may require awaiting external services.
      */
-    await plugin.init(notificationBus, app);
+    await plugin.init(server, app);
   }
 
   // Start webserver
@@ -50,7 +51,7 @@ const main = async () => {
 
   // Adding server to HTTP port only if this is not a test environment
   if (process.env.NODE_ENV !== 'test') {
-    app.listen(config.http_port, config.http_bind_address, () => {
+    server.listen(config.http_port, config.http_bind_address, () => {
       console.log(`Listening on ${config.http_bind_address}:${config.http_port}...`);
     });
   }
