@@ -103,4 +103,7 @@ const notificationBus = new HathorEvents();
 module.exports = {
   notificationBus,
   eventBusName,
+  WalletEventMap,
+  ConnectionEventMap,
+  AllEvents,
 };
