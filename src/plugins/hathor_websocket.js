@@ -8,9 +8,9 @@
 import { WebSocket } from 'ws';
 import { parse } from 'url';
 
-import { eventBusName, notificationBus } from '../services/notification.service';
+import { eventBusName } from '../services/notification.service';
 
-export const init = async (server, app) => {
+export const init = async (server, app, bus) => {
   // const server = new WebSocket.Server({ port: 8008 });
   const wsServer = new WebSocket.Server({ noServer: true });
 
@@ -43,7 +43,7 @@ export const init = async (server, app) => {
     // TODO: allow client to emit events to the bus?
   });
 
-  notificationBus.on(eventBusName, data => {
+  bus.on(eventBusName, data => {
     // XXX: broadcast by default
     for (const socket of sockets) {
       socket.send(JSON.stringify(data));

@@ -11,6 +11,7 @@ import { config as hathorLibConfig } from '@hathor/wallet-lib';
 import config from './config';
 import createApp from './app';
 import { loadPlugins } from './loader';
+import { notificationBus } from './services/notification.service';
 
 import version from './version';
 
@@ -26,7 +27,7 @@ const main = async () => {
      * Startup of each plugin will be async
      * because some may require awaiting external services.
      */
-    await plugin.init(server, app);
+    await plugin.init(server, app, notificationBus);
   }
 
   // Start webserver
