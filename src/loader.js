@@ -8,6 +8,17 @@
 import path from 'path';
 import config from './config';
 
+const hathorPlugins = {
+  debug: {
+    name: 'debug',
+    file: 'hathor_debug.js',
+  },
+  ws: {
+    name: 'websocket',
+    file: 'hathor_websocket.js',
+  },
+};
+
 /**
  * Get the module path from the plugin filename.
  *
@@ -41,11 +52,12 @@ export const importPlugin = async pluginConfig => {
 export const loadPlugins = async () => {
   const promises = [];
   const enabledPlugins = config.enabled_plugins || [];
-  const pluginsConfig = config.plugin_config || {};
+  const customPlugins = config.plugin_config || {};
 
   for (const pluginId of enabledPlugins) {
-    const pluginConfig = pluginsConfig[pluginId];
+    const pluginConfig = hathorPlugins[pluginId] || customPlugins[pluginId];
     if (!pluginConfig) {
+      console.log(`Unable to find plugin ${pluginId}, skipping.`);
       continue;
     }
     promises.push(importPlugin(pluginConfig));

@@ -25,5 +25,5 @@ export const init = async (server, app) => {
     }
   });
 
-  console.log('JSON LOGGER PLUGIN LOADED!');
+  console.log('DEBUG PLUGIN LOADED!');
 };
