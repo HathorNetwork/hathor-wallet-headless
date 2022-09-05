@@ -74,6 +74,10 @@ const config = {
   connectionTimeout: getIntParam('connection_timeout'),
   allowPassphrase: getBooleanParam('allow_passphrase'),
   confirmFirstAddress: getBooleanParam('confirm_first_address'),
+
+  // Plugin configuration
+  enabled_plugins: getParam('enabled_plugins', '').split(' ').filter(x => x),
+  plugin_config: {},
 };
 
 const seeds = getParam('seeds', 'default').split(' ');
@@ -102,6 +106,20 @@ for (const x of seeds) {
     throw `Multisig pubkeys for seed ${x} does not match max signatures`;
   }
   config.multisig[x] = multisig;
+}
+
+// Configuration for custom plugins
+for (const pluginId of config.enabled_plugins) {
+  const pluginFile = getParam(`plugin_${pluginId}_file`);
+
+  if (!pluginFile) {
+    continue;
+  }
+
+  config.plugin_config[pluginId] = {
+    name: pluginId,
+    file: pluginFile,
+  };
 }
 
 const debugPath = getParam('debug');
