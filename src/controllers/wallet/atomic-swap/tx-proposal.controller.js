@@ -103,7 +103,6 @@ locked until ${dateFormatter.parseTimestamp(txout.decoded.timelock)}`);
           locked,
           addressPath,
           heightlock: null,
-          tokenData: txout.token_data,
         });
       }
     } catch (err) {
