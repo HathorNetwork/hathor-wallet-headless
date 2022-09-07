@@ -2,7 +2,7 @@
 
 import supertest from 'supertest';
 import { txApi, walletApi, HathorWallet, wallet } from '@hathor/wallet-lib';
-import app from '../../../src';
+import createApp from '../../../src/app';
 import { loggers } from './logger.util';
 import testConfig from '../configuration/test.config';
 import { WALLET_EVENTS, WalletBenchmarkUtil } from './benchmark/wallet-benchmark.util';
@@ -12,6 +12,7 @@ import { WALLET_CONSTANTS } from '../configuration/test-constants';
 
 export { getRandomInt } from './core.util';
 
+const app = createApp();
 const request = supertest(app);
 
 /**
