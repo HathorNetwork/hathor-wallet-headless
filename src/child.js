@@ -115,6 +115,9 @@ if (process.env.NODE_ENV !== 'test') {
   process.on('message', data => {
     // Repeat notifications from main process to local notification service
     notificationBus.emit(eventBus, data);
+    if (data.type) {
+      notificationBus.emit(data.type, data);
+    }
   });
 
   main();
