@@ -9,10 +9,6 @@ import path from 'path';
 import config from './config';
 
 import { notificationBus, eventBus } from './services/notification.service';
-// const path = require('path');
-// const config = require('./config');
-
-// const { notificationBus, eventBus } = require('./services/notification.service');
 
 /**
  * @typedef {Object} Plugin
@@ -38,6 +34,14 @@ export const hathorPlugins = {
   ws: {
     name: 'websocket',
     file: 'hathor_websocket.js',
+  },
+  sqs: {
+    name: 'sqs',
+    file: 'hathor_sqs.js',
+  },
+  rabbitmq: {
+    name: 'rabbitmq',
+    file: 'hathor_rabbitmq.js',
   },
 };
 
@@ -112,6 +116,11 @@ export const main = async () => {
 };
 
 if (process.env.NODE_ENV !== 'test') {
+  process.on('disconnect', () => {
+    // If parent disconnects, we must exit to avoid running indefinetly
+    process.exit(127);
+  });
+
   process.on('message', data => {
     // Repeat notifications from main process to local notification service
     notificationBus.emit(eventBus, data);
@@ -120,5 +129,6 @@ if (process.env.NODE_ENV !== 'test') {
     }
   });
 
+  console.log('[child_process] startup');
   main();
 }

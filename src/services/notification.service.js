@@ -63,7 +63,7 @@ class HathorEvents extends EventEmitter {
     // state
     hwallet.conn.on('state', state => {
       const type = ConnectionEventMap.state;
-      const data = { type: walletId, data: state };
+      const data = { type, walletId, data: state };
 
       this.emit(type, data);
       this.emit(eventBus, data);
@@ -72,7 +72,7 @@ class HathorEvents extends EventEmitter {
     // wallet-update
     hwallet.conn.on('wallet-update', wsData => {
       const type = ConnectionEventMap['wallet-update'];
-      const data = { type: walletId, data: wsData };
+      const data = { type, walletId, data: wsData };
 
       this.emit(type, data);
       this.emit(eventBus, data);
@@ -81,7 +81,7 @@ class HathorEvents extends EventEmitter {
     // best-block-update
     hwallet.conn.on('best-block-update', wsData => {
       const type = ConnectionEventMap['best-block-update'];
-      const data = { type: walletId, data: wsData };
+      const data = { type, walletId, data: wsData };
 
       this.emit(type, data);
       this.emit(eventBus, data);
