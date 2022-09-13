@@ -77,7 +77,7 @@ to be mined before it can be spent.`);
         const txout = txData.tx.outputs[utxo.index];
 
         const addressIndex = req.wallet.getAddressIndex(txout.decoded.address);
-        const addressPath = addressIndex ? `m/44'/${HATHOR_BIP44_CODE}'/0'/0/${addressIndex}` : '';
+        const addressPath = addressIndex ? req.wallet.getAddressPathForIndex(addressIndex) : '';
         const authorities = oldWallet.isAuthorityOutput(txout) ? txout.value : 0;
         const timeLocked = txout.decoded.timelock ? txout.decoded.timelock > currentTs : false;
 
