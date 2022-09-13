@@ -80,7 +80,7 @@ describe('send tx (HTR)', () => {
 
     // check that both utxos are locked
     // The transaction should be the tokenTx1 because the fundsTx1B only has 10 HTR
-    // This makes the wallet-lib choose the change change from creating TKW1 since it has 990 HTR
+    // This makes the wallet-lib choose the change from creating TKW1 since it has 990 HTR
     response = await TestUtils.request
       .get('/wallet/atomic-swap/tx-proposal/get-locked-utxos')
       .set({ 'x-wallet-id': wallet1.walletId });
