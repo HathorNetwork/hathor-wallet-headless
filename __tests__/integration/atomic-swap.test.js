@@ -194,7 +194,7 @@ describe('send tx (HTR)', () => {
             { token: '00', value: 11 },
           ],
           utxos: [
-            { txId: fundsTx1B.hash, index: 0 },
+            { txId: fundsTx1B.hash, index: 1 },
           ],
         },
         lock: false,
@@ -203,7 +203,7 @@ describe('send tx (HTR)', () => {
     loggers.test.insertLineToLog('atomic-swap[utxos]: proposal with insufficient tokens', { body: response.body });
     expect(response.body).toMatchObject({
       success: false,
-      error: 'Don\'t have enough utxos to fill total amount.'
+      error: 'Don\'t have enough utxos to fill total amount.',
     });
   });
 
@@ -400,6 +400,30 @@ describe('send tx (HTR)', () => {
 
     let { data } = response.body;
 
+    // Check content with decode API
+    let decodeResponse = await TestUtils.request
+      .post('/wallet/decode')
+      .send({ partial_tx: data })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('atomic-swap[2TK P2PKH]: first decode', { body: decodeResponse.body });
+    expect(decodeResponse.body).toMatchObject({
+      success: true,
+      tx: expect.objectContaining({
+        tokens: expect.arrayContaining([tokenTx1.hash, tokenTx2.hash]),
+        outputs: expect.arrayContaining([
+          expect.objectContaining({
+            value: 15,
+            tokenData: decodeResponse.body.tx.tokens.indexOf(tokenTx2.hash) + 1,
+            decoded: expect.objectContaining({ address: expect.toBeInArray(wallet1.addresses) }),
+          }),
+        ]),
+      }),
+    });
+    decodeResponse.body.tx.inputs.map(input => expect(input).toEqual({
+      txId: expect.any(String),
+      index: expect.any(Number),
+    }));
+
     expect(response.body.isComplete).toBe(false);
 
     // wallet2 updates the proposal
@@ -426,6 +450,33 @@ describe('send tx (HTR)', () => {
     expect(response.body.isComplete).toBe(true);
 
     data = response.body.data;
+    // Check content with decode API
+    decodeResponse = await TestUtils.request
+      .post('/wallet/decode')
+      .send({ partial_tx: data })
+      .set({ 'x-wallet-id': wallet2.walletId });
+    expect(decodeResponse.body).toMatchObject({
+      success: true,
+      tx: {
+        tokens: expect.arrayContaining([tokenTx1.hash, tokenTx2.hash]),
+        outputs: expect.arrayContaining([
+          expect.objectContaining({
+            value: 5,
+            tokenData: decodeResponse.body.tx.tokens.indexOf(tokenTx1.hash) + 1,
+            decoded: expect.objectContaining({ address: expect.toBeInArray(wallet2.addresses) }),
+          }),
+          expect.objectContaining({
+            value: 10,
+            tokenData: 0,
+            decoded: expect.objectContaining({ address: expect.toBeInArray(wallet2.addresses) }),
+          }),
+        ]),
+      },
+    });
+    decodeResponse.body.tx.inputs.map(input => expect(input).toEqual({
+      txId: expect.any(String),
+      index: expect.any(Number),
+    }));
 
     // wallet1: sign data
     response = await TestUtils.request
