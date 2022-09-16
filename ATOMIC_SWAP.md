@@ -94,7 +94,7 @@ Each participant will add the tokens they want to send and receive from the tran
 ### POST /wallet/atomic-swap/tx-proposal
 
 Create a transaction proposal with multiple inputs and outputs.
-`inputs`, `outputs`, `send_tokens`, `receive_tokens` are operations which will add inputs and outputs to the `partial_tx`, can use one or many operations at once.
+`send` and `receive` are operations which will add inputs and outputs to the `partial_tx` you can use one or both operations.
 
 *Body*:
 - partial_tx
@@ -103,33 +103,31 @@ Create a transaction proposal with multiple inputs and outputs.
 - change_address
     - Use this address for change where needed (e.g. sending 10 HTR but the UTXO has 15, a change output will be generated)
     - If not present, an address from the caller wallet will be used.
-- send_tokens
-  - Will add inputs with the amount of tokens specified, may add a change output if needed.
-  - An array of objects with:
-    - value
-    - token: If not present will default to 00 (HTR)
-- receive_tokens
-  - Will add outputs with the amount of tokens specified.
-  - An array of objects with:
-    - value
-    - token: If not present will default to 00 (HTR)
-    - timelock: If not present, the output will not be timelocked
-    - address: If not present, an address from the caller wallet will be chosen
-- inputs
-  - Will add the specified inputs.
-  - An array of objects with:
-    - txId
-    - index
-- outputs
-  - Will add the specified outputs.
-  - An array of objects with:
-    - address
-    - value
-    - token: If not present, will default to 00 (HTR)
-    - timelock: If not present, the output will not be timelocked
+- send
+  - Used to add inputs to the swap, may add a change output if needed
+  - properties:
+    - tokens
+      - Used to specify the tokens to send.
+      - Is an array of objects with properties:
+        - value: number of tokens to send
+        - token: Token UID, if not present will default to 00 (HTR)
+    - utxos
+      - optional, select tokens ONLY from these utxos instead of the available wallet utxos.
+      - properties:
+        - txId: transaction id of the utxo
+        - index: number
+- receive
+  - Used to add outputs to the swap.
+  - properties:
+    - tokens
+      - Used to specify the output tokens.
+      - Is an array of objects with properties:
+        - value: number of tokens to send
+        - token: Token UID, if not present will default to 00 (HTR)
+        - timelock: If not present, the output will not be timelocked
+        - address: If not present, an address from the caller wallet will be chosen
 - lock
   - Optional, useful for development and "simulations", will be explained on it's own section.
-
 
 All `value`'s are integers with the value in cents, i.e. 123 HTR means 1.23 HTR.
 
@@ -139,8 +137,8 @@ $ curl  -X POST \
         -H "X-Wallet-Id: 123" \
         -H "Content-type: application/json" \
         --data '{ \
-                  "send_tokens": [{"value":10,"token":"00"},{"value":10,"token":"0000e68f85f009bf009ada457332d931f3d1655cbc417b5cd2c0da8d84a432d6"}], \
-                  "receive_tokens": [{"value":20,"token":"000068a646974845e3b456c3236ff1113581450703fdc78b0b7baf171d4b5d9f"}] \
+                  "send": {"tokens": [{"value":10,"token":"00"},{"value":10,"token":"0000e68f85f009bf009ada457332d931f3d1655cbc417b5cd2c0da8d84a432d6"}]}, \
+                  "receive": {"tokens": [{"value":20,"token":"000068a646974845e3b456c3236ff1113581450703fdc78b0b7baf171d4b5d9f"}]} \
                 }' \
         http://localhost:8000/wallet/atomic-swap/tx-proposal
 {
@@ -156,10 +154,9 @@ $ curl  -X POST \
         -H "X-Wallet-Id: 123" \
         -H "Content-type: application/json" \
         --data '{ \
-                  "partial_tx": "<proposal string>"
-                  "send_tokens": [{"value":20,"token":"000068a646974845e3b456c3236ff1113581450703fdc78b0b7baf171d4b5d9f"}], \
-                  "receive_tokens": [{"value":10},{"value":5,"token":"0000e68f85f009bf009ada457332d931f3d1655cbc417b5cd2c0da8d84a432d6"}], \
-                  "outputs": [{"address":"WXf4xPLBn7HUC7F1U2vY4J5zwpsDS12bT6","value":5,"token":"0000e68f85f009bf009ada457332d931f3d1655cbc417b5cd2c0da8d84a432d6"}] \
+                  "partial_tx": "<proposal string>", \
+                  "send": {"tokens": [{"value":20,"token":"000068a646974845e3b456c3236ff1113581450703fdc78b0b7baf171d4b5d9f"}]}, \
+                  "receive": {"tokens": [{"value":10},{"value":5,"token":"0000e68f85f009bf009ada457332d931f3d1655cbc417b5cd2c0da8d84a432d6"}]}, \
                 }' \
         http://localhost:8000/wallet/atomic-swap/tx-proposal
 {
@@ -168,6 +165,27 @@ $ curl  -X POST \
     "isComplete": true,
 }
 ```
+
+*Example 3*: Adding specific utxos.
+```bash
+$ curl  -X POST \
+        -H "X-Wallet-Id: 123" \
+        -H "Content-type: application/json" \
+        --data '{ \
+                  "partial_tx": "<proposal string>", \
+                  "send": { \
+                    "tokens": [{"value":20,"token":"000068a646974845e3b456c3236ff1113581450703fdc78b0b7baf171d4b5d9f"}], \
+                    "utxos": [{"txId": "000068a646974845e3b456c3236ff1113581450703fdc78b0b7baf171d4b5d9f", "index": 1}], \
+                    }, \
+                }' \
+        http://localhost:8000/wallet/atomic-swap/tx-proposal
+{
+    "success": true,
+    "data": "<tx-proposal string>",
+    "isComplete": true,
+}
+```
+Obs: This may still add a change output if the utxo has more tokens than the requested on `send.tokens`.
 
 ## How to: signing phase
 
