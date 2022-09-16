@@ -13,7 +13,7 @@ const {
   PartialTx,
   txApi,
   storage,
-  constants: { HATHOR_TOKEN_CONFIG, HATHOR_BIP44_CODE },
+  constants: { HATHOR_TOKEN_CONFIG },
   wallet: oldWallet,
   dateFormatter,
 } = require('@hathor/wallet-lib');

@@ -20,13 +20,12 @@ expect.extend({
       return {
         message: () => `expected item (${received}) to not be in Array(${expected})`,
         pass: true,
-      }
-    } else {
-      return {
-        message: () => `expected item (${received}) to be in Array(${expected})`,
-        pass: false,
-      }
+      };
     }
+    return {
+      message: () => `expected item (${received}) to be in Array(${expected})`,
+      pass: false,
+    };
   }
 });
 
