@@ -8,7 +8,7 @@ describe('send tx (HTR)', () => {
   let wallet2;
   let walletMultisig;
 
-  let fundsTx1B;
+  let fundsTx;
   let tokenTx1;
   let tokenTx2;
 
@@ -40,7 +40,7 @@ describe('send tx (HTR)', () => {
       loggers.test.insertLineToLog('atomic swap create token for wallet-1', { response: tokenTx1 });
       tokenTx2 = await wallet2.createToken({ amount: 1000, name: 'Token wallet2', symbol: 'TKW2' });
 
-      fundsTx1B = await wallet1.injectFunds(10, 0);
+      fundsTx = await wallet1.injectFunds(10, 0);
 
       // Awaiting for updated balances to be received by the websocket
       await TestUtils.pauseForWsUpdate();
@@ -79,7 +79,7 @@ describe('send tx (HTR)', () => {
     let proposal = response.body.data;
 
     // check that both utxos are locked
-    // The transaction should be the tokenTx1 because the fundsTx1B only has 10 HTR
+    // The transaction should be the tokenTx1 because the fundsTx only has 10 HTR
     // This makes the wallet-lib choose the change from creating TKW1 since it has 990 HTR
     response = await TestUtils.request
       .get('/wallet/atomic-swap/tx-proposal/get-locked-utxos')
@@ -185,9 +185,8 @@ describe('send tx (HTR)', () => {
     loggers.test.insertLineToLog('atomic-swap[utxos]: unlock', { body: response.body });
     expect(response.body).toEqual({ success: true });
 
-    const fundsTx = await wallet1.injectFunds(1, 0);
-
-    // Since the wallet-lib shuffles change outputs we need to check which output index is from wallet1
+    // Since the wallet-lib shuffles change outputs
+    // we need to check which output index is from wallet1
     response = await TestUtils.request
       .get('/wallet/transaction')
       .query({ id: fundsTx.hash })
@@ -206,13 +205,14 @@ describe('send tx (HTR)', () => {
     }
     expect(typeof fundsIndex).toBe('number');
 
-    // Will attempt to send 2 HTR with fundsTx
+    // Will attempt to send 1 HTR over the available from fundsTx
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
         send: {
           tokens: [
-            { token: fundsOutput.token, value: fundsOutput.value + 1 }, // require more than what's available
+            // require more than what's available
+            { token: fundsOutput.token, value: fundsOutput.value + 1 },
           ],
           utxos: [
             { txId: fundsTx.hash, index: fundsIndex },
