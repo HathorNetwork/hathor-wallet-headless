@@ -185,16 +185,18 @@ describe('send tx (HTR)', () => {
     loggers.test.insertLineToLog('atomic-swap[utxos]: unlock', { body: response.body });
     expect(response.body).toEqual({ success: true });
 
-    // Will attempt to send 11 HTR with fundsTx1B
+    const fundsTx = await wallet1.injectFunds(1, 0);
+
+    // Will attempt to send 2 HTR with fundsTx
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
         send: {
           tokens: [
-            { token: '00', value: 11 },
+            { token: '00', value: 2 },
           ],
           utxos: [
-            { txId: fundsTx1B.hash, index: 1 },
+            { txId: fundsTx.hash, index: 0 },
           ],
         },
         lock: false,
