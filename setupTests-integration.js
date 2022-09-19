@@ -16,15 +16,10 @@ expect.extend({
     } else {
       pass = expected.indexOf(received) !== -1;
     }
-    if (pass) {
-      return {
-        message: () => `expected item (${received}) to not be in Array(${expected})`,
-        pass: true,
-      };
-    }
+    const negativeStr = pass ? '' : 'not';
     return {
-      message: () => `expected item (${received}) to be in Array(${expected})`,
-      pass: false,
+      message: () => `expected item (${received}) to ${negativeStr} be in Array(${expected})`,
+      pass,
     };
   }
 });
