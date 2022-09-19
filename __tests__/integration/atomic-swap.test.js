@@ -187,16 +187,35 @@ describe('send tx (HTR)', () => {
 
     const fundsTx = await wallet1.injectFunds(1, 0);
 
+    // Since the wallet-lib shuffles change outputs we need to check which output index is from wallet1
+    response = await TestUtils.request
+      .get('/wallet/transaction')
+      .query({ id: fundsTx.hash })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('atomic-swap[utxos]: check fundsTx', { body: response.body });
+    expect(response.body.tx_id).toBe(fundsTx.hash);
+    expect(response.body.outputs).toBeDefined();
+
+    let fundsIndex;
+    let fundsOutput;
+    for (const [index, output] of response.body.outputs) {
+      if (output.decoded.address === wallet1.getAddressAtIndex(0)) {
+        fundsIndex = index;
+        fundsOutput = output;
+      }
+    }
+    expect(typeof fundsIndex).toBe('number');
+
     // Will attempt to send 2 HTR with fundsTx
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
         send: {
           tokens: [
-            { token: '00', value: 2 },
+            { token: fundsOutput.token, value: fundsOutput.value + 1 }, // require more than what's available
           ],
           utxos: [
-            { txId: fundsTx.hash, index: 0 },
+            { txId: fundsTx.hash, index: fundsIndex },
           ],
         },
         lock: false,
