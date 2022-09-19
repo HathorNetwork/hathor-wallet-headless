@@ -197,7 +197,7 @@ describe('send tx (HTR)', () => {
 
     let fundsIndex;
     let fundsOutput;
-    for (const [index, output] of response.body.outputs) {
+    for (const [index, output] of Object.entries(response.body.outputs)) {
       if (output.decoded.address === wallet1.getAddressAtIndex(0)) {
         fundsIndex = index;
         fundsOutput = output;
