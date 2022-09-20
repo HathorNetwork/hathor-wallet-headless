@@ -197,14 +197,23 @@ describe('send tx (HTR)', () => {
 
     let fundsIndex;
     let fundsOutput;
-    const destAddr = wallet1.getAddressAt(0);
+    const destAddr = await wallet1.getAddressAt(0);
     for (const [index, output] of Object.entries(response.body.outputs)) {
       if (output.decoded.address === destAddr) {
-        fundsIndex = index;
+        fundsIndex = +index; // convert to number
         fundsOutput = output;
+        break;
       }
     }
+    loggers.test.insertLineToLog('atomic-swap[utxos]: funds utxo', { index: fundsIndex, output: fundsOutput });
     expect(typeof fundsIndex).toBe('number');
+    expect(fundsOutput).toMatchObject({
+      token: '00',
+      value: expect.any(Number),
+      decoded: expect.objectContaining({
+        address: destAddr,
+      }),
+    });
 
     // Will attempt to send 1 HTR over the available from fundsTx
     response = await TestUtils.request
