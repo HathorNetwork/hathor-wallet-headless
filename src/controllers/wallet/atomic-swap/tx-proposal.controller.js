@@ -11,11 +11,9 @@ const {
   helpersUtils,
   PartialTxInputData,
   PartialTx,
-  txApi,
   storage,
-  constants: { HATHOR_TOKEN_CONFIG },
+  constants: { HATHOR_TOKEN_CONFIG, TOKEN_MINT_MASK, TOKEN_MELT_MASK },
   wallet: oldWallet,
-  dateFormatter,
 } = require('@hathor/wallet-lib');
 const { assembleTransaction } = require('../../../services/atomic-swap.service');
 const { parametersValidation } = require('../../../helpers/validations.helper');
@@ -52,45 +50,35 @@ async function buildTxProposal(req, res) {
 
   if (sendTokens.utxos && sendTokens.utxos.length > 0) {
     try {
-      const currentTs = dateFormatter.dateToTimestamp(new Date());
       for (const utxo of sendTokens.utxos) {
-        const txData = await new Promise((resolve, reject) => {
-          txApi.getTransaction(utxo.txId, data => resolve(data))
-            .catch(err => reject(err));
-        });
-
-        if (!txData.success) {
-          throw new Error(`Utxo for transaction ${utxo.txId} and index ${utxo.index} not found`);
+        const txData = req.wallet.getTx(utxo.txId);
+        if (!txData) {
+          // utxo not in history
+          continue;
         }
-
-        let heightLocked = false;
-        if (txData.tx.height) {
-          const blocksMined = (oldWallet.getNetworkHeight() - txData.tx.height);
-          heightLocked = blocksMined < oldWallet.getRewardLockConstant();
-          if (heightLocked) {
-            throw new Error(`Utxo for transaction ${utxo.txId} and index ${utxo.index} \
-is a block reward and require ${oldWallet.getRewardLockConstant() - blocksMined} more block(s) \
-to be mined before it can be spent.`);
-          }
+        const txout = txData.outputs[utxo.index];
+        if (!oldWallet.canUseUnspentTx(txout, txData.height)) {
+          // Cannot use this utxo
+          continue;
         }
-
-        const txout = txData.tx.outputs[utxo.index];
 
         const addressIndex = req.wallet.getAddressIndex(txout.decoded.address);
         const addressPath = addressIndex ? req.wallet.getAddressPathForIndex(addressIndex) : '';
-        const authorities = oldWallet.isAuthorityOutput(txout) ? txout.value : 0;
-        const timeLocked = txout.decoded.timelock ? txout.decoded.timelock > currentTs : false;
-
-        if (timeLocked) {
-          throw new Error(`Utxo for transaction ${utxo.txId} and index ${utxo.index} is \
-locked until ${dateFormatter.parseTimestamp(txout.decoded.timelock)}`);
+        let authorities = 0;
+        if (oldWallet.isMintOutput(txout)) {
+          authorities += TOKEN_MINT_MASK;
+        }
+        if (oldWallet.isMeltOutput(txout)) {
+          authorities += TOKEN_MELT_MASK;
         }
 
-        const locked = timeLocked || heightLocked;
-        const tokenIndex = oldWallet.getTokenIndex(txout.token_data) - 1;
-        const tokenId = txout.token_data === 0
-          ? HATHOR_TOKEN_CONFIG.uid
-          : txData.tx.tokens[tokenIndex].uid;
+        let tokenId = txout.token;
+        if (!tokenId) {
+          const tokenIndex = oldWallet.getTokenIndex(txout.token_data) - 1;
+          tokenId = txout.token_data === 0
+            ? HATHOR_TOKEN_CONFIG.uid
+            : txData.tx.tokens[tokenIndex].uid;
+        }
 
         utxos.push({
           txId: utxo.txId,
@@ -100,10 +88,16 @@ locked until ${dateFormatter.parseTimestamp(txout.decoded.timelock)}`);
           timelock: txout.decoded.timelock,
           tokenId,
           authorities,
-          locked,
           addressPath,
           heightlock: null,
+          locked: false,
         });
+      }
+      if (sendTokens.utxos && sendTokens.utxos.length !== 0 && utxos.length === 0) {
+        // Tried to add utxos but no available utxo was found
+        // XXX: this is to avoid the wallet-lib choosing from the history when the user
+        // means to manually choose the utxos.
+        throw new Error('Could not use any of the utxos.');
       }
     } catch (err) {
       res.status(400).json({ success: false, error: err.message });

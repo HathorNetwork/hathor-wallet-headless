@@ -569,7 +569,7 @@ describe('send tx (HTR)', () => {
     expect(finalTK2Balance2.available - startTK2Balance2.available).toEqual(-15);
   });
 
-  it.only('should allow multisig wallets to participate', async () => {
+  it('should allow multisig wallets to participate', async () => {
     // Get the balance state before the swap
     // balances for wallet1 (HTR, token 1 and token 2)
     const startHTRBalance1 = await wallet1.getBalance();
