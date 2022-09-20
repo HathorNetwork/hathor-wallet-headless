@@ -21,6 +21,9 @@ const { lock, lockTypes } = require('../../../lock');
 const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 const { mapTxReturn } = require('../../../helpers/tx.helper');
 
+/**
+ * Build or update a partial transaction proposal.
+ */
 async function buildTxProposal(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
@@ -136,6 +139,10 @@ async function buildTxProposal(req, res) {
   }
 }
 
+/**
+ * Get signatures as a serialized PartialTxInputData.
+ * Obs: Only signs the loaded wallet inputs.
+ */
 async function getMySignatures(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
@@ -160,6 +167,9 @@ async function getMySignatures(req, res) {
   }
 }
 
+/**
+ * Add signatures to a proposal and return the hex of the signed transaction.
+ */
 async function signTx(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
@@ -183,6 +193,9 @@ async function signTx(req, res) {
   }
 }
 
+/**
+ * Add signatures to a proposal and push the transaction.
+ */
 async function signAndPush(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
@@ -216,6 +229,14 @@ async function signAndPush(req, res) {
   }
 }
 
+/**
+ * Extract input data from a transaction hex into a serialized PartialTxInputData
+ * to be used with the atomic-swap APIs.
+ *
+ * Example: P2SH wallets will need to use this API to extract the signatures
+ * If you wish to sign the transaction in another way (offline signing, Hardware wallets, etc.)
+ * This API can be used to extract the signatures into an atomic-swap complient format.
+ */
 async function getInputData(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
@@ -245,6 +266,9 @@ async function getInputData(req, res) {
   }
 }
 
+/**
+ * Get all utxos that are marked as `selected_as_input`.
+ */
 async function getLockedUTXOs(req, res) {
   try {
     const utxos = [];
@@ -270,6 +294,9 @@ async function getLockedUTXOs(req, res) {
   }
 }
 
+/**
+ * Unmark utxos `selected_as_input` to free utxos to be spent.
+ */
 async function unlockInputs(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
