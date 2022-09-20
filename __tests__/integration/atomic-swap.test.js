@@ -670,12 +670,16 @@ describe('send tx (HTR)', () => {
           expect.objectContaining({ // 50 TKW1 to multisig
             value: 50,
             tokenData: decodeResponse.body.tx.tokens.indexOf(tokenTx1.hash) + 1,
-            decoded: expect.objectContaining({ address: expect.toBeInArray(walletMultisig.addresses) }),
+            decoded: expect.objectContaining({
+              address: expect.toBeInArray(walletMultisig.addresses),
+            }),
           }),
           expect.objectContaining({ // 50 TKW2 to multisig
             value: 50,
             tokenData: decodeResponse.body.tx.tokens.indexOf(tokenTx2.hash) + 1,
-            decoded: expect.objectContaining({ address: expect.toBeInArray(walletMultisig.addresses) }),
+            decoded: expect.objectContaining({
+              address: expect.toBeInArray(walletMultisig.addresses),
+            }),
           }),
           expect.objectContaining({ // 60 HTR to wallet1
             value: 60,
@@ -883,14 +887,14 @@ describe('send tx (HTR)', () => {
     }
     expect(partialTx).toMatchObject({
       outputs: [expect.objectContaining({
-          isChange: false,
-          token: '00',
-          value: 4,
-          authorities: 0,
-          decodedScript: expect.objectContaining({
-            address: expect.objectContaining({ base58: recvAddr }),
-          }),
-        })],
+        isChange: false,
+        token: '00',
+        value: 4,
+        authorities: 0,
+        decodedScript: expect.objectContaining({
+          address: expect.objectContaining({ base58: recvAddr }),
+        }),
+      })],
     });
   });
 });
