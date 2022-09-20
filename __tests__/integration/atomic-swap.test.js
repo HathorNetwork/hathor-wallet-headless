@@ -1,3 +1,4 @@
+import { PartialTx, network } from '@hathor/wallet-lib';
 import { TestUtils } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
 import { singleMultisigWalletData } from '../../scripts/helpers/wallet-precalculation.helper';
@@ -568,7 +569,7 @@ describe('send tx (HTR)', () => {
     expect(finalTK2Balance2.available - startTK2Balance2.available).toEqual(-15);
   });
 
-  it('should allow multisig wallets to participate', async () => {
+  it.only('should allow multisig wallets to participate', async () => {
     // Get the balance state before the swap
     // balances for wallet1 (HTR, token 1 and token 2)
     const startHTRBalance1 = await wallet1.getBalance();
@@ -651,6 +652,45 @@ describe('send tx (HTR)', () => {
 
     data = response.body.data;
 
+    // Check content with decode API
+    const decodeResponse = await TestUtils.request
+      .post('/wallet/decode')
+      .send({ partial_tx: data })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('atomic-swap[P2SH]: decode', { body: decodeResponse.body });
+    // Populate multisig wallet helper cache of addresses.
+    for (let i = 0; i < 10; i++) {
+      await walletMultisig.getAddressAt(i);
+    }
+    expect(decodeResponse.body).toMatchObject({
+      success: true,
+      tx: expect.objectContaining({
+        tokens: expect.arrayContaining([tokenTx1.hash, tokenTx2.hash]),
+        outputs: expect.arrayContaining([
+          expect.objectContaining({ // 50 TKW1 to multisig
+            value: 50,
+            tokenData: decodeResponse.body.tx.tokens.indexOf(tokenTx1.hash) + 1,
+            decoded: expect.objectContaining({ address: expect.toBeInArray(walletMultisig.addresses) }),
+          }),
+          expect.objectContaining({ // 50 TKW2 to multisig
+            value: 50,
+            tokenData: decodeResponse.body.tx.tokens.indexOf(tokenTx2.hash) + 1,
+            decoded: expect.objectContaining({ address: expect.toBeInArray(walletMultisig.addresses) }),
+          }),
+          expect.objectContaining({ // 60 HTR to wallet1
+            value: 60,
+            tokenData: 0,
+            decoded: expect.objectContaining({ address: expect.toBeInArray(wallet1.addresses) }),
+          }),
+          expect.objectContaining({ // 140 HTR to wallet2
+            value: 140,
+            tokenData: 0,
+            decoded: expect.objectContaining({ address: expect.toBeInArray(wallet2.addresses) }),
+          }),
+        ]),
+      }),
+    });
+
     // wallet1: sign data
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/get-my-signatures')
@@ -715,7 +755,7 @@ describe('send tx (HTR)', () => {
       .post('/wallet/atomic-swap/tx-proposal/sign-and-push')
       .send({ partial_tx: data, signatures: [signatureP2PKH1, signatureP2PKH2, signatureP2SH] })
       .set({ 'x-wallet-id': wallet1.walletId });
-    loggers.test.insertLineToLog('atomic-swap[2TK P2PKH]: push', { body: response.body });
+    loggers.test.insertLineToLog('atomic-swap[P2SH]: push', { body: response.body });
     expect(response.body.success).toBe(true);
 
     await TestUtils.pauseForWsUpdate();
@@ -751,5 +791,106 @@ describe('send tx (HTR)', () => {
     expect(finalTK2Balance1.available - startTK2Balance1.available).toEqual(0);
     expect(finalTK2Balance2.available - startTK2Balance2.available).toEqual(-50);
     expect(finalTK2BalanceMs.available - startTK2BalanceMs.available).toEqual(50);
+  });
+
+  it('should send the change to the correct address', async () => {
+    const tx = await wallet1.injectFunds(3, 10);
+    const destAddr = await wallet1.getAddressAt(10);
+    const changeAddr = await wallet1.getAddressAt(11);
+    const recvAddr = await wallet1.getAddressAt(12);
+    let fundsIndex;
+    let fundsOutput;
+
+    // Since the wallet-lib shuffles change outputs
+    // we need to find out which output index is from wallet1
+    let response = await TestUtils.request
+      .get('/wallet/transaction')
+      .query({ id: tx.hash })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('atomic-swap[change]: check fundsTx', { body: response.body });
+    expect(response.body.tx_id).toBe(tx.hash);
+
+    for (const [index, output] of Object.entries(response.body.outputs)) {
+      if (output.decoded.address === destAddr) {
+        fundsIndex = +index; // convert to number
+        fundsOutput = output;
+        break;
+      }
+    }
+    loggers.test.insertLineToLog('atomic-swap[change]: funds utxo', { index: fundsIndex, output: fundsOutput });
+    expect(typeof fundsIndex).toBe('number');
+    expect(fundsOutput).toMatchObject({
+      token: '00',
+      value: expect.any(Number),
+      decoded: expect.objectContaining({
+        address: destAddr,
+      }),
+    });
+
+    // Send 1 HTR and creating 2 HTR of change
+
+    response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal')
+      .send({
+        send: {
+          tokens: [{ value: 1 }],
+          utxos: [{ txId: tx.hash, index: fundsIndex }],
+        },
+        change_address: changeAddr,
+        lock: false,
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('atomic-swap[change]: proposal send change', { body: response.body });
+
+    let partialTx = PartialTx.deserialize(response.body.data, network);
+    // Prepare outputs to be checked
+    for (const output of partialTx.outputs) {
+      output.parseScript(network);
+    }
+
+    expect(partialTx).toMatchObject({
+      inputs: [expect.objectContaining({ // only 1 input
+        hash: tx.hash,
+        index: fundsIndex,
+      })],
+      outputs: [expect.objectContaining({ // only 1 output
+        isChange: true,
+        token: '00',
+        value: 2,
+        authorities: 0,
+        decodedScript: expect.objectContaining({
+          address: expect.objectContaining({ base58: changeAddr }),
+        }),
+      })],
+    });
+
+    // Receive HTR specifying the address
+
+    response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal')
+      .send({
+        receive: {
+          tokens: [{ value: 4, address: recvAddr }],
+        },
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog('atomic-swap[change]: proposal receive change', { body: response.body });
+
+    partialTx = PartialTx.deserialize(response.body.data, network);
+    // Prepare outputs to be checked
+    for (const output of partialTx.outputs) {
+      output.parseScript(network);
+    }
+    expect(partialTx).toMatchObject({
+      outputs: [expect.objectContaining({
+          isChange: false,
+          token: '00',
+          value: 4,
+          authorities: 0,
+          decodedScript: expect.objectContaining({
+            address: expect.objectContaining({ base58: recvAddr }),
+          }),
+        })],
+    });
   });
 });
