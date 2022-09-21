@@ -210,7 +210,7 @@ describe('send tx (HTR)', () => {
     expect(typeof fundsIndex).toBe('number');
     expect(fundsOutput).toMatchObject({
       token: '00',
-      value: expect.any(Number),
+      value: 10,
       decoded: expect.objectContaining({
         address: destAddr,
       }),
