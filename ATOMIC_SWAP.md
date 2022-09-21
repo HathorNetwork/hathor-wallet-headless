@@ -94,7 +94,7 @@ Each participant will add the tokens they want to send and receive from the tran
 ### POST /wallet/atomic-swap/tx-proposal
 
 Create a transaction proposal with multiple inputs and outputs.
-`send` and `receive` are operations which will add inputs and outputs to the `partial_tx` you can use one or both operations.
+`send` and `receive` are operations which will add inputs and outputs to the `partial_tx`. You can use one or both operations.
 
 *Body*:
 - partial_tx
@@ -197,7 +197,7 @@ This phase consists of participants signing the agreed upon transaction.
 *== IMPORTANT ==*
 
 1. Remember to use the decode API before signing to understand what is being signed.
-1. Once a proposal is signed and the signature is sent to another party that party can send the agreed transaction whenever wanted.
+1. Once a proposal is signed and the signature is sent to another party, that party can send the agreed transaction whenever wanted.
 1. If an input on the proposed transaction is spent before the transaction is sent, all signatures will be voided.
 
 ### POST /wallet/atomic-swap/tx-proposal/get-my-signatures
