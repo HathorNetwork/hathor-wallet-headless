@@ -868,6 +868,48 @@ describe('send tx (HTR)', () => {
       })],
     });
 
+    // Send 1 HTR and creating 2 HTR of change
+    // without selecting the change address
+
+    response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal')
+      .send({
+        send: {
+          tokens: [{ value: 1 }],
+          utxos: [{ txId: tx.hash, index: fundsIndex }],
+        },
+        lock: false,
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    loggers.test.insertLineToLog(
+      'atomic-swap[change]: proposal send change without addr',
+      { body: response.body },
+    );
+
+    partialTx = PartialTx.deserialize(response.body.data, network);
+    // Prepare outputs to be checked
+    for (const output of partialTx.outputs) {
+      output.parseScript(network);
+    }
+
+    expect(partialTx).toMatchObject({
+      inputs: [expect.objectContaining({ // only 1 input
+        hash: tx.hash,
+        index: fundsIndex,
+      })],
+      outputs: [expect.objectContaining({ // only 1 output
+        isChange: true,
+        token: '00',
+        value: 2,
+        authorities: 0,
+        decodedScript: expect.objectContaining({
+          address: expect.objectContaining({
+            base58: expect.toBeInArray(wallet1.addresses),
+          }),
+        }),
+      })],
+    });
+
     // Receive HTR specifying the address
 
     response = await TestUtils.request
