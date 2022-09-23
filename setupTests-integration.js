@@ -7,6 +7,23 @@ import {
   precalculationHelpers, WalletPrecalculationHelper,
 } from './scripts/helpers/wallet-precalculation.helper';
 
+expect.extend({
+  toBeInArray(received, expected) {
+    let pass;
+    if (expected instanceof Array === false) {
+      // Expected is not array
+      pass = false;
+    } else {
+      pass = expected.indexOf(received) !== -1;
+    }
+    const negativeStr = pass ? '' : 'not';
+    return {
+      message: () => `expected item (${received}) to ${negativeStr} be in Array(${expected})`,
+      pass,
+    };
+  }
+});
+
 /**
  * Gets the name of the test being executed from a Jasmine's global variable.
  * @returns {string} Test name

@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { txApi, walletApi, constants: hathorLibConstants, helpersUtils, errors, tokensUtils } = require('@hathor/wallet-lib');
+const { txApi, walletApi, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, PartialTx } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../lock');
@@ -259,15 +259,37 @@ async function decodeTx(req, res) {
     return;
   }
 
-  const { txHex } = req.body;
+  const txHex = req.body.txHex || null;
+  const partialTx = req.body.partial_tx || null;
+
+  if (txHex && partialTx) {
+    res.status(400).json({
+      success: false,
+      error: 'Required only one of txHex or partialTx',
+    });
+    return;
+  }
+
   try {
-    const tx = helpersUtils.createTxFromHex(txHex, req.wallet.getNetworkObject());
+    let tx;
+    if (txHex !== null) {
+      tx = helpersUtils.createTxFromHex(txHex, req.wallet.getNetworkObject());
+    } else {
+      const partial = PartialTx.deserialize(partialTx, req.wallet.getNetworkObject());
+      // Validate will check with the fullnode if the partial-tx inputs exists and are valid
+      const valid = await partial.validate();
+      if (!valid) {
+        throw new Error('Partial transaction inconsistent with backend');
+      }
+      tx = partial.getTx();
+    }
     const data = {
       tokens: tx.tokens,
       inputs: tx.inputs.map(input => ({ txId: input.hash, index: input.index })),
       outputs: [],
     };
     for (const output of tx.outputs) {
+      output.parseScript(req.wallet.getNetworkObject());
       const outputData = {
         value: output.value,
         tokenData: output.tokenData,

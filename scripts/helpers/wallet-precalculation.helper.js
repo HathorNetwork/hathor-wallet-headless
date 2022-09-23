@@ -41,6 +41,21 @@ export const multisigWalletsData = {
 };
 multisigWalletsData.walletConfig.pubkeys = multisigWalletsData.pubkeys;
 
+export const singleMultisigWalletData = {
+  words: [
+    'upon tennis increase embark dismiss diamond monitor face magnet jungle scout salute rural master shoulder cry juice jeans radar present close meat antenna mind',
+  ],
+  pubkeys: [
+    'xpub6CvvCBtHqFfErbcW2Rv28TmZ3MqcFuWQVKGg8xDzLeAwEAHRz9LBTgSFSj7B99scSvZGbq6TxAyyATA9b6cnwsgduNs9NGKQJnEQr3PYtwK',
+  ],
+  walletConfig: {
+    pubkeys: [],
+    total: 1,
+    numSignatures: 1,
+  },
+};
+singleMultisigWalletData.walletConfig.pubkeys = singleMultisigWalletData.pubkeys;
+
 export class WalletPrecalculationHelper {
   WALLETS_FILENAME = '';
 
