@@ -6,9 +6,9 @@
  */
 
 import path from 'path';
-import config from './config';
+import config from '../config';
 
-import { notificationBus, eventBus } from './services/notification.service';
+import { notificationBus, eventBus } from '../services/notification.service';
 
 /**
  * @typedef {Object} Plugin

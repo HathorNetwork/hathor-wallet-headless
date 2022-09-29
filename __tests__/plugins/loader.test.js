@@ -6,7 +6,7 @@
  */
 
 import path from 'path';
-import { getPluginPath, importPlugin, loadPlugins, main } from '../../src/child';
+import { getPluginPath, importPlugin, loadPlugins, main } from '../../src/plugins/child';
 
 beforeAll(() => {
   jest.mock(getPluginPath('hathor_websocket.js'), () => ({ init: jest.fn() }));

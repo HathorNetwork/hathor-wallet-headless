@@ -4,13 +4,26 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import AWS from 'aws-sdk';
-import yargs from 'yargs/yargs';
-import { hideBin } from 'yargs/helpers';
 
-import { eventBus } from '../services/notification.service';
+/* istanbul ignore next */
+async function checkDeps() {
+  const requiredDeps = {
+    'aws-sdk': '^2.1226.0',
+    'yargs': '^16.2.0',
+  };
+  await Promise.all(requiredDeps.map(async d => {
+    try {
+      return import(d);
+    } catch (e) {
+      throw new Error(`Some plugin dependencies are missing, to install them run:
+      $ npm install ${Object.entries(requiredDeps).map(d => [d[0], d[1]].join('@')).join(' ') }`);
+    }
+  }));
+}
 
 export function getSettings() {
+  const yargs = require('yargs/yargs');
+  const { hideBin } = require('yargs/helpers');
   const { argv } = yargs(hideBin(process.argv));
 
   const region = argv.plugin_sqs_region
@@ -49,10 +62,12 @@ export function eventHandlerFactory(sqs, settings) {
 
 /* istanbul ignore next */
 export const init = async bus => {
+  await checkDeps();
+  const AWS = require('aws-sdk');
   const settings = getSettings();
   const sqs = new AWS.SQS(settings.sqsConfig);
 
-  bus.on(eventBus, eventHandlerFactory(sqs, settings));
+  bus.on('message', eventHandlerFactory(sqs, settings));
 
   console.log('plugin[sqs] loaded');
 };
