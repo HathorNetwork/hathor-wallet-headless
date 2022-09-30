@@ -8,7 +8,7 @@
 import path from 'path';
 import config from '../config';
 
-import { notificationBus, eventBus } from '../services/notification.service';
+import { notificationBus, EVENTBUS_EVENT_NAME } from '../services/notification.service';
 
 /**
  * @typedef {Object} Plugin
@@ -123,7 +123,7 @@ if (process.env.NODE_ENV !== 'test') {
 
   process.on('message', data => {
     // Repeat notifications from main process to local notification service
-    notificationBus.emit(eventBus, data);
+    notificationBus.emit(EVENTBUS_EVENT_NAME, data);
     if (data.type) {
       notificationBus.emit(data.type, data);
     }

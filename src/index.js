@@ -11,7 +11,7 @@ import { config as hathorLibConfig } from '@hathor/wallet-lib';
 
 import config from './config';
 import createApp from './app';
-import { eventBus, notificationBus } from './services/notification.service';
+import { EVENTBUS_EVENT_NAME, notificationBus } from './services/notification.service';
 import version from './version';
 
 if (config.enabled_plugins && config.enabled_plugins.length > 0) {
@@ -57,7 +57,7 @@ if (config.enabled_plugins && config.enabled_plugins.length > 0) {
   });
 
   // Pipe wallet events to child process
-  notificationBus.on(eventBus, data => {
+  notificationBus.on(EVENTBUS_EVENT_NAME, data => {
     if (child.killed || !child.connected) {
       // The child has been lost, cannot send to it
       return;

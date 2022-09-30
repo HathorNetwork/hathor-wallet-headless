@@ -7,7 +7,7 @@
 
 const { EventEmitter } = require('events');
 
-const eventBus = 'message';
+const EVENTBUS_EVENT_NAME = 'message';
 
 const WalletEventMap = {
   state: 'wallet:state',
@@ -35,7 +35,7 @@ class HathorEvents extends EventEmitter {
       const data = { type, walletId, data: state };
 
       this.emit(type, data);
-      this.emit(eventBus, data);
+      this.emit(EVENTBUS_EVENT_NAME, data);
     });
 
     // new-tx
@@ -45,7 +45,7 @@ class HathorEvents extends EventEmitter {
       const data = { type, walletId, data: tx };
 
       this.emit(type, data);
-      this.emit(eventBus, data);
+      this.emit(EVENTBUS_EVENT_NAME, data);
     });
 
     // update-tx
@@ -55,7 +55,7 @@ class HathorEvents extends EventEmitter {
       const data = { type, walletId, data: tx };
 
       this.emit(type, data);
-      this.emit(eventBus, data);
+      this.emit(EVENTBUS_EVENT_NAME, data);
     });
 
     // Connection events
@@ -66,7 +66,7 @@ class HathorEvents extends EventEmitter {
       const data = { type, walletId, data: state };
 
       this.emit(type, data);
-      this.emit(eventBus, data);
+      this.emit(EVENTBUS_EVENT_NAME, data);
     });
 
     // wallet-update
@@ -75,7 +75,7 @@ class HathorEvents extends EventEmitter {
       const data = { type, walletId, data: wsData };
 
       this.emit(type, data);
-      this.emit(eventBus, data);
+      this.emit(EVENTBUS_EVENT_NAME, data);
     });
 
     // best-block-update
@@ -84,7 +84,7 @@ class HathorEvents extends EventEmitter {
       const data = { type, walletId, data: wsData };
 
       this.emit(type, data);
-      this.emit(eventBus, data);
+      this.emit(EVENTBUS_EVENT_NAME, data);
     });
 
     // wallet-load-partial-update
@@ -93,7 +93,7 @@ class HathorEvents extends EventEmitter {
       const data = { type, walletId, data: wsData };
 
       this.emit(type, data);
-      this.emit(eventBus, data);
+      this.emit(EVENTBUS_EVENT_NAME, data);
     });
   }
 }
@@ -102,7 +102,7 @@ const notificationBus = new HathorEvents();
 
 module.exports = {
   notificationBus,
-  eventBus,
+  EVENTBUS_EVENT_NAME,
   WalletEventMap,
   ConnectionEventMap,
   AllEvents,

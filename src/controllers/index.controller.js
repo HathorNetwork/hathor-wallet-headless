@@ -179,7 +179,7 @@ function start(req, res) {
 
   const wallet = new HathorWallet(walletConfig);
 
-  // XXX: subscribe to wallet events with notificationBus
+  // subscribe to wallet events with notificationBus
   notificationBus.subscribeHathorWallet(req.body['wallet-id'], wallet);
 
   wallet.start().then(info => {
