@@ -8,22 +8,22 @@
 /* istanbul ignore next */
 async function checkDeps() {
   const requiredDeps = {
-    'yargs': '^16.2.0',
-    'amqplib': '^0.10.3',
+    yargs: '^16.2.0',
+    amqplib: '^0.10.3',
   };
   await Promise.all(requiredDeps.map(async d => {
     try {
       return import(d);
     } catch (e) {
       throw new Error(`Some plugin dependencies are missing, to install them run:
-      $ npm install ${Object.entries(requiredDeps).map(d => [d[0], d[1]].join('@')).join(' ') }`);
+      $ npm install ${Object.entries(requiredDeps).map(x => [x[0], x[1]].join('@')).join(' ')}`);
     }
   }));
 }
 
 export function getSettings() {
-  const yargs = require('yargs/yargs');
-  const { hideBin } = require('yargs/helpers');
+  const yargs = require('yargs/yargs'); // eslint-disable-line global-require
+  const { hideBin } = require('yargs/helpers'); // eslint-disable-line global-require
   const { argv } = yargs(hideBin(process.argv));
 
   const url = argv.plugin_rabbitmq_url
@@ -36,8 +36,6 @@ export function getSettings() {
 
 export function eventHandlerFactory(channel, settings) {
   return data => {
-    // channel.assertQueue(queueName, { durable: true });
-    // channel.sendToQueue(queueName, Buffer.from(JSON.stringify(data)), { persistent: true });
     channel.sendToQueue(settings.queue, Buffer.from(JSON.stringify(data)));
   };
 }
@@ -46,6 +44,7 @@ export function eventHandlerFactory(channel, settings) {
 export const init = async bus => {
   await checkDeps();
   const settings = getSettings();
+  // eslint-disable-next-line global-require,import/no-extraneous-dependencies,import/no-unresolved
   const amqp = require('amqplib/callback_api');
   amqp.connect(settings.url, (err0, connection) => {
     if (err0) {

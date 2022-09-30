@@ -9,21 +9,21 @@ let debugLong;
 /* istanbul ignore next */
 async function checkDeps() {
   const requiredDeps = {
-    'yargs': '^16.2.0',
+    yargs: '^16.2.0',
   };
   await Promise.all(requiredDeps.map(async d => {
     try {
       return import(d);
     } catch (e) {
       throw new Error(`Some plugin dependencies are missing, to install them run:
-      $ npm install ${Object.entries(requiredDeps).map(d => [d[0], d[1]].join('@')).join(' ') }`);
+      $ npm install ${Object.entries(requiredDeps).map(x => [x[0], x[1]].join('@')).join(' ')}`);
     }
   }));
 }
 
 export const getSettings = () => {
-  const yargs = require('yargs/yargs');
-  const { hideBin } = require('yargs/helpers');
+  const yargs = require('yargs/yargs'); // eslint-disable-line global-require
+  const { hideBin } = require('yargs/helpers'); // eslint-disable-line global-require
   const { argv } = yargs(hideBin(process.argv));
 
   debugLong = argv.plugin_debug_long || process.env.HEADLESS_PLUGIN_DEBUG_LONG;

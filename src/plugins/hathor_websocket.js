@@ -8,15 +8,15 @@
 /* istanbul ignore next */
 async function checkDeps() {
   const requiredDeps = {
-    'ws': '^16.2.0',
-    'yargs': '^16.2.0',
+    ws: '^16.2.0',
+    yargs: '^16.2.0',
   };
   await Promise.all(requiredDeps.map(async d => {
     try {
       return import(d);
     } catch (e) {
       throw new Error(`Some plugin dependencies are missing, to install them run:
-      $ npm install ${Object.entries(requiredDeps).map(d => [d[0], d[1]].join('@')).join(' ') }`);
+      $ npm install ${Object.entries(requiredDeps).map(x => [x[0], x[1]].join('@')).join(' ')}`);
     }
   }));
 }
@@ -37,8 +37,8 @@ export function getSockets() {
 }
 
 export const getSettings = () => {
-  const yargs = require('yargs/yargs');
-  const { hideBin } = require('yargs/helpers');
+  const yargs = require('yargs/yargs'); // eslint-disable-line global-require
+  const { hideBin } = require('yargs/helpers'); // eslint-disable-line global-require
   const { argv } = yargs(hideBin(process.argv));
 
   const port = argv.plugin_ws_port || process.env.HEADLESS_PLUGIN_WS_PORT || 8008;
@@ -64,7 +64,7 @@ export function eventHandler(data) {
 /* istanbul ignore next */
 export const init = async bus => {
   await checkDeps();
-  const { WebSocket } = require('ws');
+  const { WebSocket } = require('ws'); // eslint-disable-line global-require, import/no-extraneous-dependencies
   const { port } = getSettings();
 
   // Prepare event handling
