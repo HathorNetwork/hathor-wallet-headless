@@ -46,16 +46,16 @@ export const init = async bus => {
   const settings = getSettings();
   // eslint-disable-next-line global-require,import/no-extraneous-dependencies,import/no-unresolved
   const amqp = require('amqplib/callback_api');
-  amqp.connect(settings.url, (err0, connection) => {
-    if (err0) {
-      throw err0;
+  amqp.connect(settings.url, (connErr, connection) => {
+    if (connErr) {
+      throw connErr;
     }
     // Close amqp connection when the process exits
     process.once('exit', connection.close.bind(connection));
 
-    connection.createChannel((err1, channel) => {
-      if (err1) {
-        throw err1;
+    connection.createChannel((channelErr, channel) => {
+      if (channelErr) {
+        throw channelErr;
       }
       bus.on('message', eventHandlerFactory(channel, settings));
     });

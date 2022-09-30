@@ -32,21 +32,21 @@ export const getSettings = () => {
 
 export function eventHandler(data) {
   const message = JSON.stringify(data);
-  if (message.length > 1000) {
-    switch (debugLong) {
-      case 'off':
-        break;
-      case 'all':
-        console.log(message);
-        break;
-      default:
-        console.log(JSON.stringify({
-          type: data.type,
-          walletId: data.walletId,
-        }));
-    }
-  } else {
+  if (message.length < 1000) {
     console.log(message);
+    return;
+  }
+  switch (debugLong) {
+    case 'off':
+      break;
+    case 'all':
+      console.log(message);
+      break;
+    default:
+      console.log(JSON.stringify({
+        type: data.type,
+        walletId: data.walletId,
+      }));
   }
 }
 

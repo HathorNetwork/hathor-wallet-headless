@@ -24,7 +24,7 @@ import { notificationBus, eventBus } from '../services/notification.service';
 
 /**
  * Hathor plugins
- * @type {Object<string, PluginConfig>}
+ * @type {Record<string, PluginConfig>}
  */
 export const hathorPlugins = {
   debug: {
@@ -74,7 +74,7 @@ export const importPlugin = async pluginConfig => {
  * Import all plugins and return the module objects.
  *
  * @param {string[]} enabled List of enabled plugins to import.
- * @param {Object<string, PluginConfig>} customConfig Custom plugin configuration.
+ * @param {Record<string, PluginConfig>} customConfig Custom plugin configuration.
  *
  * @returns {Promise<Plugin>[]} Array of plugin modules.
  */
@@ -85,7 +85,7 @@ export const loadPlugins = async (enabled, customConfig) => {
    */
   const enabledPlugins = enabled || [];
   /**
-   * @type {Object<string, PluginConfig>}
+   * @type {Record<string, PluginConfig>}
    */
   const customPlugins = customConfig || {};
 

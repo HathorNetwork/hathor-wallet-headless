@@ -38,10 +38,10 @@ if (config.enabled_plugins && config.enabled_plugins.length > 0) {
   child.stdout.on('data', console.log);
 
   // Pipe child stderr to stdout.
-  child.stderr.on('data', console.log);
+  child.stderr.on('data', console.error);
 
   child.on('error', err => {
-    console.log(`child process error: ${err.message}`);
+    console.error(`child process error: ${err.message}`);
   });
 
   child.on('disconnect', (code, signal) => {

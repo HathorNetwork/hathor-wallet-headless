@@ -81,5 +81,6 @@ module.exports = {
   // To add custom plugins you need to configure it on this parameter
   // The key is the plugin id (for `enabled_plugins`) and the configuration requires
   // a `file` property which is the filename of the plugin on the plugin directory
+  // Example: plugin_config: { custom: { name: 'custom', file: 'custom.js' } },
   plugin_config: {},
 };
