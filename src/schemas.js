@@ -171,3 +171,168 @@ export const atomicSwapCreateSchema = {
     optional: true,
   },
 };
+
+export const txBuildSchema = {
+  outputs: {
+    in: ['body'],
+    errorMessage: 'Invalid outputs array',
+    isArray: true,
+    notEmpty: true,
+    optional: false,
+  },
+  'outputs.*.address': {
+    in: ['body'],
+    errorMessage: 'Invalid address',
+    isString: true,
+    optional: true,
+  },
+  'outputs.*.value': {
+    in: ['body'],
+    errorMessage: 'Invalid value',
+    isInt: {
+      options: {
+        min: 1,
+      },
+    },
+    toInt: true,
+    optional: true,
+  },
+  'outputs.*.token': {
+    in: ['body'],
+    errorMessage: 'Invalid token uid',
+    isString: true,
+    optional: true,
+    custom: {
+      options: (value, { req, location, path }) => {
+        // Test if token uid is a 64 character hex string
+        if (!(/^[0-9a-fA-F]{64}$/.test(value))) return false;
+        return true;
+      }
+    },
+  },
+  'outputs.*': {
+    in: ['body'],
+    isObject: true,
+    custom: {
+      options: async (value, { req, location, path }) => {
+        if ('type' in value && value.type === 'data') {
+          if ('data' in value && !('token' in value)) {
+            return (/^[0-9a-fA-F]+$/.test(value.data));
+          }
+          return false;
+        }
+        // This is an address output
+        // Check that we have all params
+        return ('address' in value && 'value' in value)
+      },
+    },
+  },
+  inputs: {
+    in: ['body'],
+    errorMessage: 'Invalid inputs array',
+    isArray: true,
+    notEmpty: true,
+    optional: true,
+  },
+  change_address: {
+    in: ['body'],
+    errorMessage: 'Invalid change address',
+    isString: true,
+    optional: true,
+  },
+};
+
+export const txInputSchema = {
+  'inputs.*.hash': {
+    in: ['body'],
+    errorMessage: 'Invalid hash',
+    isString: true,
+    custom: {
+      options: (value, { req, location, path }) => {
+        // Test if hash is a 64 character hex string
+        if (!(/^[0-9a-fA-F]{64}$/.test(value))) return false;
+        return true;
+      }
+    },
+  },
+  'inputs.*.index': {
+    in: ['body'],
+    errorMessage: 'Invalid index',
+    isInt: {
+      options: {
+        min: 0,
+      },
+    },
+    toInt: true,
+  },
+};
+
+export const queryInputSchema = {
+  'inputs': {
+    in: ['body'],
+    errorMessage: 'Invalid inputs array',
+    isArray: true,
+    isLength: 1,
+    notEmpty: true,
+  },
+  'inputs.*.max_utxos': {
+    in: ['body'],
+    errorMessage: 'Invalid max_utxos',
+    isInt: {
+      options: {
+        min: 1,
+      },
+    },
+    toInt: true,
+    optional: true,
+  },
+  'inputs.*.filter_address': {
+    in: ['body'],
+    errorMessage: 'Invalid filter_address',
+    isString: true,
+    optional: true,
+  },
+  'inputs.*.amount_smaller_than': {
+    in: ['body'],
+    errorMessage: 'Invalid amount_smaller_than',
+    isInt: {
+      options: {
+        min: 2,
+      },
+    },
+    toInt: true,
+    optional: true,
+  },
+  'inputs.*.amount_bigger_than': {
+    in: ['body'],
+    errorMessage: 'Invalid amount_bigger_than',
+    isInt: {
+      options: {
+        min: 1,
+      },
+    },
+    toInt: true,
+    optional: true,
+  },
+  'inputs.*.maximum_amount': {
+    in: ['body'],
+    errorMessage: 'Invalid maximum_amount',
+    isInt: {
+      options: {
+        min: 1,
+      },
+    },
+    toInt: true,
+    optional: true,
+  },
+};
+
+export const txHexInputDataSchema = {
+  ...txHexSchema,
+  signatures: {
+    in: ['body'],
+    errorMessage: 'Invalid outputs array',
+    isObject: true,
+    optional: false,
+  },
+};
