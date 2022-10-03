@@ -8,6 +8,7 @@
 const { Router } = require('express');
 const { query } = require('express-validator');
 const rootControllers = require('../controllers/index.controller');
+const { ReadonlyErrorHandler } = require('../middlewares/xpub-error-handler.middleware');
 
 const mainRouter = Router({ mergeParams: true });
 const walletRouter = require('./wallet/wallet.routes');
@@ -29,6 +30,7 @@ mainRouter.get(
 
 mainRouter.use('/wallet', walletRouter);
 
+mainRouter.use(ReadonlyErrorHandler);
 mainRouter.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.statusCode || 500).json({ message: err.message, stack: err.stack });
