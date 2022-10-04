@@ -545,11 +545,11 @@ const apiDoc = {
                 properties: {
                   txHex: {
                     type: 'string',
-                    description: 'Transaction hex representation.'
+                    description: 'Hex format of a Transaction instance.'
                   },
                   partial_tx: {
                     type: 'string',
-                    description: 'Serialized partial tx.',
+                    description: 'Serialized PartialTx instance.',
                   },
                 }
               },
@@ -1111,7 +1111,7 @@ const apiDoc = {
           }
         ],
         requestBody: {
-          description: 'Sign a proposal and return this wallets signatures.',
+          description: 'Get the requested wallet\'s signatures for an atomic-swap.',
           required: true,
           content: {
             'application/json': {
