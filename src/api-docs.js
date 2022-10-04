@@ -532,6 +532,65 @@ const apiDoc = {
         },
       },
     },
+    '/wallet/decode': {
+      post: {
+        summary: 'Decode tx hex into human readable inputs and outputs.',
+        requestBody: {
+          description: 'Transaction hex representation',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  txHex: {
+                    type: 'string',
+                    description: 'Hex format of a Transaction instance.'
+                  },
+                  partial_tx: {
+                    type: 'string',
+                    description: 'Serialized PartialTx instance.',
+                  },
+                }
+              },
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Decode a transaction from its hex',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      success: true,
+                      tx: {
+                        outputs: [
+                          {
+                            address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
+                            value: 100,
+                            tokenData: 1,
+                            token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d'
+                          }
+                        ],
+                        inputs: [
+                          {
+                            txId: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
+                            index: 0,
+                          }
+                        ]
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     '/wallet/p2sh/tx-proposal': {
       post: {
         summary: 'Get the hex representation of a transaction without input data.',
@@ -648,62 +707,6 @@ const apiDoc = {
                   'invalid-wallet-id': {
                     summary: 'Wallet id parameter is invalid',
                     value: { success: false, message: 'Invalid wallet-id parameter.' }
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-    '/wallet/decode': {
-      post: {
-        summary: 'Decode tx hex into human readable inputs and outputs.',
-        requestBody: {
-          description: 'Transaction hex representation',
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['txHex'],
-                properties: {
-                  txHex: {
-                    type: 'string',
-                    description: 'Transaction hex representation.'
-                  },
-                }
-              },
-            }
-          }
-        },
-        responses: {
-          200: {
-            description: 'Decode a transaction from its hex',
-            content: {
-              'application/json': {
-                examples: {
-                  success: {
-                    summary: 'Success',
-                    value: {
-                      success: true,
-                      tx: {
-                        outputs: [
-                          {
-                            address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
-                            value: 100,
-                            tokenData: 1,
-                            token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d'
-                          }
-                        ],
-                        inputs: [
-                          {
-                            txId: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
-                            index: 0,
-                          }
-                        ]
-                      },
-                    },
                   },
                 },
               },
@@ -875,6 +878,621 @@ const apiDoc = {
                   success: {
                     summary: 'Success',
                     value: { success: true, hash: '00000000059dfb65633acacc402c881b128cc7f5c04b6cea537ea2136f1b97fb', nonce: 2455281664, timestamp: 1594955941, version: 1, weight: 18.11897634891149, parents: ['00000000556bbfee6d37cc099a17747b06f48ca3d9bf4af85c707aa95ad04b3f', '00000000e2e3e304e364edebff1c04c95cc9ef282463295f6e417b85fec361dd'], inputs: [{ tx_id: '00000000caaa37ab729805b91af2de8174e3ef24410f4effc4ffda3b610eae65', index: 1, data: 'RjBEAiAYR8jc+zqY596QyMp+K3Eag3kQB5aXdfYja19Fa17u0wIgCdhBQpjlBiAawP/9WRAqAzW85CJlBpzq+YVhUALg8IUhAueFQuEkAo+s2m7nj/hnh0nyphcUuxa2LoRBjOsEOHRQ' }, { tx_id: '00000000caaa37ab729805b91af2de8174e3ef24410f4effc4ffda3b610eae65', index: 2, data: 'RzBFAiEAofVXnCKNCEu4GRk7j+wHpQM6qmezRcfxHCe/PcUdbegCIE2nip27ZQtkpkEgNEhycqHM4CkLYMLVUgskphYsd/M9IQLHG6YJxXifQ6eMxPHbINFEJAUvrzKWe9V7AXXW4iywjg==' }], outputs: [{ value: 100, token_data: 0, script: 'dqkUqdK8VisGSJuNItIBRYFfSHfHjPeIrA==' }, { value: 200, token_data: 0, script: 'dqkUISAnpOn9Vo269QBvOfBeWJTLx82IrA==' }], tokens: [] }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/atomic-swap/tx-proposal': {
+      post: {
+        summary: 'Create or update an atomic-swap proposal.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        requestBody: {
+          description: 'Data to create the proposal',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  partial_tx: {
+                    description: 'A proposal to update. If not present a new one will be created.',
+                    type: 'string',
+                  },
+                  receive: {
+                    description: 'Create outputs receiving the tokens as described in this parameter.',
+                    type: 'object',
+                    required: ['tokens'],
+                    properties: {
+                      tokens: {
+                        description: 'Description of tokens to be received.',
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          required: ['value'],
+                          properties: {
+                            value: {
+                              type: 'integer',
+                              description: 'The value parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.'
+                            },
+                            token: {
+                              type: 'string',
+                              description: 'Token id to be received. If not present, it will be interpreted as HTR.'
+                            },
+                            address: {
+                              type: 'string',
+                              description: 'Receive tokens in this address, if not present, an address from the wallet will be chosen.'
+                            },
+                          }
+                        },
+                      },
+                    },
+                  },
+                  send: {
+                    description: 'Create inputs to send tokens from this wallet as described here. May add change outputs if needed.',
+                    type: 'object',
+                    required: ['tokens'],
+                    properties: {
+                      tokens: {
+                        description: 'Description of tokens to be sent.',
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          required: ['value'],
+                          properties: {
+                            value: {
+                              type: 'integer',
+                              description: 'The value parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.'
+                            },
+                            token: {
+                              type: 'string',
+                              description: 'Token id to be received. If not present, it will be interpreted as HTR.'
+                            },
+                          }
+                        },
+                      },
+                      utxos: {
+                        description: 'If present the wallet will try to use only these utxos and will not get more from the wallet history.',
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          required: ['txId', 'index'],
+                          properties: {
+                            index: {
+                              type: 'integer',
+                              description: 'Output index of this utxo.',
+                            },
+                            txId: {
+                              type: 'string',
+                              description: 'Transaction id of this utxo',
+                            },
+                          }
+                        }
+                      }
+                    },
+                  },
+                  lock: {
+                    description: 'If the utxos chosen for this proposal should be locked so they are not spent on another call. Use with caution.',
+                    type: 'boolean',
+                    default: true,
+                  },
+                  change_address: {
+                    type: 'string',
+                    description: 'Optional address to send the change amount.'
+                  },
+                }
+              },
+              examples: {
+                just_send: {
+                  summary: 'Create a proposal sending tokens',
+                  value: {
+                    send: {
+                      tokens: [
+                        {
+                          value: 10,
+                          token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
+                        },
+                        {
+                          value: 100,
+                          token: '00',
+                        },
+                      ],
+                    },
+                  }
+                },
+                just_receive: {
+                  summary: 'Create a proposal receiving tokens',
+                  value: {
+                    receive: {
+                      tokens: [
+                        {
+                          value: 10,
+                          token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
+                        },
+                        {
+                          value: 10,
+                        },
+                      ],
+                    }
+                  },
+                },
+                update_proposal: {
+                  summary: 'Update an existing proposal',
+                  value: {
+                    partial_tx: 'PartialTx|...',
+                    send: {
+                      tokens: [
+                        {
+                          value: 10,
+                          token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
+                        },
+                      ],
+                    },
+                    receive: {
+                      tokens: [
+                        {
+                          value: 10,
+                          token: '00',
+                        },
+                      ],
+                    }
+                  },
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Create a proposal.',
+            content: {
+              'application/json': {
+                examples: {
+                  error: {
+                    summary: 'Insuficient amount of tokens',
+                    value: { success: false, error: 'Token HTR: Insufficient amount of tokens' }
+                  },
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, data: 'PartialTx|...', isComplete: false }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/atomic-swap/tx-proposal/get-my-signatures': {
+      post: {
+        summary: 'Get this wallet signatures for a proposal.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        requestBody: {
+          description: 'Get the requested wallet\'s signatures for an atomic-swap.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['partial_tx'],
+                properties: {
+                  partial_tx: {
+                    description: 'Proposal to sign.',
+                    type: 'string',
+                  },
+                }
+              },
+              examples: {
+                sign: {
+                  summary: 'Sign the proposal.',
+                  value: {
+                    partial_tx: 'PartialTx|...',
+                  },
+                },
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Get signatures for a proposal.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, signatures: 'PartialTxInputData|...' }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/atomic-swap/tx-proposal/sign': {
+      post: {
+        summary: 'Add signatures to a proposal and return the signed transaction in hex format.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        requestBody: {
+          description: 'Add signatures and return the txHex of the resulting transaction.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['partial_tx', 'signatures'],
+                properties: {
+                  partial_tx: {
+                    description: 'Proposal to add signatures.',
+                    type: 'string',
+                  },
+                  signatures: {
+                    description: 'Signatures to add.',
+                    type: 'array',
+                    items: {
+                      type: 'string',
+                      description: 'Signatures of the proposal.',
+                    },
+                  },
+                }
+              },
+              examples: {
+                sign: {
+                  summary: 'Add signatures to the proposal.',
+                  value: {
+                    partial_tx: 'PartialTx|...',
+                    signatures: ['PartialTxInputData|...', 'PartialTxInputData|...'],
+                  },
+                },
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Add signatures to a proposal.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, txHex: '0123...' }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/atomic-swap/tx-proposal/sign-and-push': {
+      post: {
+        summary: 'Add signatures to a proposal and push the signed transaction.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        requestBody: {
+          description: 'Add signatures and push the resulting transaction.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['partial_tx', 'signatures'],
+                properties: {
+                  partial_tx: {
+                    description: 'Proposal to add signatures.',
+                    type: 'string',
+                  },
+                  signatures: {
+                    description: 'Signatures to add.',
+                    type: 'array',
+                    items: {
+                      type: 'string',
+                      description: 'Signatures of the proposal.',
+                    },
+                  },
+                }
+              },
+              examples: {
+                sign: {
+                  summary: 'Add signatures to the proposal.',
+                  value: {
+                    partial_tx: 'PartialTx|...',
+                    signatures: ['PartialTxInputData|...', 'PartialTxInputData|...'],
+                  },
+                },
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, tx: { hash: '00001bc7043d0aa910e28aff4b2aad8b4de76c709da4d16a48bf713067245029', nonce: 33440807, timestamp: 1579656120, version: 1, weight: 16.827294220302488, parents: ['000036e846dee9f58a724543cf5ee14cf745286e414d8acd9563963643f8dc34', '000000fe2da5f4cc462e8ccaac8703a38cd6e4266e227198f003dd5c68092d29'], inputs: [{ tx_id: '000000fe2da5f4cc462e8ccaac8703a38cd6e4266e227198f003dd5c68092d29', index: 0, data: 'RzBFAiEAyKKbtzdH7FjvjUopHFIXBf+vBcH+2CKirp0mEnLjjvMCIA9iSuW4B/UJMQld+c4Ch5lIwAcTbzisNUaCs+JpK8yDIQI2CLavb5spKwIEskxaVu0B2Tp52BXas3yjdX1XeMSGyw==' }], outputs: [{ value: 1, token_data: 0, script: 'dqkUtK1DlS8IDGxtJBtRwBlzFWihbIiIrA==' }], tokens: [] } }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/atomic-swap/tx-proposal/unlock': {
+      post: {
+        summary: 'Unlock all inputs if they are marked as selected on the wallet storage.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        requestBody: {
+          description: 'Unlock the inputs on the proposal.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['partial_tx'],
+                properties: {
+                  partial_tx: {
+                    description: 'Proposal to unlock.',
+                    type: 'string',
+                  },
+                }
+              },
+              examples: {
+                sign: {
+                  summary: 'Unlock inputs on proposal.',
+                  value: {
+                    partial_tx: 'PartialTx|...',
+                  },
+                },
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Extract input data from a signed txHex.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/atomic-swap/tx-proposal/get-locked-utxos': {
+      get: {
+        summary: 'Get all utxos marked selected as input on a transaction to be sent.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        responses: {
+          200: {
+            description: 'Return the locked utxos',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      success: true,
+                      locked_utxos: [
+                        {
+                          tx_id: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
+                          outputs: [0, 1],
+                        },
+                      ]
+                    }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/atomic-swap/tx-proposal/get-input-data': {
+      post: {
+        summary: 'Extract input data from a txHex in an atomic-swap compliant format.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        requestBody: {
+          description: 'Extract the input data on the given txHex as an atomic-swap signature.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['txHex'],
+                properties: {
+                  txHex: {
+                    description: 'Transaction hex to extract input data.',
+                    type: 'string',
+                  },
+                }
+              },
+              examples: {
+                sign: {
+                  summary: 'Extract signatures from txHex.',
+                  value: {
+                    txHex: '0123...',
+                  },
+                },
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Extract input data from a signed txHex.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, signatures: 'PartialTxInputData|...' }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
                   'no-wallet-id': {
                     summary: 'No wallet id parameter',
