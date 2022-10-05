@@ -7,6 +7,8 @@
 
 const { EventEmitter } = require('events');
 
+const { getWalletBalanceForTx } = require('../helpers/notification.helper');
+
 const EVENTBUS_EVENT_NAME = 'message';
 
 const WalletEventMap = {
@@ -34,15 +36,32 @@ class HathorEvents extends EventEmitter {
       const type = WalletEventMap.state;
       const data = { type, walletId, data: state };
 
+      switch (state) {
+        case 0:
+          data.stateName = 'Closed';
+          break;
+        case 1:
+          data.stateName = 'Connecting'
+          break;
+        case 2:
+          data.stateName = 'Syncing'
+          break;
+        case 3:
+          data.stateName = 'Ready'
+          break;
+        case 4:
+          data.stateName = 'Error'
+          break;
+      }
+
       this.emit(type, data);
       this.emit(EVENTBUS_EVENT_NAME, data);
     });
 
     // new-tx
     hwallet.on('new-tx', tx => {
-      // XXX: Check if it's from the wallet?
       const type = WalletEventMap['new-tx'];
-      const data = { type, walletId, data: tx };
+      const data = { type, walletId, data: tx, balance: getWalletBalanceForTx(hwallet, tx) };
 
       this.emit(type, data);
       this.emit(EVENTBUS_EVENT_NAME, data);
@@ -52,7 +71,7 @@ class HathorEvents extends EventEmitter {
     hwallet.on('update-tx', tx => {
       // XXX: Check if it's from the wallet?
       const type = WalletEventMap['update-tx'];
-      const data = { type, walletId, data: tx };
+      const data = { type, walletId, data: tx, balance: getWalletBalanceForTx(hwallet, tx) };
 
       this.emit(type, data);
       this.emit(EVENTBUS_EVENT_NAME, data);
