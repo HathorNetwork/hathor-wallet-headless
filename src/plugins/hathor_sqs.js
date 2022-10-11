@@ -43,7 +43,7 @@ export function getSettings() {
     sqsConfig.region = region;
   }
 
-  return { region, queueUrl, endpoint, sqsConfig };
+  return { queueUrl, sqsConfig };
 }
 
 export function eventHandlerFactory(sqs, settings) {

@@ -23,7 +23,7 @@ Each plugin receives an `EventEmitter` with real-time events of the loaded walle
 
 ## Configuration
 
-By default no plugins will run, you need to configure and enable plugins.
+By default no plugins will run, you need to install the dependencies, configure, and enable plugins.
 
 Each plugin can have it's own configuration outside the usual config module.
 

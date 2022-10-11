@@ -18,9 +18,7 @@ test('settings', () => {
   ];
   let settings = getSettings();
   expect(settings).toMatchObject({
-    region: 'test-region',
     queueUrl: 'test-url',
-    endpoint: 'test-endpoint',
     sqsConfig: {
       apiVersion: '2012-11-05',
       region: 'test-region',
@@ -35,9 +33,7 @@ test('settings', () => {
   ];
   settings = getSettings();
   expect(settings).toMatchObject({
-    region: null,
     queueUrl: 'test-url',
-    endpoint: null,
     sqsConfig: { apiVersion: '2012-11-05' },
   });
 

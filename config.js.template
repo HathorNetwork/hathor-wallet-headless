@@ -73,9 +73,7 @@ module.exports = {
   confirmFirstAddress: false,
 
   // Optional config to enable plugins
-  // Hathor already provides some plugins, some of them are:
-  //   - debug: logs events to stdout
-  //   - ws: starts a websocket server on path /ws
+  // Hathor already provides some plugins, more in https://github.com/HathorNetwork/hathor-wallet-headless/blob/master/PLUGIN.md#provided-plugins
   // To enable a plugin, just add it's id on this parameter.
   enabled_plugins: [],
   // To add custom plugins you need to configure it on this parameter

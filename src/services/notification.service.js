@@ -26,7 +26,6 @@ const ConnectionEventMap = {
 
 const AllEvents = [...Object.values(WalletEventMap), ...Object.values(ConnectionEventMap)];
 
-// TODO: methods and properties to handle the wallet events
 class HathorEvents extends EventEmitter {
   subscribeHathorWallet(walletId, hwallet) {
     // Wallet events
@@ -69,7 +68,6 @@ class HathorEvents extends EventEmitter {
 
     // update-tx
     hwallet.on('update-tx', tx => {
-      // XXX: Check if it's from the wallet?
       const type = WalletEventMap['update-tx'];
       const data = { type, walletId, data: tx, balance: getWalletBalanceForTx(hwallet, tx) };
 

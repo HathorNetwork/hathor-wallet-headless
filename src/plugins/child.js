@@ -53,8 +53,7 @@ export const hathorPlugins = {
  * @returns {string} Plugin module path
  */
 export const getPluginPath = pluginFile => {
-  const pluginDir = config.pluginDir || './src/plugins';
-  return path.resolve(path.join(pluginDir, pluginFile));
+  return path.resolve(path.join('./src/plugins', pluginFile));
 };
 
 /**
