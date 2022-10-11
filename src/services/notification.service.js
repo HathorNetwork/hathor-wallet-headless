@@ -12,16 +12,16 @@ const { getWalletBalanceForTx } = require('../helpers/notification.helper');
 const EVENTBUS_EVENT_NAME = 'message';
 
 const WalletEventMap = {
-  state: 'wallet:state',
+  state: 'wallet:state-change',
   'new-tx': 'wallet:new-tx',
   'udpate-tx': 'wallet:udpate-tx',
 };
 
 const ConnectionEventMap = {
-  state: 'conn:state',
-  'wallet-update': 'conn:wallet-update',
-  'best-block-update': 'conn:best-block-update',
-  'wallet-load-partial-update': 'conn:wallet-load-partial-update',
+  state: 'node:state-change',
+  'wallet-update': 'node:wallet-update',
+  'best-block-update': 'node:best-block-update',
+  'wallet-load-partial-update': 'node:wallet-load-partial-update',
 };
 
 const AllEvents = [...Object.values(WalletEventMap), ...Object.values(ConnectionEventMap)];
