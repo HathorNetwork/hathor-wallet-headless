@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
- const {
+const {
   constants: hathorLibConstants,
   SendTransaction,
   helpersUtils,
@@ -15,7 +15,6 @@ const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
 const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 const { mapTxReturn, getUtxosToFillTx } = require('../../../helpers/tx.helper');
-
 
 async function buildTxProposal(req, res) {
   const validationResult = parametersValidation(req);

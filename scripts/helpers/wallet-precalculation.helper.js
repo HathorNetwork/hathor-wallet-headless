@@ -13,7 +13,7 @@ import config from '../../__tests__/integration/configuration/config-fixture';
 
 export const precalculationHelpers = {
   /**
-   * @type WalletPrecalculationHelper
+   * @type {WalletPrecalculationHelper|null}
    */
   test: null
 };

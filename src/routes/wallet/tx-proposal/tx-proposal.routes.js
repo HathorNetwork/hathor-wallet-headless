@@ -5,13 +5,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
- const { Router } = require('express');
- const { checkSchema, oneOf } = require('express-validator');
- const {
-    buildTxProposal,
-    addSignatures,
-    pushTxHex,
- } = require('../../../controllers/wallet/tx-proposal/tx-proposal.controller');
+const { Router } = require('express');
+const { checkSchema, oneOf } = require('express-validator');
+const {
+  buildTxProposal,
+  addSignatures,
+  pushTxHex,
+} = require('../../../controllers/wallet/tx-proposal/tx-proposal.controller');
 const { txBuildSchema, queryInputSchema, txInputSchema, txHexSchema, txHexInputDataSchema } = require('../../../schemas');
 
 const txProposalRouter = Router({ mergeParams: true });
