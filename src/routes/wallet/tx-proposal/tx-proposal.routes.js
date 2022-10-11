@@ -14,30 +14,30 @@
  } = require('../../../controllers/wallet/tx-proposal/tx-proposal.controller');
 const { txBuildSchema, queryInputSchema, txInputSchema, txHexSchema, txHexInputDataSchema } = require('../../../schemas');
 
- const txProposalRouter = Router({ mergeParams: true });
+const txProposalRouter = Router({ mergeParams: true });
 
- txProposalRouter.post(
-   '/',
-   // Body and outputs validaion
-   checkSchema(txBuildSchema),
-   // inputs validationn
-   oneOf([
+txProposalRouter.post(
+  '/',
+  // Body and outputs validaion
+  checkSchema(txBuildSchema),
+  // inputs validationn
+  oneOf([
     checkSchema(queryInputSchema),
     checkSchema(txInputSchema),
-   ]),
-   buildTxProposal,
- );
+  ]),
+  buildTxProposal,
+);
 
- txProposalRouter.post(
+txProposalRouter.post(
   '/add-signatures',
   checkSchema(txHexInputDataSchema),
   addSignatures,
- );
+);
 
- txProposalRouter.post(
-  '/add-signatures',
+txProposalRouter.post(
+  '/push-tx',
   checkSchema(txHexSchema),
   pushTxHex,
- );
+);
 
- module.exports = txProposalRouter;
+module.exports = txProposalRouter;

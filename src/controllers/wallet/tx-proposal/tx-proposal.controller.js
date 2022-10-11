@@ -10,7 +10,6 @@
   SendTransaction,
   helpersUtils,
   transaction,
-  helpers,
 } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
@@ -87,21 +86,20 @@ async function buildTxProposal(req, res) {
   }
 
   try {
-    const sendTransaction = SendTransaction({
+    const sendTransaction = new SendTransaction({
       outputs,
       inputs,
       changeAddress,
       pin: '123',
       network,
     });
-    sendTransaction.prepareTxData();
+    const fullTxData = sendTransaction.prepareTxData();
     // Do not sign or complete the transaction yet
     const preparedData = transaction.prepareData(
-      sendTransaction.fullTxData, '123',
-      { getSignature: false, completeTx: false },
+      fullTxData, '123',
+      { getSignature: false },
     );
-    const tx = helpers.createTxFromData(preparedData, network);
-
+    const tx = helpersUtils.createTxFromData(preparedData, network);
     res.send({ success: true, txHex: tx.toHex() });
   } catch (err) {
     res.send({ success: false, error: err.message });
@@ -118,14 +116,13 @@ async function addSignatures(req, res) {
   }
 
   const { txHex, signatures } = req.body;
+  const tx = helpersUtils.createTxFromHex(txHex, req.wallet.getNetworkObject());
 
-  const tx = helpersUtils.createTxFromHex(txHex, req.wallet.network);
-
-  for (const [index, inputData] of Object.entries(signatures)) {
-    tx.inputs[index].setData(Buffer.from(inputData, 'hex'));
+  for (const signature of signatures) {
+    tx.inputs[signature.index].setData(Buffer.from(signature.data, 'hex'));
   }
 
-  res.send({ success: true, txHex: tx.toHex() });
+  return res.send({ success: true, txHex: tx.toHex() });
 }
 
 async function pushTxHex(req, res) {
@@ -143,9 +140,9 @@ async function pushTxHex(req, res) {
 
   const network = req.wallet.getNetworkObject();
   const { txHex } = req.body;
-  const transaction = helpersUtils.createTxFromHex(txHex, req.wallet.network);
 
   try {
+    const transaction = helpersUtils.createTxFromHex(txHex, req.wallet.getNetworkObject());
     const sendTransaction = new SendTransaction({ transaction, network });
     const response = await sendTransaction.runFromMining();
     res.send({ success: true, tx: mapTxReturn(response)})

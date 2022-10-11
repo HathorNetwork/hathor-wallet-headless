@@ -204,8 +204,8 @@ export const txBuildSchema = {
     optional: true,
     custom: {
       options: (value, { req, location, path }) => {
-        // Test if token uid is a 64 character hex string
-        if (!(/^[0-9a-fA-F]{64}$/.test(value))) return false;
+        // Test if token uid is a 64 character hex string or 00
+        if (!(/^(00|[0-9a-fA-F]{64})$/.test(value))) return false;
         return true;
       }
     },
@@ -214,7 +214,7 @@ export const txBuildSchema = {
     in: ['body'],
     isObject: true,
     custom: {
-      options: async (value, { req, location, path }) => {
+      options: (value, { req, location, path }) => {
         if ('type' in value && value.type === 'data') {
           if ('data' in value && !('token' in value)) {
             return (/^[0-9a-fA-F]+$/.test(value.data));
@@ -275,6 +275,14 @@ export const queryInputSchema = {
     isLength: 1,
     notEmpty: true,
   },
+  'inputs.*.type': {
+    in: ['body'],
+    errorMessage: 'Invalid type',
+    isString: true,
+    equals: {
+      options: 'query',
+    },
+  },
   'inputs.*.max_utxos': {
     in: ['body'],
     errorMessage: 'Invalid max_utxos',
@@ -331,8 +339,30 @@ export const txHexInputDataSchema = {
   ...txHexSchema,
   signatures: {
     in: ['body'],
-    errorMessage: 'Invalid outputs array',
-    isObject: true,
-    optional: false,
+    errorMessage: 'Invalid signatures',
+    isArray: true,
+    isEmpty: false,
+  },
+  'signatures.*.index': {
+    in: ['body'],
+    errorMessage: 'Invalid signature input index',
+    isInt: {
+      options: {
+        min: 0,
+      },
+    },
+    toInt: true,
+  },
+  'signatures.*.data': {
+    in: ['body'],
+    errorMessage: 'Invalid signature data',
+    isString: true,
+    custom: {
+      options: (value, { req, location, path }) => {
+        // Test if data is a hex string
+        if (!(/^[0-9a-fA-F]+$/.test(value))) return false;
+        return true;
+      }
+    },
   },
 };
