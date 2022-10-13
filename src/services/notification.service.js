@@ -62,7 +62,6 @@ class HathorEvents extends EventEmitter {
     // new-tx
     hwallet.on('new-tx', tx => {
       const type = WalletEventMap['new-tx'];
-      const balance = getWalletBalanceForTx(hwallet, tx);
       const data = { type, walletId, data: tx, balance: getWalletBalanceForTx(hwallet, tx) };
 
       this.emit(type, data);
