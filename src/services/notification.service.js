@@ -40,16 +40,18 @@ class HathorEvents extends EventEmitter {
           data.stateName = 'Closed';
           break;
         case 1:
-          data.stateName = 'Connecting'
+          data.stateName = 'Connecting';
           break;
         case 2:
-          data.stateName = 'Syncing'
+          data.stateName = 'Syncing';
           break;
         case 3:
-          data.stateName = 'Ready'
+          data.stateName = 'Ready';
           break;
         case 4:
-          data.stateName = 'Error'
+          data.stateName = 'Error';
+          break;
+        default:
           break;
       }
 

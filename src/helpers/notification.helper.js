@@ -14,7 +14,6 @@ const {
     TOKEN_MELT_MASK,
   },
   dateFormatter,
-  HathorWallet,
   wallet: oldWallet,
 } = require('@hathor/wallet-lib');
 
@@ -81,19 +80,21 @@ function getWalletBalanceForTx(wallet, tx) {
 
   for (const output of tx.outputs) {
     if (output.decoded && output.decoded.address && wallet.isAddressMine(output.decoded.address)) {
-      const token = tokens[txout.token_data & TOKEN_INDEX_MASK];
+      const token = tokens[output.token_data & TOKEN_INDEX_MASK];
       if (!tokenBalance[token]) {
         tokenBalance[token] = getEmptyBalance();
       }
-      
+
       const timelock = output.decoded.timelock && isTimelocked(output.decoded.timelock);
       const heightlock = tx.height && isHeightLocked(tx.height);
-      const lockProp = (timelock || heightlock) ? "locked" : "unlocked";
+      const lockProp = (timelock || heightlock) ? 'locked' : 'unlocked';
 
       if ((output.token_data & TOKEN_AUTHORITY_MASK) > 0) {
         // Calculate authority for this output
-        tokenBalance[token].authorities[lockProp].mint += (output.value & TOKEN_MINT_MASK) > 0 ? 1 : 0;
-        tokenBalance[token].authorities[lockProp].melt += (output.value & TOKEN_MELT_MASK) > 0 ? 1 : 0;
+        tokenBalance[token].authorities[lockProp].mint += (output.value & TOKEN_MINT_MASK) > 0
+          ? 1 : 0;
+        tokenBalance[token].authorities[lockProp].melt += (output.value & TOKEN_MELT_MASK) > 0
+          ? 1 : 0;
       } else {
         // calculate balance for this output
         tokenBalance[token].tokens[lockProp] += output.value;

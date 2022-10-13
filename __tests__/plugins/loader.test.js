@@ -14,9 +14,6 @@ beforeAll(() => {
 
 test('getPluginPath', () => {
   expect(getPluginPath('a.js')).toEqual(path.resolve('./src/plugins/a.js'));
-  global.config.pluginDir = '/var/config';
-  expect(getPluginPath('b.js')).toEqual('/var/config/b.js');
-  delete global.config.pluginDir;
 });
 
 test('importPlugin', async () => {

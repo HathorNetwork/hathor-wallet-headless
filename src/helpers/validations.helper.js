@@ -5,10 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-// eslint-disable-next-line import/no-import-module-exports
 import { validationResult } from 'express-validator';
 
-function parametersValidation(req) {
+export function parametersValidation(req) {
   // Parameters validation
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -16,7 +15,3 @@ function parametersValidation(req) {
   }
   return { success: true };
 }
-
-module.exports = {
-  parametersValidation,
-};

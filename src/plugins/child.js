@@ -52,9 +52,7 @@ export const hathorPlugins = {
  *
  * @returns {string} Plugin module path
  */
-export const getPluginPath = pluginFile => {
-  return path.resolve(path.join('./src/plugins', pluginFile));
-};
+export const getPluginPath = pluginFile => path.resolve(path.join('./src/plugins', pluginFile));
 
 /**
  * Find and import a plugin returning the exported methods.
