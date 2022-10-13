@@ -11,6 +11,7 @@ const config = require('../config');
 const { initializedWallets } = require('../services/wallets.service');
 const { API_ERROR_CODES } = require('../helpers/constants');
 const { parametersValidation } = require('../helpers/validations.helper');
+const { getReadonlyWallet, getWalletFromSeed, WalletStartError } = require('../helpers/wallet.helper');
 
 function welcome(req, res) {
   res.send('<html><body><h1>Welcome to Hathor Wallet API!</h1>'
@@ -22,11 +23,11 @@ function docs(req, res) {
 }
 
 function start(req, res) {
-  // We expect the user to send the seed he wants to use
-  if (!('seedKey' in req.body) && !('seed' in req.body)) {
+  // We expect the user to either send the seed of an xpubkey he wants to use.
+  if (!('xpubkey' in req.body) && !('seedKey' in req.body) && !('seed' in req.body)) {
     res.send({
       success: false,
-      message: 'Parameter \'seedKey\' or \'seed\' is required.',
+      message: 'Parameter \'seedKey\', \'seed\' or \'xpubkey\' is required.',
     });
     return;
   }
@@ -39,37 +40,12 @@ function start(req, res) {
     return;
   }
 
-  let seed;
-  let seedKey;
-  if ('seedKey' in req.body) {
-    seedKey = req.body.seedKey;
-    if (!(seedKey in config.seeds)) {
-      res.send({
-        success: false,
-        message: 'Seed not found.',
-      });
-      return;
-    }
-
-    seed = config.seeds[seedKey];
-  } else {
-    seed = req.body.seed;
-  }
-
-  // Seed validation
-  try {
-    const ret = walletUtils.wordsValid(seed);
-    seed = ret.words;
-  } catch (e) {
-    if (e instanceof errors.InvalidWords) {
-      res.send({
-        success: false,
-        message: `Invalid seed: ${e.message}`,
-      });
-      return;
-    }
-    // Unhandled error
-    throw e;
+  if ((('seedKey' in req.body) || ('seed' in req.body)) && ('xpubkey' in req.body)) {
+    res.send({
+      success: false,
+      message: 'You can\'t start a readonly wallet and send a seed in the same request.',
+    });
+    return;
   }
 
   // The user must send a key to index this wallet
@@ -81,13 +57,28 @@ function start(req, res) {
     return;
   }
 
+  const walletID = req.body['wallet-id'];
+  if (walletID in initializedWallets) {
+    // We already have a wallet for this key
+    // so we log that it won't start a new one because
+    // it must first stop the old wallet and then start the new
+    console.error('Error starting wallet because this wallet-id is already in use. You must stop the wallet first.');
+    res.send({
+      message: `Failed to start wallet with wallet id ${walletID}`,
+      errorCode: API_ERROR_CODES.WALLET_ALREADY_STARTED,
+    })
+    return;
+  }
+
   let multisigData = null;
   if (('multisig' in req.body) && (req.body.multisig !== false)) {
-    if (!(config.multisig && (seedKey in config.multisig))) {
+    const multisigKey = req.body['seedKey'] || req.body['multisigKey'];
+
+    if (!(config.multisig && (multisigKey in config.multisig))) {
       // Trying to start a multisig without proper configuration
       res.send({
         success: false,
-        message: `Seed ${seedKey} is not configured for multisig.`
+        message: `${multisigKey} is not configured for multisig.`
       });
       return;
     }
@@ -95,7 +86,7 @@ function start(req, res) {
     //   (i) Should have all fields
     //  (ii) `pubkeys` length should match `total`
     // (iii) `numSignatures` should be less or equal to `total`
-    const mconfig = config.multisig[seedKey];
+    const mconfig = config.multisig[multisigKey];
     if (!(mconfig
            && (mconfig.total && mconfig.numSignatures && mconfig.pubkeys)
            && (mconfig.pubkeys.length === mconfig.total)
@@ -103,7 +94,7 @@ function start(req, res) {
       // Missing multisig items
       res.send({
         success: false,
-        message: `Improperly configured multisig for seed ${seedKey}.`
+        message: `Improperly configured multisig for seed ${multisigKey}.`
       });
       return;
     }
@@ -115,68 +106,65 @@ function start(req, res) {
                 + `and ${multisigData.numSignatures} numSignatures`);
   }
 
-  const connection = new Connection({
-    network: config.network,
-    servers: [config.server],
-    connectionTimeout: config.connectionTimeout,
-  });
-  // Previous versions of the lib would have password and pin default as '123'
-  // We currently need something to be defined, otherwise we get an error when starting the wallet
-  const walletConfig = {
-    seed,
-    connection,
-    password: '123',
-    pinCode: '123',
-    multisig: multisigData,
-  };
+  const preCalculatedAddresses = 'precalculatedAddresses' in req.body ? req.body.preCalculatedAddresses : [];
 
-  // tokenUid is optionat but if not passed as parameter
-  // the wallet will use HTR
-  if (config.tokenUid) {
-    walletConfig.tokenUid = config.tokenUid;
-  }
-
-  // Passphrase is optional but if not passed as parameter
-  // the wallet will use empty string
-  if (req.body.passphrase) {
-    // If config explicitly allows the /start endpoint to have a passphrase
-    const allowPassphrase = config.allowPassphrase || false;
-
-    if (!allowPassphrase) {
-      // To use a passphrase on /start POST request the configuration of the headless must
-      // explicitly allow it
-      console.error('Failed to start wallet because using a passphrase is not allowed by '
-                  + 'the current config. See allowPassphrase.');
-      res.send({
-        success: false,
-        message: 'Failed to start wallet. To use a passphrase you must explicitly allow it in the configuration file. Using a passphrase completely changes the addresses of your wallet, only use it if you know what you are doing.',
+  let wallet;
+  if ('xpubkey' in req.body) {
+    try {
+      // starting a readonly wallet
+      wallet = getReadonlyWallet({
+        xpub: req.body.xpubkey,
+        multisigData,
+        preCalculatedAddresses,
       });
-      return;
+    } catch (e) {
+      if (e instanceof WalletStartError) {
+        res.send({
+          success: false,
+          message: e.message,
+        });
+        return;
+      }
+      // Unhandled error
+      throw e;
     }
-    walletConfig.passphrase = req.body.passphrase;
-  }
-  const walletID = req.body['wallet-id'];
+  } else if (('seed' in req.body) || ('seedKey' in req.body)) {
+    let seed;
+    let seedKey;
+    if ('seedKey' in req.body) {
+      seedKey = req.body.seedKey;
+      if (!(seedKey in config.seeds)) {
+        res.send({
+          success: false,
+          message: 'Seed not found.',
+        });
+        return;
+      }
+      seed = config.seeds[seedKey];
+    } else {
+      seed = req.body.seed;
+    }
 
-  // Wallet addresses pre-calculation, usually for speeding up tests
-  if (req.body.preCalculatedAddresses && req.body.preCalculatedAddresses.length) {
-    console.log(`Received pre-calculated addresses`, req.body.preCalculatedAddresses);
-    walletConfig.preCalculatedAddresses = req.body.preCalculatedAddresses;
+    try {
+      wallet = getWalletFromSeed({
+        seed,
+        multisigData,
+        passphrase: req.body.passphrase,
+        preCalculatedAddresses,
+      });
+    } catch (e) {
+      if (e instanceof WalletStartError) {
+        res.send({
+          success: false,
+          message: e.message,
+        });
+        return;
+      }
+      // Unhandled error
+      throw e;
+    }
   }
 
-  if (walletID in initializedWallets) {
-    // We already have a wallet for this key
-    // so we log that it won't start a new one because
-    // it must first stop the old wallet and then start the new
-    console.error('Error starting wallet because this wallet-id is already in use. You must stop the wallet first.');
-    res.send({
-      success: false,
-      message: `Failed to start wallet with wallet id ${walletID}`,
-      errorCode: API_ERROR_CODES.WALLET_ALREADY_STARTED
-    });
-    return;
-  }
-
-  const wallet = new HathorWallet(walletConfig);
   wallet.start().then(info => {
     console.log(`Wallet started with wallet id ${req.body['wallet-id']}. Full-node info: `, info);
     initializedWallets[req.body['wallet-id']] = wallet;
