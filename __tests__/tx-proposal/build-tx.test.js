@@ -76,12 +76,12 @@ describe('create tx-proposal api', () => {
     expect(response.body.success).toBeFalsy();
 
     response = await TestUtils.request
-    .post('/wallet/tx-proposal')
-    .send({
-      outputs: [{ address: TestUtils.addresses[0], value: 1 }],
-      inputs: [{ index: 0 }],
-    })
-    .set({ 'x-wallet-id': walletId });
+      .post('/wallet/tx-proposal')
+      .send({
+        outputs: [{ address: TestUtils.addresses[0], value: 1 }],
+        inputs: [{ index: 0 }],
+      })
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
   });
@@ -89,32 +89,32 @@ describe('create tx-proposal api', () => {
   it('should not accept wrong custom tokens', async () => {
     // non hex value
     let response = await TestUtils.request
-    .post('/wallet/tx-proposal')
-    .send({
-      outputs: [{ address: TestUtils.addresses[0], value: 1, token: 'FAKE_CUSTOM_TOKEN' }],
-    })
-    .set({ 'x-wallet-id': walletId });
+      .post('/wallet/tx-proposal')
+      .send({
+        outputs: [{ address: TestUtils.addresses[0], value: 1, token: 'FAKE_CUSTOM_TOKEN' }],
+      })
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
 
     // Hex value but invalid token uid (!== 64 chars)
     response = await TestUtils.request
-    .post('/wallet/tx-proposal')
-    .send({
-      outputs: [{ address: TestUtils.addresses[0], value: 1, token: '09af' }],
-    })
-    .set({ 'x-wallet-id': walletId });
+      .post('/wallet/tx-proposal')
+      .send({
+        outputs: [{ address: TestUtils.addresses[0], value: 1, token: '09af' }],
+      })
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
   });
 
   it('should not accept incomplete data outputs', async () => {
     const response = await TestUtils.request
-    .post('/wallet/tx-proposal')
-    .send({
-      outputs: [{ type: 'data' }],
-    })
-    .set({ 'x-wallet-id': walletId });
+      .post('/wallet/tx-proposal')
+      .send({
+        outputs: [{ type: 'data' }],
+      })
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
   });
 
@@ -125,7 +125,7 @@ describe('create tx-proposal api', () => {
         { amount: 10, tx_id: FAKE_TX_ID, index: 0 },
       ],
     });
-    let response = await TestUtils.request
+    const response = await TestUtils.request
       .post('/wallet/tx-proposal')
       .send({
         outputs: [
@@ -173,11 +173,11 @@ describe('create tx-proposal api', () => {
   it('should accept outputs with HTR', async () => {
     // Implicit HTR: no token field
     let response = await TestUtils.request
-    .post('/wallet/tx-proposal')
-    .send({
-      outputs: [{ address: TestUtils.addresses[0], value: 1 }],
-    })
-    .set({ 'x-wallet-id': walletId });
+      .post('/wallet/tx-proposal')
+      .send({
+        outputs: [{ address: TestUtils.addresses[0], value: 1 }],
+      })
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
       success: true,
@@ -186,11 +186,11 @@ describe('create tx-proposal api', () => {
 
     // Explicit HTR: token 00
     response = await TestUtils.request
-    .post('/wallet/tx-proposal')
-    .send({
-      outputs: [{ address: TestUtils.addresses[0], value: 1, token: HATHOR_TOKEN_CONFIG.uid }],
-    })
-    .set({ 'x-wallet-id': walletId });
+      .post('/wallet/tx-proposal')
+      .send({
+        outputs: [{ address: TestUtils.addresses[0], value: 1, token: HATHOR_TOKEN_CONFIG.uid }],
+      })
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
       success: true,
@@ -200,11 +200,11 @@ describe('create tx-proposal api', () => {
 
   it('should accept outputs with custom tokens', async () => {
     const response = await TestUtils.request
-    .post('/wallet/tx-proposal')
-    .send({
-      outputs: [{ address: TestUtils.addresses[0], value: 1, token: TOKEN_UID }],
-    })
-    .set({ 'x-wallet-id': walletId });
+      .post('/wallet/tx-proposal')
+      .send({
+        outputs: [{ address: TestUtils.addresses[0], value: 1, token: TOKEN_UID }],
+      })
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
       success: true,
@@ -214,11 +214,11 @@ describe('create tx-proposal api', () => {
 
   it('should accept data outputs', async () => {
     const response = await TestUtils.request
-    .post('/wallet/tx-proposal')
-    .send({
-      outputs: [{ type: 'data', data: '0099aaffAAFF' }],
-    })
-    .set({ 'x-wallet-id': walletId });
+      .post('/wallet/tx-proposal')
+      .send({
+        outputs: [{ type: 'data', data: '0099aaffAAFF' }],
+      })
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
       success: true,
@@ -249,18 +249,34 @@ describe('create tx-proposal api', () => {
 
     expect(tx.outputs).toEqual(expect.arrayContaining([
       expect.objectContaining({ value: 1, tokenData: 0, decodedScript: { data: 'cafed00d' } }),
-      expect.objectContaining({ value: 10, tokenData: 0, decodedScript: expect.objectContaining({
-        address: expect.objectContaining({ base58: TestUtils.addresses[0] })
-      })}),
-      expect.objectContaining({ value: 15, tokenData: 1, decodedScript: expect.objectContaining({
-        address: expect.objectContaining({ base58: TestUtils.addresses[1] })
-      })}),
-      expect.objectContaining({ value: 20, tokenData: 0, decodedScript: expect.objectContaining({
-        address: expect.objectContaining({ base58: TestUtils.multisigAddresses[0] })
-      })}),
-      expect.objectContaining({ value: 25, tokenData: 1, decodedScript: expect.objectContaining({
-        address: expect.objectContaining({ base58: TestUtils.multisigAddresses[1] })
-      })}),
+      expect.objectContaining({
+        value: 10,
+        tokenData: 0,
+        decodedScript: expect.objectContaining({
+          address: expect.objectContaining({ base58: TestUtils.addresses[0] })
+        }),
+      }),
+      expect.objectContaining({
+        value: 15,
+        tokenData: 1,
+        decodedScript: expect.objectContaining({
+          address: expect.objectContaining({ base58: TestUtils.addresses[1] })
+        }),
+      }),
+      expect.objectContaining({
+        value: 20,
+        tokenData: 0,
+        decodedScript: expect.objectContaining({
+          address: expect.objectContaining({ base58: TestUtils.multisigAddresses[0] })
+        }),
+      }),
+      expect.objectContaining({
+        value: 25,
+        tokenData: 1,
+        decodedScript: expect.objectContaining({
+          address: expect.objectContaining({ base58: TestUtils.multisigAddresses[1] })
+        }),
+      }),
     ]));
   });
 
@@ -361,12 +377,12 @@ describe('create tx-proposal api', () => {
 
   it('should use the provided change_address', async () => {
     const response = await TestUtils.request
-    .post('/wallet/tx-proposal')
-    .send({
-      outputs: [{ address: TestUtils.addresses[0], value: 1 }],
-      change_address: TestUtils.addresses[1],
-    })
-    .set({ 'x-wallet-id': walletId });
+      .post('/wallet/tx-proposal')
+      .send({
+        outputs: [{ address: TestUtils.addresses[0], value: 1 }],
+        change_address: TestUtils.addresses[1],
+      })
+      .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
       success: true,
@@ -376,13 +392,19 @@ describe('create tx-proposal api', () => {
     // Check that we have the intended output and a change for the address
     const tx = helpersUtils.createTxFromHex(response.body.txHex, new Network('testnet'));
     expect(tx.outputs).toEqual(expect.arrayContaining([
-      expect.objectContaining({ value: 1, tokenData: 0, decodedScript: expect.objectContaining({
-        address: expect.objectContaining({ base58: TestUtils.addresses[0] })
-      })}),
-      expect.objectContaining({ tokenData: 0, decodedScript: expect.objectContaining({
-        address: expect.objectContaining({ base58: TestUtils.addresses[1] })
-      })}),
+      expect.objectContaining({
+        value: 1,
+        tokenData: 0,
+        decodedScript: expect.objectContaining({
+          address: expect.objectContaining({ base58: TestUtils.addresses[0] })
+        }),
+      }),
+      expect.objectContaining({
+        tokenData: 0,
+        decodedScript: expect.objectContaining({
+          address: expect.objectContaining({ base58: TestUtils.addresses[1] })
+        }),
+      }),
     ]));
-
   });
 });

@@ -1,9 +1,7 @@
 import { walletUtils } from '@hathor/wallet-lib';
-import { precalculationHelpers } from './scripts/helpers/wallet-precalculation.helper';
 import config from './configuration/config-fixture';
-import { singleMultisigWalletData } from '../../scripts/helpers/wallet-precalculation.helper';
+import { precalculationHelpers, singleMultisigWalletData } from '../../scripts/helpers/wallet-precalculation.helper';
 import { TestUtils } from './utils/test-utils-integration';
-import { loggers } from './utils/logger.util';
 
 function newReadOnlyWallet() {
   const accountDerivationIndex = '0\'/0';
@@ -16,14 +14,10 @@ function newReadOnlyWallet() {
 }
 
 describe('Readonly wallet', () => {
-  const {
-    words: multisigWords,
-    walletConfig: multisigWalletConfig,
-  } = singleMultisigWalletData;
+  const { walletConfig: multisigWalletConfig } = singleMultisigWalletData;
 
   beforeAll(async () => {
     global.config.multisig = { multisig: multisigWalletConfig };
-
   });
 
   afterAll(async () => {
@@ -41,7 +35,7 @@ describe('Readonly wallet', () => {
         xpubkey,
         'wallet-id': walletId,
       });
-    
+
     expect(response.status).toEqual(200);
     expect(response.body.success).toBeThruthy();
     try {
@@ -49,7 +43,7 @@ describe('Readonly wallet', () => {
       await TestUtils.poolUntilWalletReady(walletId);
       // If timeout is not reached we can assume the wallet has started
       // We will confirm the first address to ensure the wallet was started correctly
-      const address = await TestUtils.getAddressAt(0)
+      const address = await TestUtils.getAddressAt(0);
       expect(address).toEqual(addresses[0]);
     } finally {
       // Cleanup
@@ -69,7 +63,7 @@ describe('Readonly wallet', () => {
         'wallet-id': walletId,
         multisigKey: 'multisig',
       });
-    
+
     expect(response.status).toEqual(200);
     expect(response.body.success).toBeThruthy();
     try {
@@ -77,7 +71,7 @@ describe('Readonly wallet', () => {
       await TestUtils.poolUntilWalletReady(walletId);
       // If timeout is not reached we can assume the wallet has started
       // We will confirm the first address to ensure the wallet was started correctly
-      const address = await TestUtils.getAddressAt(0)
+      const address = await TestUtils.getAddressAt(0);
       expect(address).toEqual(addresses[0]);
     } finally {
       // Cleanup
@@ -105,22 +99,22 @@ describe('Readonly wallet', () => {
       await TestUtils.poolUntilWalletReady(walletId);
       // Insufficient funds due to query
       response = await TestUtils.request
-      .post('/wallet/tx-proposal')
-      .send({
-        inputs: [{ type: 'query', filter_address: addresses[1] }],
-        outputs: [{ address: addresses[2], value: 10 }],
-      })
-      .set({ 'x-wallet-id': walletId });
-      expect(response.status).toBe(200);      
+        .post('/wallet/tx-proposal')
+        .send({
+          inputs: [{ type: 'query', filter_address: addresses[1] }],
+          outputs: [{ address: addresses[2], value: 10 }],
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
       expect(response.body.success).toBe(false);
 
       // Get a transaction to be signed offline
       response = await TestUtils.request
-      .post('/wallet/tx-proposal')
-      .send({
-        outputs: [{ address: addresses[1], value: 10 }],
-      })
-      .set({ 'x-wallet-id': walletId });
+        .post('/wallet/tx-proposal')
+        .send({
+          outputs: [{ address: addresses[1], value: 10 }],
+        })
+        .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(200);
       expect(response.body).toMatchObject({
         success: true,
@@ -131,5 +125,4 @@ describe('Readonly wallet', () => {
       await TestUtils.stopWallet(walletId);
     }
   });
-
 });

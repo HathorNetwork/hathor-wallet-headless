@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { walletApi, tokensUtils, walletUtils, errors, Connection, HathorWallet } = require('@hathor/wallet-lib');
+const { walletApi, tokensUtils, walletUtils } = require('@hathor/wallet-lib');
 const apiDocs = require('../api-docs');
 const config = require('../config');
 const { initializedWallets } = require('../services/wallets.service');
@@ -66,13 +66,13 @@ function start(req, res) {
     res.send({
       message: `Failed to start wallet with wallet id ${walletID}`,
       errorCode: API_ERROR_CODES.WALLET_ALREADY_STARTED,
-    })
+    });
     return;
   }
 
   let multisigData = null;
   if (('multisig' in req.body) && (req.body.multisig !== false)) {
-    const multisigKey = req.body['seedKey'] || req.body['multisigKey'];
+    const multisigKey = req.body.seedKey || req.body.multisigKey;
 
     if (!(config.multisig && (multisigKey in config.multisig))) {
       // Trying to start a multisig without proper configuration

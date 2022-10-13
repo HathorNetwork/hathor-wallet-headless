@@ -95,7 +95,8 @@ async function buildTxProposal(req, res) {
     const fullTxData = sendTransaction.prepareTxData();
     // Do not sign or complete the transaction yet
     const preparedData = transaction.prepareData(
-      fullTxData, '123',
+      fullTxData,
+      '123',
       { getSignature: false },
     );
     const tx = helpersUtils.createTxFromData(preparedData, network);
@@ -121,7 +122,7 @@ async function addSignatures(req, res) {
     tx.inputs[signature.index].setData(Buffer.from(signature.data, 'hex'));
   }
 
-  return res.send({ success: true, txHex: tx.toHex() });
+  res.send({ success: true, txHex: tx.toHex() });
 }
 
 async function pushTxHex(req, res) {
@@ -141,10 +142,10 @@ async function pushTxHex(req, res) {
   const { txHex } = req.body;
 
   try {
-    const transaction = helpersUtils.createTxFromHex(txHex, req.wallet.getNetworkObject());
-    const sendTransaction = new SendTransaction({ transaction, network });
+    const tx = helpersUtils.createTxFromHex(txHex, req.wallet.getNetworkObject());
+    const sendTransaction = new SendTransaction({ transaction: tx, network });
     const response = await sendTransaction.runFromMining();
-    res.send({ success: true, tx: mapTxReturn(response)})
+    res.send({ success: true, tx: mapTxReturn(response) });
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {

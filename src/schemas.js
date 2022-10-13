@@ -223,7 +223,7 @@ export const txBuildSchema = {
         }
         // This is an address output
         // Check that we have all params
-        return ('address' in value && 'value' in value)
+        return ('address' in value && 'value' in value);
       },
     },
   },
@@ -268,7 +268,7 @@ export const txInputSchema = {
 };
 
 export const queryInputSchema = {
-  'inputs': {
+  inputs: {
     in: ['body'],
     errorMessage: 'Invalid inputs array',
     isArray: true,

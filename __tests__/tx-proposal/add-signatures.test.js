@@ -39,17 +39,18 @@ describe('add signatures api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
     expect(response.body.success).toBeFalsy();
-  response = await TestUtils.request
-    .post('/wallet/tx-proposal/add-signatures')
-    .send({
-      txHex: FAKE_TX_HEX,
-      signatures: [{
-        index: 1, data: 'invalid-signature', // non-hex signature
-      }],
-    })
-    .set({ 'x-wallet-id': walletId });
-  expect(response.status).toBe(400);
-  expect(response.body.success).toBeFalsy();
+
+    response = await TestUtils.request
+      .post('/wallet/tx-proposal/add-signatures')
+      .send({
+        txHex: FAKE_TX_HEX,
+        signatures: [{
+          index: 1, data: 'invalid-signature', // non-hex signature
+        }],
+      })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBeFalsy();
   });
 
   it('should add signatures to the transaction', async () => {
@@ -76,9 +77,9 @@ describe('add signatures api', () => {
       .send({
         txHex: testHex,
         signatures: [
-          {index: 1, data: '0ff1ce'},
-          {index: 3, data: 'deadd00d'},
-          {index: 0, data: 'deadc0de'},
+          { index: 1, data: '0ff1ce' },
+          { index: 3, data: 'deadd00d' },
+          { index: 0, data: 'deadc0de' },
         ],
       })
       .set({ 'x-wallet-id': walletId });
