@@ -49,8 +49,8 @@ describe('Readonly wallet', () => {
         .get('/wallet/address')
         .query({ index: 0 })
         .set({ 'x-wallet-id': walletId });
-    loggers.test.insertLineToLog('readonly[start]: get address', { body: response.body });
-    expect(response.body.address).toEqual(addresses[0]);
+      loggers.test.insertLineToLog('readonly[start]: get address', { body: response.body });
+      expect(response.body.address).toEqual(addresses[0]);
     } finally {
       // Cleanup
       await TestUtils.stopWallet(walletId);
