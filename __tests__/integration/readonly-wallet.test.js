@@ -1,7 +1,9 @@
-import { walletUtils } from '@hathor/wallet-lib';
+import { helpersUtils, Network, walletUtils } from '@hathor/wallet-lib';
 import config from './configuration/config-fixture';
 import { precalculationHelpers, singleMultisigWalletData } from '../../scripts/helpers/wallet-precalculation.helper';
 import { TestUtils } from './utils/test-utils-integration';
+import { loggers } from './utils/logger.util';
+import { WalletHelper } from './utils/wallet-helper';
 
 function newReadOnlyWallet() {
   const accountDerivationIndex = '0\'/0';
@@ -43,11 +45,12 @@ describe('Readonly wallet', () => {
       await TestUtils.poolUntilWalletReady(walletId);
       // If timeout is not reached we can assume the wallet has started
       // We will confirm the first address to ensure the wallet was started correctly
-      response = TestUtils.request
+      response = await TestUtils.request
         .get('/wallet/address')
         .query({ index: 0 })
         .set({ 'x-wallet-id': walletId });
-      expect(response.body.address).toEqual(addresses[0]);
+    loggers.test.insertLineToLog('readonly[start]: get address', { body: response.body });
+    expect(response.body.address).toEqual(addresses[0]);
     } finally {
       // Cleanup
       await TestUtils.stopWallet(walletId);
@@ -66,7 +69,7 @@ describe('Readonly wallet', () => {
         'wallet-id': walletId,
         multisigKey: 'multisig',
       });
-
+    loggers.test.insertLineToLog('readonly[multisig]: get address', { body: response.body });
     expect(response.status).toEqual(200);
     expect(response.body.success).toBeTruthy();
     try {
@@ -74,10 +77,11 @@ describe('Readonly wallet', () => {
       await TestUtils.poolUntilWalletReady(walletId);
       // If timeout is not reached we can assume the wallet has started
       // We will confirm the first address to ensure the wallet was started correctly
-      response = TestUtils.request
+      response = await TestUtils.request
         .get('/wallet/address')
         .query({ index: 0 })
         .set({ 'x-wallet-id': walletId });
+
       expect(response.body.address).toEqual(addresses[0]);
     } finally {
       // Cleanup
@@ -101,7 +105,7 @@ describe('Readonly wallet', () => {
     try {
       // Wait until the wallet has actually started
       await TestUtils.poolUntilWalletReady(walletId);
-
+      await WalletHelper.startMultipleWalletsForTest([]);
       // Inject funds in wallet
       await TestUtils.injectFundsIntoAddress(addresses[0], 100, walletId);
 
@@ -128,6 +132,25 @@ describe('Readonly wallet', () => {
         success: true,
         txHex: expect.any(String),
       });
+
+      const { txHex } = response.body;
+      // Add signature to transaction hex
+      response = await TestUtils.request
+        .post('/wallet/tx-proposal/add-signatures')
+        .send({
+          txHex,
+          signatures: [{ index: 0, data: 'c0ffecafe0' }],
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        success: true,
+        txHex: expect.any(String),
+      });
+
+      const tx = helpersUtils.createTxFromHex(response.body.txHex, new Network('privatenet'));
+      // Expect that the signature was added to the transaction
+      expect(tx.inputs[0].data.toString('hex')).toEqual('c0ffecafe0');
     } finally {
       // Cleanup
       await TestUtils.stopWallet(walletId);
