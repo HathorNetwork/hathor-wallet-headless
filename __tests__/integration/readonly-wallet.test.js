@@ -37,7 +37,7 @@ describe('Readonly wallet', () => {
       });
 
     expect(response.status).toEqual(200);
-    expect(response.body.success).toBeThruthy();
+    expect(response.body.success).toBeTruthy();
     try {
       // Wait until the wallet has actually started
       await TestUtils.poolUntilWalletReady(walletId);
@@ -65,7 +65,7 @@ describe('Readonly wallet', () => {
       });
 
     expect(response.status).toEqual(200);
-    expect(response.body.success).toBeThruthy();
+    expect(response.body.success).toBeTruthy();
     try {
       // Wait until the wallet has actually started
       await TestUtils.poolUntilWalletReady(walletId);
@@ -93,7 +93,7 @@ describe('Readonly wallet', () => {
         precalculatedAddresses: addresses,
       });
     expect(response.status).toEqual(200);
-    expect(response.body.success).toBeThruthy();
+    expect(response.body.success).toBeTruthy();
     try {
       // Wait until the wallet has actually started
       await TestUtils.poolUntilWalletReady(walletId);
