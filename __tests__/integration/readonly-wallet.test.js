@@ -29,7 +29,7 @@ describe('Readonly wallet', () => {
     const { xpubkey, addresses } = newReadOnlyWallet();
     // We will not use precalculated addresses here
     // so we can test the wallet was started correctly
-    const response = await TestUtils.request
+    let response = await TestUtils.request
       .post('/start')
       .send({
         xpubkey,
@@ -43,8 +43,11 @@ describe('Readonly wallet', () => {
       await TestUtils.poolUntilWalletReady(walletId);
       // If timeout is not reached we can assume the wallet has started
       // We will confirm the first address to ensure the wallet was started correctly
-      const address = await TestUtils.getAddressAt(0);
-      expect(address).toEqual(addresses[0]);
+      response = TestUtils.request
+        .get('/wallet/address')
+        .query({ index: 0 })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.body.address).toEqual(addresses[0]);
     } finally {
       // Cleanup
       await TestUtils.stopWallet(walletId);
@@ -56,7 +59,7 @@ describe('Readonly wallet', () => {
     const { xpubkey, addresses } = newReadOnlyWallet();
     // We will not use precalculated addresses here
     // so we can test the wallet was started correctly
-    const response = await TestUtils.request
+    let response = await TestUtils.request
       .post('/start')
       .send({
         xpubkey,
@@ -71,8 +74,11 @@ describe('Readonly wallet', () => {
       await TestUtils.poolUntilWalletReady(walletId);
       // If timeout is not reached we can assume the wallet has started
       // We will confirm the first address to ensure the wallet was started correctly
-      const address = await TestUtils.getAddressAt(0);
-      expect(address).toEqual(addresses[0]);
+      response = TestUtils.request
+        .get('/wallet/address')
+        .query({ index: 0 })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.body.address).toEqual(addresses[0]);
     } finally {
       // Cleanup
       await TestUtils.stopWallet(walletId);
@@ -82,8 +88,6 @@ describe('Readonly wallet', () => {
   it('should create a transaction to be signed offline', async () => {
     const walletId = 'readonlyCreateTx';
     const { xpubkey, addresses } = newReadOnlyWallet();
-    // Inject funds in wallet
-    await TestUtils.injectFundsIntoAddress(addresses[0], 100, walletId);
 
     let response = await TestUtils.request
       .post('/start')
@@ -97,6 +101,10 @@ describe('Readonly wallet', () => {
     try {
       // Wait until the wallet has actually started
       await TestUtils.poolUntilWalletReady(walletId);
+
+      // Inject funds in wallet
+      await TestUtils.injectFundsIntoAddress(addresses[0], 100, walletId);
+
       // Insufficient funds due to query
       response = await TestUtils.request
         .post('/wallet/tx-proposal')
