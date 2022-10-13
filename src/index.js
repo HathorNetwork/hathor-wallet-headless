@@ -21,7 +21,7 @@ if (config.enabled_plugins && config.enabled_plugins.length > 0) {
   // options.silent will pipe child stdout to main process
   // options.env will spawn child with the same environment as main process (for config)
   const child = fork(
-    `${__dirname}/child.js`,
+    `${__dirname}/plugins/child.js`,
     process.argv.slice(2),
     { silent: true, env: process.env },
   );

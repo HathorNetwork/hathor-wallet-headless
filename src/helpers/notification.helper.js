@@ -7,8 +7,6 @@
 
 const {
   constants: {
-    HATHOR_TOKEN_CONFIG,
-    TOKEN_INDEX_MASK,
     TOKEN_AUTHORITY_MASK,
     TOKEN_MINT_MASK,
     TOKEN_MELT_MASK,
@@ -54,33 +52,30 @@ function getWalletBalanceForTx(wallet, tx) {
 
   /** @type {TokenBalance} */
   const tokenBalance = {};
-  const tokens = [HATHOR_TOKEN_CONFIG.uid].concat(tx.tokens);
 
   for (const input of tx.inputs) {
-    const inputTx = wallet.getTx(input.tx_id);
-    if (!inputTx) {
-      // ignore this input since its not from the wallet
-      continue;
-    }
-    const txout = inputTx.outputs[input.index];
-    const token = tokens[txout.token_data & TOKEN_INDEX_MASK];
-    if (!tokenBalance[token]) {
-      tokenBalance[token] = getEmptyBalance();
-    }
+    if (input.decoded && input.decoded.address && wallet.isAddressMine(input.decoded.address)) {
+      const { token } = input;
+      if (!tokenBalance[token]) {
+        tokenBalance[token] = getEmptyBalance();
+      }
 
-    if ((txout.token_data & TOKEN_AUTHORITY_MASK) > 0) {
-      // This is an authority utxo being spent
-      tokenBalance[token].authorities.unlocked.mint -= (txout.value & TOKEN_MINT_MASK) > 0 ? 1 : 0;
-      tokenBalance[token].authorities.unlocked.melt -= (txout.value & TOKEN_MELT_MASK) > 0 ? 1 : 0;
-    } else {
-      // Remove input from token balance
-      tokenBalance[token].tokens.unlocked -= txout.value;
+      if ((input.token_data & TOKEN_AUTHORITY_MASK) > 0) {
+        // This is an authority utxo being spent
+        tokenBalance[token].authorities.unlocked.mint -= (input.value & TOKEN_MINT_MASK) > 0
+          ? 1 : 0;
+        tokenBalance[token].authorities.unlocked.melt -= (input.value & TOKEN_MELT_MASK) > 0
+          ? 1 : 0;
+      } else {
+        // Remove input from token balance
+        tokenBalance[token].tokens.unlocked -= input.value;
+      }
     }
   }
 
   for (const output of tx.outputs) {
     if (output.decoded && output.decoded.address && wallet.isAddressMine(output.decoded.address)) {
-      const token = tokens[output.token_data & TOKEN_INDEX_MASK];
+      const { token } = output;
       if (!tokenBalance[token]) {
         tokenBalance[token] = getEmptyBalance();
       }

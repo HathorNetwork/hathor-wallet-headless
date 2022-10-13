@@ -11,14 +11,17 @@ async function checkDeps() {
   const requiredDeps = {
     yargs: '^16.2.0',
   };
-  await Promise.all(requiredDeps.map(async d => {
+  await Promise.all(Object.keys(requiredDeps).map(async d => {
     try {
-      return import(d);
+      await import(d);
     } catch (e) {
       throw new Error(`Some plugin dependencies are missing, to install them run:
       $ npm install ${Object.entries(requiredDeps).map(x => [x[0], x[1]].join('@')).join(' ')}`);
     }
-  }));
+  })).catch(e => {
+    console.error(e.message);
+    process.exit(127);
+  });
 }
 
 export const getSettings = () => {
