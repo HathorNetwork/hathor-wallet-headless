@@ -6,7 +6,7 @@
  */
 
 const { Router } = require('express');
-const { query, checkSchema, body } = require('express-validator');
+const { query, checkSchema, oneOf, body } = require('express-validator');
 const { walletMiddleware } = require('../../middlewares/wallet.middleware');
 const {
   getStatus, getBalance, getAddress, getAddresses, getTxHistory, getTransaction,
@@ -14,11 +14,14 @@ const {
   utxoConsolidation, createNft, getAddressInfo, stop,
   getAddressIndex, getTxConfirmationBlocks
 } = require('../../controllers/wallet/wallet.controller');
+const { txHexSchema, partialTxSchema } = require('../../schemas');
 const p2shRouter = require('./p2sh/p2sh.routes');
+const atomicSwapRouter = require('./atomic-swap/atomic-swap.routes');
 const { MAX_DATA_SCRIPT_LENGTH } = require('../../constants');
 
 const walletRouter = Router({ mergeParams: true });
 walletRouter.use(walletMiddleware);
+walletRouter.use('/atomic-swap', atomicSwapRouter);
 walletRouter.use('/p2sh', p2shRouter);
 
 /**
@@ -167,20 +170,10 @@ walletRouter.post(
 
 walletRouter.post(
   '/decode',
-  checkSchema({
-    txHex: {
-      in: ['body'],
-      errorMessage: 'Invalid txHex',
-      isString: true,
-      custom: {
-        options: (value, { req, location, path }) => {
-          // Test if txHex is actually hex
-          if (!(/^[0-9a-fA-F]+$/.test(value))) return false;
-          return true;
-        }
-      },
-    },
-  }),
+  oneOf([
+    checkSchema(txHexSchema),
+    checkSchema(partialTxSchema),
+  ], 'Required at least one of txHex or partial_tx'),
   decodeTx
 );
 

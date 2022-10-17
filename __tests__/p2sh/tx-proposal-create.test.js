@@ -1,7 +1,7 @@
 import hathorLib from '@hathor/wallet-lib';
-import TestUtils from './test-utils';
+import TestUtils from '../test-utils';
 
-const walletId = 'stub_create_tx_proposal';
+const walletId = 'stub_p2sh_create_tx_proposal';
 
 describe('create tx-proposal api', () => {
   beforeAll(async () => {
