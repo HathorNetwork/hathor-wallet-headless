@@ -21,7 +21,7 @@ const ConnectionEventMap = {
   state: 'node:state-change',
   'wallet-update': 'node:wallet-update',
   'best-block-update': 'node:best-block-update',
-  'wallet-load-partial-update': 'node:wallet-load-partial-update',
+  'wallet-load-partial-update': 'wallet:load-partial-update',
 };
 
 const AllEvents = [...Object.values(WalletEventMap), ...Object.values(ConnectionEventMap)];
