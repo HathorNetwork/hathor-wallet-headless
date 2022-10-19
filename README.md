@@ -324,3 +324,9 @@ Check out how to configure and use as a MultiSig wallet on [MULTISIG.md](./MULTI
 
 This application has two different contexts for testing.
 Refer to [TESTING.md](./TESTING.md) for more information on this.
+
+## Plugin
+
+A plugin receives real-time events from the loaded wallets and can do anything with them.
+
+The plugin system is better described on [PLUGIN.md](./PLUGIN.md).
