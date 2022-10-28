@@ -7,14 +7,19 @@
 
 const {
   constants: hathorLibConstants,
-  SendTransaction,
   helpersUtils,
+  SendTransaction,
   transaction,
+  transaction: transactionUtils,
+  walletUtils,
+  storage,
 } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
 const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 const { mapTxReturn, getUtxosToFillTx } = require('../../../helpers/tx.helper');
+const { HDPublicKey } = require('bitcore-lib');
+const { _ } = require('lodash');
 
 async function buildTxProposal(req, res) {
   const validationResult = parametersValidation(req);
@@ -100,7 +105,7 @@ async function buildTxProposal(req, res) {
       { getSignature: false },
     );
     const tx = helpersUtils.createTxFromData(preparedData, network);
-    res.send({ success: true, txHex: tx.toHex() });
+    res.send({ success: true, txHex: tx.toHex(), dataToSignHash: tx.getDataToSignHash().toString('hex') });
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {
@@ -153,8 +158,84 @@ async function pushTxHex(req, res) {
   }
 }
 
+/**
+ * Get metadata on all inputs from the loaded wallet.
+ */
+ function getWalletInputs(req, res) {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    res.status(400).json(validationResult);
+    return;
+  }
+
+  const { txHex } = req.query;
+  const { wallet } = req;
+  const network = wallet.getNetworkObject();
+
+  try {
+    const tx = helpersUtils.createTxFromHex(txHex, network);
+    res.send({ success: true, inputs: wallet.getWalletInputInfo(tx) });
+  } catch (err) {
+    res.send({ success: false, error: err.message });
+  }
+}
+
+function getInputData(req, res) {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    res.status(400).json(validationResult);
+    return;
+  }
+
+  const { index, type } = req.body;
+  storage.setStore(req.wallet.store);
+  const accessData = storage.getItem('wallet:accessData');
+  let inputData;
+
+  switch (type) {
+    case 'p2pkh':
+      const { signature } = req.body;
+      const xpub = new HDPublicKey(accessData.xpubkey);
+      const newKey = xpub.deriveChild(index);
+      inputData = transactionUtils.createInputData(
+        Buffer.from(signature, 'hex'),
+        newKey.publicKey.toBuffer(),
+      );
+      break;
+    case 'p2sh':
+      // check if the loaded wallet is MultiSig
+      const multisigData = accessData.multisig;
+      if (multisigData) {
+        res.send({ success: false, error: 'wallet is not MultiSig' });
+        return;
+      }
+      const { signatures } = req.body;
+      // Get signatures as buffer sorted by the signer's pubkey
+      const sortedSigs = _.sortBy(
+          Object.entries(signatures).map(v => ({
+            xpubkey: new HDPublicKey(v[0]),
+            signature: v[1],
+          })),
+          val => Buffer.from(val.xpubkey, 'hex'),
+        )
+        .map(val => val.signature);
+
+      const redeemScript = walletUtils.createP2SHRedeemScript(multisigData.pubkeys, multisigData.numSignatures, index);
+      inputData = walletUtils.getP2SHInputData(sortedSigs, redeemScript);
+      break;
+    default:
+      // Should not happen due to validation
+      res.status(400).json({ success: false });
+      return;
+  }
+
+  res.send({ success: true, inputData: inputData.toString('hex') });
+}
+
 module.exports = {
   buildTxProposal,
   addSignatures,
   pushTxHex,
+  getWalletInputs,
+  getInputData,
 };

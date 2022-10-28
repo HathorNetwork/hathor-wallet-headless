@@ -182,6 +182,7 @@ describe('create tx-proposal api', () => {
     expect(response.body).toMatchObject({
       success: true,
       txHex: expect.any(String),
+      dataToSignHash: expect.any(String),
     });
 
     // Explicit HTR: token 00
@@ -195,6 +196,7 @@ describe('create tx-proposal api', () => {
     expect(response.body).toMatchObject({
       success: true,
       txHex: expect.any(String),
+      dataToSignHash: expect.any(String),
     });
   });
 
@@ -209,6 +211,7 @@ describe('create tx-proposal api', () => {
     expect(response.body).toMatchObject({
       success: true,
       txHex: expect.any(String),
+      dataToSignHash: expect.any(String),
     });
   });
 
@@ -223,6 +226,7 @@ describe('create tx-proposal api', () => {
     expect(response.body).toMatchObject({
       success: true,
       txHex: expect.any(String),
+      dataToSignHash: expect.any(String),
     });
   });
 
@@ -243,9 +247,11 @@ describe('create tx-proposal api', () => {
     expect(response.body).toMatchObject({
       success: true,
       txHex: expect.any(String),
+      dataToSignHash: expect.any(String),
     });
 
     const tx = helpersUtils.createTxFromHex(response.body.txHex, new Network('testnet'));
+    expect(tx.getDataToSignHash().toString('hex')).toEqual(response.body.dataToSignHash);
 
     expect(tx.outputs).toEqual(expect.arrayContaining([
       expect.objectContaining({ value: 1, tokenData: 0, decodedScript: { data: 'cafed00d' } }),
@@ -387,6 +393,7 @@ describe('create tx-proposal api', () => {
     expect(response.body).toMatchObject({
       success: true,
       txHex: expect.any(String),
+      dataToSignHash: expect.any(String),
     });
 
     // Check that we have the intended output and a change for the address

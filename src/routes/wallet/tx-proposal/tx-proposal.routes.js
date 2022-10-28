@@ -6,13 +6,15 @@
  */
 
 const { Router } = require('express');
-const { checkSchema, oneOf } = require('express-validator');
+const { checkSchema, oneOf, query } = require('express-validator');
 const {
   buildTxProposal,
   addSignatures,
   pushTxHex,
+  getWalletInputs,
+  getInputData,
 } = require('../../../controllers/wallet/tx-proposal/tx-proposal.controller');
-const { txBuildSchema, queryInputSchema, txInputSchema, txHexSchema, txHexInputDataSchema } = require('../../../schemas');
+const { txBuildSchema, queryInputSchema, txInputSchema, txHexSchema, txHexInputDataSchema, p2pkhSignature, p2shSignature } = require('../../../schemas');
 
 const txProposalRouter = Router({ mergeParams: true });
 
@@ -38,6 +40,29 @@ txProposalRouter.post(
   '/push-tx',
   checkSchema(txHexSchema),
   pushTxHex,
+);
+
+/**
+ * GET request to fetch which of the tx inputs are from the wallet.
+ * For the docs, see api-docs.js
+ */
+txProposalRouter.get(
+  '/get-wallet-inputs',
+  query('txHex').isString().custom(value => {
+    // check txHex is an actual hex
+    return /^[0-9a-fA-F]+$/.test(value);
+  },
+  getWalletInputs
+));
+
+/**
+ * POST request to convert raw signatures into input data.
+ * For the docs, see api-docs.js
+ */
+txProposalRouter.post(
+  '/input-data',
+  oneOf([checkSchema(p2pkhSignature), checkSchema(p2shSignature)]),
+  getInputData,
 );
 
 module.exports = txProposalRouter;

@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import { HDPublicKey } from 'bitcore-lib';
+
 export const txHexSchema = {
   txHex: {
     in: ['body'],
@@ -74,8 +76,7 @@ export const atomicSwapCreateSchema = {
     custom: {
       options: (value, { req, location, path }) => {
         // Test if txId is a 64 character hex string
-        if (!(/^[0-9a-fA-F]{64}$/.test(value))) return false;
-        return true;
+        return (/^[0-9a-fA-F]{64}$/.test(value));
       }
     },
   },
@@ -205,8 +206,7 @@ export const txBuildSchema = {
     custom: {
       options: (value, { req, location, path }) => {
         // Test if token uid is a 64 character hex string or 00
-        if (!(/^(00|[0-9a-fA-F]{64})$/.test(value))) return false;
-        return true;
+        return /^(00|[0-9a-fA-F]{64})$/.test(value);
       }
     },
   },
@@ -250,8 +250,7 @@ export const txInputSchema = {
     custom: {
       options: (value, { req, location, path }) => {
         // Test if hash is a 64 character hex string
-        if (!(/^[0-9a-fA-F]{64}$/.test(value))) return false;
-        return true;
+        return /^[0-9a-fA-F]{64}$/.test(value);
       }
     },
   },
@@ -358,11 +357,65 @@ export const txHexInputDataSchema = {
     errorMessage: 'Invalid signature data',
     isString: true,
     custom: {
+      options: value => {
+        return /^[0-9a-fA-F]+$/.test(value);
+      }
+    },
+  },
+};
+
+export const p2pkhSignature = {
+  signature: {
+    in: ['body'],
+    errorMessage: 'Invalid signatures',
+    isString: true,
+    custom: {
       options: (value, { req, location, path }) => {
-        // Test if data is a hex string
-        if (!(/^[0-9a-fA-F]+$/.test(value))) return false;
+        return /^[0-9a-fA-F]+$/.test(value);
+      }
+    },
+  },
+  type: {
+    customSanitizer: {
+      options: () => {
+        return 'p2pkh';
+      }
+    }
+  },
+};
+
+export const p2shSignature = {
+  signatures: {
+    in: ['body'],
+    errorMessage: 'Invalid signature',
+    isObject: true,
+    custom: {
+      options: value => {
+        console.log(JSON.stringify(value));
+        for (const [xpub, signature] of Object.entries(value)) {
+          // values should be hex strings
+          console.log(`*************** Will begin with ${signature}`)
+          if (!(/^[0-9a-fA-F]+$/.test(signature))) return false;
+          console.log('*************** Its not the signature')
+          try {
+            // Keys should be a valid xpubkey
+            console.log(`*************** Testing ${xpub}`)
+            new HDPublicKey(xpub);
+            console.log('*************** Its not the key?')
+          } catch(err) {
+            console.log(err.message);
+            return false;
+          }
+        }
         return true;
       }
     },
+  },
+  type: {
+    customSanitizer: {
+      options: () => {
+        return 'p2sh';
+      }
+    }
   },
 };
