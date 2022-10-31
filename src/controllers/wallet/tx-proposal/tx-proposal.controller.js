@@ -170,9 +170,9 @@ async function pushTxHex(req, res) {
 
   const { txHex } = req.query;
   const { wallet } = req;
-  const network = wallet.getNetworkObject();
 
   try {
+    const network = wallet.getNetworkObject();
     const tx = helpersUtils.createTxFromHex(txHex, network);
     res.send({ success: true, inputs: wallet.getWalletInputInfo(tx) });
   } catch (err) {

@@ -365,6 +365,16 @@ export const txHexInputDataSchema = {
 };
 
 export const p2pkhSignature = {
+  index: {
+    in: ['body'],
+    errorMessage: 'Invalid index',
+    isInt: {
+      options: {
+        min: 0,
+      },
+    },
+    toInt: true,
+  },
   signature: {
     in: ['body'],
     errorMessage: 'Invalid signatures',
@@ -385,25 +395,29 @@ export const p2pkhSignature = {
 };
 
 export const p2shSignature = {
+  index: {
+    in: ['body'],
+    errorMessage: 'Invalid index',
+    isInt: {
+      options: {
+        min: 0,
+      },
+    },
+    toInt: true,
+  },
   signatures: {
     in: ['body'],
     errorMessage: 'Invalid signature',
     isObject: true,
     custom: {
       options: value => {
-        console.log(JSON.stringify(value));
         for (const [xpub, signature] of Object.entries(value)) {
           // values should be hex strings
-          console.log(`*************** Will begin with ${signature}`)
           if (!(/^[0-9a-fA-F]+$/.test(signature))) return false;
-          console.log('*************** Its not the signature')
           try {
             // Keys should be a valid xpubkey
-            console.log(`*************** Testing ${xpub}`)
             new HDPublicKey(xpub);
-            console.log('*************** Its not the key?')
           } catch(err) {
-            console.log(err.message);
             return false;
           }
         }
