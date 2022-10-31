@@ -1,11 +1,8 @@
-import { Transaction, Input, Output } from '@hathor/wallet-lib';
-import { HDPrivateKey } from 'bitcore-lib';
 import TestUtils from '../test-utils';
 
 const walletId = 'stub_tx_proposal_input_data';
 
 describe('add signatures api', () => {
-
   beforeAll(async () => {
     await TestUtils.startWallet({ walletId, preCalculatedAddresses: TestUtils.addresses });
   });
@@ -15,9 +12,6 @@ describe('add signatures api', () => {
   });
 
   it('should not accept invalid signatures', async () => {
-    const key = new HDPrivateKey();
-    const xpub = key.xpubkey;
-
     // P2PKH
     let response = await TestUtils.request
       .post('/wallet/tx-proposal/input-data')
@@ -34,7 +28,7 @@ describe('add signatures api', () => {
       .post('/wallet/tx-proposal/input-data')
       .send({
         index: 0,
-        signatures: { [xpub]: 'invalid-signature' },
+        signatures: { [TestUtils.multisigXpub]: 'invalid-signature' },
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
@@ -42,9 +36,6 @@ describe('add signatures api', () => {
   });
 
   it('should not accept invalid indexes', async () => {
-    const key = new HDPrivateKey();
-    const xpub = key.xpubkey;
-
     // P2PKH
     let response = await TestUtils.request
       .post('/wallet/tx-proposal/input-data')
@@ -71,7 +62,7 @@ describe('add signatures api', () => {
       .post('/wallet/tx-proposal/input-data')
       .send({
         index: 'foo',
-        signatures: { [xpub]: 'abc123' },
+        signatures: { [TestUtils.multisigXpub]: 'abc123' },
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
@@ -81,7 +72,7 @@ describe('add signatures api', () => {
     response = await TestUtils.request
       .post('/wallet/tx-proposal/input-data')
       .send({
-        signatures: { [xpub]: 'abc123' },
+        signatures: { [TestUtils.multisigXpub]: 'abc123' },
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
@@ -89,14 +80,11 @@ describe('add signatures api', () => {
   });
 
   it('should not accept P2SH inputs from a P2PKH wallet', async () => {
-    const key = new HDPrivateKey();
-    const xpub = key.xpubkey;
-
-    response = await TestUtils.request
+    const response = await TestUtils.request
       .post('/wallet/tx-proposal/input-data')
       .send({
         index: 0,
-        signatures: { [xpub]: 'abc0123' },
+        signatures: { [TestUtils.multisigXpub]: 'abc0123' },
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);

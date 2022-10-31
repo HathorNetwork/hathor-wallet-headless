@@ -48,12 +48,10 @@ txProposalRouter.post(
  */
 txProposalRouter.get(
   '/get-wallet-inputs',
-  query('txHex').isString().custom(value => {
-    // check txHex is an actual hex
-    return /^[0-9a-fA-F]+$/.test(value);
-  },
+  // check txHex is an actual hex
+  query('txHex').isString().custom(value => /^[0-9a-fA-F]+$/.test(value)),
   getWalletInputs
-));
+);
 
 /**
  * POST request to convert raw signatures into input data.

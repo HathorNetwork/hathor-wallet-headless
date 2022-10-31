@@ -74,10 +74,8 @@ export const atomicSwapCreateSchema = {
     errorMessage: 'Invalid utxo txId',
     isString: true,
     custom: {
-      options: (value, { req, location, path }) => {
-        // Test if txId is a 64 character hex string
-        return (/^[0-9a-fA-F]{64}$/.test(value));
-      }
+      // Test if txId is a 64 character hex string
+      options: value => (/^[0-9a-fA-F]{64}$/.test(value)),
     },
   },
   'send.utxos.*.index': {
@@ -204,17 +202,15 @@ export const txBuildSchema = {
     isString: true,
     optional: true,
     custom: {
-      options: (value, { req, location, path }) => {
-        // Test if token uid is a 64 character hex string or 00
-        return /^(00|[0-9a-fA-F]{64})$/.test(value);
-      }
+      // Test if token uid is a 64 character hex string or 00
+      options: value => /^(00|[0-9a-fA-F]{64})$/.test(value),
     },
   },
   'outputs.*': {
     in: ['body'],
     isObject: true,
     custom: {
-      options: (value, { req, location, path }) => {
+      options: value => {
         if ('type' in value && value.type === 'data') {
           if ('data' in value && !('token' in value)) {
             return (/^[0-9a-fA-F]+$/.test(value.data));
@@ -248,10 +244,8 @@ export const txInputSchema = {
     errorMessage: 'Invalid hash',
     isString: true,
     custom: {
-      options: (value, { req, location, path }) => {
-        // Test if hash is a 64 character hex string
-        return /^[0-9a-fA-F]{64}$/.test(value);
-      }
+      // Test if hash is a 64 character hex string
+      options: value => /^[0-9a-fA-F]{64}$/.test(value),
     },
   },
   'inputs.*.index': {
@@ -357,9 +351,7 @@ export const txHexInputDataSchema = {
     errorMessage: 'Invalid signature data',
     isString: true,
     custom: {
-      options: value => {
-        return /^[0-9a-fA-F]+$/.test(value);
-      }
+      options: value => /^[0-9a-fA-F]+$/.test(value),
     },
   },
 };
@@ -380,16 +372,12 @@ export const p2pkhSignature = {
     errorMessage: 'Invalid signatures',
     isString: true,
     custom: {
-      options: (value, { req, location, path }) => {
-        return /^[0-9a-fA-F]+$/.test(value);
-      }
+      options: value => /^[0-9a-fA-F]+$/.test(value)
     },
   },
   type: {
     customSanitizer: {
-      options: () => {
-        return 'p2pkh';
-      }
+      options: () => 'p2pkh',
     }
   },
 };
@@ -416,8 +404,8 @@ export const p2shSignature = {
           if (!(/^[0-9a-fA-F]+$/.test(signature))) return false;
           try {
             // Keys should be a valid xpubkey
-            new HDPublicKey(xpub);
-          } catch(err) {
+            HDPublicKey(xpub);
+          } catch (err) {
             return false;
           }
         }
@@ -427,9 +415,7 @@ export const p2shSignature = {
   },
   type: {
     customSanitizer: {
-      options: () => {
-        return 'p2sh';
-      }
+      options: () => 'p2sh',
     }
   },
 };
