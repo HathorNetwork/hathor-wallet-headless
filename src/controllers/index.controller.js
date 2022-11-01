@@ -23,7 +23,7 @@ function docs(req, res) {
 }
 
 function start(req, res) {
-  // We expect the user to either send the seed of an xpubkey he wants to use.
+  // We expect the user to either send the seed or an xpubkey he wants to use.
   if (!('xpubkey' in req.body) && !('seedKey' in req.body) && !('seed' in req.body)) {
     res.send({
       success: false,

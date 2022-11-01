@@ -30,7 +30,7 @@ async function buildTxProposal(req, res) {
 
   // build a transaction hex
   const { wallet } = req;
-  const network = req.wallet.getNetworkObject();
+  const network = wallet.getNetworkObject();
   const { outputs } = req.body;
 
   const tokens = new Map();
@@ -59,6 +59,7 @@ async function buildTxProposal(req, res) {
     if (inputs[0].type === 'query') {
       const query = inputs[0];
       inputs = [];
+
       // query processing
 
       for (const element of tokens) {
