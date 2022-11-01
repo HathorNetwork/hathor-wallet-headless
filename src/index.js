@@ -5,57 +5,71 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import express from 'express';
-import morgan from 'morgan';
-import { config as hathorLibConfig, wallet as oldWalletUtils } from '@hathor/wallet-lib';
+/* istanbul ignore file */
+import { fork } from 'child_process';
+import { config as hathorLibConfig } from '@hathor/wallet-lib';
 
 import config from './config';
-import apiKeyAuth from './middlewares/api-key-auth.middleware';
-import logger from './logger';
+import createApp from './app';
+import { EVENTBUS_EVENT_NAME, notificationBus } from './services/notification.service';
 import version from './version';
-import mainRouter from './routes/index.routes';
 
-// Initializing Hathor Lib
-export const initHathorLib = () => {
-  if (config.txMiningUrl) {
-    hathorLibConfig.setTxMiningUrl(config.txMiningUrl);
-  }
+if (config.enabled_plugins && config.enabled_plugins.length > 0) {
+  // There are configured plugins, we should start the child process
 
-  if (config.txMiningApiKey) {
-    hathorLibConfig.setTxMiningApiKey(config.txMiningApiKey);
-  }
+  // We will pass the argv we receive since the config module may need these arguments
+  // options.silent will pipe child stdout to main process
+  // options.env will spawn child with the same environment as main process (for config)
+  const child = fork(
+    `${__dirname}/plugins/child.js`,
+    process.argv.slice(2),
+    { silent: true, env: process.env },
+  );
+  console.log(`child process started with pid ${child.pid}`);
 
-  // Set package version in user agent
-  // We use this string to parse the version from user agent
-  // in some of our services, so changing this might break another service
-  hathorLibConfig.setUserAgent(`Hathor Wallet Headless / ${version}`);
+  process.on('exit', () => {
+    if (child.connected || !child.killed) {
+      console.log('disconnecting from child.');
+      child.disconnect();
+    }
+  });
 
-  // Those configurations will be set when starting the wallet
-  // however we can already set them because they are fixed
-  // for all wallets and it's useful if we need to run any request
-  // to the full node before starting a wallet
-  hathorLibConfig.setServerUrl(config.server);
-  hathorLibConfig.setNetwork(config.network);
-};
+  // This is to unify logs from child and main process.
+  child.stdout.on('data', console.log);
 
-initHathorLib();
+  // Pipe child stderr to stdout.
+  child.stderr.on('data', console.error);
 
-// Initializing ExpressJS
-const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(morgan(config.httpLogFormat || 'combined', { stream: logger.stream }));
+  child.on('error', err => {
+    console.error(`child process error: ${err.message}`);
+  });
 
-// Configurations
-if (config.gapLimit) {
-  console.log(`Set GAP LIMIT to ${config.gapLimit}`);
-  oldWalletUtils.setGapLimit(config.gapLimit);
+  child.on('disconnect', (code, signal) => {
+    console.log(`child process disconnected from IPC channel with (${code} and ${signal})`);
+    // Killing child just in case it has not yet died.
+    child.kill(); // SIGTERM
+  });
+
+  child.on('exit', (code, signal) => {
+    console.log(`child process exited with code ${code} or due to signal ${signal}.`);
+    // Try to exit with the same signal as the child process.
+    process.exit(code || 127); // Have a default to indicate it was not a normal termination
+  });
+
+  // Pipe wallet events to child process
+  notificationBus.on(EVENTBUS_EVENT_NAME, data => {
+    if (child.killed || !child.connected) {
+      // The child has been lost, cannot send to it
+      return;
+    }
+    // Sending event data
+    child.send(data);
+  });
 }
-if (config.http_api_key) {
-  app.use(apiKeyAuth(config.http_api_key));
-}
 
-app.use(mainRouter);
+// Start main process
+
+const app = createApp();
 
 // Logging relevant variables on the console
 console.log('Starting Hathor Wallet...', {
@@ -73,13 +87,9 @@ console.log('Configuration...', {
   apiKey: config.http_api_key,
   gapLimit: config.gapLimit,
   connectionTimeout: config.connectionTimeout,
+  enabled_plugins: config.enabled_plugins,
 });
 
-// Adding server to HTTP port only if this is not a test environment
-if (process.env.NODE_ENV !== 'test') {
-  app.listen(config.http_port, config.http_bind_address, () => {
-    console.log(`Listening on ${config.http_bind_address}:${config.http_port}...`);
-  });
-}
-
-export default app;
+app.listen(config.http_port, config.http_bind_address, () => {
+  console.log(`Listening on ${config.http_bind_address}:${config.http_port}...`);
+});

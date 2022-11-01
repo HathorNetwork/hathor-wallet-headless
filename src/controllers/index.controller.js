@@ -9,6 +9,7 @@ const { walletApi, tokensUtils, walletUtils } = require('@hathor/wallet-lib');
 const apiDocs = require('../api-docs');
 const config = require('../config');
 const { initializedWallets } = require('../services/wallets.service');
+const { notificationBus } = require('../services/notification.service');
 const { API_ERROR_CODES } = require('../helpers/constants');
 const { parametersValidation } = require('../helpers/validations.helper');
 const { getReadonlyWallet, getWalletFromSeed, WalletStartError } = require('../helpers/wallet.helper');
@@ -164,6 +165,9 @@ function start(req, res) {
       throw e;
     }
   }
+
+  // subscribe to wallet events with notificationBus
+  notificationBus.subscribeHathorWallet(req.body['wallet-id'], wallet);
 
   wallet.start().then(info => {
     console.log(`Wallet started with wallet id ${req.body['wallet-id']}. Full-node info: `, info);

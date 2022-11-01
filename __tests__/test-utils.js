@@ -5,7 +5,7 @@ import winston from 'winston';
 import MockAdapter from 'axios-mock-adapter';
 import { Server } from 'mock-socket';
 import { HathorWallet } from '@hathor/wallet-lib';
-import app from '../src/index';
+import createApp from '../src/app';
 import config from '../src/config';
 import httpFixtures from './__fixtures__/http-fixtures';
 import wsFixtures from './__fixtures__/ws-fixtures';
@@ -37,6 +37,7 @@ const MULTISIG_DATA = {
   }
 };
 
+const app = createApp();
 const request = supertest(app);
 
 const httpMock = new MockAdapter(axios);
