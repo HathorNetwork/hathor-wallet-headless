@@ -14,7 +14,6 @@ const {
   walletUtils,
   storage,
 } = require('@hathor/wallet-lib');
-const { HDPublicKey } = require('bitcore-lib');
 const { _ } = require('lodash');
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
@@ -195,11 +194,9 @@ function getInputData(req, res) {
 
   if (type === 'p2pkh') {
     const { signature } = req.body.signature;
-    const xpub = new HDPublicKey(accessData.xpubkey);
-    const newKey = xpub.deriveChild(index);
     inputData = transactionUtils.createInputData(
       Buffer.from(signature, 'hex'),
-      newKey.publicKey.toBuffer(),
+      walletUtils.getPublicKeyFromXpub(accessData.xpubkey, index).toBuffer(),
     );
   } else if (type === 'p2sh') {
     // check if the loaded wallet is MultiSig
@@ -209,13 +206,21 @@ function getInputData(req, res) {
       return;
     }
     const { signatures } = req.body.signatures;
-    // Get signatures as buffer sorted by the signer's pubkey
+
+    // Validate that every xpub is from our configured xpubs
+    if (!Object.keys(signatures).every(xpub => multisigData.pubkeys.includes(xpub))) {
+      res.send({ success: false, error: 'signature from unknown signer' });
+      return;
+    }
+
+    // Get signatures as buffer sorted by the signer's pubkey (as hex string)
     const sortedSigs = _.sortBy(
       Object.entries(signatures).map(v => ({
-        xpubkey: new HDPublicKey(v[0]),
+        // The xpub should the same as the one on the multisig configuration, i.e. account path xpub
+        pubkey: walletUtils.getPublicKeyFromXpub(v[0]).toString(),
         signature: Buffer.from(v[1], 'hex'),
       })),
-      val => val.publicKey.toString(),
+      val => val.pubkey,
     ).map(val => val.signature);
 
     const redeemScript = walletUtils.createP2SHRedeemScript(

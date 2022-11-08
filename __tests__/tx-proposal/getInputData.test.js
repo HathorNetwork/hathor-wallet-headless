@@ -1,14 +1,20 @@
 import TestUtils from '../test-utils';
+import { walletUtils } from '@hathor/wallet-lib';
 
 const walletId = 'stub_tx_proposal_input_data';
+const walletIdMultisig = 'stub_tx_proposal_input_data_p2sh';
 
 describe('add signatures api', () => {
   beforeAll(async () => {
+    global.config.multisig = TestUtils.multisigData;
     await TestUtils.startWallet({ walletId, preCalculatedAddresses: TestUtils.addresses });
+    await TestUtils.startWallet({ walletIdMultisig, multisig: true, preCalculatedAddresses: TestUtils.multisigAddresses });
   });
 
   afterAll(async () => {
     await TestUtils.stopWallet({ walletId });
+    await TestUtils.stopWallet({ walletIdMultisig });
+    global.config.multisig = {};
   });
 
   it('should not accept invalid signatures', async () => {
@@ -92,6 +98,22 @@ describe('add signatures api', () => {
     expect(response.body.error).toEqual('wallet is not MultiSig');
   });
 
+  it('should not accept signatures from unknown signers', async () => {
+    // xpubs not on account path will not be recognized
+    const unknownXpub = walletUtils.xpubDeriveChild(TestUtils.multisigXpub, 0);
+    const response = await TestUtils.request
+      .post('/wallet/tx-proposal/input-data')
+      .send({
+        index: 0,
+        signatures: { [TestUtils.multisigXpub]: 'abc0123' },
+        signatures: { [unknownXpub]: 'abc0123' },
+      })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBeFalsy();
+    expect(response.body.error).toEqual('signature from unknown signer');
+  });
+
   it('should create p2pkh input data', async () => {
     const response = await TestUtils.request
       .post('/wallet/tx-proposal/input-data')
@@ -108,30 +130,21 @@ describe('add signatures api', () => {
   });
 
   it('should create p2sh input data', async () => {
-    // start multisig wallet
-    try {
-      global.config.multisig = TestUtils.multisigData;
-      await TestUtils.startWallet({ walletId, multisig: true });
-
-      const response = await TestUtils.request
-        .post('/wallet/tx-proposal/input-data')
-        .send({
-          index: 0,
-          signatures: {
-            [TestUtils.multisigData.stub_seed.pubkeys[2]]: 'cafecafe00',
-            [TestUtils.multisigData.stub_seed.pubkeys[3]]: 'cafecafe01',
-            [TestUtils.multisigData.stub_seed.pubkeys[1]]: 'cafecafe02',
-          },
-        })
-        .set({ 'x-wallet-id': walletId });
-      expect(response.status).toBe(200);
-      expect(response.body).toMatchObject({
-        success: true,
-        inputData: expect.any(String),
-      });
-    } finally {
-      global.config.multisig = {};
-      await TestUtils.stopWallet({ walletId });
-    }
+    const response = await TestUtils.request
+      .post('/wallet/tx-proposal/input-data')
+      .send({
+        index: 0,
+        signatures: {
+          [TestUtils.multisigData.stub_seed.pubkeys[2]]: 'cafecafe00',
+          [TestUtils.multisigData.stub_seed.pubkeys[3]]: 'cafecafe01',
+          [TestUtils.multisigData.stub_seed.pubkeys[1]]: 'cafecafe02',
+        },
+      })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      success: true,
+      inputData: expect.any(String),
+    });
   });
 });

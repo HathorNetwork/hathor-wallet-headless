@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { HDPublicKey } from 'bitcore-lib';
+import { walletUtils } from '@hathor/wallet-lib';
 
 export const txHexSchema = {
   txHex: {
@@ -400,14 +400,9 @@ export const p2shSignature = {
     custom: {
       options: value => {
         for (const [xpub, signature] of Object.entries(value)) {
-          // values should be hex strings
-          if (!(/^[0-9a-fA-F]+$/.test(signature))) return false;
-          try {
-            // Keys should be a valid xpubkey
-            HDPublicKey(xpub);
-          } catch (err) {
-            return false;
-          }
+          // values should be hex strings and keys should be valid xpubs
+          if (!(/^[0-9a-fA-F]+$/.test(signature)
+            && walletUtils.isXpubKeyValid(xpub))) return false;
         }
         return true;
       }
