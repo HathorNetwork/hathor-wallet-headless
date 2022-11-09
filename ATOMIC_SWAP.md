@@ -203,7 +203,6 @@ This phase consists of participants signing the agreed upon transaction.
 ### POST /wallet/atomic-swap/tx-proposal/get-my-signatures
 
 Get the signatures for the proposal.
-The `isComplete` part of the response indicates if we have all required signatures.
 
 ```bash
 $ curl  -X POST \
@@ -213,8 +212,7 @@ $ curl  -X POST \
         http://localhost:8000/wallet/atomic-swap/tx-proposal/get-my-signatures
 {
   "success": true,
-  "signatures": "...",
-  "isComplete": false
+  "signatures": "..."
 }
 ```
 
