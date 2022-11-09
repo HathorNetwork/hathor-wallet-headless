@@ -111,7 +111,7 @@ describe('Get input-data api', () => {
         index: 0,
         signatures: { [unknownXpub]: 'abc0123' },
       })
-      .set({ 'x-wallet-id': walletId });
+      .set({ 'x-wallet-id': walletIdMultisig });
     TestUtils.logger.debug('input-data[reject unknown signers]', { body: response.body });
     expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
@@ -144,7 +144,7 @@ describe('Get input-data api', () => {
           [TestUtils.multisigData.stub_seed.pubkeys[1]]: 'cafecafe02',
         },
       })
-      .set({ 'x-wallet-id': walletId });
+      .set({ 'x-wallet-id': walletIdMultisig });
     TestUtils.logger.debug('input-data[create p2sh]', { body: response.body });
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
