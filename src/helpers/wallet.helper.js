@@ -12,15 +12,10 @@ export class WalletStartError extends Error {}
 
 export function getReadonlyWallet({
   xpub,
+  connection,
   multisigData = null,
   preCalculatedAddresses = [],
 }) {
-  const connection = new Connection({
-    network: config.network,
-    servers: [config.server],
-    connectionTimeout: config.connectionTimeout,
-  });
-
   // Previous versions of the lib would have password and pin default as '123'
   // We currently need something to be defined, otherwise we get an error when starting the wallet
   const walletConfig = {
@@ -47,6 +42,7 @@ export function getReadonlyWallet({
 
 export function getWalletFromSeed({
   seed,
+  connection,
   multisigData = null,
   passphrase = null,
   preCalculatedAddresses = [],
@@ -63,12 +59,6 @@ export function getWalletFromSeed({
     // Unhandled error
     throw e;
   }
-
-  const connection = new Connection({
-    network: config.network,
-    servers: [config.server],
-    connectionTimeout: config.connectionTimeout,
-  });
 
   // Previous versions of the lib would have password and pin default as '123'
   // We currently need something to be defined, otherwise we get an error when starting the wallet

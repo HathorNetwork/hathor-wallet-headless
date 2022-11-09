@@ -109,12 +109,18 @@ function start(req, res) {
 
   const preCalculatedAddresses = 'precalculatedAddresses' in req.body ? req.body.preCalculatedAddresses : [];
 
+  const connection = new Connection({
+    network: config.network,
+    servers: [config.server],
+    connectionTimeout: config.connectionTimeout,
+  });
   let wallet;
   if ('xpubkey' in req.body) {
     try {
       // starting a readonly wallet
       wallet = getReadonlyWallet({
         xpub: req.body.xpubkey,
+        connection,
         multisigData,
         preCalculatedAddresses,
       });
@@ -129,7 +135,8 @@ function start(req, res) {
       // Unhandled error
       throw e;
     }
-  } else if (('seed' in req.body) || ('seedKey' in req.body)) {
+  } else {
+    // Starting a wallet seed or seedKey
     let seed;
     let seedKey;
     if ('seedKey' in req.body) {
@@ -149,6 +156,7 @@ function start(req, res) {
     try {
       wallet = getWalletFromSeed({
         seed,
+        connection,
         multisigData,
         passphrase: req.body.passphrase,
         preCalculatedAddresses,

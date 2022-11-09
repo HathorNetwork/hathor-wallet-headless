@@ -9,7 +9,6 @@ const {
   constants: hathorLibConstants,
   helpersUtils,
   SendTransaction,
-  transaction,
   transaction: transactionUtils,
   walletUtils,
   storage,
@@ -99,7 +98,7 @@ async function buildTxProposal(req, res) {
     });
     const fullTxData = sendTransaction.prepareTxData();
     // Do not sign or complete the transaction yet
-    const preparedData = transaction.prepareData(
+    const preparedData = transactionUtils.prepareData(
       fullTxData,
       '123',
       { getSignature: false },
@@ -108,8 +107,6 @@ async function buildTxProposal(req, res) {
     res.send({ success: true, txHex: tx.toHex(), dataToSignHash: tx.getDataToSignHash().toString('hex') });
   } catch (err) {
     res.send({ success: false, error: err.message });
-  } finally {
-    lock.unlock(lockTypes.SEND_TX);
   }
 }
 
@@ -201,7 +198,7 @@ function getInputData(req, res) {
   } else if (type === 'p2sh') {
     // check if the loaded wallet is MultiSig
     const multisigData = accessData.multisig;
-    if (multisigData) {
+    if (!multisigData) {
       res.send({ success: false, error: 'wallet is not MultiSig' });
       return;
     }

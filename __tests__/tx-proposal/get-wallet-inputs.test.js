@@ -51,7 +51,7 @@ describe('get wallet inputs api', () => {
     const tx = new Transaction([new Input(FAKE_TX_ID, 0)], [new Output(1, Buffer.from('CAFECAFE', 'hex'))]);
 
     const response = await TestUtils.request
-      .post('/wallet/tx-proposal/get-wallet-inputs')
+      .get('/wallet/tx-proposal/get-wallet-inputs')
       .query({ txHex: tx.toHex() })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);

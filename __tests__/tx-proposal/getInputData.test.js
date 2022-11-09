@@ -4,7 +4,7 @@ import TestUtils from '../test-utils';
 const walletId = 'stub_tx_proposal_input_data';
 const walletIdMultisig = 'stub_tx_proposal_input_data_p2sh';
 
-describe('add signatures api', () => {
+describe('Get input-data api', () => {
   beforeAll(async () => {
     global.config.multisig = TestUtils.multisigData;
     await TestUtils.startWallet({ walletId, preCalculatedAddresses: TestUtils.addresses });
