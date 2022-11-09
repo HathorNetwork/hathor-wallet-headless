@@ -190,7 +190,7 @@ function getInputData(req, res) {
   let inputData;
 
   if (type === 'p2pkh') {
-    const { signature } = req.body.signature;
+    const { signature } = req.body;
     inputData = transactionUtils.createInputData(
       Buffer.from(signature, 'hex'),
       walletUtils.getPublicKeyFromXpub(accessData.xpubkey, index).toBuffer(),
@@ -202,7 +202,7 @@ function getInputData(req, res) {
       res.send({ success: false, error: 'wallet is not MultiSig' });
       return;
     }
-    const { signatures } = req.body.signatures;
+    const { signatures } = req.body;
 
     // Validate that every xpub is from our configured xpubs
     if (!Object.keys(signatures).every(xpub => multisigData.pubkeys.includes(xpub))) {
