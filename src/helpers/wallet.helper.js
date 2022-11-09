@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { HathorWallet, walletUtils, Connection, errors } from '@hathor/wallet-lib';
+import { HathorWallet, walletUtils, errors } from '@hathor/wallet-lib';
 import config from '../config';
 
 export class WalletStartError extends Error {}

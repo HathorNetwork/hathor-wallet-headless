@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { walletApi, tokensUtils, walletUtils } = require('@hathor/wallet-lib');
+const { walletApi, tokensUtils, walletUtils, Connection } = require('@hathor/wallet-lib');
 const apiDocs = require('../api-docs');
 const config = require('../config');
 const { initializedWallets } = require('../services/wallets.service');
