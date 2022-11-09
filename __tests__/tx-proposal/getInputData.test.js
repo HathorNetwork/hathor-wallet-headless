@@ -112,7 +112,8 @@ describe('Get input-data api', () => {
         signatures: { [unknownXpub]: 'abc0123' },
       })
       .set({ 'x-wallet-id': walletId });
-    expect(response.status).toBe(400);
+    TestUtils.logger.debug('input-data[reject unknown signers]', { body: response.body });
+    expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
     expect(response.body.error).toEqual('signature from unknown signer');
   });
@@ -144,6 +145,7 @@ describe('Get input-data api', () => {
         },
       })
       .set({ 'x-wallet-id': walletId });
+    TestUtils.logger.debug('input-data[create p2sh]', { body: response.body });
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
       success: true,
