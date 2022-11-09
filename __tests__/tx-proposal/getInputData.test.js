@@ -1,5 +1,5 @@
-import TestUtils from '../test-utils';
 import { walletUtils } from '@hathor/wallet-lib';
+import TestUtils from '../test-utils';
 
 const walletId = 'stub_tx_proposal_input_data';
 const walletIdMultisig = 'stub_tx_proposal_input_data_p2sh';
@@ -8,7 +8,11 @@ describe('add signatures api', () => {
   beforeAll(async () => {
     global.config.multisig = TestUtils.multisigData;
     await TestUtils.startWallet({ walletId, preCalculatedAddresses: TestUtils.addresses });
-    await TestUtils.startWallet({ walletIdMultisig, multisig: true, preCalculatedAddresses: TestUtils.multisigAddresses });
+    await TestUtils.startWallet({
+      walletIdMultisig,
+      multisig: true,
+      preCalculatedAddresses: TestUtils.multisigAddresses,
+    });
   });
 
   afterAll(async () => {
@@ -105,7 +109,6 @@ describe('add signatures api', () => {
       .post('/wallet/tx-proposal/input-data')
       .send({
         index: 0,
-        signatures: { [TestUtils.multisigXpub]: 'abc0123' },
         signatures: { [unknownXpub]: 'abc0123' },
       })
       .set({ 'x-wallet-id': walletId });
