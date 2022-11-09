@@ -97,7 +97,7 @@ describe('Get input-data api', () => {
         signatures: { [TestUtils.multisigXpub]: 'abc0123' },
       })
       .set({ 'x-wallet-id': walletId });
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(200);
     expect(response.body.success).toBeFalsy();
     expect(response.body.error).toEqual('wallet is not MultiSig');
   });

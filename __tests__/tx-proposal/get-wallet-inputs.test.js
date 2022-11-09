@@ -55,7 +55,10 @@ describe('get wallet inputs api', () => {
       .query({ txHex: tx.toHex() })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body).toEqual([{ FOO: 'BAR' }]);
+    expect(response.body).toEqual({
+      success: true,
+      inputs: [{ FOO: 'BAR' }],
+    });
 
     inputsSpy.mockRestore();
   });
