@@ -74,7 +74,6 @@ async function buildTxProposal(req, res) {
             token: tokenUid
           };
           res.send(response);
-          lock.unlock(lockTypes.SEND_TX);
           return;
         }
 
