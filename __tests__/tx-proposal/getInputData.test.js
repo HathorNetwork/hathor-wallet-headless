@@ -9,7 +9,7 @@ describe('Get input-data api', () => {
     global.config.multisig = TestUtils.multisigData;
     await TestUtils.startWallet({ walletId, preCalculatedAddresses: TestUtils.addresses });
     await TestUtils.startWallet({
-      walletIdMultisig,
+      walletId: walletIdMultisig,
       multisig: true,
       preCalculatedAddresses: TestUtils.multisigAddresses,
     });
@@ -17,7 +17,7 @@ describe('Get input-data api', () => {
 
   afterAll(async () => {
     await TestUtils.stopWallet({ walletId });
-    await TestUtils.stopWallet({ walletIdMultisig });
+    await TestUtils.stopWallet({ walletId: walletIdMultisig });
     global.config.multisig = {};
   });
 
