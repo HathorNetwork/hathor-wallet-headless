@@ -5,14 +5,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { walletApi, tokensUtils, walletUtils, Connection } = require('@hathor/wallet-lib');
+const { walletApi, tokensUtils, walletUtils, Connection, HathorWallet } = require('@hathor/wallet-lib');
 const apiDocs = require('../api-docs');
 const config = require('../config');
 const { initializedWallets } = require('../services/wallets.service');
 const { notificationBus } = require('../services/notification.service');
 const { API_ERROR_CODES } = require('../helpers/constants');
 const { parametersValidation } = require('../helpers/validations.helper');
-const { getReadonlyWallet, getWalletFromSeed, WalletStartError } = require('../helpers/wallet.helper');
+const { getReadonlyWalletConfig, getWalletConfigFromSeed, WalletStartError } = require('../helpers/wallet.helper');
 
 function welcome(req, res) {
   res.send('<html><body><h1>Welcome to Hathor Wallet API!</h1>'
@@ -107,22 +107,13 @@ function start(req, res) {
                 + `and ${multisigData.numSignatures} numSignatures`);
   }
 
-  const preCalculatedAddresses = 'precalculatedAddresses' in req.body ? req.body.preCalculatedAddresses : [];
-
-  const connection = new Connection({
-    network: config.network,
-    servers: [config.server],
-    connectionTimeout: config.connectionTimeout,
-  });
-  let wallet;
+  let walletConfig;
   if ('xpubkey' in req.body) {
     try {
       // starting a readonly wallet
-      wallet = getReadonlyWallet({
+      walletConfig = getReadonlyWalletConfig({
         xpub: req.body.xpubkey,
-        connection,
         multisigData,
-        preCalculatedAddresses,
       });
     } catch (e) {
       if (e instanceof WalletStartError) {
@@ -154,12 +145,10 @@ function start(req, res) {
     }
 
     try {
-      wallet = getWalletFromSeed({
+      walletConfig = getWalletConfigFromSeed({
         seed,
-        connection,
         multisigData,
         passphrase: req.body.passphrase,
-        preCalculatedAddresses,
       });
     } catch (e) {
       if (e instanceof WalletStartError) {
@@ -173,6 +162,26 @@ function start(req, res) {
       throw e;
     }
   }
+
+  const connection = new Connection({
+    network: config.network,
+    servers: [config.server],
+    connectionTimeout: config.connectionTimeout,
+  });
+  walletConfig.connection = connection;
+
+  // tokenUid is optional but if not passed as parameter the wallet will use HTR
+  if (config.tokenUid) {
+    walletConfig.tokenUid = config.tokenUid;
+  }
+
+  const preCalculatedAddresses = 'precalculatedAddresses' in req.body ? req.body.preCalculatedAddresses : [];
+  if (preCalculatedAddresses && preCalculatedAddresses.length) {
+    console.log(`Received pre-calculated addresses`, preCalculatedAddresses);
+    walletConfig.preCalculatedAddresses = preCalculatedAddresses;
+  }
+
+  const wallet = new HathorWallet(walletConfig);
 
   // subscribe to wallet events with notificationBus
   notificationBus.subscribeHathorWallet(req.body['wallet-id'], wallet);
