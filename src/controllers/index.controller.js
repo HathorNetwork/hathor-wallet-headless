@@ -5,17 +5,16 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { walletApi, tokensUtils, walletUtils, Connection, HathorWallet, Network } = require('@hathor/wallet-lib');
+const { walletApi, tokensUtils, walletUtils, Connection, HathorWallet, Network, helpersUtils, SendTransaction } = require('@hathor/wallet-lib');
 const apiDocs = require('../api-docs');
 const config = require('../config');
 const { initializedWallets } = require('../services/wallets.service');
 const { notificationBus } = require('../services/notification.service');
-const { API_ERROR_CODES } = require('../helpers/constants');
+const { cantSendTxErrorMessage, API_ERROR_CODES } = require('../helpers/constants');
 const { parametersValidation } = require('../helpers/validations.helper');
 const { getReadonlyWalletConfig, getWalletConfigFromSeed, WalletStartError } = require('../helpers/wallet.helper');
-const { mapTxReturn } = require('../../helpers/tx.helper');
-const { cantSendTxErrorMessage } = require('../../helpers/constants');
-const { lock, lockTypes } = require('../../lock');
+const { mapTxReturn } = require('../helpers/tx.helper');
+const { lock, lockTypes } = require('../lock');
 
 function welcome(req, res) {
   res.send('<html><body><h1>Welcome to Hathor Wallet API!</h1>'

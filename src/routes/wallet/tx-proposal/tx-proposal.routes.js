@@ -13,7 +13,7 @@ const {
   getWalletInputs,
   getInputData,
 } = require('../../../controllers/wallet/tx-proposal/tx-proposal.controller');
-const { txBuildSchema, queryInputSchema, txInputSchema, txHexSchema, txHexInputDataSchema, p2pkhSignature, p2shSignature } = require('../../../schemas');
+const { txBuildSchema, queryInputSchema, txInputSchema, txHexInputDataSchema, p2pkhSignature, p2shSignature } = require('../../../schemas');
 
 const txProposalRouter = Router({ mergeParams: true });
 
