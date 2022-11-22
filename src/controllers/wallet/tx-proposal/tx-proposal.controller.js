@@ -15,9 +15,7 @@ const {
 } = require('@hathor/wallet-lib');
 const { _ } = require('lodash');
 const { parametersValidation } = require('../../../helpers/validations.helper');
-const { lock, lockTypes } = require('../../../lock');
-const { cantSendTxErrorMessage } = require('../../../helpers/constants');
-const { mapTxReturn, getUtxosToFillTx } = require('../../../helpers/tx.helper');
+const { getUtxosToFillTx } = require('../../../helpers/tx.helper');
 
 async function buildTxProposal(req, res) {
   const validationResult = parametersValidation(req);
@@ -126,34 +124,6 @@ async function addSignatures(req, res) {
   res.send({ success: true, txHex: tx.toHex() });
 }
 
-async function pushTxHex(req, res) {
-  const validationResult = parametersValidation(req);
-  if (!validationResult.success) {
-    res.status(400).json(validationResult);
-    return;
-  }
-
-  const canStart = lock.lock(lockTypes.SEND_TX);
-  if (!canStart) {
-    res.send({ success: false, error: cantSendTxErrorMessage });
-    return;
-  }
-
-  const network = req.wallet.getNetworkObject();
-  const { txHex } = req.body;
-
-  try {
-    const tx = helpersUtils.createTxFromHex(txHex, req.wallet.getNetworkObject());
-    const sendTransaction = new SendTransaction({ transaction: tx, network });
-    const response = await sendTransaction.runFromMining();
-    res.send({ success: true, tx: mapTxReturn(response) });
-  } catch (err) {
-    res.send({ success: false, error: err.message });
-  } finally {
-    lock.unlock(lockTypes.SEND_TX);
-  }
-}
-
 /**
  * Get metadata on all inputs from the loaded wallet.
  */
@@ -237,7 +207,6 @@ function getInputData(req, res) {
 module.exports = {
   buildTxProposal,
   addSignatures,
-  pushTxHex,
   getWalletInputs,
   getInputData,
 };

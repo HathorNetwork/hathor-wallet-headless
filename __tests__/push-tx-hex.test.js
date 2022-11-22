@@ -1,7 +1,7 @@
 import { Transaction, Input, Output, helpersUtils, SendTransaction } from '@hathor/wallet-lib';
-import TestUtils from '../test-utils';
+import TestUtils from './test-utils';
 
-const walletId = 'stub_tx_proposal_push_tx';
+const walletId = 'stub_push_tx';
 
 function createTxToPush(inputs, outputs) {
   const tx = new Transaction(inputs, outputs);
@@ -26,7 +26,7 @@ describe('push tx api', () => {
 
   it('should not accept an invalid txHex', async () => {
     const response = await TestUtils.request
-      .post('/wallet/tx-proposal/push-tx')
+      .post('/push-tx')
       .send({
         txHex: 'invalid-tx-hex',
       })
@@ -40,7 +40,7 @@ describe('push tx api', () => {
       throw new Error('Boom!');
     });
     let response = await TestUtils.request
-      .post('/wallet/tx-proposal/push-tx')
+      .post('/push-tx')
       .send({ txHex: FAKE_TX_HEX })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
@@ -54,7 +54,7 @@ describe('push tx api', () => {
       throw new Error('Another boom!');
     });
     response = await TestUtils.request
-      .post('/wallet/tx-proposal/push-tx')
+      .post('/push-tx')
       .send({ txHex: FAKE_TX_HEX })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
@@ -71,7 +71,7 @@ describe('push tx api', () => {
   it('should push valid transactions', async () => {
     const tx = createTxToPush([new Input(FAKE_TX_ID, 0)], [new Output(1, Buffer.from('CAFECAFE', 'hex'))]);
     const response = await TestUtils.request
-      .post('/wallet/tx-proposal/push-tx')
+      .post('/push-tx')
       .send({ txHex: tx.toHex() })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);

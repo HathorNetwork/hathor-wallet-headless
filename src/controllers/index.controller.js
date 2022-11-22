@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { walletApi, tokensUtils, walletUtils, Connection, HathorWallet } = require('@hathor/wallet-lib');
+const { walletApi, tokensUtils, walletUtils, Connection, HathorWallet, Network } = require('@hathor/wallet-lib');
 const apiDocs = require('../api-docs');
 const config = require('../config');
 const { initializedWallets } = require('../services/wallets.service');
@@ -13,6 +13,9 @@ const { notificationBus } = require('../services/notification.service');
 const { API_ERROR_CODES } = require('../helpers/constants');
 const { parametersValidation } = require('../helpers/validations.helper');
 const { getReadonlyWalletConfig, getWalletConfigFromSeed, WalletStartError } = require('../helpers/wallet.helper');
+const { mapTxReturn } = require('../../helpers/tx.helper');
+const { cantSendTxErrorMessage } = require('../../helpers/constants');
+const { lock, lockTypes } = require('../../lock');
 
 function welcome(req, res) {
   res.send('<html><body><h1>Welcome to Hathor Wallet API!</h1>'
@@ -257,10 +260,39 @@ function getConfigurationString(req, res) {
   });
 }
 
+async function pushTxHex(req, res) {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    res.status(400).json(validationResult);
+    return;
+  }
+
+  const canStart = lock.lock(lockTypes.SEND_TX);
+  if (!canStart) {
+    res.send({ success: false, error: cantSendTxErrorMessage });
+    return;
+  }
+
+  const { txHex } = req.body;
+
+  try {
+    const network = new Network(config.network);
+    const tx = helpersUtils.createTxFromHex(txHex, network);
+    const sendTransaction = new SendTransaction({ transaction: tx, network });
+    const response = await sendTransaction.runFromMining();
+    res.send({ success: true, tx: mapTxReturn(response) });
+  } catch (err) {
+    res.send({ success: false, error: err.message });
+  } finally {
+    lock.unlock(lockTypes.SEND_TX);
+  }
+}
+
 module.exports = {
   welcome,
   docs,
   start,
   multisigPubkey,
   getConfigurationString,
+  pushTxHex,
 };

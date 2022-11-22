@@ -52,6 +52,10 @@ const apiDoc = {
                     type: 'string',
                     description: '24-words seed separated with spaces. This parameter is incompatible with seedKey. Either seed or seedKey are required.'
                   },
+                  xpubkey: {
+                    type: 'string',
+                    description: 'Account level xpubkey. This will be used to start wallet on readonly mode.',
+                  },
                   multisig: {
                     type: 'boolean',
                     description: 'Start as a multisig wallet. Requires multisig configuration.'
@@ -857,7 +861,7 @@ const apiDoc = {
         },
       },
     },
-    '/wallet/tx-proposal/push-tx': {
+    '/push-tx': {
       post: {
         summary: 'Push a transaction from the txHex.',
         parameters: [
@@ -872,7 +876,7 @@ const apiDoc = {
           },
         ],
         requestBody: {
-          description: 'Transaction hex and signatures',
+          description: 'Signed transaction hex',
           required: true,
           content: {
             'application/json': {

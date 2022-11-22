@@ -10,7 +10,6 @@ const { checkSchema, oneOf, query } = require('express-validator');
 const {
   buildTxProposal,
   addSignatures,
-  pushTxHex,
   getWalletInputs,
   getInputData,
 } = require('../../../controllers/wallet/tx-proposal/tx-proposal.controller');
@@ -34,12 +33,6 @@ txProposalRouter.post(
   '/add-signatures',
   checkSchema(txHexInputDataSchema),
   addSignatures,
-);
-
-txProposalRouter.post(
-  '/push-tx',
-  checkSchema(txHexSchema),
-  pushTxHex,
 );
 
 /**
