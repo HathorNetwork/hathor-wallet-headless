@@ -21,3 +21,7 @@ docker: Dockerfile package.json
 docker-push: docker
 	docker tag $(docker_tag) hathornetwork/hathor-wallet-headless:$(docker_subtag)
 	docker push hathornetwork/hathor-wallet-headless:$(docker_subtag)
+
+.PHONY: check
+check:
+	npm run lint

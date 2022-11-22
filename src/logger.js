@@ -72,4 +72,8 @@ console.warn = (...args) => logger.warn.call(logger, ...args);
 console.error = (...args) => logger.error.call(logger, ...args);
 console.debug = (...args) => logger.debug.call(logger, ...args);
 
+const sanitizeLogInput = input => String(input).replace(/\n|\r/g, '');
+
+export { sanitizeLogInput };
+
 export default logger;

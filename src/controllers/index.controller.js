@@ -12,6 +12,7 @@ const { initializedWallets } = require('../services/wallets.service');
 const { notificationBus } = require('../services/notification.service');
 const { API_ERROR_CODES } = require('../helpers/constants');
 const { parametersValidation } = require('../helpers/validations.helper');
+const { sanitizeLogInput } = require('../logger');
 
 function welcome(req, res) {
   res.send('<html><body><h1>Welcome to Hathor Wallet API!</h1>'
@@ -156,13 +157,17 @@ function start(req, res) {
     }
     walletConfig.passphrase = req.body.passphrase;
   }
-  const walletID = req.body['wallet-id'];
 
   // Wallet addresses pre-calculation, usually for speeding up tests
   if (req.body.preCalculatedAddresses && req.body.preCalculatedAddresses.length) {
-    console.log(`Received pre-calculated addresses`, req.body.preCalculatedAddresses);
-    walletConfig.preCalculatedAddresses = req.body.preCalculatedAddresses;
+    // Replaces new-line characters to avoid log injection
+    const { preCalculatedAddresses } = req.body;
+
+    console.log(`Received pre-calculated addresses`, sanitizeLogInput(preCalculatedAddresses));
+    walletConfig.preCalculatedAddresses = preCalculatedAddresses;
   }
+
+  const walletID = req.body['wallet-id'];
 
   if (walletID in initializedWallets) {
     // We already have a wallet for this key
@@ -183,8 +188,13 @@ function start(req, res) {
   notificationBus.subscribeHathorWallet(req.body['wallet-id'], wallet);
 
   wallet.start().then(info => {
-    console.log(`Wallet started with wallet id ${req.body['wallet-id']}. Full-node info: `, info);
-    initializedWallets[req.body['wallet-id']] = wallet;
+    // The replace avoids Log Injection
+    console.log(
+      `Wallet started with wallet id ${sanitizeLogInput(walletID)}. Full-node info: `,
+      info
+    );
+
+    initializedWallets[walletID] = wallet;
     res.send({
       success: true,
     });
@@ -192,7 +202,7 @@ function start(req, res) {
     console.error('Error:', error);
     res.send({
       success: false,
-      message: `Failed to start wallet with wallet id ${req.body['wallet-id']}`,
+      message: `Failed to start wallet with wallet id ${walletID}`,
     });
   });
 }
