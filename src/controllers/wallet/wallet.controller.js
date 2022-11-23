@@ -10,7 +10,7 @@ const { matchedData } = require('express-validator');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../lock');
 const { cantSendTxErrorMessage, friendlyWalletState } = require('../../helpers/constants');
-const { mapTxReturn, getUtxosToFillTx } = require('../../helpers/tx.helper');
+const { mapTxReturn, prepareTxFunds } = require('../../helpers/tx.helper');
 const logger = require('../../logger');
 const { initializedWallets } = require('../../services/wallets.service');
 
@@ -336,91 +336,24 @@ async function sendTx(req, res) {
   }
 
   const { wallet } = req;
-  const { outputs } = req.body;
 
-  /**
-   * @typedef TokenOutput
-   * A structure to help calculate how many tokens will be needed on send-tx's automatic inputs
-   * @property {string} tokenUid Hash identification of the token
-   * @property {number} amount Amount of tokens necessary on the inputs
-   */
-
-  /**
-   * Map of tokens on the output that will be needed on the automatic input calculation
-   * @type {Map<string, TokenOutput>}
-   */
-  const tokens = new Map();
-
-  // I tried to use the default schema with express validator to set the default token as HTR
-  // but apparently is not possible https://github.com/express-validator/express-validator/issues/682
-  for (const output of outputs) {
-    // If sent the new token parameter inside output, we use it
-    // otherwise we try to get from old parameter in token object
-    // if none exist we use default as HTR
-    if (!output.token) {
-      const tokenObj = req.body.token || hathorLibConstants.HATHOR_TOKEN_CONFIG;
-      output.token = tokenObj.uid;
-    }
-
-    // Updating the `tokens` amount
-    if (!tokens.has(output.token)) {
-      tokens.set(output.token, { tokenUid: output.token, amount: 0 });
-    }
-
-    if (output.type === 'data') {
-      // The data output requires that the user burns 0.01 HTR
-      // this must be set here, in order to make the filter_address query
-      // work if the inputs are selected by this method
-      output.value = 1;
-    }
-
-    const sumObject = tokens.get(output.token);
-    sumObject.amount += output.value;
+  const preparedFundsResponse = prepareTxFunds(
+    wallet,
+    req.body.outputs,
+    req.body.inputs || [],
+    req.body.token || hathorLibConstants.HATHOR_TOKEN_CONFIG.uid,
+  );
+  if (!preparedFundsResponse.success) {
+    lock.unlock(lockTypes.SEND_TX);
+    res.send(preparedFundsResponse);
+    return;
   }
 
-  // Expects array of objects with {'hash', 'index'}
-  let inputs = req.body.inputs || [];
+  const { inputs, outputs } = preparedFundsResponse;
   const changeAddress = req.body.change_address || null;
   const debug = req.body.debug || false;
   if (debug) {
     wallet.enableDebugMode();
-  }
-
-  if (inputs.length > 0) {
-    // In case the first input is a query command, we will overwrite the inputs array with results
-    if (inputs[0].type === 'query') {
-      // Overwriting the body parameter with the actual inputs
-      const query = inputs[0];
-      inputs = [];
-
-      // We need to fetch UTXO's for each token on the "outputs"
-      for (const element of tokens) {
-        const [tokenUid, tokenObj] = element;
-
-        const queryOptions = {
-          ...query,
-          token: tokenUid
-        };
-        const utxos = getUtxosToFillTx(wallet, tokenObj.amount, queryOptions);
-        if (!utxos) {
-          const response = {
-            success: false,
-            error: 'No utxos available for the query filter for this amount.',
-            token: tokenUid
-          };
-          res.send(response);
-          lock.unlock(lockTypes.SEND_TX);
-          return;
-        }
-
-        for (const utxo of utxos) {
-          inputs.push({ txId: utxo.tx_id, index: utxo.index });
-        }
-      }
-    } else {
-      // The new lib version expects input to have tx_id and not hash
-      inputs = inputs.map(input => ({ txId: input.hash, index: input.index }));
-    }
   }
 
   try {

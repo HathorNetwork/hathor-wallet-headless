@@ -14,8 +14,8 @@ const {
   storage,
 } = require('@hathor/wallet-lib');
 const { _ } = require('lodash');
+const { prepareTxFunds } = require('../../../helpers/tx.helper');
 const { parametersValidation } = require('../../../helpers/validations.helper');
-const { getUtxosToFillTx } = require('../../../helpers/tx.helper');
 
 async function buildTxProposal(req, res) {
   const validationResult = parametersValidation(req);
@@ -26,64 +26,19 @@ async function buildTxProposal(req, res) {
 
   // build a transaction hex
   const { wallet } = req;
-  const network = wallet.getNetworkObject();
-  const { outputs } = req.body;
 
-  const tokens = new Map();
-  for (const output of outputs) {
-    if (!output.token) {
-      output.token = hathorLibConstants.HATHOR_TOKEN_CONFIG.uid;
-    }
-    if (!tokens.has(output.token)) {
-      tokens.set(output.token, { tokenUid: output.token, amount: 0 });
-    }
-    if (output.type === 'data') {
-      // The data output requires that the user burns 0.01 HTR
-      // this must be set here, in order to make the filter_address query
-      // work if the inputs are selected by this method
-      output.value = 1;
-    }
-    const sumObject = tokens.get(output.token);
-    sumObject.amount += output.value;
+  const preparedFundsResponse = prepareTxFunds(
+    wallet,
+    req.body.outputs,
+    req.body.inputs || [],
+  );
+  if (!preparedFundsResponse.success) {
+    res.send(preparedFundsResponse);
+    return;
   }
-
-  // Expects array of objects with {'txId', 'index'}
-  let inputs = req.body.inputs || [];
+  const { inputs, outputs } = preparedFundsResponse;
   const changeAddress = req.body.change_address || null;
-
-  if (inputs.length > 0) {
-    if (inputs[0].type === 'query') {
-      const query = inputs[0];
-      inputs = [];
-
-      // query processing
-
-      for (const element of tokens) {
-        const [tokenUid, tokenObj] = element;
-        const queryOptions = {
-          ...query,
-          token: tokenUid,
-        };
-        const utxos = getUtxosToFillTx(wallet, tokenObj.amount, queryOptions);
-        if (!utxos) {
-          const response = {
-            success: false,
-            error: 'No utxos available for the query filter for this amount.',
-            token: tokenUid
-          };
-          res.send(response);
-          return;
-        }
-
-        for (const utxo of utxos) {
-          inputs.push({ txId: utxo.tx_id, index: utxo.index });
-        }
-      }
-    } else {
-      // The new lib version expects input to have tx_id and not hash
-      inputs = inputs.map(input => ({ txId: input.hash, index: input.index }));
-    }
-  }
+  const network = wallet.getNetworkObject();
 
   try {
     const sendTransaction = new SendTransaction({

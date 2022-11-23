@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+const { constants: { HATHOR_TOKEN_CONFIG } } = require("@hathor/wallet-lib");
+
 /**
  * The endpoints that return a created tx must keep compatibility
  * The library has changed some keys and we must map the return to continue returning the same keys
@@ -91,7 +93,114 @@ function getUtxosToFillTx(wallet, sumOutputs, options) {
   return null;
 }
 
+/**
+ * @typedef PreparedTxErrorResponse
+ * When a request to prepare a transaction fails the response will contain information on what went wrong.
+ * @property {boolean} success
+ * @property {string} error Description of the error.
+ * @property {string} [token] Which token this error happened at.
+ */
+
+/**
+ * @typedef PreparedTxResponse
+ * Prepared inputs and outputs ready to be sent as a transaction.
+ * @property {boolean} success
+ * @property {Object[]} outputs Prepared outputs.
+ * @property {{txId: string, index: number}[]} inputs Prepared inputs.
+ */
+
+/**
+ *
+ * @param {HathorWallet} wallet The wallet proposing the transaction
+ * @param {Object[]} outputs Array of outputs to send
+ * @param {Object[]} inputs Array of inputs to use
+ * @param {string} defaultToken='00' Default token uid to use
+ * @returns {PreparedTxResponse|PreparedTxErrorResponse}
+ */
+function prepareTxFunds(wallet, outputs, inputs, defaultToken = HATHOR_TOKEN_CONFIG.uid) {
+  const preparedOutputs = [];
+  const preparedInputs = [];
+
+  /**
+   * @typedef TokenOutput
+   * A structure to help calculate how many tokens will be needed on send-tx's automatic inputs
+   * @property {string} tokenUid Hash identification of the token
+   * @property {number} amount Amount of tokens necessary on the inputs
+   */
+
+  /**
+   * Map of tokens on the output that will be needed on the automatic input calculation
+   * @type {Map<string, TokenOutput>}
+   */
+   const tokens = new Map();
+
+   for (const output of outputs) {
+    // If sent the new token parameter inside output, we use it
+    // otherwise we try to get from old parameter in token object
+    // if none exist we use default as HTR
+    if (!output.token) {
+      output.token = defaultToken;
+    }
+
+    // Updating the `tokens` amount
+    if (!tokens.has(output.token)) {
+      tokens.set(output.token, { tokenUid: output.token, amount: 0 });
+    }
+
+    if (output.type === 'data') {
+      // The data output requires that the user burns 0.01 HTR
+      // this must be set here, in order to make the filter_address query
+      // work if the inputs are selected by this method
+      output.value = 1;
+    }
+
+    const sumObject = tokens.get(output.token);
+    sumObject.amount += output.value;
+    preparedOutputs.push(output);
+  }
+
+  if (inputs.length > 0) {
+    if (inputs[0].type === 'query') {
+      const query = inputs[0];
+
+      // query processing
+
+      // We need to fetch UTXO's for each token on the "outputs"
+      for (const element of tokens) {
+        const [tokenUid, tokenObj] = element;
+
+        const queryOptions = {
+          ...query,
+          token: tokenUid
+        };
+        const utxos = getUtxosToFillTx(wallet, tokenObj.amount, queryOptions);
+        if (!utxos) {
+          return {
+            success: false,
+            error: 'No utxos available for the query filter for this amount.',
+            token: tokenUid
+          };
+        }
+
+        for (const utxo of utxos) {
+          preparedInputs.push({ txId: utxo.tx_id, index: utxo.index });
+        }
+      }
+    } else {
+      // The new lib version expects input to have tx_id and not hash
+      preparedInputs = inputs.map(input => ({ txId: input.hash, index: input.index }));
+    }
+  }
+
+  return {
+    success: true,
+    inputs: preparedInputs,
+    outputs: preparedOutputs,
+  }
+}
+
 module.exports = {
   mapTxReturn,
   getUtxosToFillTx,
+  prepareTxFunds,
 };
