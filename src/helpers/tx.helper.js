@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { constants: { HATHOR_TOKEN_CONFIG } } = require("@hathor/wallet-lib");
+const { constants: { HATHOR_TOKEN_CONFIG } } = require('@hathor/wallet-lib');
 
 /**
  * The endpoints that return a created tx must keep compatibility
@@ -95,7 +95,8 @@ function getUtxosToFillTx(wallet, sumOutputs, options) {
 
 /**
  * @typedef PreparedTxErrorResponse
- * When a request to prepare a transaction fails the response will contain information on what went wrong.
+ * When a request to prepare a transaction fails the response
+ * will contain information on what went wrong.
  * @property {boolean} success
  * @property {string} error Description of the error.
  * @property {string} [token] Which token this error happened at.
@@ -119,7 +120,7 @@ function getUtxosToFillTx(wallet, sumOutputs, options) {
  */
 function prepareTxFunds(wallet, outputs, inputs, defaultToken = HATHOR_TOKEN_CONFIG.uid) {
   const preparedOutputs = [];
-  const preparedInputs = [];
+  let preparedInputs = [];
 
   /**
    * @typedef TokenOutput
@@ -132,9 +133,9 @@ function prepareTxFunds(wallet, outputs, inputs, defaultToken = HATHOR_TOKEN_CON
    * Map of tokens on the output that will be needed on the automatic input calculation
    * @type {Map<string, TokenOutput>}
    */
-   const tokens = new Map();
+  const tokens = new Map();
 
-   for (const output of outputs) {
+  for (const output of outputs) {
     // If sent the new token parameter inside output, we use it
     // otherwise we try to get from old parameter in token object
     // if none exist we use default as HTR
@@ -196,7 +197,7 @@ function prepareTxFunds(wallet, outputs, inputs, defaultToken = HATHOR_TOKEN_CON
     success: true,
     inputs: preparedInputs,
     outputs: preparedOutputs,
-  }
+  };
 }
 
 module.exports = {
