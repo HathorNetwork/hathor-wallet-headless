@@ -72,6 +72,7 @@ console.warn = (...args) => logger.warn.call(logger, ...args);
 console.error = (...args) => logger.error.call(logger, ...args);
 console.debug = (...args) => logger.debug.call(logger, ...args);
 
+// This fixes some logs where Github code scanning complains about a `Log Injection` possibility
 const sanitizeLogInput = input => String(input).replace(/\n|\r/g, '');
 
 export { sanitizeLogInput };

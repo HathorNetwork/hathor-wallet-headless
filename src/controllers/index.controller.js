@@ -160,7 +160,6 @@ function start(req, res) {
 
   // Wallet addresses pre-calculation, usually for speeding up tests
   if (req.body.preCalculatedAddresses && req.body.preCalculatedAddresses.length) {
-    // Replaces new-line characters to avoid log injection
     const { preCalculatedAddresses } = req.body;
 
     console.log(`Received pre-calculated addresses`, sanitizeLogInput(preCalculatedAddresses));
