@@ -145,6 +145,7 @@ describe('send-tx api', () => {
         },
       })
       .set({ 'x-wallet-id': walletId });
+    TestUtils.logger.debug('send-tx[custom token] response', { body: response.body });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeTruthy();
     expect(response.body.success).toBeTruthy();
@@ -157,6 +158,7 @@ describe('send-tx api', () => {
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1, token: '09' }]
       })
       .set({ 'x-wallet-id': walletId });
+    TestUtils.logger.debug('send-tx[custom token as string] response', { body: response.body });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeTruthy();
     expect(response.body.success).toBeTruthy();
