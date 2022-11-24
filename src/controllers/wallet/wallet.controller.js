@@ -341,7 +341,7 @@ async function sendTx(req, res) {
     wallet,
     req.body.outputs,
     req.body.inputs || [],
-    req.body.token || hathorLibConstants.HATHOR_TOKEN_CONFIG.uid,
+    (req.body.token && req.body.token.uid) || hathorLibConstants.HATHOR_TOKEN_CONFIG.uid,
   );
   if (!preparedFundsResponse.success) {
     lock.unlock(lockTypes.SEND_TX);
