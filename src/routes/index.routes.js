@@ -6,8 +6,10 @@
  */
 
 const { Router } = require('express');
-const { query } = require('express-validator');
+const { query, checkSchema } = require('express-validator');
 const rootControllers = require('../controllers/index.controller');
+const { ReadonlyErrorHandler } = require('../middlewares/xpub-error-handler.middleware');
+const { txHexSchema } = require('../schemas');
 
 const mainRouter = Router({ mergeParams: true });
 const walletRouter = require('./wallet/wallet.routes');
@@ -16,6 +18,11 @@ mainRouter.get('/', rootControllers.welcome);
 mainRouter.get('/docs', rootControllers.docs);
 mainRouter.post('/start', rootControllers.start);
 mainRouter.post('/multisig-pubkey', rootControllers.multisigPubkey);
+mainRouter.post(
+  '/push-tx',
+  checkSchema(txHexSchema),
+  rootControllers.pushTxHex,
+);
 
 /**
  * GET request to get the configuration string of a token
@@ -29,6 +36,7 @@ mainRouter.get(
 
 mainRouter.use('/wallet', walletRouter);
 
+mainRouter.use(ReadonlyErrorHandler);
 mainRouter.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.statusCode || 500).json({ message: err.message, stack: err.stack });
