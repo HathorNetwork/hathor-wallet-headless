@@ -52,9 +52,17 @@ const apiDoc = {
                     type: 'string',
                     description: '24-words seed separated with spaces. This parameter is incompatible with seedKey. Either seed or seedKey are required.'
                   },
+                  xpubkey: {
+                    type: 'string',
+                    description: 'Account level xpubkey. This will be used to start wallet on readonly mode.',
+                  },
                   multisig: {
                     type: 'boolean',
                     description: 'Start as a multisig wallet. Requires multisig configuration.'
+                  },
+                  multisigKey: {
+                    type: 'string',
+                    description: 'Key of the multisig wallet data in the config. This allow wallets to be started without a seedKey, e.g. with the seed on the parameters or from an xpubkey.',
                   },
                 }
               },
@@ -583,6 +591,458 @@ const apiDoc = {
                         ]
                       },
                     },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/tx-proposal': {
+      post: {
+        summary: 'Build a transaction with many outputs without sending. Will not include signatures.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        requestBody: {
+          description: 'Data to create the transaction',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['outputs'],
+                properties: {
+                  outputs: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        address: {
+                          type: 'string',
+                          description: 'Destination address of the output. Required if P2PKH or P2SH.'
+                        },
+                        value: {
+                          type: 'integer',
+                          description: 'The value parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR. Required if P2PKH or P2SH.'
+                        },
+                        token: {
+                          type: 'string',
+                          description: 'Token id of the output. If not sent, HTR will be chosen.'
+                        },
+                        type: {
+                          type: 'string',
+                          description: 'Type of output script. Required if data script and expected to be "data".'
+                        },
+                        data: {
+                          type: 'string',
+                          description: 'Data string of the data script output. Required if it\'s a data script output.'
+                        },
+                      }
+                    },
+                    description: 'Outputs to create the transaction.'
+                  },
+                  inputs: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        hash: {
+                          type: 'string',
+                          description: 'Hash of the transaction being spent in this input. Used if not type query.'
+                        },
+                        index: {
+                          type: 'integer',
+                          description: 'Index of the output being spent in this input. Used if not type query.'
+                        },
+                        type: {
+                          type: 'string',
+                          description: 'Type of input object. Can be \'query\' only for now.'
+                        },
+                        max_utxos: {
+                          type: 'integer',
+                          description: 'Maximum number of utxos to filter in the query. Optional query parameter when using type query.'
+                        },
+                        token: {
+                          type: 'string',
+                          description: 'Token uid to filter utxos in the query. Optional query parameter when using type query.'
+                        },
+                        filter_address: {
+                          type: 'string',
+                          description: 'Address to filter utxos in the query. Optional query parameter when using type query.'
+                        },
+                        amount_smaller_than: {
+                          type: 'integer',
+                          description: 'Filter only utxos with value smaller than this. Optional query parameter when using type query.'
+                        },
+                        amount_bigger_than: {
+                          type: 'integer',
+                          description: 'Filter only utxos with value bigger than this. Optional query parameter when using type query.'
+                        },
+                      }
+                    },
+                    description: 'Inputs to create the transaction.'
+                  },
+                  change_address: {
+                    type: 'string',
+                    description: 'Optional address to send the change amount.'
+                  },
+                }
+              },
+              examples: {
+                data: {
+                  summary: 'Data to create the transaction',
+                  value: {
+                    outputs: [
+                      {
+                        address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
+                        value: 100,
+                        token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d'
+                      }
+                    ],
+                    inputs: [
+                      {
+                        hash: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
+                        index: 0,
+                      }
+                    ]
+                  }
+                },
+                dataQuery: {
+                  summary: 'Data to create the transaction with query input',
+                  value: {
+                    outputs: [
+                      {
+                        address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
+                        value: 100
+                      }
+                    ],
+                    inputs: [
+                      {
+                        type: 'query',
+                        filter_address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
+                      }
+                    ],
+                  }
+                },
+                dataScript: {
+                  summary: 'Transaction with a data script output',
+                  value: {
+                    outputs: [
+                      {
+                        address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
+                        value: 100,
+                        token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d'
+                      }, {
+                        type: 'data',
+                        data: 'test'
+                      }
+                    ],
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Send a transaction with many outputs',
+            content: {
+              'application/json': {
+                examples: {
+                  error: {
+                    summary: 'Insuficient amount of tokens',
+                    value: { success: false, error: 'Token HTR: Insufficient amount of tokens' }
+                  },
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, txHex: '0123abc...', dataToSignHash: '0123abc...' }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/tx-proposal/add-signatures': {
+      post: {
+        summary: 'Add signatures to the transaction and return the txHex with the signatures.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        requestBody: {
+          description: 'Transaction hex and signatures',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['txHex', 'signatures'],
+                properties: {
+                  txHex: {
+                    type: 'string',
+                    description: 'Transaction hex representation.'
+                  },
+                  signatures: {
+                    type: 'array',
+                    description: 'Signatures collected for the transaction.',
+                    items: {
+                      type: 'object',
+                      required: ['index', 'data'],
+                      properties: {
+                        index: {
+                          type: 'number',
+                          description: 'Input index this signature refers to.',
+                        },
+                        data: {
+                          type: 'string',
+                          description: 'Hex representation of the input data to be added on the transaction.',
+                        },
+                      },
+                    }
+                  },
+                }
+              },
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Get transaction hex with input data.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, txHex: '0123abc...' }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/push-tx': {
+      post: {
+        summary: 'Push a transaction from the txHex.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        requestBody: {
+          description: 'Signed transaction hex',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['txHex'],
+                properties: {
+                  txHex: {
+                    type: 'string',
+                    description: 'Transaction hex representation.'
+                  },
+                }
+              },
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Get tx sent from transaction hex.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, tx: { hash: '00000000059dfb65633acacc402c881b128cc7f5c04b6cea537ea2136f1b97fb', nonce: 2455281664, timestamp: 1594955941, version: 1, weight: 18.11897634891149, parents: ['00000000556bbfee6d37cc099a17747b06f48ca3d9bf4af85c707aa95ad04b3f', '00000000e2e3e304e364edebff1c04c95cc9ef282463295f6e417b85fec361dd'], inputs: [{ tx_id: '00000000caaa37ab729805b91af2de8174e3ef24410f4effc4ffda3b610eae65', index: 1, data: 'RjBEAiAYR8jc+zqY596QyMp+K3Eag3kQB5aXdfYja19Fa17u0wIgCdhBQpjlBiAawP/9WRAqAzW85CJlBpzq+YVhUALg8IUhAueFQuEkAo+s2m7nj/hnh0nyphcUuxa2LoRBjOsEOHRQ' }, { tx_id: '00000000caaa37ab729805b91af2de8174e3ef24410f4effc4ffda3b610eae65', index: 2, data: 'RzBFAiEAofVXnCKNCEu4GRk7j+wHpQM6qmezRcfxHCe/PcUdbegCIE2nip27ZQtkpkEgNEhycqHM4CkLYMLVUgskphYsd/M9IQLHG6YJxXifQ6eMxPHbINFEJAUvrzKWe9V7AXXW4iywjg==' }], outputs: [{ value: 100, token_data: 0, script: 'dqkUqdK8VisGSJuNItIBRYFfSHfHjPeIrA==' }, { value: 200, token_data: 0, script: 'dqkUISAnpOn9Vo269QBvOfBeWJTLx82IrA==' }], tokens: [] } }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/tx-proposal/get-wallet-inputs': {
+      get: {
+        summary: 'Identify which inputs on the transaction are from the loaded wallet.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'txHex',
+            in: 'query',
+            description: 'Transaction hex to identify.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Return the inputs of the loaded wallet on the txHex.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    inputs: [
+                      {
+                        inputIndex: 0,
+                        addressIndex: 1,
+                        addressPath: 'm/44\'/280\'/0\'/0/1',
+                      },
+                    ],
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/tx-proposal/input-data': {
+      post: {
+        summary: 'Build an input data from the ECDSA signature(s).',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        requestBody: {
+          description: 'Data required to build the input data',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['txHex'],
+                properties: {
+                  index: {
+                    type: 'number',
+                    description: 'The bip32 path address index we will use.',
+                  },
+                  signature: {
+                    type: 'string',
+                    optional: true,
+                    description: '[P2PKH] The ECDSA signature in little endian, DER encoded in hex format.',
+                  },
+                  signatures: {
+                    type: 'object',
+                    optional: true,
+                    description: '[P2SH] Each key will be the signer xpubkey as used on the multisig configuration, the value will be the signature (ECDSA little endian, DER encoded in hex format).',
+                  },
+                }
+              },
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Get tx sent from transaction hex.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, inputData: 'abc123...' }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                  'p2sh-wallet-not-multisig': {
+                    summary: 'Loaded wallet is not multisig but a multisig input data was requested.',
+                    value: { success: false, message: 'wallet is not MultiSig' }
+                  },
+                  'p2sh-unknown-signer': {
+                    summary: 'There is a signature from a signer that does not belong on the loaded wallet multisig.',
+                    value: { success: false, message: 'signature from unknown signer' }
                   },
                 },
               },

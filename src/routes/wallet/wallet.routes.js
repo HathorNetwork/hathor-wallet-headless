@@ -17,12 +17,14 @@ const {
 const { txHexSchema, partialTxSchema } = require('../../schemas');
 const p2shRouter = require('./p2sh/p2sh.routes');
 const atomicSwapRouter = require('./atomic-swap/atomic-swap.routes');
+const txProposalRouter = require('./tx-proposal/tx-proposal.routes');
 const { MAX_DATA_SCRIPT_LENGTH } = require('../../constants');
 
 const walletRouter = Router({ mergeParams: true });
 walletRouter.use(walletMiddleware);
 walletRouter.use('/atomic-swap', atomicSwapRouter);
 walletRouter.use('/p2sh', p2shRouter);
+walletRouter.use('/tx-proposal', txProposalRouter);
 
 /**
  * GET request to get the status of a wallet
