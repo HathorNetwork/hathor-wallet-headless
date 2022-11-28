@@ -561,7 +561,7 @@ function stop(req, res) {
   const { wallet } = req;
   wallet.stop();
 
-  delete initializedWallets[req.walletId];
+  initializedWallets.delete(req.walletId);
   res.send({ success: true });
 }
 

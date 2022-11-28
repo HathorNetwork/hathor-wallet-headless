@@ -62,7 +62,7 @@ function start(req, res) {
   }
 
   const walletID = req.body['wallet-id'];
-  if (walletID in initializedWallets) {
+  if (initializedWallets.has(walletID)) {
     // We already have a wallet for this key
     // so we log that it won't start a new one because
     // it must first stop the old wallet and then start the new
@@ -195,7 +195,7 @@ function start(req, res) {
       `Wallet started with wallet id ${sanitizeLogInput(walletID)}. Full-node info: ${info}`
     );
 
-    initializedWallets[walletID] = wallet;
+    initializedWallets.set(walletID, wallet);
     res.send({
       success: true,
     });
