@@ -12,6 +12,7 @@ const { initializedWallets } = require('../services/wallets.service');
 const { notificationBus } = require('../services/notification.service');
 const { cantSendTxErrorMessage, API_ERROR_CODES } = require('../helpers/constants');
 const { parametersValidation } = require('../helpers/validations.helper');
+const { sanitizeLogInput } = require('../logger');
 const { getReadonlyWalletConfig, getWalletConfigFromSeed, WalletStartError } = require('../helpers/wallet.helper');
 const { mapTxReturn } = require('../helpers/tx.helper');
 const { lock, lockTypes } = require('../lock');
@@ -61,7 +62,7 @@ function start(req, res) {
   }
 
   const walletID = req.body['wallet-id'];
-  if (walletID in initializedWallets) {
+  if (initializedWallets.has(walletID)) {
     // We already have a wallet for this key
     // so we log that it won't start a new one because
     // it must first stop the old wallet and then start the new
@@ -179,7 +180,7 @@ function start(req, res) {
 
   const preCalculatedAddresses = 'precalculatedAddresses' in req.body ? req.body.preCalculatedAddresses : [];
   if (preCalculatedAddresses && preCalculatedAddresses.length) {
-    console.log(`Received pre-calculated addresses`, preCalculatedAddresses);
+    console.log(`Received pre-calculated addresses`, sanitizeLogInput(preCalculatedAddresses));
     walletConfig.preCalculatedAddresses = preCalculatedAddresses;
   }
 
@@ -189,8 +190,12 @@ function start(req, res) {
   notificationBus.subscribeHathorWallet(req.body['wallet-id'], wallet);
 
   wallet.start().then(info => {
-    console.log(`Wallet started with wallet id ${req.body['wallet-id']}. Full-node info: `, info);
-    initializedWallets[req.body['wallet-id']] = wallet;
+    // The replace avoids Log Injection
+    console.log(
+      `Wallet started with wallet id ${sanitizeLogInput(walletID)}. Full-node info: ${info}`
+    );
+
+    initializedWallets.set(walletID, wallet);
     res.send({
       success: true,
     });
@@ -198,7 +203,7 @@ function start(req, res) {
     console.error('Error:', error);
     res.send({
       success: false,
-      message: `Failed to start wallet with wallet id ${req.body['wallet-id']}`,
+      message: `Failed to start wallet with wallet id ${walletID}`,
     });
   });
 }

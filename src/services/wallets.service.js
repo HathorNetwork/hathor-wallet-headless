@@ -5,8 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-// TODO: Make this a map instead of a common object. It's safer.
-const initializedWallets = {};
+const initializedWallets = new Map();
 
 module.exports = {
   initializedWallets,

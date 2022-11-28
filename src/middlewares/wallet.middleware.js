@@ -26,11 +26,11 @@ function walletMiddleware(req, res, next) {
   }
 
   const walletId = req.headers['x-wallet-id'];
-  if (!(walletId in initializedWallets)) {
+  if (!initializedWallets.has(walletId)) {
     sendError('Invalid wallet id parameter.');
     return;
   }
-  const wallet = initializedWallets[walletId];
+  const wallet = initializedWallets.get(walletId);
 
   if (config.confirmFirstAddress) {
     const firstAddressHeader = req.headers['x-first-address'];
