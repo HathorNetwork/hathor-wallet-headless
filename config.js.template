@@ -71,4 +71,14 @@ module.exports = {
   // to confirm that the client is connected to the right wallet. The primary
   // purpose of this parameter is to avoid operational mistakes and loss of funds.
   confirmFirstAddress: false,
+
+  // Optional config to enable plugins
+  // Hathor already provides some plugins, more in https://github.com/HathorNetwork/hathor-wallet-headless/blob/master/PLUGIN.md#provided-plugins
+  // To enable a plugin, just add it's id on this parameter.
+  enabled_plugins: [],
+  // To add custom plugins you need to configure it on this parameter
+  // The key is the plugin id (for `enabled_plugins`) and the configuration requires
+  // a `file` property which is the filename of the plugin on the plugin directory
+  // Example: plugin_config: { custom: { name: 'custom', file: 'custom.js' } },
+  plugin_config: {},
 };
