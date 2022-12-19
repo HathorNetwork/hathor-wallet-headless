@@ -5,13 +5,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import logger from '../../logger';
 const { txApi, walletApi, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, PartialTx } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../lock');
 const { cantSendTxErrorMessage, friendlyWalletState } = require('../../helpers/constants');
 const { mapTxReturn, prepareTxFunds } = require('../../helpers/tx.helper');
-const logger = require('../../logger');
 const { initializedWallets } = require('../../services/wallets.service');
 
 function getStatus(req, res) {
@@ -361,9 +361,8 @@ async function sendTx(req, res) {
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
     const ret = { success: false, error: err.message };
-    /* istanbul ignore if */
     if (debug) {
-      console.debug('/send-tx failed', {
+      logger.debug('/send-tx failed', {
         body: JSON.stringify(req.body),
         response: JSON.stringify(ret),
       });
