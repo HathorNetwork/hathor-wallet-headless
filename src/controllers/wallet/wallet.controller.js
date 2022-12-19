@@ -362,9 +362,9 @@ async function sendTx(req, res) {
   } catch (err) {
     const ret = { success: false, error: err.message };
     if (debug) {
-      logger.debug('/send-tx failed', {
-        body: req.body,
-        response: ret,
+      console.debug('/send-tx failed', {
+        body: JSON.stringify(req.body),
+        response: JSON.stringify(ret),
       });
     }
     res.send(ret);
