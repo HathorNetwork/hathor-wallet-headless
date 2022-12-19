@@ -361,6 +361,7 @@ async function sendTx(req, res) {
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
     const ret = { success: false, error: err.message };
+    /* istanbul ignore if */
     if (debug) {
       console.debug('/send-tx failed', {
         body: JSON.stringify(req.body),
