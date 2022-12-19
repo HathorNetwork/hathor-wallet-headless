@@ -5,7 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import logger from '../../logger';
+// The import is used because there is an issue with winston logger when importing with require ref: #262
+import logger from '../../logger'; // eslint-disable-line import/no-import-module-exports
+
 const { txApi, walletApi, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, PartialTx } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
 const { parametersValidation } = require('../../helpers/validations.helper');

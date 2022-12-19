@@ -1,6 +1,6 @@
+import { HathorWallet } from '@hathor/wallet-lib';
 import TestUtils from './test-utils';
 import { MAX_DATA_SCRIPT_LENGTH } from '../src/constants';
-import { HathorWallet } from '@hathor/wallet-lib';
 
 const walletId = 'stub_send_tx';
 
