@@ -1,3 +1,4 @@
+import { HathorWallet } from '@hathor/wallet-lib';
 import TestUtils from './test-utils';
 import { MAX_DATA_SCRIPT_LENGTH } from '../src/constants';
 
@@ -320,5 +321,22 @@ describe('send-tx api', () => {
     expect(response2.status).toBe(200);
     expect(response2.body.hash).toBeTruthy();
     expect(response2.body.success).toBeTruthy();
+  });
+
+  it('should log errors on send-tx when debug=true on req.body', async () => {
+    const spy = jest.spyOn(HathorWallet.prototype, 'sendManyOutputsTransaction').mockImplementation(() => {
+      throw new Error('Boom!');
+    });
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        debug: true,
+        outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
+      })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBeFalsy();
+    expect(response.body.error).toEqual('Boom!');
+    spy.mockRestore();
   });
 });

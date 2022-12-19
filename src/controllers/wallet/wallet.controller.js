@@ -5,13 +5,15 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+// import is used because there is an issue with winston logger when using require ref: #262
+import logger from '../../logger'; // eslint-disable-line import/no-import-module-exports
+
 const { txApi, walletApi, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, PartialTx } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../lock');
 const { cantSendTxErrorMessage, friendlyWalletState } = require('../../helpers/constants');
 const { mapTxReturn, prepareTxFunds } = require('../../helpers/tx.helper');
-const logger = require('../../logger');
 const { initializedWallets } = require('../../services/wallets.service');
 
 function getStatus(req, res) {
@@ -363,8 +365,8 @@ async function sendTx(req, res) {
     const ret = { success: false, error: err.message };
     if (debug) {
       logger.debug('/send-tx failed', {
-        body: req.body,
-        response: ret,
+        body: JSON.stringify(req.body),
+        response: JSON.stringify(ret),
       });
     }
     res.send(ret);
