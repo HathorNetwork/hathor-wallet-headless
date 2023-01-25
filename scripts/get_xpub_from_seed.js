@@ -5,9 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { argv } from 'node:process';
 import hathorLib from '@hathor/wallet-lib';
-import { HDPublicKey } from 'bitcore-lib';
 
 /**
  * argv contains the cli arguments that made this script run, including the interpreter and script filename
@@ -15,10 +13,10 @@ import { HDPublicKey } from 'bitcore-lib';
  * argv = ["babel-node", "get_xpub_from_seed.js", "word0", ..., "wordLast"];
  * We need to remove the first 2 and join the other arguments into a single string separated by spaces
  */
-const seed = argv.slice(2).join(' ');
+const seed = process.argv.slice(2).join(' ');
+const hdprivkeyRoot = hathorLib.walletUtils.getXPrivKeyFromSeed(seed);
 // `accountDerivationIndex` will make the util method derive to the change path
-const xpubkey = hathorLib.walletUtils.getXPubKeyFromSeed(seed, { accountDerivationIndex: '0\'/0' });
-const hdpubkey = HDPublicKey.fromString(xpubkey);
+const hdprivkey = hathorLib.walletUtils.deriveXpriv(hdprivkeyRoot, '0\'/0');
 
 // Print the xpubkey
-console.log(hdpubkey.toString());
+console.log(hdprivkey.xpubkey);
