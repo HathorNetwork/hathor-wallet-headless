@@ -8,10 +8,12 @@
 import hathorLib from '@hathor/wallet-lib';
 
 /**
- * argv contains the cli arguments that made this script run, including the interpreter and script filename
- * So to get the actual seed passed via cli we need to remove the other arguments.
+ * argv contains the cli arguments that made this script run, including the interpreter
+ * and script filename so to get the actual seed passed via cli we need to remove the
+ * other arguments.
  * argv = ["babel-node", "get_xpub_from_seed.js", "word0", ..., "wordLast"];
- * We need to remove the first 2 and join the other arguments into a single string separated by spaces
+ * We need to remove the first 2 and join the other arguments into a single string
+ * separated by spaces
  */
 const seed = process.argv.slice(2).join(' ');
 const hdprivkeyRoot = hathorLib.walletUtils.getXPrivKeyFromSeed(seed);
