@@ -4,20 +4,20 @@ Each plugin receives an `EventEmitter` with real-time events of the loaded walle
 
 ## Events
 
-- `wallet:state`
+- `wallet:state-changed`
     - The wallet state has changed.
 - `wallet:new-tx`
     - A new tx of the wallet has arrived.
 - `wallet:update-tx`
     - A tx of the wallet was updated.
-- `conn:state`
+- `node:state-changed`
     - Wallet connection state changed.
-- `conn:wallet-update`
+- `node:wallet-update`
     - When a wallet specific message arrives
-- `conn:best-block-update`
+- `node:best-block-update`
     - When a new block arrives
     - data: The new block
-- `conn:load-partial-update`
+- `wallet:load-partial-update`
     - Fetched part of the wallet history when loading the wallet.
     - data: The slice of the wallet history.
 
@@ -62,7 +62,7 @@ Dependencies:
 - `ws`
 - `yargs`
 
-`npm install ws@^16.2.0 yargs@^16.2.0`
+`npm install ws@^8.12.0 yargs@^16.2.0`
 
 ## SQS
 
