@@ -14,7 +14,7 @@ const EVENTBUS_EVENT_NAME = 'message';
 const WalletEventMap = {
   state: 'wallet:state-change',
   'new-tx': 'wallet:new-tx',
-  'udpate-tx': 'wallet:udpate-tx',
+  'update-tx': 'wallet:update-tx',
 };
 
 const ConnectionEventMap = {
