@@ -1,4 +1,4 @@
-import hathorLib from '@hathor/wallet-lib';
+import hathorLib, { config, swapService } from '@hathor/wallet-lib';
 import TestUtils from '../test-utils';
 
 const walletId = 'stub_atomic_swap_create_tx_proposal';
@@ -259,5 +259,106 @@ describe('create tx-proposal api', () => {
     const tx = hathorLib.helpersUtils.createTxFromHex(dataParts[1], new hathorLib.Network('testnet'));
     expect(tx.inputs).toHaveLength(2); // 1 from send.tokens and another from inputs
     expect(tx.outputs).toHaveLength(3); // 2 intended and 1 change
+  });
+
+  describe('using the service as a mediator', () => {
+    config.setSwapServiceBaseUrl('http://fake-swap-service');
+
+    it('should return no success with an invalid password', async () => {
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal')
+        .send({
+          receive: {
+            tokens: [{ token: '00', value: 10 }],
+          },
+          service: {
+            is_new: true,
+            password: 'ab'
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        success: false,
+        error: 'Password must have at least 3 characters'
+      });
+    });
+
+    it('should return no success when service also had no success', async () => {
+      const mockLib = jest.spyOn(swapService, 'create')
+        .mockImplementationOnce(async () => ({ success: false }));
+
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal')
+        .send({
+          receive: {
+            tokens: [{ token: '00', value: 10 }],
+          },
+          service: {
+            is_new: true,
+            password: 'abc'
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        success: false,
+        error: 'Unable to create the proposal on the Atomic Swap Service'
+      });
+
+      mockLib.mockRestore();
+    });
+
+    it('should return no success when service throws', async () => {
+      const mockLib = jest.spyOn(swapService, 'create')
+        .mockImplementationOnce(async () => { throw new Error('Service failure'); });
+
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal')
+        .send({
+          receive: {
+            tokens: [{ token: '00', value: 10 }],
+          },
+          service: {
+            is_new: true,
+            password: 'abc'
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        success: false,
+        error: 'Service failure'
+      });
+
+      mockLib.mockRestore();
+    });
+
+    it('should return the proposal identifier that was generated on success', async () => {
+      const mockLib = jest.spyOn(swapService, 'create')
+        .mockImplementationOnce(async () => ({ success: true, id: 'mock-id' }));
+
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal')
+        .send({
+          receive: {
+            tokens: [{ token: '00', value: 10 }],
+          },
+          service: {
+            is_new: true,
+            password: 'abc'
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        success: true,
+        data: expect.any(String),
+        isComplete: false,
+        createdProposalId: 'mock-id',
+      });
+
+      mockLib.mockRestore();
+    });
   });
 });
