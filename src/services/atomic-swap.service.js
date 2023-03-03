@@ -45,7 +45,7 @@ const serviceCreate = async (partialTx, password) => {
     throw new Error('Password must have at least 3 characters');
   }
 
-  const { success, id } = await swapService.create();
+  const { success, id } = await swapService.create(partialTx, password);
   if (!success) {
     throw new Error('Unable to create the proposal on the Atomic Swap Service');
   }

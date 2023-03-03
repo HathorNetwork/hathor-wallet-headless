@@ -8,4 +8,7 @@
 module.exports = {
   // Max length of data script outputs string
   MAX_DATA_SCRIPT_LENGTH: 150,
+
+  SWAP_SERVICE_MAINNET_BASE_URL: 'https://atomic-swap-service.hathor.network/',
+  SWAP_SERVICE_TESTNET_BASE_URL: 'https://atomic-swap-service.testnet.hathor.network/',
 };
