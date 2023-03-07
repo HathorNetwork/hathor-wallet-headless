@@ -264,7 +264,28 @@ describe('create tx-proposal api', () => {
   describe('using the service as a mediator', () => {
     config.setSwapServiceBaseUrl('http://fake-swap-service');
 
+    it('should not interact with the service if the feature flag is disabled', async () => {
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal')
+        .send({
+          receive: {
+            tokens: [{ token: '00', value: 10 }],
+          },
+          service: {
+            is_new: true,
+            password: 'ab' // Invalid password, should be rejected
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        success: true,
+      });
+    });
+
     it('should return no success with an invalid password', async () => {
+      // Activating the global feature flag. All tests from now on will have it available.
+      global.constants.SWAP_SERVICE_FEATURE_TOGGLE = true;
       const response = await TestUtils.request
         .post('/wallet/atomic-swap/tx-proposal')
         .send({

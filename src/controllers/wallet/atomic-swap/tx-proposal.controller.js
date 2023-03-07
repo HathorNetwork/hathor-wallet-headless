@@ -23,6 +23,7 @@ const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
 const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 const { mapTxReturn } = require('../../../helpers/tx.helper');
+const constants = require('../../../constants');
 
 /**
  * Build or update a partial transaction proposal.
@@ -133,7 +134,7 @@ async function buildTxProposal(req, res) {
     }
 
     let createdProposalId;
-    if (serviceParams.is_new) {
+    if (constants.SWAP_SERVICE_FEATURE_TOGGLE && serviceParams.is_new) {
       const { proposalId } = await serviceCreate(
         proposal.partialTx.serialize(),
         serviceParams.password
