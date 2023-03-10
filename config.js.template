@@ -15,6 +15,11 @@ module.exports = {
   // Use it only if you want to use your own tx mining service, e.g. 'https://mytxmining.domain/'
   txMiningUrl: null,
 
+  // Atomic Swap Service
+  // This is optional. If you do not set, the mainnet or testnet URL will be used, according to the `network` setting
+  // above. Use it only if you want to use your own Atomic Swap Service, e.g. 'https://my-atomic-swap-service.domain/'
+  atomicSwapService: null,
+
   // ApiKey to use with Tx Mining Service
   // This is optional. You should set it only if you have an api-key.
   txMiningApiKey: null,

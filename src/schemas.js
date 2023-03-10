@@ -169,6 +169,25 @@ export const atomicSwapCreateSchema = {
     isString: true,
     optional: true,
   },
+  // Below, parameters that deal with the Atomic Swap Service
+  'service.is_new': {
+    in: ['body'],
+    errorMessage: 'Invalid is_new argument',
+    isBoolean: true,
+    optional: true,
+  },
+  'service.proposal_id': {
+    in: ['body'],
+    errorMessage: 'Invalid proposal id',
+    isString: true,
+    optional: true,
+  },
+  'service.password': {
+    in: ['body'],
+    errorMessage: 'Invalid password',
+    isString: true,
+    optional: true,
+  }
 };
 
 export const txBuildSchema = {

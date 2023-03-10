@@ -15,11 +15,15 @@ const {
   constants: { HATHOR_TOKEN_CONFIG, TOKEN_MINT_MASK, TOKEN_MELT_MASK },
   wallet: oldWallet,
 } = require('@hathor/wallet-lib');
-const { assembleTransaction } = require('../../../services/atomic-swap.service');
+const {
+  assembleTransaction,
+  serviceCreate
+} = require('../../../services/atomic-swap.service');
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
 const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 const { mapTxReturn } = require('../../../helpers/tx.helper');
+const constants = require('../../../constants');
 
 /**
  * Build or update a partial transaction proposal.
@@ -41,6 +45,9 @@ async function buildTxProposal(req, res) {
   if (req.body.lock !== undefined) {
     markAsSelected = req.body.lock;
   }
+  /** @type {{password: string, is_new?: boolean, proposal_id?: string}} */
+  const serviceParams = req.body.service || {};
+
   const utxos = [];
 
   if (sendTokens.tokens.length === 0 && receiveTokens.tokens.length === 0) {
@@ -126,10 +133,20 @@ async function buildTxProposal(req, res) {
       );
     }
 
+    let createdProposalId;
+    if (constants.SWAP_SERVICE_FEATURE_TOGGLE && serviceParams.is_new) {
+      const { proposalId } = await serviceCreate(
+        proposal.partialTx.serialize(),
+        serviceParams.password
+      );
+      createdProposalId = proposalId;
+    }
+
     res.send({
       success: true,
       data: proposal.partialTx.serialize(),
       isComplete: proposal.partialTx.isComplete(),
+      createdProposalId,
     });
   } catch (err) {
     res.send({

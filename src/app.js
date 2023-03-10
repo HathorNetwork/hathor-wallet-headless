@@ -8,6 +8,8 @@
 import express from 'express';
 import morgan from 'morgan';
 import { config as hathorLibConfig, wallet as oldWalletUtils } from '@hathor/wallet-lib';
+// TODO: Import from '@hathor/wallet-lib/lib/config' as soon as it's available
+import { SWAP_SERVICE_MAINNET_BASE_URL, SWAP_SERVICE_TESTNET_BASE_URL } from './constants';
 
 import config from './config';
 import apiKeyAuth from './middlewares/api-key-auth.middleware';
@@ -23,6 +25,15 @@ export const initHathorLib = () => {
 
   if (config.txMiningApiKey) {
     hathorLibConfig.setTxMiningApiKey(config.txMiningApiKey);
+  }
+
+  // Configures Atomic Swap Service url. Prefers explicit config input, then mainnet or testnet
+  if (config.atomicSwapService) {
+    hathorLibConfig.setSwapServiceBaseUrl(config.atomicSwapService);
+  } else if (config.network === 'mainnet') {
+    hathorLibConfig.setSwapServiceBaseUrl(SWAP_SERVICE_MAINNET_BASE_URL);
+  } else {
+    hathorLibConfig.setSwapServiceBaseUrl(SWAP_SERVICE_TESTNET_BASE_URL);
   }
 
   // Set package version in user agent
