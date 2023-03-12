@@ -30,6 +30,26 @@ export const partialTxSchema = {
   }
 };
 
+export const proposalByIdSchema = {
+  proposal_id: {
+    in: ['body'],
+    errorMessage: 'Invalid proposal identifier',
+    isString: true,
+  },
+  password: {
+    in: ['body'],
+    errorMessage: 'Invalid password',
+    isString: true,
+    custom: {
+      options: (value, { req, location, path }) => {
+        // Test if the password has at least 3 characters
+        if (!(/^.{3,}$/.test(value))) return false;
+        return true;
+      }
+    },
+  },
+};
+
 export const txHexSignatureSchema = {
   ...txHexSchema,
   signatures: {
