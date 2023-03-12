@@ -12,6 +12,7 @@ const {
   partialTxSignatureSchema,
   partialTxSchema,
   atomicSwapCreateSchema,
+  proposalByIdSchema,
 } = require('../../../schemas');
 const {
   buildTxProposal,
@@ -21,6 +22,7 @@ const {
   unlockInputs,
   getLockedUTXOs,
   getInputData,
+  fetchFromService,
 } = require('../../../controllers/wallet/atomic-swap/tx-proposal.controller');
 
 const txProposalRouter = Router({ mergeParams: true });
@@ -40,6 +42,12 @@ txProposalRouter.post(
 txProposalRouter.get(
   '/get-locked-utxos',
   getLockedUTXOs,
+);
+
+txProposalRouter.post(
+  '/fetch-from-service',
+  checkSchema(proposalByIdSchema),
+  fetchFromService,
 );
 
 /*

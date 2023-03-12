@@ -17,7 +17,8 @@ const {
 } = require('@hathor/wallet-lib');
 const {
   assembleTransaction,
-  serviceCreate
+  serviceCreate,
+  serviceGet,
 } = require('../../../services/atomic-swap.service');
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
@@ -153,6 +154,33 @@ async function buildTxProposal(req, res) {
       success: false,
       error: err.message,
     });
+  }
+}
+
+/**
+ * Fetches all proposal data from the Atomic Swap Service for a specific identifier
+ */
+async function fetchFromService(req, res) {
+  if (!constants.SWAP_SERVICE_FEATURE_TOGGLE) {
+    res.status(405).json({ success: false, error: 'Method not allowed' });
+    return;
+  }
+  const { password, proposal_id: proposalId } = req.body;
+  // A service mediated request must have the identifier and the password as parameters
+  if (!password || !proposalId) {
+    res.status(400).json({
+      success: false,
+      error: 'Parameters proposal_id and password are mandatory when requesting from service'
+    });
+    return;
+  }
+
+  // Fetching proposal from the service
+  try {
+    const serviceProposal = await serviceGet(proposalId, password);
+    res.json({ success: true, proposal: serviceProposal });
+  } catch (err) {
+    res.send({ success: false, error: err.message });
   }
 }
 
@@ -349,6 +377,7 @@ module.exports = {
   buildTxProposal,
   getInputData,
   getLockedUTXOs,
+  fetchFromService,
   getMySignatures,
   signAndPush,
   signTx,
