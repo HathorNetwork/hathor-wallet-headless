@@ -9,6 +9,9 @@ const config = {
   // Tx Mining Service
   txMiningUrl: 'http://localhost:8035',
 
+  // Atomic Swap Service
+  atomicSwapService: 'http://localhost:3001/dev',
+
   // Wallet seeds
   seeds: {
     default: '',

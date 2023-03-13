@@ -1,4 +1,4 @@
-import { PartialTx, network } from '@hathor/wallet-lib';
+import { network, PartialTx } from '@hathor/wallet-lib';
 import { TestUtils } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
 import { singleMultisigWalletData } from '../../scripts/helpers/wallet-precalculation.helper';
@@ -938,5 +938,90 @@ describe('send tx (HTR)', () => {
         }),
       })],
     });
+  });
+});
+
+describe('using service as a mediator', () => {
+  it('should create a proposal and retrieve its data', async () => {
+    // Activating the global feature flag. All tests from now on will have it available.
+    global.constants.SWAP_SERVICE_FEATURE_TOGGLE = true;
+
+    const wallet1 = WalletHelper.getPrecalculatedWallet('swap-service-1');
+    const wallet2 = WalletHelper.getPrecalculatedWallet('swap-service-2');
+    const password = 'abc123';
+
+    await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
+
+    // Funds for single input/output tests
+    await wallet1.injectFunds(101, 0);
+    await wallet2.injectFunds(102, 0);
+
+    const tokenTx1 = await wallet1.createToken({
+      amount: 100,
+      name: 'Token wallet1',
+      symbol: 'TKW1',
+    });
+    const tkw1Uid = tokenTx1.hash;
+    const tokenTx2 = await wallet2.createToken({
+      amount: 200,
+      name: 'Token wallet2',
+      symbol: 'TKW2',
+    });
+    const tkw2Uid = tokenTx2.hash;
+
+    // Awaiting for updated balances to be received by the websocket
+    await TestUtils.pauseForWsUpdate();
+
+    // Wallet 1 Interaction
+    let response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal')
+      .send({
+        send: {
+          tokens: [
+            {
+              value: 10
+            },
+            {
+              value: 10,
+              token: tkw1Uid,
+            }
+          ],
+        },
+        receive: {
+          tokens: [{
+            value: 20,
+            token: tkw2Uid,
+          }]
+        },
+        service: {
+          is_new: true,
+          password,
+        },
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+    expect(response.body).toHaveProperty('createdProposalId');
+    expect(response.body.createdProposalId).toHaveLength(36); // Size of a UUID v4
+    const { createdProposalId: proposalId, data: createdPartialTx } = response.body;
+
+    // Wallet 2 fetches the data
+    response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/fetch-from-service')
+      .send({
+        proposal_id: proposalId,
+        password,
+      })
+      .set({ 'x-wallet-id': wallet2.walletId });
+    expect(response.body)
+      .toStrictEqual({
+        success: true,
+        proposal: {
+          proposalId,
+          version: 0,
+          timestamp: expect.any(String),
+          partialTx: createdPartialTx,
+          signatures: null,
+          history: [],
+        }
+      });
   });
 });
