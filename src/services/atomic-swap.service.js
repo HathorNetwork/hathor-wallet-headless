@@ -76,7 +76,7 @@ const serviceCreate = async (partialTx, password) => {
  */
 const serviceGet = async (proposalId, password) => {
   if (!proposalId) {
-    throw new Error('Invalid PartialTx');
+    throw new Error('Invalid proposalId');
   }
   if (!password || !password.length || password.length < 3) {
     throw new Error('Password must have at least 3 characters');
