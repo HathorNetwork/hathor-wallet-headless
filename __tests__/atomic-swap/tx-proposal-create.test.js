@@ -265,7 +265,7 @@ describe('create tx-proposal api', () => {
     config.setSwapServiceBaseUrl('http://fake-swap-service');
 
     it('should not interact with the service if the feature flag is disabled', async () => {
-      // Deactivating the global feature flag. All tests from now on will have it available.
+      // De-activating the global feature flag.
       global.constants.SWAP_SERVICE_FEATURE_TOGGLE = false;
       const response = await TestUtils.request
         .post('/wallet/atomic-swap/tx-proposal')
