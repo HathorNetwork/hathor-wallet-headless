@@ -163,14 +163,6 @@ async function fetchFromService(req, res) {
     return;
   }
   const { password, proposal_id: proposalId } = req.body;
-  // A service mediated request must have the identifier and the password as parameters
-  if (!password || !proposalId) {
-    res.status(400).json({
-      success: false,
-      error: 'Parameters proposal_id and password are mandatory when requesting from service'
-    });
-    return;
-  }
 
   // Fetching proposal from the service
   try {

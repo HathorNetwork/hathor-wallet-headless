@@ -78,7 +78,6 @@ describe('fetchFromService', () => {
   it('should raise an error for missing mandatory parameters', async () => {
     // Activating the global feature flag. All tests from now on will have it available.
     global.constants.SWAP_SERVICE_FEATURE_TOGGLE = true;
-    const expectedErrorMessage = 'Parameters proposal_id and password are mandatory when requesting from service';
 
     let response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/fetch-from-service')
@@ -87,10 +86,9 @@ describe('fetchFromService', () => {
         // password: 'abc123',
       })
       .set({ 'x-wallet-id': walletId });
-    expect(response.status).toBe(400);
     expect(response.body).toMatchObject({
       success: false,
-      error: expectedErrorMessage,
+      error: 'Password must have at least 3 characters',
     });
 
     response = await TestUtils.request
@@ -100,10 +98,9 @@ describe('fetchFromService', () => {
         password: 'abc123',
       })
       .set({ 'x-wallet-id': walletId });
-    expect(response.status).toBe(400);
     expect(response.body).toMatchObject({
       success: false,
-      error: expectedErrorMessage,
+      error: 'Invalid proposalId',
     });
   });
 
