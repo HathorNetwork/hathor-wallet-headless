@@ -62,7 +62,7 @@ describe('fetchFromService', () => {
     global.constants.SWAP_SERVICE_FEATURE_TOGGLE = false;
 
     const response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal/fetch-from-service')
+      .post('/wallet/atomic-swap/tx-proposal/fetch')
       .send({
         proposal_id: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
         password: 'abc123',
@@ -80,7 +80,7 @@ describe('fetchFromService', () => {
     global.constants.SWAP_SERVICE_FEATURE_TOGGLE = true;
 
     let response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal/fetch-from-service')
+      .post('/wallet/atomic-swap/tx-proposal/fetch')
       .send({
         proposal_id: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
         // password: 'abc123',
@@ -92,7 +92,7 @@ describe('fetchFromService', () => {
     });
 
     response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal/fetch-from-service')
+      .post('/wallet/atomic-swap/tx-proposal/fetch')
       .send({
         // proposal_id: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
         password: 'abc123',
@@ -111,7 +111,7 @@ describe('fetchFromService', () => {
       });
 
     const response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal/fetch-from-service')
+      .post('/wallet/atomic-swap/tx-proposal/fetch')
       .send({
         proposal_id: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
         password: 'abc123',
@@ -139,7 +139,7 @@ describe('fetchFromService', () => {
       .mockImplementationOnce(async () => expectedResult);
 
     const response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal/fetch-from-service')
+      .post('/wallet/atomic-swap/tx-proposal/fetch')
       .send({
         proposal_id: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
         password: 'abc123',

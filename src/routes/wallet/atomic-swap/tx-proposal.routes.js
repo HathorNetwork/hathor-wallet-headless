@@ -47,7 +47,7 @@ txProposalRouter.get(
 );
 
 txProposalRouter.post(
-  '/fetch-from-service',
+  '/fetch',
   checkSchema(proposalByIdSchema),
   fetchFromService,
 );
