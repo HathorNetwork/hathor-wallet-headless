@@ -14,10 +14,10 @@ const {
  * Assemble a transaction from the serialized partial tx and signatures
  * @param {string} partialTx The serialized partial tx
  * @param {string[]} signatures The serialized signatures
- * @param {Network} network The network object
+ * @param {IStorage} storage The storage object
  */
-const assembleTransaction = (partialTx, signatures, network) => {
-  const proposal = PartialTxProposal.fromPartialTx(partialTx, network);
+const assembleTransaction = (partialTx, signatures, storage) => {
+  const proposal = PartialTxProposal.fromPartialTx(partialTx, storage);
 
   const tx = proposal.partialTx.getTx();
   const inputData = new PartialTxInputData(tx.getDataToSign().toString('hex'), tx.inputs.length);

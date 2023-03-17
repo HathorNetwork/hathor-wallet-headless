@@ -187,7 +187,7 @@ function start(req, res) {
   const wallet = new HathorWallet(walletConfig);
 
   // subscribe to wallet events with notificationBus
-  notificationBus.subscribeHathorWallet(req.body['wallet-id'], wallet);
+  notificationBus.subscribeHathorWallet(walletID, wallet);
 
   wallet.start().then(info => {
     // The replace avoids Log Injection
@@ -282,7 +282,7 @@ async function pushTxHex(req, res) {
   try {
     const network = new Network(config.network);
     const tx = helpersUtils.createTxFromHex(txHex, network);
-    const sendTransaction = new SendTransaction({ transaction: tx, network });
+    const sendTransaction = new SendTransaction({ transaction: tx });
     const response = await sendTransaction.runFromMining();
     res.send({ success: true, tx: mapTxReturn(response) });
   } catch (err) {

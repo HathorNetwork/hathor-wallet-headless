@@ -11,9 +11,8 @@ const {
   helpersUtils,
   PartialTxInputData,
   PartialTx,
-  storage,
+  transactionUtils,
   constants: { HATHOR_TOKEN_CONFIG, TOKEN_MINT_MASK, TOKEN_MELT_MASK },
-  wallet: oldWallet,
 } = require('@hathor/wallet-lib');
 const {
   assembleTransaction,
@@ -35,8 +34,6 @@ async function buildTxProposal(req, res) {
     return;
   }
 
-  const network = req.wallet.getNetworkObject();
-
   const sendTokens = req.body.send || { tokens: [] };
   const receiveTokens = req.body.receive || { tokens: [] };
   const changeAddress = req.body.change_address || null;
@@ -56,38 +53,30 @@ async function buildTxProposal(req, res) {
   }
 
   const proposal = partialTx
-    ? PartialTxProposal.fromPartialTx(partialTx, network) : new PartialTxProposal(network);
+    ? PartialTxProposal.fromPartialTx(partialTx, req.wallet.storage) : new PartialTxProposal(req.wallet.storage);
 
   if (sendTokens.utxos && sendTokens.utxos.length > 0) {
     try {
       for (const utxo of sendTokens.utxos) {
-        const txData = req.wallet.getTx(utxo.txId);
+        const txData = await req.wallet.getTx(utxo.txId);
         if (!txData) {
           // utxo not in history
           continue;
         }
         const txout = txData.outputs[utxo.index];
-        if (!oldWallet.canUseUnspentTx(txout, txData.height)) {
+        if (transactionUtils.canUseUtxo({txId: utxo.txId, index: utxo.index}, req.wallet.storage)) {
           // Cannot use this utxo
           continue;
         }
 
-        const addressIndex = req.wallet.getAddressIndex(txout.decoded.address);
-        const addressPath = addressIndex ? req.wallet.getAddressPathForIndex(addressIndex) : '';
+        const addressIndex = await req.wallet.getAddressIndex(txout.decoded.address);
+        const addressPath = addressIndex ? await req.wallet.getAddressPathForIndex(addressIndex) : '';
         let authorities = 0;
-        if (oldWallet.isMintOutput(txout)) {
+        if (transactionUtils.isMint(txout)) {
           authorities += TOKEN_MINT_MASK;
         }
-        if (oldWallet.isMeltOutput(txout)) {
+        if (transactionUtils.isMelt(txout)) {
           authorities += TOKEN_MELT_MASK;
-        }
-
-        let tokenId = txout.token;
-        if (!tokenId) {
-          const tokenIndex = oldWallet.getTokenIndex(txout.token_data) - 1;
-          tokenId = txout.token_data === 0
-            ? HATHOR_TOKEN_CONFIG.uid
-            : txData.tx.tokens[tokenIndex].uid;
         }
 
         utxos.push({
@@ -96,7 +85,7 @@ async function buildTxProposal(req, res) {
           value: txout.value,
           address: txout.decoded.address,
           timelock: txout.decoded.timelock,
-          tokenId,
+          tokenId: txout.token,
           authorities,
           addressPath,
           heightlock: null,
@@ -118,15 +107,14 @@ async function buildTxProposal(req, res) {
   try {
     for (const send of sendTokens.tokens) {
       const token = send.token || HATHOR_TOKEN_CONFIG.uid;
-      proposal.addSend(req.wallet, token, send.value, { utxos, changeAddress, markAsSelected });
+      await proposal.addSend(token, send.value, { utxos, changeAddress, markAsSelected });
     }
 
     for (const receive of receiveTokens.tokens) {
       const token = receive.token || HATHOR_TOKEN_CONFIG.uid;
       const timelock = receive.timelock || null;
       const address = receive.address || null;
-      proposal.addReceive(
-        req.wallet,
+      await proposal.addReceive(
         token,
         receive.value,
         { timelock, address }
@@ -167,13 +155,10 @@ async function getMySignatures(req, res) {
     return;
   }
 
-  const network = req.wallet.getNetworkObject();
   const partialTx = req.body.partial_tx;
 
-  // TODO remove this when we create a method to sign inputs in the wallet facade
-  storage.setStore(req.wallet.store);
   try {
-    const proposal = PartialTxProposal.fromPartialTx(partialTx, network);
+    const proposal = PartialTxProposal.fromPartialTx(partialTx, req.wallet.storage);
     await proposal.signData('123');
     res.send({
       success: true,
@@ -194,15 +179,11 @@ async function signTx(req, res) {
     return;
   }
 
-  const network = req.wallet.getNetworkObject();
-
   const partialTx = req.body.partial_tx;
   const signatures = req.body.signatures || [];
 
-  // TODO remove this when we create a method to sign inputs in the wallet facade
-  storage.setStore(req.wallet.store);
   try {
-    const tx = assembleTransaction(partialTx, signatures, network);
+    const tx = assembleTransaction(partialTx, signatures, req.wallet.storage);
 
     res.send({ success: true, txHex: tx.toHex() });
   } catch (err) {
@@ -226,17 +207,13 @@ async function signAndPush(req, res) {
     return;
   }
 
-  const network = req.wallet.getNetworkObject();
-
   const partialTx = req.body.partial_tx;
   const sigs = req.body.signatures || [];
 
-  // TODO remove this when we create a method to sign inputs in the wallet facade
-  storage.setStore(req.wallet.store);
   try {
-    const transaction = assembleTransaction(partialTx, sigs, network);
+    const transaction = assembleTransaction(partialTx, sigs, req.wallet.storage);
 
-    const sendTransaction = new SendTransaction({ transaction, network });
+    const sendTransaction = new SendTransaction({ transaction, storage: req.wallet.storage });
     const response = await sendTransaction.runFromMining();
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
@@ -288,21 +265,19 @@ async function getInputData(req, res) {
  */
 async function getLockedUTXOs(req, res) {
   try {
+    const txMap = new Map();
+    for await (const utxo of req.wallet.storage.utxoSelectedAsInputIter()) {
+      if (!txMap.has(utxo.txId)) {
+        txMap.set(utxo.txId, new Set());
+      }
+      txMap.get(utxo.txId).add(utxo.index);
+    }
     const utxos = [];
-    const historyTransactions = req.wallet.getFullHistory();
-    for (const tx of Object.values(historyTransactions)) {
-      const marked = [];
-      for (const [index, output] of tx.outputs.entries()) {
-        if ((!output.spent_by) && output.selected_as_input === true) {
-          marked.push(index);
-        }
-      }
-      if (marked.length !== 0) {
-        utxos.push({
-          tx_id: tx.tx_id,
-          outputs: marked,
-        });
-      }
+    for (const txEntry of txMap.entries()) {
+      utxos.push({
+        txId: txEntry[0],
+        outputs: Array.from(txEntry[1]),
+      });
     }
 
     res.send({ success: true, locked_utxos: utxos });
@@ -334,7 +309,7 @@ async function unlockInputs(req, res) {
     const tx = partial.getTx();
 
     for (const input of tx.inputs) {
-      req.wallet.markUtxoSelected(input.hash, input.index, false);
+      await req.wallet.markUtxoSelected(input.hash, input.index, false);
     }
 
     res.send({ success: true });
