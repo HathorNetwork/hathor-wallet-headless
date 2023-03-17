@@ -1461,6 +1461,25 @@ const apiDoc = {
                     type: 'string',
                     description: 'Optional address to send the change amount.'
                   },
+                  service: {
+                    description: 'Property containing references for this proposal on the Atomic Swap Service',
+                    type: 'object',
+                    required: ['password'],
+                    properties: {
+                      is_new: {
+                        description: 'Determines if this is a new proposal, so that a new proposalId is added to the response',
+                        type: 'boolean',
+                      },
+                      proposal_id: {
+                        description: 'Determines the identifier of the existing proposal that is being referenced in this request',
+                        type: 'string',
+                      },
+                      password: {
+                        description: 'Mandatory password for interacting with a service-mediated proposal.',
+                        type: 'string',
+                      },
+                    },
+                  },
                 }
               },
               examples: {
@@ -1518,7 +1537,28 @@ const apiDoc = {
                       ],
                     }
                   },
-                }
+                },
+                just_send_with_service: {
+                  summary: 'Create a proposal sending tokens using the Atomic Swap Service',
+                  value: {
+                    send: {
+                      tokens: [
+                        {
+                          value: 10,
+                          token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
+                        },
+                        {
+                          value: 100,
+                          token: '00',
+                        },
+                      ],
+                    },
+                    service: {
+                      is_new: true,
+                      password: 'abc123'
+                    }
+                  }
+                },
               }
             }
           }
@@ -1548,6 +1588,19 @@ const apiDoc = {
                   'invalid-wallet-id': {
                     summary: 'Wallet id parameter is invalid',
                     value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                  'service-invalid-password': {
+                    summary: 'Atomic Swap Service password is invalid',
+                    value: { success: false, error: 'Password must have at least 3 characters' }
+                  },
+                  'service-new-proposal': {
+                    summary: 'Success creating a service-mediated proposal.',
+                    value: {
+                      success: true,
+                      data: 'PartialTx|...',
+                      isComplete: false,
+                      createdProposalId: 'b11948c7-48...',
+                    }
                   },
                 },
               },
@@ -1617,6 +1670,95 @@ const apiDoc = {
                   'invalid-wallet-id': {
                     summary: 'Wallet id parameter is invalid',
                     value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/atomic-swap/tx-proposal/fetch': {
+      post: {
+        summary: 'Fetches a proposal data from the Atomic Swap Service',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        requestBody: {
+          description: 'Get the requested proposal by identifier from the atomic swap service.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['proposal_id', 'password'],
+                properties: {
+                  proposal_id: {
+                    description: 'Proposal identifier on the Atomic Swap Service.',
+                    type: 'string',
+                  },
+                  password: {
+                    description: 'Proposal password on the Atomic Swap Service.',
+                    type: 'string',
+                  },
+                }
+              },
+              examples: {
+                fetch: {
+                  summary: 'Successful fetch from the Atomic Swap Service',
+                  value: {
+                    proposal_id: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
+                    password: 'abc123',
+                  },
+                },
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Fetches proposal data from the service.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      success: {
+                        summary: 'Successful fetch',
+                        value: {
+                          success: true,
+                          proposal: {
+                            proposalId: '1a574e6c-73...',
+                            version: 1,
+                            timestamp: 'Fri Mar 10 2023 23:13:...',
+                            partialTx: 'PartialTx|000100010...',
+                            signatures: null,
+                            history: []
+                          },
+                        },
+                      },
+                    }
+                  },
+                  'service-failure': {
+                    summary: 'Failure on the service side',
+                    value: {
+                      success: {
+                        summary: 'Unsuccessful fetch from the Atomic Swap Service',
+                        value: {
+                          success: false,
+                          error: 'Failure description on the swap service',
+                        },
+                      },
+                    }
                   },
                 },
               },
