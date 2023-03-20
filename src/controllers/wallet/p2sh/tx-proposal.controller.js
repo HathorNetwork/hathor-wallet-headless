@@ -27,7 +27,7 @@ async function buildTxProposal(req, res) {
   const inputs = req.body.inputs || [];
   const changeAddress = req.body.change_address || null;
 
-  if (!await req.wallet.isAddressMine(changeAddress)) {
+  if (changeAddress && !await req.wallet.isAddressMine(changeAddress)) {
     res.send({ success: false, error: 'Change address does not belong to the loaded wallet.' });
     return;
   }
