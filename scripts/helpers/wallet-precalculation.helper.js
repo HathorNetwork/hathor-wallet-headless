@@ -125,10 +125,10 @@ export class WalletPrecalculationHelper {
         networkName: config.network,
         accountDerivationIndex,
       });
-      const xpub = new HDPublicKey(xpubkey);
       const network = new Network(config.network);
+      const xpub = new HDPublicKey(xpubkey);
       for (let i = addressIntervalStart; i < addressIntervalEnd; ++i) {
-        const address = xpub.deriveChild(i).publicKey.toAddress(network);
+        const address = xpub.deriveChild(i).publicKey.toAddress(network.bitcoreNetwork);
         addressesArray.push(address.toString());
       }
     }

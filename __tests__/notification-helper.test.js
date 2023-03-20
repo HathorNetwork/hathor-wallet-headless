@@ -112,6 +112,12 @@ describe('Notification helper', () => {
   it('should return empty for a transaction unrelated to the wallet', async () => {
     const fakeWallet = {
       isAddressMine: jest.fn().mockReturnValue(false),
+      storage: {
+        getCurrentHeight: jest.fn().mockReturnValue(100),
+        version: {
+          reward_spend_min_blocks: 100,
+        }
+      },
     };
     const balance = await getWalletBalanceForTx(fakeWallet, fakeTx);
     expect(balance).toEqual({});
@@ -122,6 +128,12 @@ describe('Notification helper', () => {
     // the balance of tokens on inputs and outputs will be 0
     const fakeWallet = {
       isAddressMine: jest.fn().mockReturnValue(true),
+      storage: {
+        getCurrentHeight: jest.fn().mockReturnValue(100),
+        version: {
+          reward_spend_min_blocks: 100,
+        }
+      },
     };
     const balance = await getWalletBalanceForTx(fakeWallet, fakeTx);
     expect(balance).toEqual({
@@ -139,6 +151,12 @@ describe('Notification helper', () => {
   it('should return the balance of the wallet', async () => {
     const fakeWallet = {
       isAddressMine: jest.fn().mockImplementation(addr => addr !== fakeAddress),
+      storage: {
+        getCurrentHeight: jest.fn().mockReturnValue(100),
+        version: {
+          reward_spend_min_blocks: 100,
+        }
+      },
     };
     const balance = await getWalletBalanceForTx(fakeWallet, fakeTx);
     expect(balance).toEqual({

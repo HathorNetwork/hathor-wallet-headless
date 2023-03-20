@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { wallet } from '@hathor/wallet-lib';
+import { walletUtils } from '@hathor/wallet-lib';
 
-const words = wallet.generateWalletWords();
+const words = walletUtils.generateWalletWords();
 
 console.log(words);

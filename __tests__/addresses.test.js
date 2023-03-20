@@ -1,4 +1,3 @@
-import { wallet as walletUtils } from '@hathor/wallet-lib';
 import TestUtils from './test-utils';
 
 const walletId = 'stub_addresses';
@@ -13,17 +12,20 @@ describe('addresses api', () => {
   });
 
   it('should return 200 with a valid body', async () => {
-    const gapLimit = walletUtils.getGapLimit();
+    global.config.gapLimit = 20;
+    const gapLimit = 20;
+
     const response = await TestUtils.request
       .get('/wallet/addresses')
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.addresses.length).toBe(gapLimit + 4);
     expect(response.body.addresses).toEqual(TestUtils.addresses);
+    global.config.gapLimit = null;
   });
 
   it('should return all addresses for a custom gap limit', async () => {
-    walletUtils.setGapLimit(100);
+    global.config.gapLimit = 100;
 
     // restart the wallet to use the new gap limit
     await TestUtils.stopWallet({ walletId });
@@ -37,5 +39,6 @@ describe('addresses api', () => {
     expect(response.body.addresses.length).toBe(gapLimit + 4);
     expect(response.body.addresses.slice(0, TestUtils.addresses.length))
       .toEqual(TestUtils.addresses);
+    global.config.gapLimit = null;
   });
 });

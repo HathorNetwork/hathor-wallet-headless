@@ -1,4 +1,3 @@
-import { wallet as walletUtils } from '@hathor/wallet-lib';
 import TestUtils from './test-utils';
 
 const walletId = 'stub_address';
@@ -52,7 +51,8 @@ describe('address api', () => {
   });
 
   it('should return a new address with mark_as_used until the gapLimit is reached', async () => {
-    const gapLimit = walletUtils.getGapLimit();
+    global.config.gapLimit = 20;
+    const gapLimit = 20;
     const startingIndex = 4; // First unused address
     const upperLimit = gapLimit + startingIndex - 1; // Last address within the gap limit
     for (let index = startingIndex; index <= upperLimit; index++) {
@@ -71,4 +71,6 @@ describe('address api', () => {
     expect(response.status).toBe(200);
     expect(response.body.address).toBe(TestUtils.addresses[upperLimit]);
   });
+
+  global.config.gapLimit = null;
 });

@@ -8,7 +8,7 @@
 const {
   constants: hathorLibConstants,
   SendTransaction,
-  helpersUtils,
+  transactionUtils,
 } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
@@ -27,6 +27,11 @@ async function buildTxProposal(req, res) {
   const inputs = req.body.inputs || [];
   const changeAddress = req.body.change_address || null;
 
+  if (!await req.wallet.isAddressMine(changeAddress)) {
+    res.send({ success: false, error: 'Change address does not belong to the loaded wallet.' });
+    return;
+  }
+
   for (const output of outputs) {
     if (!output.token) {
       output.token = hathorLibConstants.HATHOR_TOKEN_CONFIG.uid;
@@ -41,10 +46,11 @@ async function buildTxProposal(req, res) {
     });
     const txData = await sendTransaction.prepareTxData();
     txData.version = 1;
-    const tx = helpersUtils.createTxFromData(txData, network);
+    const tx = transactionUtils.createTransactionFromData(txData, network);
 
     res.send({ success: true, txHex: tx.toHex() });
   } catch (err) {
+    console.error(err);
     res.send({ success: false, error: err.message });
   }
 }

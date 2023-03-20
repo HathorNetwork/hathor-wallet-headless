@@ -48,13 +48,14 @@ async function buildTxProposal(req, res) {
       changeAddress,
       pin: '123',
     });
-    const fullTxData = sendTransaction.prepareTxData();
+    const fullTxData = await sendTransaction.prepareTxData();
     // Do not sign or complete the transaction yet
     const tx = transactionUtils.createTransactionFromData(fullTxData, network);
     tx.prepareToSend();
 
     res.send({ success: true, txHex: tx.toHex(), dataToSignHash: tx.getDataToSignHash().toString('hex') });
   } catch (err) {
+    console.error(err);
     res.send({ success: false, error: err.message });
   }
 }
