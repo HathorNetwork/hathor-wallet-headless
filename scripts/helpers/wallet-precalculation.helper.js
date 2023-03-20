@@ -127,7 +127,7 @@ export class WalletPrecalculationHelper {
       });
       const xpub = new HDPublicKey(xpubkey);
       const network = new Network(config.network);
-      for (const i = addressIntervalStart; i < addressIntervalEnd; ++i) {
+      for (let i = addressIntervalStart; i < addressIntervalEnd; ++i) {
         const address = xpub.deriveChild(i).publicKey.toAddress(network);
         addressesArray.push(address.toString());
       }

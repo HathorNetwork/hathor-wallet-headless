@@ -8,7 +8,7 @@
 // import is used because there is an issue with winston logger when using require ref: #262
 import logger from '../../logger'; // eslint-disable-line import/no-import-module-exports
 
-const { txApi, walletApi, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, PartialTx, HathorWallet } = require('@hathor/wallet-lib');
+const { txApi, walletApi, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, PartialTx } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../lock');
@@ -220,7 +220,7 @@ async function getTxConfirmationBlocks(req, res) {
   // We should change this when we refactor the way we call APIs in the lib
   // (this comment also applies for the getMiningInfo call)
   // eslint-disable-next-line no-promise-executor-return
-  const txDataResponse = await txApi.getTransaction(id, resolve);
+  const txDataResponse = await new Promise(resolve => txApi.getTransaction(id, resolve));
 
   if (!txDataResponse.success) {
     res.send({ success: false, error: 'Failed to get transaction data from the full node.' });
@@ -229,7 +229,7 @@ async function getTxConfirmationBlocks(req, res) {
 
   // Now we get the current height of the network
   // eslint-disable-next-line no-promise-executor-return
-  const networkHeightResponse = await walletApi.getMiningInfo(resolve);
+  const networkHeightResponse = await new Promise(resolve => walletApi.getMiningInfo(resolve));
 
   if (!networkHeightResponse.success) {
     res.send({ success: false, error: 'Failed to get network heigth from the full node.' });

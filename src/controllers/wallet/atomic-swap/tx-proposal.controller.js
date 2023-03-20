@@ -53,7 +53,8 @@ async function buildTxProposal(req, res) {
   }
 
   const proposal = partialTx
-    ? PartialTxProposal.fromPartialTx(partialTx, req.wallet.storage) : new PartialTxProposal(req.wallet.storage);
+    ? PartialTxProposal.fromPartialTx(partialTx, req.wallet.storage)
+    : new PartialTxProposal(req.wallet.storage);
 
   if (sendTokens.utxos && sendTokens.utxos.length > 0) {
     try {
@@ -64,7 +65,7 @@ async function buildTxProposal(req, res) {
           continue;
         }
         const txout = txData.outputs[utxo.index];
-        if (transactionUtils.canUseUtxo({txId: utxo.txId, index: utxo.index}, req.wallet.storage)) {
+        if (transactionUtils.canUseUtxo({ txId: utxo.txId, index: utxo.index }, req.wallet.storage)) {
           // Cannot use this utxo
           continue;
         }

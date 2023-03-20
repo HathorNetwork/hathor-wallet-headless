@@ -118,7 +118,7 @@ async function getInputData(req, res) {
     );
   } else if (type === 'p2sh') {
     // check if the loaded wallet is MultiSig
-    const multisigData = accessData.multisigData;
+    const { multisigData } = accessData;
     if (!multisigData) {
       res.send({ success: false, error: 'wallet is not MultiSig' });
       return;

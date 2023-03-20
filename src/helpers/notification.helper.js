@@ -28,7 +28,7 @@ const {
 
 /**
  * Calculate the wallet balance for a tx
- * 
+ *
  * XXX: This can be calculated using the lib methods
  *
  * @param {HathorWallet} wallet - The wallet we wish to calculate balance for.

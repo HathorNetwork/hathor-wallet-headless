@@ -191,7 +191,7 @@ async function start(req, res) {
     // To keep the same behavior as before, we set the gap limit
     // when creating the wallet, but we should move this to the
     // wallet configuration in the future
-    await wallet.storage.setGapLimit(confg.gapLimit);
+    await wallet.storage.setGapLimit(config.gapLimit);
   }
 
   // subscribe to wallet events with notificationBus

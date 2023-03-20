@@ -109,21 +109,21 @@ describe('Notification helper', () => {
     parents: [fakeTx3, fakeTx4]
   };
 
-  it('should return empty for a transaction unrelated to the wallet', () => {
+  it('should return empty for a transaction unrelated to the wallet', async () => {
     const fakeWallet = {
       isAddressMine: jest.fn().mockReturnValue(false),
     };
-    const balance = getWalletBalanceForTx(fakeWallet, fakeTx);
+    const balance = await getWalletBalanceForTx(fakeWallet, fakeTx);
     expect(balance).toEqual({});
   });
 
-  it('should return empty balance on all tokens for balanced transactions', () => {
+  it('should return empty balance on all tokens for balanced transactions', async () => {
     // if isAddressMine is always true on this particular tx
     // the balance of tokens on inputs and outputs will be 0
     const fakeWallet = {
       isAddressMine: jest.fn().mockReturnValue(true),
     };
-    const balance = getWalletBalanceForTx(fakeWallet, fakeTx);
+    const balance = await getWalletBalanceForTx(fakeWallet, fakeTx);
     expect(balance).toEqual({
       [constants.HATHOR_TOKEN_CONFIG.uid]: {
         tokens: { unlocked: 0, locked: 0 },
@@ -136,11 +136,11 @@ describe('Notification helper', () => {
     });
   });
 
-  it('should return the balance of the wallet', () => {
+  it('should return the balance of the wallet', async () => {
     const fakeWallet = {
       isAddressMine: jest.fn().mockImplementation(addr => addr !== fakeAddress),
     };
-    const balance = getWalletBalanceForTx(fakeWallet, fakeTx);
+    const balance = await getWalletBalanceForTx(fakeWallet, fakeTx);
     expect(balance).toEqual({
       [constants.HATHOR_TOKEN_CONFIG.uid]: {
         tokens: { unlocked: -20, locked: 0 },
