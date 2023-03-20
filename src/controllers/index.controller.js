@@ -26,7 +26,7 @@ function docs(req, res) {
   res.send(apiDocs);
 }
 
-function start(req, res) {
+async function start(req, res) {
   // We expect the user to either send the seed or an xpubkey he wants to use.
   if (!('xpubkey' in req.body) && !('seedKey' in req.body) && !('seed' in req.body)) {
     res.send({
@@ -185,6 +185,14 @@ function start(req, res) {
   }
 
   const wallet = new HathorWallet(walletConfig);
+
+  if (config.gapLimit) {
+    // XXX: The gap limit is now a per-wallet configuration
+    // To keep the same behavior as before, we set the gap limit
+    // when creating the wallet, but we should move this to the
+    // wallet configuration in the future
+    await wallet.storage.setGapLimit(confg.gapLimit);
+  }
 
   // subscribe to wallet events with notificationBus
   notificationBus.subscribeHathorWallet(walletID, wallet);

@@ -7,8 +7,7 @@
 
 import express from 'express';
 import morgan from 'morgan';
-import { config as hathorLibConfig, wallet as oldWalletUtils } from '@hathor/wallet-lib';
-// TODO: Import from '@hathor/wallet-lib/lib/config' as soon as it's available
+import { config as hathorLibConfig } from '@hathor/wallet-lib';
 import { SWAP_SERVICE_MAINNET_BASE_URL, SWAP_SERVICE_TESTNET_BASE_URL } from './constants';
 
 import config from './config';
@@ -58,11 +57,6 @@ const createApp = () => {
   app.use(express.urlencoded({ extended: true }));
   app.use(morgan(config.httpLogFormat || 'combined', { stream: logger.stream }));
 
-  // Configurations
-  if (config.gapLimit) {
-    console.log(`Set GAP LIMIT to ${config.gapLimit}`);
-    oldWalletUtils.setGapLimit(config.gapLimit);
-  }
   if (config.http_api_key) {
     app.use(apiKeyAuth(config.http_api_key));
   }

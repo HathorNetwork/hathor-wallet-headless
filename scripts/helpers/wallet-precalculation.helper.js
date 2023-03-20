@@ -6,9 +6,9 @@
  */
 
 import { promises as fs } from 'fs';
-import { wallet, walletUtils } from '@hathor/wallet-lib';
+import { walletUtils, Network } from '@hathor/wallet-lib';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { Address, Script } from 'bitcore-lib';
+import { Address, Script, HDPublicKey } from 'bitcore-lib';
 import config from '../../__tests__/integration/configuration/config-fixture';
 
 export const precalculationHelpers = {
@@ -110,7 +110,7 @@ export class WalletPrecalculationHelper {
     } else {
       // Generating 24-word seed if none was informed
       if (!wordsInput) {
-        wordsInput = wallet.generateWalletWords();
+        wordsInput = walletUtils.generateWalletWords();
       }
 
       /*
@@ -125,16 +125,11 @@ export class WalletPrecalculationHelper {
         networkName: config.network,
         accountDerivationIndex,
       });
-      const addresses = walletUtils.getAddresses(
-        xpubkey,
-        addressIntervalStart,
-        addressIntervalEnd,
-        config.network
-      );
-
-      // Formatting addresses to a simple array format
-      for (const hash in addresses) {
-        addressesArray[addresses[hash]] = hash;
+      const xpub = new HDPublicKey(xpubkey);
+      const network = new Network(config.network);
+      for (const i = addressIntervalStart; i < addressIntervalEnd; ++i) {
+        const address = xpub.deriveChild(i).publicKey.toAddress(network);
+        addressesArray.push(address.toString());
       }
     }
 

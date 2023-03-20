@@ -12,7 +12,6 @@ const {
     TOKEN_MELT_MASK,
   },
   dateFormatter,
-  wallet: oldWallet,
 } = require('@hathor/wallet-lib');
 
 /**
@@ -29,17 +28,20 @@ const {
 
 /**
  * Calculate the wallet balance for a tx
+ * 
+ * XXX: This can be calculated using the lib methods
  *
  * @param {HathorWallet} wallet - The wallet we wish to calculate balance for.
  * @param {Object} tx
  *
- * @returns {TokenBalance}
+ * @returns {Promise<TokenBalance>}
  */
-function getWalletBalanceForTx(wallet, tx) {
+async function getWalletBalanceForTx(wallet, tx) {
   const currentTimestamp = dateFormatter.dateToTimestamp(new Date());
   const isTimelocked = timelock => currentTimestamp < timelock;
-  const currentHeight = oldWallet.getNetworkHeight();
-  const isHeightLocked = height => (currentHeight - height) > oldWallet.getRewardLockConstant();
+  const currentHeight = await wallet.storage.getCurrentHeight();
+  const rewardLock = wallet.storage.version.reward_spend_min_blocks;
+  const isHeightLocked = height => (currentHeight - height) > rewardLock;
 
   /**
    * Create an empty token balance object.
