@@ -276,7 +276,7 @@ async function getLockedUTXOs(req, res) {
     const utxos = [];
     for (const txEntry of txMap.entries()) {
       utxos.push({
-        txId: txEntry[0],
+        tx_id: txEntry[0],
         outputs: Array.from(txEntry[1]),
       });
     }

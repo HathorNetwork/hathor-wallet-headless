@@ -7,12 +7,12 @@ const walletId = 'stub_atomic_swap_get_my_signatures';
 describe('get-my-signatures api', () => {
   const testnet = new hathorLib.Network('testnet');
   const fakeTxId = '00003392e185c6e72d7d8073ef94649023777fd23c828514f505a7955abf0caf';
-  const createProposal = (inputs, outputs) => {
+  const createProposal = (storage, inputs, outputs) => {
     const partialTx = new PartialTx(testnet);
     partialTx.inputs = inputs;
     partialTx.outputs = outputs;
 
-    const proposal = new hathorLib.PartialTxProposal(testnet);
+    const proposal = new hathorLib.PartialTxProposal(storage);
     proposal.partialTx = partialTx;
     return proposal;
   };
@@ -71,7 +71,8 @@ describe('get-my-signatures api', () => {
     });
 
     fromPartialTxSpy.mockClear();
-    fromPartialTxSpy.mockImplementation((pt, nt) => createProposal(
+    fromPartialTxSpy.mockImplementation((pt, storage) => createProposal(
+      storage,
       [
         new ProposalInput(fakeTxId, 0, 10, TestUtils.addresses[0]),
       ],
@@ -97,7 +98,8 @@ describe('get-my-signatures api', () => {
   });
 
   it('should return the signatures for the inputs we own on the transaction', async () => {
-    fromPartialTxSpy.mockImplementation((pt, nt) => createProposal(
+    fromPartialTxSpy.mockImplementation((pt, storage) => createProposal(
+      storage,
       [
         new ProposalInput(fakeTxId, 0, 10, TestUtils.addresses[0]),
       ],

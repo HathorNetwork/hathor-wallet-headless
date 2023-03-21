@@ -7,19 +7,18 @@ describe('create tx-proposal api', () => {
   const fakeTxId = '00003392e185c6e72d7d8073ef94649023777fd23c828514f505a7955abf0caf';
   const fakeUid = '0000219a831aaa7b011973981a286142b3002cd04763002e23ba6fec7dadda44';
   const spyApi = jest.spyOn(hathorLib.txApi, 'getTransaction');
-  const spyUtxos = jest.spyOn(hathorLib.HathorWallet.prototype, 'getAllUtxos');
-  function* mockUtxos(options) {
+  const spyUtxos = jest.spyOn(hathorLib.Storage.prototype, 'selectUtxos');
+  async function* mockUtxos(options) {
     yield {
       txId: fakeTxId,
       index: 0,
-      tokenId: hathorLib.constants.HATHOR_TOKEN_CONFIG.uid,
-      value: 10,
+      token: hathorLib.constants.HATHOR_TOKEN_CONFIG.uid,
       address: TestUtils.addresses[0],
-      timelock: null,
-      locked: false,
+      value: 10,
       authorities: 0,
-      heightlock: null,
-      addressPath: 'm/fake/bip32/path',
+      timelock: null,
+      type: 1,
+      height: null,
     };
   }
 
@@ -215,19 +214,20 @@ describe('create tx-proposal api', () => {
 
   it('should be complete with custom tokens', async () => {
     // Mock tokenUid utxos
-    spyUtxos.mockImplementationOnce((hwallet, token) => ([{
-      txId: fakeTxId,
-      index: 1,
-      tokenId: fakeUid,
-      value: 10,
-      address: TestUtils.addresses[0],
-      timelock: null,
-      locked: false,
-      authorities: 0,
-      heightlock: null,
-      addressPath: 'm/fake/bip32/path',
-      tokenData: 0,
-    }]));
+    async function *mockUtxosToken(hwallet, token) {
+      yield {
+        txId: fakeTxId,
+        index: 1,
+        token: fakeUid,
+        address: TestUtils.addresses[0],
+        value: 10,
+        authorities: 0,
+        timelock: null,
+        type: 1,
+        height: null,
+      };
+    }
+    spyUtxos.mockImplementationOnce(mockUtxosToken);
     const response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
