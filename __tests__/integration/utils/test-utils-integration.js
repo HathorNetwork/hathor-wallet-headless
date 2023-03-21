@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 import supertest from 'supertest';
-import { txApi, walletApi, HathorWallet, wallet } from '@hathor/wallet-lib';
+import { txApi, walletApi, HathorWallet, walletUtils } from '@hathor/wallet-lib';
 import createApp from '../../../src/app';
 import { loggers } from './logger.util';
 import testConfig from '../configuration/test.config';
@@ -62,7 +62,7 @@ export class TestUtils {
    * @returns {string|*}
    */
   static generateWords() {
-    return wallet.generateWalletWords();
+    return walletUtils.generateWalletWords();
   }
 
   /**
