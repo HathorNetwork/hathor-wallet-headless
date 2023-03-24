@@ -136,6 +136,7 @@ async function buildTxProposal(req, res) {
     let createdProposalId;
     if (constants.SWAP_SERVICE_FEATURE_TOGGLE && serviceParams.is_new) {
       const { proposalId } = await serviceCreate(
+        req.walletId,
         proposal.partialTx.serialize(),
         serviceParams.password
       );

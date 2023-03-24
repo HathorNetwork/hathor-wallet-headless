@@ -34,11 +34,12 @@ const assembleTransaction = (partialTx, signatures, network) => {
 
 /**
  * Creates the proposal on the Atomic Swap Service, handling errors that may occur on the process
+ * @param {string} walletId The initialized wallet identifier that created this proposal
  * @param {string} partialTx Serialized PartialTx
  * @param {string} password Password, length 3 or more
  * @returns {Promise<{ proposalId: string }>} Returns the proposal identifier created by the service
  */
-const serviceCreate = async (partialTx, password) => {
+const serviceCreate = async (walletId, partialTx, password) => {
   if (!partialTx) {
     throw new Error('Invalid PartialTx');
   }
@@ -51,6 +52,7 @@ const serviceCreate = async (partialTx, password) => {
     throw new Error('Unable to create the proposal on the Atomic Swap Service');
   }
 
+  await addListenedProposal(walletId, id, password);
   return { proposalId: id };
 };
 
@@ -64,7 +66,7 @@ const serviceCreate = async (partialTx, password) => {
 const addListenedProposal = async (walletId, proposalId, password) => {
   // Checking if this wallet map has been initialized already
   if (!walletListenedProposals.has(walletId)) {
-    walletListenedProposals[walletId] = new Map();
+    walletListenedProposals.set(walletId, new Map());
     // Will also open the websocket channel
   }
 
