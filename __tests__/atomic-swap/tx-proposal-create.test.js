@@ -359,7 +359,7 @@ describe('create tx-proposal api', () => {
       const mockLib = jest.spyOn(swapService, 'create')
         .mockImplementationOnce(async () => ({ success: true, id: 'mock-id' }));
 
-      const response = await TestUtils.request
+      let response = await TestUtils.request
         .post('/wallet/atomic-swap/tx-proposal')
         .send({
           receive: {
@@ -378,6 +378,15 @@ describe('create tx-proposal api', () => {
         isComplete: false,
         createdProposalId: 'mock-id',
       });
+
+      // The listProposals route should confirm this proposal is being listened to now
+      response = await TestUtils.request
+        .get('/wallet/atomic-swap/tx-proposal/list')
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toStrictEqual([
+        'mock-id',
+      ]);
 
       mockLib.mockRestore();
     });
