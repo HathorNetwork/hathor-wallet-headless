@@ -71,7 +71,7 @@ const addListenedProposal = async (walletId, proposalId, password) => {
   }
 
   const listenedProposals = walletListenedProposals.get(walletId);
-  listenedProposals.set(proposalId, { proposalId, password });
+  listenedProposals.set(proposalId, { id: proposalId, password });
   // Will also add the proposalId to the Atomic Swap Service websocket channel
 };
 
@@ -94,6 +94,13 @@ const removeListenedProposal = async (walletId, proposalId) => {
 };
 
 /**
+ * Retrieves the map of proposals being listened by this wallet.
+ * @param walletId
+ * @return {Promise<Map<string, TxProposalConfig>>}
+ */
+const getListenedProposals = async walletId => walletListenedProposals.get(walletId) || new Map();
+
+/**
  * Removes the `listenedProposals` map for a wallet, if it exists
  * @param {string} walletId
  * @return {Promise<void>}
@@ -109,5 +116,6 @@ module.exports = {
   serviceCreate,
   addListenedProposal,
   removeListenedProposal,
+  getListenedProposals,
   removeAllWalletProposals,
 };

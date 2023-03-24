@@ -17,7 +17,8 @@ const {
 } = require('@hathor/wallet-lib');
 const {
   assembleTransaction,
-  serviceCreate
+  serviceCreate,
+  getListenedProposals
 } = require('../../../services/atomic-swap.service');
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
@@ -346,6 +347,21 @@ async function unlockInputs(req, res) {
   }
 }
 
+/**
+ * Fetches the list of proposals being listened to by this wallet on the Atomic Swap Service
+ */
+async function listenedProposalList(req, res) {
+  const proposalMap = await getListenedProposals(req.walletId);
+
+  // Transform the map into an array of proposalIds;
+  const list = [];
+  proposalMap.forEach(proposal => {
+    list.push(proposal.id);
+  });
+
+  res.send(list);
+}
+
 module.exports = {
   buildTxProposal,
   getInputData,
@@ -354,4 +370,5 @@ module.exports = {
   signAndPush,
   signTx,
   unlockInputs,
+  listenedProposalList,
 };
