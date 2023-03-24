@@ -18,7 +18,8 @@ const {
 const {
   assembleTransaction,
   serviceCreate,
-  getListenedProposals
+  getListenedProposals,
+  removeListenedProposal,
 } = require('../../../services/atomic-swap.service');
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
@@ -362,6 +363,15 @@ async function listenedProposalList(req, res) {
   res.send(list);
 }
 
+async function deleteListenedProposal(req, res) {
+  try {
+    await removeListenedProposal(req.walletId, req.params.proposalId);
+    res.send({ success: true });
+  } catch (e) {
+    res.send({ success: false, error: e.message });
+  }
+}
+
 module.exports = {
   buildTxProposal,
   getInputData,
@@ -371,4 +381,5 @@ module.exports = {
   signTx,
   unlockInputs,
   listenedProposalList,
+  deleteListenedProposal,
 };

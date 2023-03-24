@@ -22,6 +22,7 @@ const {
   getLockedUTXOs,
   getInputData,
   listenedProposalList,
+  deleteListenedProposal,
 } = require('../../../controllers/wallet/atomic-swap/tx-proposal.controller');
 
 const txProposalRouter = Router({ mergeParams: true });
@@ -74,6 +75,11 @@ txProposalRouter.post(
 txProposalRouter.get(
   '/list',
   listenedProposalList,
+);
+
+txProposalRouter.delete(
+  '/delete/:proposalId',
+  deleteListenedProposal,
 );
 
 module.exports = txProposalRouter;
