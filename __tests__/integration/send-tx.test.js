@@ -117,7 +117,7 @@ describe('send tx (HTR)', () => {
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeUndefined();
     expect(response.body.success).toBe(false);
-    expect(response.body.error).toContain('invalid');
+    expect(response.body.error).toContain('Invalid');
     done();
   });
 
