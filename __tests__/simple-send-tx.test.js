@@ -141,7 +141,10 @@ describe('simple-send-tx api', () => {
     // And we have only 1 utxo of the 09 token
     // It gets selectedAsInput in the previous test then here it is not available
     // So we need to create a new wallet with the same utxo to be able to test this
-    await TestUtils.startWallet({ walletId: `${walletId}2`, preCalculatedAddresses: TestUtils.addresses });
+    await TestUtils.startWallet({
+      walletId: `${walletId}2`,
+      preCalculatedAddresses: TestUtils.addresses,
+    });
     const response = await TestUtils.request
       .post('/wallet/simple-send-tx')
       .send({

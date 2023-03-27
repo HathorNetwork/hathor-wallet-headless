@@ -65,7 +65,10 @@ async function buildTxProposal(req, res) {
           continue;
         }
         const txout = txData.outputs[utxo.index];
-        if (transactionUtils.canUseUtxo({ txId: utxo.txId, index: utxo.index }, req.wallet.storage)) {
+        if (transactionUtils.canUseUtxo(
+          { txId: utxo.txId, index: utxo.index },
+          req.wallet.storage,
+        )) {
           // Cannot use this utxo
           continue;
         }
