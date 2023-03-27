@@ -214,7 +214,7 @@ describe('create tx-proposal api', () => {
 
   it('should be complete with custom tokens', async () => {
     // Mock tokenUid utxos
-    async function *mockUtxosToken(hwallet, token) {
+    async function* mockUtxosToken(hwallet, token) {
       yield {
         txId: fakeTxId,
         index: 1,

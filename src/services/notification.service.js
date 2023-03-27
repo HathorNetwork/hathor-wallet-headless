@@ -60,7 +60,7 @@ class HathorEvents extends EventEmitter {
     });
 
     // new-tx
-    hwallet.on('new-tx', async (tx) => {
+    hwallet.on('new-tx', async tx => {
       const type = WalletEventMap['new-tx'];
       const data = { type, walletId, data: tx, balance: await getWalletBalanceForTx(hwallet, tx) };
 
@@ -69,7 +69,7 @@ class HathorEvents extends EventEmitter {
     });
 
     // update-tx
-    hwallet.on('update-tx', async (tx) => {
+    hwallet.on('update-tx', async tx => {
       const type = WalletEventMap['update-tx'];
       const data = { type, walletId, data: tx, balance: await getWalletBalanceForTx(hwallet, tx) };
 

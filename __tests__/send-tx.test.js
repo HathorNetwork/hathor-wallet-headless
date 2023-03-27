@@ -157,18 +157,18 @@ describe('send-tx api', () => {
     // And we have only 1 utxo of the 09 token
     // It gets selectedAsInput in the previous test then here it is not available
     // So we need to create a new wallet with the same utxo to be able to test this
-    await TestUtils.startWallet({ walletId: walletId + '2', preCalculatedAddresses: TestUtils.addresses });
+    await TestUtils.startWallet({ walletId: `${walletId}2`, preCalculatedAddresses: TestUtils.addresses });
     const response = await TestUtils.request
       .post('/wallet/send-tx')
       .send({
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1, token: '09' }]
       })
-      .set({ 'x-wallet-id': walletId + '2' });
+      .set({ 'x-wallet-id': `${walletId}2` });
     TestUtils.logger.debug('send-tx[custom token as string] response', { body: response.body });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeTruthy();
     expect(response.body.success).toBeTruthy();
-    await TestUtils.stopWallet({ walletId: walletId + '2' });
+    await TestUtils.stopWallet({ walletId: `${walletId}2` });
   });
 
   it('should not accept a custom token transaction without funds to cover it', async () => {

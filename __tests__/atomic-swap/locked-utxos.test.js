@@ -15,11 +15,11 @@ describe('locked utxos api', () => {
 
   it('should return a list of utxos', async () => {
     const spy = jest.spyOn(hathorLib.Storage.prototype, 'utxoSelectedAsInputIter');
-    async function *iter() {
+    async function* iter() {
       yield { txId: '1', index: 0 };
       yield { txId: '1', index: 2 };
       yield { txId: '3', index: 1 };
-    } 
+    }
     spy.mockImplementation(iter);
 
     const response = await TestUtils.request

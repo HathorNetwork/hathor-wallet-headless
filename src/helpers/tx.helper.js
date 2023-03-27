@@ -42,7 +42,7 @@ function mapTxReturn(tx) {
  * I leave this comment here because, as soon as we finish the wallet service integration in the lib
  * and align the methods signatures, we will fix the incompatibilities in the headless and then we
  * can add this method in the lib
- * 
+ *
  * XXX This can be refactored to use the lib methods, specially the storage.selectUtxos
  *
  * @param {HathorWallet} wallet The wallet object
@@ -115,7 +115,7 @@ async function getUtxosToFillTx(wallet, sumOutputs, options) {
 /**
  *
  * XXX: This method could be refatored to use the new lib methods.
- * 
+ *
  * @param {HathorWallet} wallet The wallet proposing the transaction
  * @param {Object[]} outputs Array of outputs to send
  * @param {Object[]} inputs Array of inputs to use
