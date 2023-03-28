@@ -1,6 +1,6 @@
 import hathorLib from '@hathor/wallet-lib';
 import TestUtils from '../test-utils';
-import { addListenedProposal } from '../../src/services/atomic-swap.service';
+import atomicSwapService from '../../src/services/atomic-swap.service';
 import { walletListenedProposals } from '../../src/services/wallets.service';
 
 const walletId = 'stub_atomic_swap_service';
@@ -77,7 +77,7 @@ describe('list proposals', () => {
   });
 
   it('should return only the proposal ids', async () => {
-    await addListenedProposal(walletId, 'prop1', 'pass1');
+    await atomicSwapService.addListenedProposal(walletId, 'prop1', 'pass1');
 
     let response = await TestUtils.request
       .get('/wallet/atomic-swap/tx-proposal/list')
@@ -86,7 +86,7 @@ describe('list proposals', () => {
     expect(response.body).toStrictEqual([
       'prop1',
     ]);
-    await addListenedProposal(walletId, 'prop2', 'pass2');
+    await atomicSwapService.addListenedProposal(walletId, 'prop2', 'pass2');
 
     response = await TestUtils.request
       .get('/wallet/atomic-swap/tx-proposal/list')
@@ -114,6 +114,21 @@ describe('remove proposals', () => {
       .delete('/wallet/atomic-swap/tx-proposal/delete/prop-1')
       .set({ 'x-wallet-id': walletId });
     expect(response.body).toStrictEqual({ success: true });
+  });
+
+  it('should rethrow errors from the service layer', async () => {
+    jest.spyOn(atomicSwapService, 'removeListenedProposal')
+      .mockImplementationOnce(() => {
+        throw new Error('deletion error');
+      });
+
+    const response = await TestUtils.request
+      .delete('/wallet/atomic-swap/tx-proposal/delete/prop-1')
+      .set({ 'x-wallet-id': walletId });
+    expect(response.body).toStrictEqual({
+      success: false,
+      error: 'deletion error',
+    });
   });
 
   it('should return success for an existing map', async () => {
