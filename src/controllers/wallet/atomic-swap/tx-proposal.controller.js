@@ -358,6 +358,9 @@ async function listenedProposalList(req, res) {
   res.send(list);
 }
 
+/**
+ * Deletes a listened proposal by proposalId
+ */
 async function deleteListenedProposal(req, res) {
   try {
     await atomicSwapService.removeListenedProposal(req.walletId, req.params.proposalId);
