@@ -355,7 +355,7 @@ async function listenedProposalList(req, res) {
     list.push(proposal.id);
   });
 
-  res.send(list);
+  res.send({ success: true, proposals: list });
 }
 
 /**

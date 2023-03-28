@@ -64,7 +64,7 @@ describe('list proposals', () => {
       .set({ 'x-wallet-id': walletId });
 
     expect(response.status).toBe(200);
-    expect(response.body).toStrictEqual([]);
+    expect(response.body).toStrictEqual({ success: true, proposals: [] });
 
     // Should work when there is an empty map for this wallet
     walletListenedProposals.set(walletId, new Map());
@@ -73,7 +73,7 @@ describe('list proposals', () => {
       .set({ 'x-wallet-id': walletId });
 
     expect(response.status).toBe(200);
-    expect(response.body).toStrictEqual([]);
+    expect(response.body).toStrictEqual({ success: true, proposals: [] });
   });
 
   it('should return only the proposal ids', async () => {
@@ -83,18 +83,20 @@ describe('list proposals', () => {
       .get('/wallet/atomic-swap/tx-proposal/list')
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body).toStrictEqual([
-      'prop1',
-    ]);
+    expect(response.body).toStrictEqual({
+      success: true,
+      proposals: ['prop1'],
+    });
     await atomicSwapService.addListenedProposal(walletId, 'prop2', 'pass2');
 
     response = await TestUtils.request
       .get('/wallet/atomic-swap/tx-proposal/list')
       .set({ 'x-wallet-id': walletId });
-    expect(response.body).toStrictEqual([
-      'prop1',
-      'prop2',
-    ]);
+    expect(response.body)
+      .toStrictEqual({
+        success: true,
+        proposals: ['prop1', 'prop2'],
+      });
   });
 });
 
