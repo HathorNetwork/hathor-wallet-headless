@@ -350,11 +350,7 @@ async function listenedProposalList(req, res) {
   const proposalMap = await atomicSwapService.getListenedProposals(req.walletId);
 
   // Transform the map into an array of proposalIds;
-  const list = [];
-  proposalMap.forEach(proposal => {
-    list.push(proposal.id);
-  });
-
+  const list = Array.from(proposalMap.keys());
   res.send({ success: true, proposals: list });
 }
 
