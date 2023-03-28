@@ -521,6 +521,12 @@ async function utxoFilter(req, res) {
     const { wallet } = req;
     const options = matchedData(req, { locations: ['query'] });
 
+    // XXX Internally this has been renamed to max_amount
+    // Will keep the old name in the api for compatibility
+    if (options.maximum_amount) {
+      options.max_amount = options.maximum_amount;
+    }
+
     // TODO Memory usage enhancements are required here as wallet.getUtxos can cause issues on
     //  wallets with a huge amount of utxos.
     // TODO Add pagination

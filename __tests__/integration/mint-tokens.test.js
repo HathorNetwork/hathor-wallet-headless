@@ -1,6 +1,7 @@
 import { TestUtils } from './utils/test-utils-integration';
 import { WALLET_CONSTANTS } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
+import { delay } from './utils/core.util';
 
 describe('mint token', () => {
   let wallet1;
@@ -128,7 +129,7 @@ describe('mint token', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
-    expect(response.body.error).toContain('HTR funds');
+    expect(response.body.error).toContain('Not enough HTR tokens');
     done();
   });
 
@@ -163,6 +164,7 @@ describe('mint token', () => {
         amount: 60
       })
       .set({ 'x-wallet-id': wallet1.walletId });
+    await delay(1000);
 
     const transaction = response.body;
     expect(transaction.success).toBe(true);

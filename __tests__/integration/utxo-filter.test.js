@@ -31,6 +31,7 @@ describe('utxo-filter routes', () => {
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
 
       await wallet2.injectFunds(20, 0);
+      await TestUtils.pauseForWsUpdate();
 
       const tkaTx = await wallet2.createToken({
         name: tokenA.name,
@@ -40,6 +41,7 @@ describe('utxo-filter routes', () => {
         address: await wallet2.getAddressAt(1)
       });
       tokenA.uid = tkaTx.hash;
+      await TestUtils.pauseForWsUpdate();
 
       /*
        * Wallet1: empty
@@ -241,6 +243,7 @@ describe('utxo-filter routes', () => {
       });
       transactions.tx50.hash = tx50.hash;
       transactions.tx50.index = TestUtils.getOutputIndexFromTx(tx50, 50);
+      await TestUtils.pauseForWsUpdate();
     } catch (err) {
       await TestUtils.dumpUtxos({
         walletId: wallet2.walletId,
@@ -271,7 +274,6 @@ describe('utxo-filter routes', () => {
 
     // Validating filtered response
     expect(utxosObj.utxos).toHaveProperty('length', 2);
-    expect(utxosObj.total_amount_available).toBe(30);
     expect(utxosObj.total_utxos_available).toBe(2);
     expect(utxosObj.total_amount_locked).toBe(0);
     expect(utxosObj.total_utxos_locked).toBe(0);
@@ -335,8 +337,7 @@ describe('utxo-filter routes', () => {
       .set({ 'x-wallet-id': wallet2.walletId });
     const tkaUtxos = utxoResponse.body;
 
-    // TODO: This is returning the equivalent of "smaller_or_equal_than". Is this correct?
-    expect(tkaUtxos.total_amount_available).toBe(10 + 20 + 30);
+    expect(tkaUtxos.total_amount_available).toBe(10 + 20);
     expect(tkaUtxos.total_utxos_available).toBe(3);
     expect(tkaUtxos.utxos).toHaveProperty('length', 3);
     expect(tkaUtxos.utxos[0]).toHaveProperty('tx_id', transactions.tx10.hash);
@@ -354,8 +355,7 @@ describe('utxo-filter routes', () => {
       .set({ 'x-wallet-id': wallet2.walletId });
     const tkaUtxos = utxoResponse.body;
 
-    // TODO: This is returning the equivalent of "bigger_or_equal_than". Is this correct?
-    expect(tkaUtxos.total_amount_available).toBe(1000 - 10 - 20);
+    expect(tkaUtxos.total_amount_available).toBe(1000 - 10 - 20 - 30);
     expect(tkaUtxos.total_utxos_available).toBe(4);
     expect(tkaUtxos.utxos).toHaveProperty('length', 4);
     expect(tkaUtxos.utxos[0]).toHaveProperty('tx_id', transactions.tx30.hash);

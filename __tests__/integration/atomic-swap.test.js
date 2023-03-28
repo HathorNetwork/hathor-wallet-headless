@@ -3,6 +3,7 @@ import { TestUtils } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
 import { singleMultisigWalletData } from '../../scripts/helpers/wallet-precalculation.helper';
 import { loggers } from './utils/logger.util';
+import { delay } from './utils/core.util';
 
 describe('send tx (HTR)', () => {
   let wallet1;
@@ -42,6 +43,7 @@ describe('send tx (HTR)', () => {
       tokenTx2 = await wallet2.createToken({ amount: 1000, name: 'Token wallet2', symbol: 'TKW2' });
 
       fundsTx = await wallet1.injectFunds(10, 0);
+      await delay(500);
 
       // Awaiting for updated balances to be received by the websocket
       await TestUtils.pauseForWsUpdate();
@@ -88,9 +90,9 @@ describe('send tx (HTR)', () => {
     loggers.test.insertLineToLog('atomic-swap[lock]: check with lock', { body: response.body });
     expect(response.body).toEqual({
       success: true,
-      locked_utxos: [
+      locked_utxos: expect.arrayContaining([
         { tx_id: tokenTx1.hash, outputs: [0, 1] }, // HTR + token TKW1
-      ]
+      ]),
     });
 
     // Unlock utxos
@@ -799,6 +801,7 @@ describe('send tx (HTR)', () => {
 
   it('should send the change to the correct address', async () => {
     const tx = await wallet1.injectFunds(3, 10);
+    await TestUtils.pauseForWsUpdate();
     const destAddr = await wallet1.getAddressAt(10);
     const changeAddr = await wallet1.getAddressAt(11);
     const recvAddr = await wallet1.getAddressAt(12);

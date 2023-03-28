@@ -55,6 +55,7 @@ export class TestUtils {
    */
   static async pauseForWsUpdate() {
     await delay(testConfig.wsUpdateDelay);
+    await delay(500); // extra delay to allow for the wallet to update its balance
   }
 
   /**

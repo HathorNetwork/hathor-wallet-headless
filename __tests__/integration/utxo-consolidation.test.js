@@ -288,8 +288,8 @@ describe('utxo-consolidation routes', () => {
       .set({ 'x-wallet-id': wallet1.walletId });
     const consolidateTx = utxoResponse.body;
 
-    // Evaluating consolidation results. Only source combination possible must be [10, 20, 30].
-    expect(consolidateTx.total_amount).toBe(60);
+    // Evaluating consolidation results. Only source combination possible must be [10, 20].
+    expect(consolidateTx.total_amount).toBe(30);
     expect(consolidateTx.total_utxos_consolidated).toBe(3);
 
     await TestUtils.pauseForWsUpdate();
