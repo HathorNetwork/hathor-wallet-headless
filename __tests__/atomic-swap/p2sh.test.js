@@ -36,13 +36,13 @@ describe('atomic-swap with p2sh', () => {
       .send({ txHex: 123 })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/get-input-data')
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should allow p2sh wallets to participate on an atomic-swap', async () => {

@@ -31,7 +31,7 @@ describe('Get input-data api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     // P2SH
     response = await TestUtils.request
@@ -42,7 +42,7 @@ describe('Get input-data api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should not accept invalid indexes', async () => {
@@ -55,7 +55,7 @@ describe('Get input-data api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     // missing index
     response = await TestUtils.request
@@ -65,7 +65,7 @@ describe('Get input-data api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     // P2SH
     response = await TestUtils.request
@@ -76,7 +76,7 @@ describe('Get input-data api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     // missing index
     response = await TestUtils.request
@@ -86,7 +86,7 @@ describe('Get input-data api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should not accept P2SH inputs from a P2PKH wallet', async () => {
@@ -98,7 +98,7 @@ describe('Get input-data api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
     expect(response.body.error).toEqual('wallet is not MultiSig');
   });
 
@@ -114,7 +114,7 @@ describe('Get input-data api', () => {
       .set({ 'x-wallet-id': walletIdMultisig });
     TestUtils.logger.debug('input-data[reject unknown signers]', { body: response.body });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
     expect(response.body.error).toEqual('signature from unknown signer');
   });
 

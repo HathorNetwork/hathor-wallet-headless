@@ -21,7 +21,7 @@ describe('create-token api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
     expect(response.body.hash).toBeDefined();
   });
 
@@ -35,7 +35,7 @@ describe('create-token api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
     expect(response.body.hash).toBeDefined();
   });
 
@@ -52,7 +52,7 @@ describe('create-token api', () => {
         .send(token)
         .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(400);
-      expect(response.body.success).toBeFalsy();
+      expect(response.body.success).toBe(false);
     });
   });
 
@@ -66,7 +66,7 @@ describe('create-token api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should receive an error when trying to do concurrent create-token (lock/unlock behavior)', async () => {
@@ -91,7 +91,7 @@ describe('create-token api', () => {
     expect(response1.status).toBe(200);
     expect(response1.body.hash).toBeTruthy();
     expect(response2.status).toBe(200);
-    expect(response2.body.success).toBeFalsy();
+    expect(response2.body.success).toBe(false);
   });
 
   // TODO: fix this test case crashing when mocking push_tx with status 400
@@ -107,6 +107,6 @@ describe('create-token api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 });

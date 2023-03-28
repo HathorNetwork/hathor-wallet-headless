@@ -25,14 +25,14 @@ describe('decode api', () => {
       .send({ txHex: 123 })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     response = await TestUtils.request
       .post('/wallet/decode')
       .send({ txHex: '0123g' })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should fail if txHex is an invalid transaction', async () => {
@@ -41,7 +41,7 @@ describe('decode api', () => {
       .send({ txHex: '0123456789abcdef' })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should return the inputs and outputs of the original txHex', async () => {
@@ -63,7 +63,7 @@ describe('decode api', () => {
       .send({ txHex })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
     expect(response.body.tx).toBeDefined();
     // inputs
     expect(response.body.tx.inputs).toBeDefined();
@@ -113,14 +113,14 @@ describe('decode api', () => {
       .post('/wallet/decode')
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     response = await TestUtils.request
       .post('/wallet/decode')
       .send({ txHex, partial_tx: partialTx })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should return the inputs and outputs of a partialTx', async () => {

@@ -17,7 +17,7 @@ describe('address-info api', () => {
       .query({ address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN' })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
     expect(response.body.index).toBe(0);
   });
 
@@ -27,7 +27,7 @@ describe('address-info api', () => {
       .query({ address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN', token: '01' })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
     expect(response.body.index).toBe(0);
   });
 
@@ -37,6 +37,6 @@ describe('address-info api', () => {
       .query({ address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQq3' })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 });

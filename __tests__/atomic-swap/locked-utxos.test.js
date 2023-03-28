@@ -63,14 +63,14 @@ describe('locked utxos api', () => {
       .set({ 'x-wallet-id': walletId });
     TestUtils.logger.debug('[atomic-swap:invalid-locked-params] response', { body: response.body });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/unlock')
       .set({ 'x-wallet-id': walletId });
     TestUtils.logger.debug('[atomic-swap:invalid-locked-params] response', { body: response.body });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should unlock utxos from a partial-tx', async () => {
