@@ -1,7 +1,6 @@
 import hathorLib from '@hathor/wallet-lib';
 import TestUtils from '../test-utils';
 import atomicSwapService from '../../src/services/atomic-swap.service';
-import { walletListenedProposals } from '../../src/services/wallets.service';
 
 const walletId = 'stub_atomic_swap_service';
 const fakeTxId = '00003392e185c6e72d7d8073ef94649023777fd23c828514f505a7955abf0caf';
@@ -58,7 +57,7 @@ afterAll(async () => {
 describe('list proposals', () => {
   it('should return an empty array for no listened proposals', async () => {
     // Should work when there is no map for this wallet
-    walletListenedProposals.delete(walletId);
+    atomicSwapService.walletListenedProposals.delete(walletId);
     let response = await TestUtils.request
       .get('/wallet/atomic-swap/tx-proposal/list')
       .set({ 'x-wallet-id': walletId });
@@ -67,7 +66,7 @@ describe('list proposals', () => {
     expect(response.body).toStrictEqual({ success: true, proposals: [] });
 
     // Should work when there is an empty map for this wallet
-    walletListenedProposals.set(walletId, new Map());
+    atomicSwapService.walletListenedProposals.set(walletId, new Map());
     response = await TestUtils.request
       .get('/wallet/atomic-swap/tx-proposal/list')
       .set({ 'x-wallet-id': walletId });
@@ -103,7 +102,7 @@ describe('list proposals', () => {
 describe('remove proposals', () => {
   it('should work when there are no proposals', async () => {
     // Should work when there is no map for this wallet
-    walletListenedProposals.delete(walletId);
+    atomicSwapService.walletListenedProposals.delete(walletId);
 
     let response = await TestUtils.request
       .delete('/wallet/atomic-swap/tx-proposal/delete/prop-1')
@@ -111,7 +110,7 @@ describe('remove proposals', () => {
     expect(response.body).toStrictEqual({ success: true });
 
     // Should work when there is an empty map for this wallet
-    walletListenedProposals.set(walletId, new Map());
+    atomicSwapService.walletListenedProposals.set(walletId, new Map());
     response = await TestUtils.request
       .delete('/wallet/atomic-swap/tx-proposal/delete/prop-1')
       .set({ 'x-wallet-id': walletId });
@@ -135,8 +134,8 @@ describe('remove proposals', () => {
 
   it('should return success for an existing map', async () => {
     // Configuring the wallet before the test
-    walletListenedProposals.set(walletId, new Map());
-    const listenedProposals = walletListenedProposals.get(walletId);
+    atomicSwapService.walletListenedProposals.set(walletId, new Map());
+    const listenedProposals = atomicSwapService.walletListenedProposals.get(walletId);
     listenedProposals.set('prop-2', {
       id: 'prop-2',
       password: '123'
@@ -158,12 +157,12 @@ describe('remove proposals', () => {
   });
 
   it('should remove the wallet from the proposals map when it is stopped', async () => {
-    expect(walletListenedProposals.has(walletId)).toEqual(true);
+    expect(atomicSwapService.walletListenedProposals.has(walletId)).toEqual(true);
 
     await TestUtils.request
       .post('/wallet/stop')
       .set({ 'x-wallet-id': walletId });
 
-    expect(walletListenedProposals.has(walletId)).toEqual(false);
+    expect(atomicSwapService.walletListenedProposals.has(walletId)).toEqual(false);
   });
 });
