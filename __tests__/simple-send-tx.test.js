@@ -21,7 +21,7 @@ describe('simple-send-tx api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
   });
 
   it('should accept value as string', async () => {
@@ -34,7 +34,7 @@ describe('simple-send-tx api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
   });
 
   it('should not accept a transaction with value 0', async () => {
@@ -46,7 +46,7 @@ describe('simple-send-tx api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.succes).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should not accept transactions without address or value', async () => {
@@ -57,7 +57,7 @@ describe('simple-send-tx api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.succes).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     response = await TestUtils.request
       .post('/wallet/simple-send-tx')
@@ -66,7 +66,7 @@ describe('simple-send-tx api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.succes).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should receive an error when trying to do concurrent transactions (lock/unlock behavior)', async () => {
@@ -88,9 +88,9 @@ describe('simple-send-tx api', () => {
     const [response1, response2] = await Promise.all([promise1, promise2]);
     expect(response1.status).toBe(200);
     expect(response1.body.hash).toBeDefined();
-    expect(response1.body.success).toBeTruthy();
+    expect(response1.body.success).toBe(true);
     expect(response2.status).toBe(200);
-    expect(response2.body.success).toBeFalsy();
+    expect(response2.body.success).toBe(false);
   });
 
   it('should receive an error when trying to simple-send-tx and create-token concurrently (lock/unlock behavior)', async () => {
@@ -113,9 +113,9 @@ describe('simple-send-tx api', () => {
     const [response1, response2] = await Promise.all([promise1, promise2]);
     expect(response1.status).toBe(200);
     expect(response1.body.hash).toBeDefined();
-    expect(response1.body.success).toBeTruthy();
+    expect(response1.body.success).toBe(true);
     expect(response2.status).toBe(200);
-    expect(response2.body.success).toBeFalsy();
+    expect(response2.body.success).toBe(false);
   });
 
   it('should accept a custom token transaction', async () => {
@@ -133,7 +133,7 @@ describe('simple-send-tx api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
   });
 
   it('should accept a custom token transaction (token as string)', async () => {
@@ -147,7 +147,7 @@ describe('simple-send-tx api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
   });
 
   it('should not accept a custom token transaction without funds to cover it', async () => {
@@ -164,7 +164,7 @@ describe('simple-send-tx api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should not accept a custom token transaction without funds to cover it (token as string)', async () => {
@@ -177,7 +177,7 @@ describe('simple-send-tx api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should accept a transaction with a change_address that does belong to the wallet', async () => {
@@ -190,7 +190,7 @@ describe('simple-send-tx api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
   });
 
   it('should not accept a custom token transaction without all token properties', async () => {
@@ -210,7 +210,7 @@ describe('simple-send-tx api', () => {
         })
         .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(400);
-      expect(response.body.success).toBeFalsy();
+      expect(response.body.success).toBe(false);
     });
   });
 
@@ -224,6 +224,6 @@ describe('simple-send-tx api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 });

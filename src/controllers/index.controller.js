@@ -68,6 +68,7 @@ function start(req, res) {
     // it must first stop the old wallet and then start the new
     console.error('Error starting wallet because this wallet-id is already in use. You must stop the wallet first.');
     res.send({
+      success: false,
       message: `Failed to start wallet with wallet id ${walletID}`,
       errorCode: API_ERROR_CODES.WALLET_ALREADY_STARTED,
     });

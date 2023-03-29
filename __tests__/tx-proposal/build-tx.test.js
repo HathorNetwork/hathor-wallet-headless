@@ -41,7 +41,7 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     response = await TestUtils.request
       .post('/wallet/tx-proposal')
@@ -50,7 +50,7 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should not accept transactions with 0 value', async () => {
@@ -61,7 +61,7 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should not accept tx inputs without index or hash', async () => {
@@ -73,7 +73,7 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     response = await TestUtils.request
       .post('/wallet/tx-proposal')
@@ -83,7 +83,7 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should not accept wrong custom tokens', async () => {
@@ -95,7 +95,7 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     // Hex value but invalid token uid (!== 64 chars)
     response = await TestUtils.request
@@ -105,7 +105,7 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should not accept incomplete data outputs', async () => {

@@ -33,7 +33,7 @@ describe('transaction api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should return 400 for missing parameter id', async () => {
@@ -77,7 +77,7 @@ describe('transaction blocks confirmation number', () => {
       })
       .set({ 'x-wallet-id': walletIdConfirmation });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should return 400 for missing parameter id', async () => {
