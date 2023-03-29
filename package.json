@@ -52,7 +52,6 @@
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.26.0",
     "jest": "^24.8.0",
-    "jest-jasmine2": "^29.5.0",
     "mock-socket": "^9.0.3",
     "nodemon": "^2.0.7",
     "supertest": "^6.1.3"
