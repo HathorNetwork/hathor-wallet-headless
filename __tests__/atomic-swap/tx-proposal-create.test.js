@@ -384,9 +384,10 @@ describe('create tx-proposal api', () => {
         .get('/wallet/atomic-swap/tx-proposal/list')
         .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(200);
-      expect(response.body).toStrictEqual([
-        'mock-id',
-      ]);
+      expect(response.body).toStrictEqual({
+        success: true,
+        proposals: ['mock-id'],
+      });
 
       mockLib.mockRestore();
     });
