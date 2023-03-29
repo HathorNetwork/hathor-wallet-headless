@@ -1229,6 +1229,7 @@ describe('send tx (custom tokens)', () => {
 
     const nextEmptyAddress = await wallet3.getNextAddress();
 
+    await TestUtils.pauseForWsUpdate();
     // One manual UXTO with 1000 TKB, and automatic UTXO's for HTR
     const tx = await wallet3.sendTx({
       fullObject: {
@@ -1483,6 +1484,7 @@ describe('filter query + custom tokens', () => {
       change_address: await wallet1.getAddressAt(0),
       title: 'Filling address 3 with 1000 HTR and BUG'
     });
+    await TestUtils.pauseForWsUpdate();
     // Address 3 now has 1000 HTR and 1000 BUG, change of 10 HTR went to address 0
 
     /*

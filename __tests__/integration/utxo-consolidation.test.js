@@ -290,7 +290,7 @@ describe('utxo-consolidation routes', () => {
 
     // Evaluating consolidation results. Only source combination possible must be [10, 20].
     expect(consolidateTx.total_amount).toBe(30);
-    expect(consolidateTx.total_utxos_consolidated).toBe(3);
+    expect(consolidateTx.total_utxos_consolidated).toBe(2);
 
     await TestUtils.pauseForWsUpdate();
 
@@ -331,9 +331,9 @@ describe('utxo-consolidation routes', () => {
       .set({ 'x-wallet-id': wallet1.walletId });
     const consolidateTx = utxoResponse.body;
 
-    // Evaluating results. Only source combination must be [30, 40, 50]
-    expect(consolidateTx.total_amount).toBe(120);
-    expect(consolidateTx.total_utxos_consolidated).toBe(3);
+    // Evaluating results. Only source combination must be [40, 50]
+    expect(consolidateTx.total_amount).toBe(90);
+    expect(consolidateTx.total_utxos_consolidated).toBe(2);
 
     await TestUtils.pauseForWsUpdate();
 
@@ -341,7 +341,7 @@ describe('utxo-consolidation routes', () => {
     const destinationUtxos = await wallet1.getUtxos({
       filter_address: destinationAddress
     });
-    expect(destinationUtxos.total_amount_available).toBe(120);
+    expect(destinationUtxos.total_amount_available).toBe(90);
     expect(destinationUtxos.total_utxos_available).toBe(1);
     expect(destinationUtxos.utxos[0].tx_id).toBe(consolidateTx.txId);
 
@@ -375,12 +375,13 @@ describe('utxo-consolidation routes', () => {
       .set({ 'x-wallet-id': wallet1.walletId });
     const consolidateTx = utxoResponse.body;
 
-    // Evaluating results. Only possible combination is [30, 40]
-    expect(consolidateTx.total_amount).toBe(70);
+    // Evaluating results. Only possible combination is [40, 50]
+    expect(consolidateTx.total_amount).toBe(90);
     expect(consolidateTx.total_utxos_consolidated).toBe(2);
-    expect(consolidateTx.utxos.find(u => u.amount === 30)).toBeTruthy();
-    expect(consolidateTx.utxos.find(u => u.amount === 40)).toBeTruthy();
-
+    expect(consolidateTx.utxos).toEqual(expect.arrayContaining([
+      expect.objectContaining({ amount: 40 }),
+      expect.objectContaining({ amount: 50 }),
+    ]));
     await TestUtils.pauseForWsUpdate();
 
     // Evaluating destination address balance and utxos

@@ -69,7 +69,7 @@ describe('simple-send-tx (HTR)', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
-    expect(response.body.error).toContain('Invalid');
+    expect(response.body.error).toContain('Change address');
 
     done();
   });
@@ -86,7 +86,7 @@ describe('simple-send-tx (HTR)', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
-    expect(response.body.error).toContain('invalid');
+    expect(response.body.error).toContain('Invalid');
 
     done();
   });
@@ -284,7 +284,7 @@ describe('simple-send-tx (custom token)', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
-    expect(response.body.error).toContain('invalid');
+    expect(response.body.error).toContain('Invalid');
 
     done();
   });

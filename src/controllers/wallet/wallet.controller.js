@@ -275,6 +275,9 @@ async function simpleSendTx(req, res) {
   }
   const changeAddress = req.body.change_address || null;
   try {
+    if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
+      throw new Error('Change address is not from this wallet');
+    }
     const response = await wallet.sendTransaction(
       address,
       value,

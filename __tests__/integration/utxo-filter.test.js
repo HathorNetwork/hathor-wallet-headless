@@ -364,8 +364,8 @@ describe('utxo-filter routes', () => {
     // Array containing does not care for the order
     expect(tkaUtxos.utxos).toEqual(expect.arrayContaining([
       expect.objectContaining({ tx_id: transactions.tx40.hash }),
-      expect.objectContaining({ tx_id: transactions.tx50.hash, 'amount': 50 }),
-      expect.objectContaining({ tx_id: transactions.tx50.hash, 'amount': tkaChangeOnAddr0 }),
+      expect.objectContaining({ tx_id: transactions.tx50.hash, amount: 50 }),
+      expect.objectContaining({ tx_id: transactions.tx50.hash, amount: tkaChangeOnAddr0 }),
     ]));
   });
 
