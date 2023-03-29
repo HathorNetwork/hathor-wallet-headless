@@ -85,12 +85,12 @@ const addListenedProposal = async (walletId, proposalId, password) => {
   // Checking if this wallet map has been initialized already
   if (!walletListenedProposals.has(walletId)) {
     walletListenedProposals.set(walletId, new Map());
-    // Will also open the websocket channel
+    // TODO: Will also open the websocket channel
   }
 
   const listenedProposals = walletListenedProposals.get(walletId);
   listenedProposals.set(proposalId, { id: proposalId, password });
-  // Will also add the proposalId to the Atomic Swap Service websocket channel
+  // TODO: Will also add the proposalId to the Atomic Swap Service websocket channel
 };
 
 /**
@@ -107,8 +107,8 @@ const removeListenedProposal = async (walletId, proposalId) => {
 
   const listenedProposals = walletListenedProposals.get(walletId);
   listenedProposals.delete(proposalId);
-  // Will also remove the proposalId from the Atomic Swap Service websocket channel
-  // If this was the last proposal to be removed, will also delete the channel itself
+  // TODO: Will also remove the proposalId from the Atomic Swap Service websocket channel
+  // TODO: If this was the last proposal to be removed, will also delete the channel itself
 };
 
 /**
@@ -126,7 +126,7 @@ const getListenedProposals = async walletId => walletListenedProposals.get(walle
 const removeAllWalletProposals = async walletId => {
   // Remove all of the listened proposals
   walletListenedProposals.delete(walletId);
-  // Will also close the websocket channel
+  // TODO: Will also close the websocket channel
 };
 
 module.exports = {
