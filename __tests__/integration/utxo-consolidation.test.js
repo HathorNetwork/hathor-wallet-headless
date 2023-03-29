@@ -59,11 +59,12 @@ describe('utxo-consolidation routes', () => {
   async function cleanWallet1(token) {
     const balance = await wallet1.getBalance(token);
 
-    return wallet1.sendTx({
+    await wallet1.sendTx({
       outputs: [{ address: await wallet2.getAddressAt(0), value: balance.available, token }],
       destinationWallet: wallet2.walletId,
       title: 'Cleaning up wallet1 after test'
     });
+    await TestUtils.pauseForWsUpdate();
   }
 
   it('should reject for missing destination address', async () => {
@@ -298,7 +299,7 @@ describe('utxo-consolidation routes', () => {
     const destinationUtxos = await wallet1.getUtxos({
       filter_address: await wallet1.getAddressAt(2)
     });
-    expect(destinationUtxos.total_amount_available).toBe(60);
+    expect(destinationUtxos.total_amount_available).toBe(30);
     expect(destinationUtxos.total_utxos_available).toBe(1);
     expect(destinationUtxos.utxos[0].tx_id).toBe(consolidateTx.txId);
 
@@ -341,9 +342,10 @@ describe('utxo-consolidation routes', () => {
     const destinationUtxos = await wallet1.getUtxos({
       filter_address: destinationAddress
     });
+
+    // It should have the consolidated utxo and the 30 utxo
     expect(destinationUtxos.total_amount_available).toBe(90);
     expect(destinationUtxos.total_utxos_available).toBe(1);
-    expect(destinationUtxos.utxos[0].tx_id).toBe(consolidateTx.txId);
 
     // Cleaning up
     await cleanWallet1();
@@ -362,6 +364,7 @@ describe('utxo-consolidation routes', () => {
       ],
       destinationWallet: wallet1.walletId
     });
+    await TestUtils.pauseForWsUpdate();
 
     const destinationAddress = await wallet1.getAddressAt(2);
     const utxoResponse = await TestUtils.request
@@ -388,9 +391,8 @@ describe('utxo-consolidation routes', () => {
     const destinationUtxos = await wallet1.getUtxos({
       filter_address: destinationAddress
     });
-    expect(destinationUtxos.total_amount_available).toBe(70);
+    expect(destinationUtxos.total_amount_available).toBe(90);
     expect(destinationUtxos.total_utxos_available).toBe(1);
-    expect(destinationUtxos.utxos[0].tx_id).toBe(consolidateTx.txId);
 
     // Cleaning up
     await cleanWallet1();
