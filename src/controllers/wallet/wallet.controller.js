@@ -587,6 +587,9 @@ async function createNft(req, res) {
   const createMint = req.body.create_mint || false;
   const createMelt = req.body.create_melt || false;
   try {
+    if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
+      throw new Error('Change address is not from this wallet');
+    }
     const response = await wallet.createNFT(
       name,
       symbol,

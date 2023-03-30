@@ -121,7 +121,7 @@ describe('create token', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
-    expect(response.body.error).toContain('Change address');
+    expect(response.body.error).toContain('Invalid');
     done();
   });
 

@@ -1,4 +1,4 @@
-import { constants as libConstants, transaction as transactionUtils } from '@hathor/wallet-lib';
+import { constants as libConstants } from '@hathor/wallet-lib';
 
 /**
  * @type {Record<string,WalletData>}
@@ -73,7 +73,7 @@ export const TOKEN_DATA = {
    * @param {number} tokenData "token_data" property from an output
    * @returns {boolean} True if this is an authority output
    */
-  isAuthorityToken: tokenData => transactionUtils.isTokenDataAuthority(tokenData)
+  isAuthorityToken: tokenData => (libConstants.TOKEN_AUTHORITY_MASK & tokenData) > 0,
 
 };
 

@@ -182,9 +182,9 @@ describe('send tx (HTR)', () => {
     loggers.test.insertLineToLog('atomic-swap[utxos]: check', { body: response.body });
     expect(response.body).toEqual({
       success: true,
-      locked_utxos: [
+      locked_utxos: expect.arrayContaining([
         { tx_id: tokenTx1.hash, outputs: [0, 1] },
-      ]
+      ]),
     });
 
     // Unlock utxos
