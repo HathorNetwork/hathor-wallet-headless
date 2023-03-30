@@ -142,7 +142,7 @@ describe('create tx-proposal api', () => {
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
         send: {
-          tokens: [{ token: '00', value: 10 }], // value match input on getAllUtxos, so no change
+          tokens: [{ token: '00', value: 10 }], // value match input on getAvailableUtxos, so no change
         },
       })
       .set({ 'x-wallet-id': walletId });
@@ -166,7 +166,7 @@ describe('create tx-proposal api', () => {
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
         send: {
-          tokens: [{ value: 1 }], // value less than input from getAllUtxos
+          tokens: [{ value: 1 }], // value less than input from getAvailableUtxos
         },
       })
       .set({ 'x-wallet-id': walletId });
