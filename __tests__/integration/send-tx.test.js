@@ -1489,6 +1489,7 @@ describe('filter query + custom tokens', () => {
         { token: bugCoin.uid, address: await wallet1.getAddressAt(4), value: 1000 },
         { address: await wallet1.getAddressAt(4), value: 1000 }
       ],
+      change_address: await wallet1.getAddressAt(0),
       title: 'Moving all address 3 funds to address 4'
     });
     expect(tx.hash).toBeDefined();
