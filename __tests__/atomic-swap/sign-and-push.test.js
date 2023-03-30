@@ -48,14 +48,14 @@ describe('tx-proposal sign-and-push api', () => {
       .send({ partial_tx: 123, signatures: ['1'] })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     // No partial_tx
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/sign-and-push')
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     // signatures are empty
     response = await TestUtils.request
@@ -63,7 +63,7 @@ describe('tx-proposal sign-and-push api', () => {
       .send({ partial_tx: '123', signatures: [] })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     // signatures items are not string
     response = await TestUtils.request
@@ -71,7 +71,7 @@ describe('tx-proposal sign-and-push api', () => {
       .send({ partial_tx: '123', signatures: ['1', 1] })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should fail if signatures is an invalid array', async () => {
@@ -80,14 +80,14 @@ describe('tx-proposal sign-and-push api', () => {
       .send({ partial_tx: '1', signatures: [123] })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/sign-and-push')
       .send({ partial_tx: '0123456789abcdef', signatures: [] })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should fail if an Error is thrown', async () => {

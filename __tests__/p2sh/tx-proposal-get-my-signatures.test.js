@@ -23,14 +23,14 @@ describe('get-my-signatures api', () => {
       .send({ txHex: 123 })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     response = await TestUtils.request
       .post('/wallet/p2sh/tx-proposal/get-my-signatures')
       .send({ txHex: '0123g' })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should fail if txHex is an invalid transaction', async () => {
@@ -39,7 +39,7 @@ describe('get-my-signatures api', () => {
       .send({ txHex: '0123456789abcdef' })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should return the signatures for the inputs we own on the transaction', async () => {
@@ -61,7 +61,7 @@ describe('get-my-signatures api', () => {
       .send({ txHex })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
     expect(response.body.signatures).toBeDefined();
     expect(response.body.signatures.split('|').length).toBe(2);
   });

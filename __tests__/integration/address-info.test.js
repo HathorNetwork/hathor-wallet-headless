@@ -61,7 +61,7 @@ describe('address-info routes', () => {
     expect(response.status).toBe(200);
 
     const results = response.body;
-    expect(results.success).toBeTruthy();
+    expect(results.success).toBe(true);
     expect(results.token).toBe(HATHOR_TOKEN_ID);
     expect(results.index).toBe(0);
     expect(results.total_amount_received).toBe(0);
@@ -80,7 +80,7 @@ describe('address-info routes', () => {
     expect(response.status).toBe(200);
 
     const results = response.body;
-    expect(results.success).toBeTruthy();
+    expect(results.success).toBe(true);
     expect(results.token).toBe(HATHOR_TOKEN_ID);
     expect(results.index).toBe(1);
     expect(results.total_amount_received).toBe(address1balance);
@@ -99,7 +99,7 @@ describe('address-info routes', () => {
     expect(response.status).toBe(200);
 
     const results = response.body;
-    expect(results.success).toBeTruthy();
+    expect(results.success).toBe(true);
     expect(results.token).toBe(HATHOR_TOKEN_ID);
     expect(results.index).toBe(0);
     expect(results.total_amount_received).toBeGreaterThan(0);
@@ -124,7 +124,7 @@ describe('address-info routes', () => {
     expect(response.status).toBe(200);
 
     const results = response.body;
-    expect(results.success).toBeTruthy();
+    expect(results.success).toBe(true);
     expect(results.token).toBe(HATHOR_TOKEN_ID);
     expect(results.index).toBe(0);
     expect(results.total_amount_received).toBe(15); // 10 from genesis, 5 from token creation change
@@ -146,7 +146,7 @@ describe('address-info routes', () => {
     expect(response.status).toBe(200);
 
     const results = response.body;
-    expect(results.success).toBeTruthy();
+    expect(results.success).toBe(true);
     expect(results.token).toBe(customTokenHash);
     expect(results.index).toBe(0);
     expect(results.total_amount_received).toBe(0);
@@ -168,7 +168,7 @@ describe('address-info routes', () => {
     expect(response.status).toBe(200);
 
     const results = response.body;
-    expect(results.success).toBeTruthy();
+    expect(results.success).toBe(true);
     expect(results.token).toBe(customTokenHash);
     expect(results.index).toBe(1);
     expect(results.total_amount_received).toBe(500);

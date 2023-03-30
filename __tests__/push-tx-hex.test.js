@@ -32,7 +32,7 @@ describe('push tx api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should return error from wallet-lib method errors', async () => {
