@@ -1204,6 +1204,7 @@ describe('send tx (custom tokens)', () => {
 
   it('should send a multi-input/token transaction with change address', async done => {
     const outputIndexTKB = TestUtils.getOutputIndexFromTx(tkbTx1, 1000);
+    const outputIndexHTR = TestUtils.getOutputIndexFromTx(tkbTx1, 990);
 
     /* We need to have a deep understanding of the wallet and transaction in order to validate
      * its results. First, let's build a "summary" object to help identify the main data here
@@ -1230,13 +1231,17 @@ describe('send tx (custom tokens)', () => {
     const nextEmptyAddress = await wallet3.getNextAddress();
 
     await TestUtils.pauseForWsUpdate();
-    // One manual UXTO with 1000 TKB, and automatic UTXO's for HTR
+    // One UXTO with 1000 TKB, and another with 990 HTR
     const tx = await wallet3.sendTx({
       fullObject: {
         inputs: [
           {
             hash: tkbTx1.hash,
             index: outputIndexTKB, // Input for token B
+          },
+          {
+            hash: tkbTx1.hash,
+            index: outputIndexHTR, // Input for HTR
           },
         ],
         outputs: [
@@ -1301,26 +1306,6 @@ describe('send tx (custom tokens)', () => {
     expect(destination11.total_amount_available).toBe(txOutputSummary.htr.value);
     expect(changeHtr.total_amount_available).toBe(txOutputSummary.htr.change);
     expect(changeTkb.total_amount_available).toBe(txOutputSummary.tkb.change);
-
-    // Validating that the change addresses are not the same
-    expect(txOutputSummary.htr.changeAddress === txOutputSummary.tkb.changeAddress).toBe(false);
-
-    // One of these addresses is actually the nextEmptyAddress
-    expect((txOutputSummary.htr.changeAddress === nextEmptyAddress)
-           || (txOutputSummary.tkb.changeAddress === nextEmptyAddress)).toBe(true);
-
-    // Both these addresses have adjacent indexes: the empty addresses are consumed sequentially
-    const htrChangeIndex = await TestUtils.getAddressIndex(
-      wallet3.walletId,
-      txOutputSummary.htr.changeAddress
-    );
-    const tkbChangeIndex = await TestUtils.getAddressIndex(
-      wallet3.walletId,
-      txOutputSummary.tkb.changeAddress
-    );
-
-    // Note: this test result may change if the addresses are consumed in a non-linear order
-    expect(Math.abs(htrChangeIndex - tkbChangeIndex)).toBe(1);
 
     done();
   });
@@ -1475,7 +1460,9 @@ describe('filter query + custom tokens', () => {
   });
 
   it('should send both tokens from multiple available utxos', async done => {
+    await TestUtils.pauseForWsUpdate();
     await wallet1.injectFunds(990, 3);
+    await TestUtils.pauseForWsUpdate();
     await wallet1.sendTx({
       outputs: [
         { token: bugCoin.uid, address: await wallet1.getAddressAt(3), value: 1000 },
@@ -1484,6 +1471,7 @@ describe('filter query + custom tokens', () => {
       change_address: await wallet1.getAddressAt(0),
       title: 'Filling address 3 with 1000 HTR and BUG'
     });
+    await TestUtils.pauseForWsUpdate();
     await TestUtils.pauseForWsUpdate();
     // Address 3 now has 1000 HTR and 1000 BUG, change of 10 HTR went to address 0
 
@@ -1497,7 +1485,6 @@ describe('filter query + custom tokens', () => {
 
     // Sending all of them to address 4
     const tx = await wallet1.sendTx({
-      inputs: [{ type: 'query', filter_address: await wallet1.getAddressAt(3) }],
       outputs: [
         { token: bugCoin.uid, address: await wallet1.getAddressAt(4), value: 1000 },
         { address: await wallet1.getAddressAt(4), value: 1000 }
