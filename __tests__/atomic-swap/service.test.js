@@ -1,14 +1,16 @@
 import { swapService } from '@hathor/wallet-lib';
 import { serviceCreate } from '../../src/services/atomic-swap.service';
 
+const walletId = 'mock-wallet';
+
 describe('serviceCreate', () => {
   it('should reject empty proposals', async () => {
-    await expect(serviceCreate('', 'abc'))
+    await expect(serviceCreate(walletId, '', 'abc'))
       .rejects.toThrow('Invalid PartialTx');
   });
 
   it('should reject invalid passwords', async () => {
-    await expect(serviceCreate('PartialTx||', 'ab'))
+    await expect(serviceCreate(walletId, 'PartialTx||', 'ab'))
       .rejects.toThrow('Password must have at least 3 characters');
   });
 
@@ -18,7 +20,7 @@ describe('serviceCreate', () => {
         throw new Error('Unexpected lib error');
       });
 
-    await expect(serviceCreate('PartialTx||', 'abc'))
+    await expect(serviceCreate(walletId, 'PartialTx||', 'abc'))
       .rejects.toThrow('Unexpected lib error');
 
     mockLib.mockRestore();
@@ -28,7 +30,7 @@ describe('serviceCreate', () => {
     const mockLib = jest.spyOn(swapService, 'create')
       .mockImplementationOnce(async () => ({ success: false }));
 
-    await expect(serviceCreate('PartialTx||', 'abc'))
+    await expect(serviceCreate(walletId, 'PartialTx||', 'abc'))
       .rejects.toThrow('Unable to create the proposal on the Atomic Swap Service');
 
     mockLib.mockRestore();
@@ -38,7 +40,7 @@ describe('serviceCreate', () => {
     const mockLib = jest.spyOn(swapService, 'create')
       .mockImplementationOnce(async () => ({ success: true, id: 'abc' }));
 
-    const result = await serviceCreate('PartialTx||', 'abc');
+    const result = await serviceCreate(walletId, 'PartialTx||', 'abc');
     expect(result).toStrictEqual({ proposalId: 'abc' });
 
     mockLib.mockRestore();
