@@ -24,7 +24,7 @@ describe('add signatures api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should not accept invalid signatures', async () => {
@@ -38,7 +38,7 @@ describe('add signatures api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     response = await TestUtils.request
       .post('/wallet/tx-proposal/add-signatures')
@@ -50,7 +50,7 @@ describe('add signatures api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should add signatures to the transaction', async () => {

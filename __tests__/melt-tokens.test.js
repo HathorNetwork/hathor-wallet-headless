@@ -52,7 +52,7 @@ describe('melt-tokens api', () => {
         .send(token)
         .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(400);
-      expect(response.body.success).toBeFalsy();
+      expect(response.body.success).toBe(false);
     });
   });
 
@@ -66,7 +66,7 @@ describe('melt-tokens api', () => {
       .send(token)
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should not melt less than 1 token', async () => {
@@ -79,7 +79,7 @@ describe('melt-tokens api', () => {
       .send(token)
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should not melt more tokens than total amount', async () => {
@@ -92,7 +92,7 @@ describe('melt-tokens api', () => {
       .send(token)
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it.skip('should melt all tokens and return HTR as change', async () => {
@@ -105,7 +105,7 @@ describe('melt-tokens api', () => {
       .send(token)
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     // Mimic the full node wallet:address_history message
     TestUtils.socket.send(JSON.stringify(wsFixtures.melt));
@@ -148,6 +148,6 @@ describe('melt-tokens api', () => {
     expect(response1.status).toBe(200);
     expect(response1.body.hash).toBeTruthy();
     expect(response2.status).toBe(200);
-    expect(response2.body.success).toBeFalsy();
+    expect(response2.body.success).toBe(false);
   });
 });

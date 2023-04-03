@@ -9,7 +9,25 @@ const {
   PartialTxInputData,
   swapService,
 } = require('@hathor/wallet-lib');
-const { walletListenedProposals } = require('./wallets.service');
+
+/**
+ * @typedef TxProposalConfig
+ * @property {string} id Proposal identifier on the Atomic Swap Service
+ * @property {string} password Password to access it
+ */
+
+/**
+ * A map of all the proposals for a wallet.
+ * The keys are the proposal ids
+ * @typedef {Map<string,TxProposalConfig>} WalletListenedProposals
+ */
+
+/**
+ * A map of the initialized wallets and their listened proposals.
+ * The keys are the wallet-ids
+ * @type {Map<string,WalletListenedProposals>}
+ */
+const walletListenedProposals = new Map();
 
 /**
  * Assemble a transaction from the serialized partial tx and signatures
@@ -67,12 +85,12 @@ const addListenedProposal = async (walletId, proposalId, password) => {
   // Checking if this wallet map has been initialized already
   if (!walletListenedProposals.has(walletId)) {
     walletListenedProposals.set(walletId, new Map());
-    // Will also open the websocket channel
+    // TODO: Will also open the websocket channel
   }
 
   const listenedProposals = walletListenedProposals.get(walletId);
   listenedProposals.set(proposalId, { id: proposalId, password });
-  // Will also add the proposalId to the Atomic Swap Service websocket channel
+  // TODO: Will also add the proposalId to the Atomic Swap Service websocket channel
 };
 
 /**
@@ -89,8 +107,8 @@ const removeListenedProposal = async (walletId, proposalId) => {
 
   const listenedProposals = walletListenedProposals.get(walletId);
   listenedProposals.delete(proposalId);
-  // Will also remove the proposalId from the Atomic Swap Service websocket channel
-  // If this was the last proposal to be removed, will also delete the channel itself
+  // TODO: Will also remove the proposalId from the Atomic Swap Service websocket channel
+  // TODO: If this was the last proposal to be removed, will also delete the channel itself
 };
 
 /**
@@ -108,7 +126,7 @@ const getListenedProposals = async walletId => walletListenedProposals.get(walle
 const removeAllWalletProposals = async walletId => {
   // Remove all of the listened proposals
   walletListenedProposals.delete(walletId);
-  // Will also close the websocket channel
+  // TODO: Will also close the websocket channel
 };
 
 /**
@@ -120,9 +138,9 @@ const removeAllWalletProposals = async walletId => {
  @property {number} version - The current version of the atomic swap proposal.
  @property {Array} history - The history of the atomic swap proposal.
  @property {string} history.partialTx - The partially constructed transaction at a specific point in
-                                        the proposal's history.
+ the proposal's history.
  @property {string} history.timestamp - The timestamp of when the proposal reached the corresponding
-                                        partially constructed transaction in its history.
+ partially constructed transaction in its history.
  */
 
 /**
@@ -155,5 +173,6 @@ module.exports = {
   removeListenedProposal,
   getListenedProposals,
   removeAllWalletProposals,
+  walletListenedProposals,
   serviceGet,
 };

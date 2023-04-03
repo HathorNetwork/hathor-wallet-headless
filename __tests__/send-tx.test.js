@@ -23,7 +23,7 @@ describe('send-tx api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
   });
 
   it('should return 200 with selecting inputs by query with custom tokens', async () => {
@@ -39,7 +39,7 @@ describe('send-tx api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
   });
 
   it('should return 200 with a valid body', async () => {
@@ -51,7 +51,7 @@ describe('send-tx api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
   });
 
   it('should return 200 with a valid body selecting inputs', async () => {
@@ -64,7 +64,7 @@ describe('send-tx api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
   });
 
   it('should accept value as string', async () => {
@@ -79,7 +79,7 @@ describe('send-tx api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
   });
 
   it('should not accept transactions without address or value', async () => {
@@ -90,7 +90,7 @@ describe('send-tx api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     response = await TestUtils.request
       .post('/wallet/send-tx')
@@ -99,7 +99,7 @@ describe('send-tx api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should not accept transactions with 0 value', async () => {
@@ -110,7 +110,7 @@ describe('send-tx api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should receive an error when trying to do concurrent transactions (lock/unlock behavior)', async () => {
@@ -131,7 +131,7 @@ describe('send-tx api', () => {
     expect(response1.status).toBe(200);
     expect(response1.body.hash).toBeTruthy();
     expect(response2.status).toBe(200);
-    expect(response2.body.success).toBeFalsy();
+    expect(response2.body.success).toBe(false);
   });
 
   it('should accept a custom token transaction', async () => {
@@ -149,7 +149,7 @@ describe('send-tx api', () => {
     TestUtils.logger.debug('send-tx[custom token] response', { body: response.body });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeTruthy();
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
   });
 
   it('should accept a custom token transaction (token as string)', async () => {
@@ -162,7 +162,7 @@ describe('send-tx api', () => {
     TestUtils.logger.debug('send-tx[custom token as string] response', { body: response.body });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeTruthy();
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
   });
 
   it('should not accept a custom token transaction without funds to cover it', async () => {
@@ -178,7 +178,7 @@ describe('send-tx api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should not accept a custom token transaction without funds to cover it (filter query)', async () => {
@@ -207,7 +207,7 @@ describe('send-tx api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should accept a transaction with a change_address that does belong to the wallet', async () => {
@@ -219,7 +219,7 @@ describe('send-tx api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
   });
 
   it('should not accept a custom token transaction without all token properties', async () => {
@@ -238,7 +238,7 @@ describe('send-tx api', () => {
         })
         .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(400);
-      expect(response.body.success).toBeFalsy();
+      expect(response.body.success).toBe(false);
     });
   });
 
@@ -251,7 +251,7 @@ describe('send-tx api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should not accept a transaction incomplete output data', async () => {
@@ -283,7 +283,7 @@ describe('send-tx api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeTruthy();
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
   });
 
   it('should accept a transaction with data output and p2pkh output', async () => {
@@ -298,7 +298,7 @@ describe('send-tx api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeTruthy();
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
   });
 
   it('should not accept a transaction with data size bigger than the maximum', async () => {
@@ -320,7 +320,7 @@ describe('send-tx api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response2.status).toBe(200);
     expect(response2.body.hash).toBeTruthy();
-    expect(response2.body.success).toBeTruthy();
+    expect(response2.body.success).toBe(true);
   });
 
   it('should log errors on send-tx when debug=true on req.body', async () => {
@@ -335,7 +335,7 @@ describe('send-tx api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
     expect(response.body.error).toEqual('Boom!');
     spy.mockRestore();
   });

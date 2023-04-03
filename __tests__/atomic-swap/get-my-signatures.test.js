@@ -46,13 +46,13 @@ describe('get-my-signatures api', () => {
       .send({ partial_tx: 123 })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal/get-my-signatures')
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should fail if an Error is thrown', async () => {
