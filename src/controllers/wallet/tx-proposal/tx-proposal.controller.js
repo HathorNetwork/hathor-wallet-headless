@@ -6,7 +6,6 @@
  */
 
 const {
-  constants: hathorLibConstants,
   helpersUtils,
   SendTransaction,
   transaction: transactionUtils,

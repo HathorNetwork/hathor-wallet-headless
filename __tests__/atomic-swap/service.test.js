@@ -3,8 +3,6 @@ import { serviceCreate, serviceGet } from '../../src/services/atomic-swap.servic
 
 const walletId = 'mock-wallet';
 
-const walletId = 'mock-wallet';
-
 describe('serviceCreate', () => {
   it('should reject empty proposals', async () => {
     await expect(serviceCreate(walletId, '', 'abc'))
