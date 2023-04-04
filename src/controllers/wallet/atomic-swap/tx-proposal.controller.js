@@ -185,8 +185,8 @@ async function fetchFromService(req, res) {
     res.json({ success: true, proposal: serviceProposal });
   } catch (err) {
     // TODO: Verify the status code instead of the message
-    // If the proposal no longer exists, remove it from our listened map
-    if (err.message === 'Proposal not found') {
+    // If the proposal no longer exists on the backend, remove it from our listened map
+    if (err.isAxiosError && err.response.status === 404) {
       res.status(404);
       await removeListenedProposal(walletId, proposalId);
     }
