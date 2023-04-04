@@ -1,5 +1,6 @@
 import hathorLib, { config, swapService } from '@hathor/wallet-lib';
 import TestUtils from '../test-utils';
+import atomicSwapServiceMethods from '../../src/services/atomic-swap.service';
 
 const walletId = 'stub_atomic_swap_create_tx_proposal';
 describe('fetchFromService', () => {
@@ -62,11 +63,7 @@ describe('fetchFromService', () => {
     global.constants.SWAP_SERVICE_FEATURE_TOGGLE = false;
 
     const response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal/fetch')
-      .send({
-        proposal_id: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
-        password: 'abc123',
-      })
+      .get('/wallet/atomic-swap/tx-proposal/fetch/1a574e6c-7329-4adc-b98c-b70fb20ef919')
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(405);
     expect(response.body).toMatchObject({
@@ -75,47 +72,34 @@ describe('fetchFromService', () => {
     });
   });
 
-  it('should raise an error for missing mandatory parameters', async () => {
+  it('should raise an error for requesting a non-registered proposal', async () => {
     // Activating the global feature flag. All tests from now on will have it available.
     global.constants.SWAP_SERVICE_FEATURE_TOGGLE = true;
 
-    let response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal/fetch')
-      .send({
-        proposal_id: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
-        // password: 'abc123',
-      })
+    const response = await TestUtils.request
+      .get('/wallet/atomic-swap/tx-proposal/fetch/1a574e6c-7329-4adc-b98c-b70fb20ef919')
       .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(404);
     expect(response.body).toMatchObject({
       success: false,
-      error: 'Password must have at least 3 characters',
-    });
-
-    response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal/fetch')
-      .send({
-        // proposal_id: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
-        password: 'abc123',
-      })
-      .set({ 'x-wallet-id': walletId });
-    expect(response.body).toMatchObject({
-      success: false,
-      error: 'Invalid proposalId',
+      error: 'Proposal is not registered. Register it first through [POST] /register/:proposalId',
     });
   });
 
   it('should rethrow an error from the service', async () => {
+    // Configuring the local storage for the following tests
+    await atomicSwapServiceMethods.addListenedProposal(
+      walletId,
+      '1a574e6c-7329-4adc-b98c-b70fb20ef919',
+      'abc123',
+    );
     const mockLib = jest.spyOn(swapService, 'get')
       .mockImplementationOnce(async () => {
         throw new Error('Swap Service Failure!');
       });
 
     const response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal/fetch')
-      .send({
-        proposal_id: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
-        password: 'abc123',
-      })
+      .get('/wallet/atomic-swap/tx-proposal/fetch/1a574e6c-7329-4adc-b98c-b70fb20ef919')
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
@@ -124,6 +108,10 @@ describe('fetchFromService', () => {
     });
 
     mockLib.mockRestore();
+
+    // Asserting the proposal is still on local storage
+    const lp = await atomicSwapServiceMethods.getListenedProposals(walletId);
+    expect(lp.has('1a574e6c-7329-4adc-b98c-b70fb20ef919')).toBe(true);
   });
 
   it('should return all properties from the service on success', async () => {
@@ -139,11 +127,7 @@ describe('fetchFromService', () => {
       .mockImplementationOnce(async () => expectedResult);
 
     const response = await TestUtils.request
-      .post('/wallet/atomic-swap/tx-proposal/fetch')
-      .send({
-        proposal_id: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
-        password: 'abc123',
-      })
+      .get('/wallet/atomic-swap/tx-proposal/fetch/1a574e6c-7329-4adc-b98c-b70fb20ef919')
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
@@ -152,5 +136,33 @@ describe('fetchFromService', () => {
     });
 
     mockLib.mockRestore();
+  });
+
+  it('should remove the proposal from local storage if it is not found on backend', async () => {
+    // Configuring the local storage for the following tests
+    await atomicSwapServiceMethods.addListenedProposal(
+      walletId,
+      '1a574e6c-7329-4adc-b98c-b70fb20ef919',
+      'abc123',
+    );
+    const mockLib = jest.spyOn(swapService, 'get')
+      .mockImplementationOnce(async () => {
+        throw new Error('Proposal not found');
+      });
+
+    const response = await TestUtils.request
+      .get('/wallet/atomic-swap/tx-proposal/fetch/1a574e6c-7329-4adc-b98c-b70fb20ef919')
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(404);
+    expect(response.body).toMatchObject({
+      success: false,
+      error: 'Proposal not found',
+    });
+
+    mockLib.mockRestore();
+
+    // The proposal should have been removed from the listened map
+    const lp = await atomicSwapServiceMethods.getListenedProposals(walletId);
+    expect(lp.has('1a574e6c-7329-4adc-b98c-b70fb20ef919')).toBe(false);
   });
 });

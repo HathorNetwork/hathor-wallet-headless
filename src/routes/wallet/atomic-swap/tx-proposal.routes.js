@@ -12,7 +12,6 @@ const {
   partialTxSignatureSchema,
   partialTxSchema,
   atomicSwapCreateSchema,
-  proposalByIdSchema,
   proposalRegisterSchema,
 } = require('../../../schemas');
 const {
@@ -48,9 +47,8 @@ txProposalRouter.get(
   getLockedUTXOs,
 );
 
-txProposalRouter.post(
-  '/fetch',
-  checkSchema(proposalByIdSchema),
+txProposalRouter.get(
+  '/fetch/:proposalId',
   fetchFromService,
 );
 

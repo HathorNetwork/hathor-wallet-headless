@@ -21,6 +21,7 @@ const { lock, lockTypes } = require('../../../lock');
 const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 const { mapTxReturn } = require('../../../helpers/tx.helper');
 const constants = require('../../../constants');
+const { removeListenedProposal } = require('../../../services/atomic-swap.service');
 
 /**
  * Build or update a partial transaction proposal.
@@ -162,13 +163,34 @@ async function fetchFromService(req, res) {
     res.status(405).json({ success: false, error: 'Method not allowed' });
     return;
   }
-  const { password, proposal_id: proposalId } = req.body;
+
+  const { walletId } = req;
+  const { proposalId } = req.params;
+  const listenedProposals = await atomicSwapService.getListenedProposals(walletId);
+  if (!listenedProposals.has(proposalId)) {
+    res.status(404);
+    res.send({
+      success: false,
+      error: 'Proposal is not registered. Register it first through [POST] /register/:proposalId',
+    });
+    return;
+  }
+
+  const requestedProposal = listenedProposals.get(proposalId);
+  const { password } = requestedProposal;
 
   // Fetching proposal from the service
   try {
     const serviceProposal = await atomicSwapService.serviceGet(proposalId, password);
     res.json({ success: true, proposal: serviceProposal });
   } catch (err) {
+    // TODO: Verify the status code instead of the message
+    // If the proposal no longer exists, remove it from our listened map
+    if (err.message === 'Proposal not found') {
+      res.status(404);
+      await removeListenedProposal(walletId, proposalId);
+    }
+
     res.send({ success: false, error: err.message });
   }
 }
