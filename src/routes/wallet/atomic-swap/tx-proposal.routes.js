@@ -13,6 +13,7 @@ const {
   partialTxSchema,
   atomicSwapCreateSchema,
   proposalByIdSchema,
+  proposalRegisterSchema,
 } = require('../../../schemas');
 const {
   buildTxProposal,
@@ -25,6 +26,7 @@ const {
   listenedProposalList,
   deleteListenedProposal,
   fetchFromService,
+  registerProposal,
 } = require('../../../controllers/wallet/atomic-swap/tx-proposal.controller');
 
 const txProposalRouter = Router({ mergeParams: true });
@@ -83,6 +85,12 @@ txProposalRouter.post(
 txProposalRouter.get(
   '/list',
   listenedProposalList,
+);
+
+txProposalRouter.post(
+  '/register/:proposalId',
+  checkSchema(proposalRegisterSchema),
+  registerProposal,
 );
 
 txProposalRouter.delete(

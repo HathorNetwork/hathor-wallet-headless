@@ -374,6 +374,39 @@ async function listenedProposalList(req, res) {
 }
 
 /**
+ * Registers a proposal on this wallet, storing its identifier and password locally
+ */
+async function registerProposal(req, res) {
+  const { walletId } = req;
+  const { proposalId } = req.params;
+  const { password } = req.body;
+
+  // Avoid making requests to the service if the proposal is already on local storage
+  const proposalMap = await atomicSwapService.getListenedProposals(walletId);
+  if (proposalMap.has(req.params.proposalId)) {
+    res.send({ success: true });
+    return;
+  }
+
+  try {
+    const proposal = await atomicSwapService.serviceGet(proposalId, password);
+
+    await atomicSwapService.addListenedProposal(
+      walletId,
+      proposal.proposalId,
+      password,
+    );
+    res.send({ success: true });
+  } catch (err) {
+    console.error(err.stack);
+    res.send({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
+/**
  * Deletes a listened proposal by proposalId
  */
 async function deleteListenedProposal(req, res) {
@@ -395,5 +428,6 @@ module.exports = {
   signTx,
   unlockInputs,
   listenedProposalList,
+  registerProposal,
   deleteListenedProposal,
 };

@@ -164,5 +164,117 @@ describe('remove proposals', () => {
       .set({ 'x-wallet-id': walletId });
 
     expect(atomicSwapService.walletListenedProposals.has(walletId)).toEqual(false);
+
+    // Restart the wallet for the following tests
+    await TestUtils.startWallet({ walletId, preCalculatedAddresses: TestUtils.addresses });
+  });
+});
+
+describe('register proposal', () => {
+  // Initializing the listened proposals empty
+  atomicSwapService.walletListenedProposals.delete(walletId);
+
+  it('should not succeed with missing password', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/register/prop-1')
+      .set({ 'x-wallet-id': walletId })
+      .send({
+        // password: 'abc123'
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual({
+      success: false,
+      error: expect.anything(),
+    });
+    expect(atomicSwapService.walletListenedProposals.has(walletId)).toBe(false);
+  });
+
+  it('should forward errors from the service layer', async () => {
+    /*
+     * Since the service layer makes most of the validations and already returns or throws the
+     * treated messages, there is no need to make specific assertions here.
+     * For example, this test already covers:
+     * - Connection failures
+     * - Incorrect passwords
+     * - Proposal not found on Service
+     */
+
+    const mockLib = jest.spyOn(atomicSwapService, 'serviceGet')
+      .mockImplementationOnce(async () => {
+        throw new Error('Proposal Not found');
+      });
+
+    const response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/register/prop-1')
+      .set({ 'x-wallet-id': walletId })
+      .send({
+        password: 'abc123'
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual({
+      success: false,
+      error: 'Proposal Not found',
+    });
+    expect(atomicSwapService.walletListenedProposals.has(walletId)).toBe(false);
+
+    mockLib.mockRestore();
+  });
+
+  it('should add the proposal to the listened map on success', async () => {
+    const mockLib = jest.spyOn(atomicSwapService, 'serviceGet')
+      .mockImplementationOnce(async () => ({
+        proposalId: 'prop-1',
+        partialTx: 'PartialTx|...',
+      }));
+
+    const response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/register/prop-1')
+      .set({ 'x-wallet-id': walletId })
+      .send({
+        password: 'abc123'
+      });
+
+    // Validate the HTTP response
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual({ success: true });
+    mockLib.mockRestore();
+
+    // Validate the local storage data
+    expect(atomicSwapService.walletListenedProposals.has(walletId)).toBe(true);
+    expect(atomicSwapService.walletListenedProposals.size).toBe(1);
+    const walletProposals = atomicSwapService.walletListenedProposals.get(walletId);
+    expect(walletProposals.get('prop-1')).toStrictEqual({
+      id: 'prop-1',
+      password: 'abc123'
+    });
+  });
+
+  it('should return success if the proposal is already in local storage', async () => {
+    const mockLib = jest.spyOn(atomicSwapService, 'serviceGet')
+      .mockImplementationOnce(async () => null);
+
+    const response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/register/prop-1')
+      .set({ 'x-wallet-id': walletId })
+      .send({
+        password: 'abc1234' // Different password from the test above
+      });
+
+    // Validate the HTTP response
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual({ success: true });
+    expect(mockLib).not.toHaveBeenCalled(); // Avoid service call: the proposal data is already here
+    mockLib.mockRestore();
+
+    // Validate the local storage data
+    expect(atomicSwapService.walletListenedProposals.has(walletId)).toBe(true);
+    expect(atomicSwapService.walletListenedProposals.size).toBe(1);
+    const walletProposals = atomicSwapService.walletListenedProposals.get(walletId);
+    expect(walletProposals.get('prop-1')).toStrictEqual({
+      id: 'prop-1',
+      password: 'abc123' // The proposal password must not have changed
+    });
   });
 });
