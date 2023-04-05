@@ -8,7 +8,7 @@
 // import is used because there is an issue with winston logger when using require ref: #262
 import logger from '../../logger'; // eslint-disable-line import/no-import-module-exports
 
-const { txApi, walletApi, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, PartialTx } = require('@hathor/wallet-lib');
+const { txApi, walletApi, WalletType, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, PartialTx } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../lock');
@@ -29,17 +29,12 @@ async function getStatus(req, res) {
     serverUrl: wallet.getServerUrl(),
     serverInfo: wallet.storage.version,
   };
-  /**
-   * While this is valid since we the multisigData is only set when the wallet is multisig
-   * We should actually check if a wallet is multisig from wallet.storage.getWalletType()
-   * But the WalleType enum is not exposed in wallet-lib yet.
-   */
-  // XXX: we should create a method on the facade to get the wallet type and get multisig data.
-  const accessData = await wallet.storage.getAccessData();
-  if (accessData.multisigData) {
+
+  if (await wallet.getWalletType() === WalletType.MULTISIG) {
+    const multisigData = await wallet.getMultisigData();
     data.multisig = {
-      numSignatures: accessData.multisigData.numSignatures,
-      totalParticipants: accessData.multisigData.pubkeys.length,
+      numSignatures: multisigData.numSignatures,
+      totalParticipants: multisigData.pubkeys.length,
     };
   }
   res.send(data);

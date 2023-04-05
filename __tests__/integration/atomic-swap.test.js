@@ -88,13 +88,11 @@ describe('send tx (HTR)', () => {
       .get('/wallet/atomic-swap/tx-proposal/get-locked-utxos')
       .set({ 'x-wallet-id': wallet1.walletId });
     loggers.test.insertLineToLog('atomic-swap[lock]: check with lock', { body: response.body });
-    // XXX: We have an extra utxo which should not be returned since its spent.
-    // This is not concerning but it means the selected utxos are not being correctly cleaned
     expect(response.body).toEqual({
       success: true,
-      locked_utxos: expect.arrayContaining([
+      locked_utxos: [
         { tx_id: tokenTx1.hash, outputs: [0, 1] }, // HTR + token TKW1
-      ]),
+      ],
     });
 
     // Unlock utxos
@@ -110,12 +108,9 @@ describe('send tx (HTR)', () => {
       .get('/wallet/atomic-swap/tx-proposal/get-locked-utxos')
       .set({ 'x-wallet-id': wallet1.walletId });
     loggers.test.insertLineToLog('atomic-swap[lock]: check with lock', { body: response.body });
-    // XXX: We have an extra utxo which should not be returned since its spent.
     expect(response.body).toEqual({
       success: true,
-      locked_utxos: expect.not.arrayContaining([
-        expect.objectContaining({ tx_id: tokenTx1.hash })
-      ]),
+      locked_utxos: [],
     });
 
     // Will attempt the same request with lock = false
@@ -142,9 +137,7 @@ describe('send tx (HTR)', () => {
     loggers.test.insertLineToLog('atomic-swap[lock]: check with lock=false', { body: response.body });
     expect(response.body).toEqual({
       success: true,
-      locked_utxos: expect.not.arrayContaining([
-        expect.objectContaining({ tx_id: tokenTx1.hash })
-      ]),
+      locked_utxos: [],
     });
   });
 
@@ -182,9 +175,9 @@ describe('send tx (HTR)', () => {
     loggers.test.insertLineToLog('atomic-swap[utxos]: check', { body: response.body });
     expect(response.body).toEqual({
       success: true,
-      locked_utxos: expect.arrayContaining([
+      locked_utxos: [
         { tx_id: tokenTx1.hash, outputs: [0, 1] },
-      ]),
+      ],
     });
 
     // Unlock utxos

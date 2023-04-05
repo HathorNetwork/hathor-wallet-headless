@@ -81,11 +81,7 @@ async function getMySignatures(req, res) {
  * @returns {Promise<Transaction>}
  */
 async function assemblePartialTransaction(wallet, txHex, signatures) {
-  const { multisigData } = await wallet.storage.getAccessData();
-  if (!multisigData) {
-    // This wallet is not a MultiSig wallet
-    throw new Error('Invalid wallet for this operation.');
-  }
+  const multisigData = await wallet.getMultisigData();
   if (signatures.length !== multisigData.numSignatures) {
     throw new Error(
       `Quantity of signatures different than expected. \

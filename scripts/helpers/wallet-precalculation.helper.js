@@ -6,9 +6,7 @@
  */
 
 import { promises as fs } from 'fs';
-import { walletUtils, Network } from '@hathor/wallet-lib';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Address, Script, HDPublicKey } from 'bitcore-lib';
+import { addressUtils, walletUtils } from '@hathor/wallet-lib';
 import config from '../../__tests__/integration/configuration/config-fixture';
 
 export const precalculationHelpers = {
@@ -91,14 +89,13 @@ export class WalletPrecalculationHelper {
     if (params.multisig) {
       // Multisig calculation
       const pubkeys = params.multisig.wordsArray.map(w => walletUtils.getMultiSigXPubFromWords(w));
+      const multisigData = {
+        pubkeys,
+        numSignatures: params.multisig.numSignatures,
+      };
       for (let i = addressIntervalStart; i < addressIntervalEnd; ++i) {
-        const redeemScript = walletUtils.createP2SHRedeemScript(
-          pubkeys,
-          params.multisig.numSignatures,
-          i
-        );
-        const address = Address.payingTo(Script.fromBuffer(redeemScript), config.network);
-        addressesArray.push(address.toString());
+        const addressInfo = addressUtils.deriveAddressFromDataP2SH(multisigData, i, config.network);
+        addressesArray.push(addressInfo.base58.toString());
 
         // Informing debug data
         multisigDebugData = {
@@ -125,11 +122,9 @@ export class WalletPrecalculationHelper {
         networkName: config.network,
         accountDerivationIndex,
       });
-      const network = new Network(config.network);
-      const xpub = new HDPublicKey(xpubkey);
       for (let i = addressIntervalStart; i < addressIntervalEnd; ++i) {
-        const address = xpub.deriveChild(i).publicKey.toAddress(network.bitcoreNetwork);
-        addressesArray.push(address.toString());
+        const addressInfo = addressUtils.deriveAddressFromXPubP2PKH(xpubkey, i, config.network);
+        addressesArray.push(addressInfo.base58);
       }
     }
 

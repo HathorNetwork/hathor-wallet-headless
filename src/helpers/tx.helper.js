@@ -113,9 +113,6 @@ async function getUtxosToFillTx(wallet, sumOutputs, options) {
  */
 
 /**
- *
- * XXX: This method could be refatored to use the new lib methods.
- *
  * @param {HathorWallet} wallet The wallet proposing the transaction
  * @param {Object[]} outputs Array of outputs to send
  * @param {Object[]} inputs Array of inputs to use

@@ -108,7 +108,7 @@ async function getInputData(req, res) {
 
   const { wallet } = req;
   const { index, type } = req.body;
-  const accessData = await wallet.storage.getAccessData();
+  const accessData = await wallet.getAccessData();
   let inputData;
 
   if (type === 'p2pkh') {
