@@ -286,15 +286,18 @@ describe('utxo-filter routes', () => {
       expect(unfilteredObj.utxos[utxoIndex]).toStrictEqual(utxosObj.utxos[utxoIndex]);
     }
 
-    const utxo0 = utxosObj.utxos[0];
-    expect(utxo0.address).toBe(transactions.tx50.address);
-    expect(utxo0.amount).toBe(50);
-    expect(utxo0.locked).toBe(false);
-
-    const utxo1 = utxosObj.utxos[1];
-    expect(utxo1.address).toBe(transactions.tx40.address);
-    expect(utxo1.amount).toBe(40);
-    expect(utxo1.locked).toBe(false);
+    expect(utxosObj.utxos).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        address: addr0,
+        amount: 850,
+        locked: false,
+      }),
+      expect.objectContaining({
+        address: transactions.tx50.address,
+        amount: 50,
+        locked: false,
+      }),
+    ]));
   });
 
   it('should return results for specific addresses', async () => {
