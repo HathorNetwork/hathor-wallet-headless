@@ -286,12 +286,12 @@ describe('utxo-filter routes', () => {
       expect(unfilteredObj.utxos[utxoIndex]).toStrictEqual(utxosObj.utxos[utxoIndex]);
     }
 
-    const utxo0 = utxosObj.utxos[1];
+    const utxo0 = utxosObj.utxos[0];
     expect(utxo0.address).toBe(transactions.tx10.address);
     expect(utxo0.amount).toBe(10);
     expect(utxo0.locked).toBe(false);
 
-    const utxo1 = utxosObj.utxos[0];
+    const utxo1 = utxosObj.utxos[1];
     expect(utxo1.address).toBe(transactions.tx20.address);
     expect(utxo1.amount).toBe(20);
     expect(utxo1.locked).toBe(false);

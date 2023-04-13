@@ -133,7 +133,6 @@ describe('melt tokens', () => {
     done();
   });
 
-  // XXX: The application is incorrectly allowing a change address outside the wallet
   it('should not melt with a change_address outside the wallet', async done => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
