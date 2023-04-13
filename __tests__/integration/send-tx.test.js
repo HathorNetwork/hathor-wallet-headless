@@ -1460,9 +1460,7 @@ describe('filter query + custom tokens', () => {
   });
 
   it('should send both tokens from multiple available utxos', async done => {
-    await TestUtils.pauseForWsUpdate();
     await wallet1.injectFunds(990, 3);
-    await TestUtils.pauseForWsUpdate();
     await wallet1.sendTx({
       outputs: [
         { token: bugCoin.uid, address: await wallet1.getAddressAt(3), value: 1000 },
@@ -1471,7 +1469,6 @@ describe('filter query + custom tokens', () => {
       change_address: await wallet1.getAddressAt(0),
       title: 'Filling address 3 with 1000 HTR and BUG'
     });
-    await TestUtils.pauseForWsUpdate();
     await TestUtils.pauseForWsUpdate();
     // Address 3 now has 1000 HTR and 1000 BUG, change of 10 HTR went to address 0
 
@@ -1487,10 +1484,10 @@ describe('filter query + custom tokens', () => {
     const tx = await wallet1.sendTx({
       outputs: [
         { token: bugCoin.uid, address: await wallet1.getAddressAt(4), value: 1000 },
-        { address: await wallet1.getAddressAt(4), value: 1000 }
+        { address: await wallet1.getAddressAt(4), value: 1010 }
       ],
       change_address: await wallet1.getAddressAt(0),
-      title: 'Moving all address 3 funds to address 4'
+      title: 'Moving all funds to address 4'
     });
     expect(tx.hash).toBeDefined();
 
@@ -1500,20 +1497,20 @@ describe('filter query + custom tokens', () => {
     expect(addr4custom.total_amount_available).toBe(1000);
 
     const addr4htr = await wallet1.getAddressInfo(4);
-    expect(addr4htr.total_amount_received).toBe(1000);
-    expect(addr4htr.total_amount_available).toBe(1000);
+    expect(addr4htr.total_amount_received).toBe(1010);
+    expect(addr4htr.total_amount_available).toBe(1010);
 
-    // Asserting that address 0, with the previous change, was untouched
+    // Asserting that address 0 is empty
     const addr0htr = await wallet1.getAddressInfo(0);
-    expect(addr0htr.total_amount_available).toBe(10);
+    expect(addr0htr.total_amount_available).toBe(0);
 
     /*
      * Status:
-     * addr0: 10 HTR, 0 BUG
+     * addr0: 0 HTR, 0 BUG
      * addr1: 0 HTR, 0 BUG
      * addr2: 0 HTR, 0 BUG
      * addr3: 0 HTR, 0 BUG
-     * addr4: 1000 HTR, 1000 BUG
+     * addr4: 1010 HTR, 1000 BUG
      */
 
     done();
@@ -1535,8 +1532,15 @@ describe('filter query + custom tokens', () => {
         { address: addr3hash, value: 200 },
         { address: addr3hash, value: 300 },
         { address: addr3hash, value: 500 },
-      ]
+      ],
+      change_address: await wallet1.getAddressAt(0),
     });
+    /*
+     * Status:
+     * addr0: 10 HTR, 0 BUG
+     * addr3: 200+300+500 HTR, 200+300+500 BUG
+     * addr4: 0 HTR, 0 BUG
+     */
 
     // Status: at least 3 UTXO's for bugCoin and 3 for HTR
     const addr5hash = await wallet1.getAddressAt(5);
@@ -1554,6 +1558,13 @@ describe('filter query + custom tokens', () => {
         { address: addr5hash, value: 30 },
       ]
     });
+    /*
+     * Status:
+     * addr0: 10 HTR, 0 BUG
+     * addr3: 0 HTR, 0 BUG
+     * addr4: 0 HTR, 0 BUG
+     * addr5: 1000 HTR, 1000 BUG
+     */
 
     // Checking address 5 for both custom and htr
     const addr5custom = await wallet1.getAddressInfo(5, bugCoin.uid);
@@ -1561,6 +1572,12 @@ describe('filter query + custom tokens', () => {
 
     expect(addr5custom.total_amount_available).toBe(1000);
     expect(addr5htr.total_amount_available).toBe(1000);
+
+
+    const addr0htr = await wallet1.getAddressInfo(0);
+
+    // Assert that address 0 with the previous change is not affected
+    expect(addr0htr.total_amount_available).toBe(10);
     done();
   });
 
