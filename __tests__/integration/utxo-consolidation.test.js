@@ -283,15 +283,15 @@ describe('utxo-consolidation routes', () => {
       .post('/wallet/utxo-consolidation')
       .send({
         destination_address: await wallet1.getAddressAt(2),
-        amount_smaller_than: 30,
+        amount_smaller_than: 31,
         filter_address: addr1
       })
       .set({ 'x-wallet-id': wallet1.walletId });
     const consolidateTx = utxoResponse.body;
 
-    // Evaluating consolidation results. Only source combination possible must be [10, 20].
-    expect(consolidateTx.total_amount).toBe(30);
-    expect(consolidateTx.total_utxos_consolidated).toBe(2);
+    // Evaluating consolidation results. Only source combination possible must be [10, 20, 30].
+    expect(consolidateTx.total_amount).toBe(60);
+    expect(consolidateTx.total_utxos_consolidated).toBe(3);
 
     await TestUtils.pauseForWsUpdate();
 
@@ -299,7 +299,7 @@ describe('utxo-consolidation routes', () => {
     const destinationUtxos = await wallet1.getUtxos({
       filter_address: await wallet1.getAddressAt(2)
     });
-    expect(destinationUtxos.total_amount_available).toBe(30);
+    expect(destinationUtxos.total_amount_available).toBe(60);
     expect(destinationUtxos.total_utxos_available).toBe(1);
     expect(destinationUtxos.utxos[0].tx_id).toBe(consolidateTx.txId);
 
@@ -326,15 +326,15 @@ describe('utxo-consolidation routes', () => {
       .post('/wallet/utxo-consolidation')
       .send({
         destination_address: destinationAddress,
-        amount_bigger_than: 30,
+        amount_bigger_than: 29,
         filter_address: addr0
       })
       .set({ 'x-wallet-id': wallet1.walletId });
     const consolidateTx = utxoResponse.body;
 
-    // Evaluating results. Only source combination must be [40, 50]
-    expect(consolidateTx.total_amount).toBe(90);
-    expect(consolidateTx.total_utxos_consolidated).toBe(2);
+    // Evaluating results. Only source combination must be [30, 40, 50]
+    expect(consolidateTx.total_amount).toBe(120);
+    expect(consolidateTx.total_utxos_consolidated).toBe(3);
 
     await TestUtils.pauseForWsUpdate();
 
@@ -343,9 +343,9 @@ describe('utxo-consolidation routes', () => {
       filter_address: destinationAddress
     });
 
-    // It should have the consolidated utxo and the 30 utxo
-    expect(destinationUtxos.total_amount_available).toBe(90);
+    expect(destinationUtxos.total_amount_available).toBe(120);
     expect(destinationUtxos.total_utxos_available).toBe(1);
+    expect(destinationUtxos.utxos[0].tx_id).toBe(consolidateTx.txId);
 
     // Cleaning up
     await cleanWallet1();

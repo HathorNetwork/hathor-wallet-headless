@@ -1204,7 +1204,6 @@ describe('send tx (custom tokens)', () => {
 
   it('should send a multi-input/token transaction with change address', async done => {
     const outputIndexTKB = TestUtils.getOutputIndexFromTx(tkbTx1, 1000);
-    const outputIndexHTR = TestUtils.getOutputIndexFromTx(tkbTx1, 990);
 
     /* We need to have a deep understanding of the wallet and transaction in order to validate
      * its results. First, let's build a "summary" object to help identify the main data here
@@ -1239,10 +1238,6 @@ describe('send tx (custom tokens)', () => {
           {
             hash: tkbTx1.hash,
             index: outputIndexTKB, // Input for token B
-          },
-          {
-            hash: tkbTx1.hash,
-            index: outputIndexHTR, // Input for HTR
           },
         ],
         outputs: [
@@ -1483,12 +1478,12 @@ describe('filter query + custom tokens', () => {
 
     // Sending all of them to address 4
     const tx = await wallet1.sendTx({
+      inputs: [{ type: 'query', filter_address: await wallet1.getAddressAt(3) }],
       outputs: [
         { token: bugCoin.uid, address: await wallet1.getAddressAt(4), value: 1000 },
-        { address: await wallet1.getAddressAt(4), value: 1010 }
+        { address: await wallet1.getAddressAt(4), value: 1000 }
       ],
-      change_address: await wallet1.getAddressAt(0),
-      title: 'Moving all funds to address 4'
+      title: 'Moving all address 3 funds to address 4'
     });
     expect(tx.hash).toBeDefined();
 
@@ -1498,20 +1493,20 @@ describe('filter query + custom tokens', () => {
     expect(addr4custom.total_amount_available).toBe(1000);
 
     const addr4htr = await wallet1.getAddressInfo(4);
-    expect(addr4htr.total_amount_received).toBe(1010);
-    expect(addr4htr.total_amount_available).toBe(1010);
+    expect(addr4htr.total_amount_received).toBe(1000);
+    expect(addr4htr.total_amount_available).toBe(1000);
 
-    // Asserting that address 0 is empty
+    // Asserting that address 0, with the previous change, was untouched
     const addr0htr = await wallet1.getAddressInfo(0);
-    expect(addr0htr.total_amount_available).toBe(0);
+    expect(addr0htr.total_amount_available).toBe(10);
 
     /*
      * Status:
-     * addr0: 0 HTR, 0 BUG
+     * addr0: 10 HTR, 0 BUG
      * addr1: 0 HTR, 0 BUG
      * addr2: 0 HTR, 0 BUG
      * addr3: 0 HTR, 0 BUG
-     * addr4: 1010 HTR, 1000 BUG
+     * addr4: 1000 HTR, 1000 BUG
      */
 
     done();
@@ -1533,8 +1528,7 @@ describe('filter query + custom tokens', () => {
         { address: addr3hash, value: 200 },
         { address: addr3hash, value: 300 },
         { address: addr3hash, value: 500 },
-      ],
-      change_address: await wallet1.getAddressAt(0),
+      ]
     });
     /*
      * Status:
