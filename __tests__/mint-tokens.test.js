@@ -47,7 +47,7 @@ describe('mint-tokens api', () => {
         .send(token)
         .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(400);
-      expect(response.body.success).toBeFalsy();
+      expect(response.body.success).toBe(false);
     });
   });
 
@@ -71,6 +71,6 @@ describe('mint-tokens api', () => {
     expect(response1.status).toBe(200);
     expect(response1.body.hash).toBeTruthy();
     expect(response2.status).toBe(200);
-    expect(response2.body.success).toBeFalsy();
+    expect(response2.body.success).toBe(false);
   });
 });

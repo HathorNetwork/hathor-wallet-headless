@@ -15,11 +15,12 @@ const {
   constants: { HATHOR_TOKEN_CONFIG, TOKEN_MINT_MASK, TOKEN_MELT_MASK },
   wallet: oldWallet,
 } = require('@hathor/wallet-lib');
-const { assembleTransaction } = require('../../../services/atomic-swap.service');
+const atomicSwapService = require('../../../services/atomic-swap.service');
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
 const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 const { mapTxReturn } = require('../../../helpers/tx.helper');
+const constants = require('../../../constants');
 
 /**
  * Build or update a partial transaction proposal.
@@ -41,6 +42,9 @@ async function buildTxProposal(req, res) {
   if (req.body.lock !== undefined) {
     markAsSelected = req.body.lock;
   }
+  /** @type {{password: string, is_new?: boolean, proposal_id?: string}} */
+  const serviceParams = req.body.service || {};
+
   const utxos = [];
 
   if (sendTokens.tokens.length === 0 && receiveTokens.tokens.length === 0) {
@@ -126,10 +130,21 @@ async function buildTxProposal(req, res) {
       );
     }
 
+    let createdProposalId;
+    if (constants.SWAP_SERVICE_FEATURE_TOGGLE && serviceParams.is_new) {
+      const { proposalId } = await atomicSwapService.serviceCreate(
+        req.walletId,
+        proposal.partialTx.serialize(),
+        serviceParams.password
+      );
+      createdProposalId = proposalId;
+    }
+
     res.send({
       success: true,
       data: proposal.partialTx.serialize(),
       isComplete: proposal.partialTx.isComplete(),
+      createdProposalId,
     });
   } catch (err) {
     res.send({
@@ -185,7 +200,7 @@ async function signTx(req, res) {
   // TODO remove this when we create a method to sign inputs in the wallet facade
   storage.setStore(req.wallet.store);
   try {
-    const tx = assembleTransaction(partialTx, signatures, network);
+    const tx = atomicSwapService.assembleTransaction(partialTx, signatures, network);
 
     res.send({ success: true, txHex: tx.toHex() });
   } catch (err) {
@@ -217,7 +232,7 @@ async function signAndPush(req, res) {
   // TODO remove this when we create a method to sign inputs in the wallet facade
   storage.setStore(req.wallet.store);
   try {
-    const transaction = assembleTransaction(partialTx, sigs, network);
+    const transaction = atomicSwapService.assembleTransaction(partialTx, sigs, network);
 
     const sendTransaction = new SendTransaction({ transaction, network });
     const response = await sendTransaction.runFromMining();
@@ -328,6 +343,29 @@ async function unlockInputs(req, res) {
   }
 }
 
+/**
+ * Fetches the list of proposals being listened to by this wallet on the Atomic Swap Service
+ */
+async function listenedProposalList(req, res) {
+  const proposalMap = await atomicSwapService.getListenedProposals(req.walletId);
+
+  // Transform the map into an array of proposalIds;
+  const list = Array.from(proposalMap.keys());
+  res.send({ success: true, proposals: list });
+}
+
+/**
+ * Deletes a listened proposal by proposalId
+ */
+async function deleteListenedProposal(req, res) {
+  try {
+    await atomicSwapService.removeListenedProposal(req.walletId, req.params.proposalId);
+    res.send({ success: true });
+  } catch (e) {
+    res.send({ success: false, error: e.message });
+  }
+}
+
 module.exports = {
   buildTxProposal,
   getInputData,
@@ -336,4 +374,6 @@ module.exports = {
   signAndPush,
   signTx,
   unlockInputs,
+  listenedProposalList,
+  deleteListenedProposal,
 };

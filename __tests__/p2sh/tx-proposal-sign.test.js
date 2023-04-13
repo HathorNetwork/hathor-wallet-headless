@@ -23,14 +23,14 @@ describe('tx-proposal sign api', () => {
       .send({ txHex: 123, signatures: ['1'] })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     response = await TestUtils.request
       .post('/wallet/p2sh/tx-proposal/sign')
       .send({ txHex: '0123g', signatures: ['1'] })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should fail if txHex is an invalid transaction', async () => {
@@ -39,7 +39,7 @@ describe('tx-proposal sign api', () => {
       .send({ txHex: '0123456789abcdef', signatures: ['123'] })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should fail if signatures is an invalid array', async () => {
@@ -48,14 +48,14 @@ describe('tx-proposal sign api', () => {
       .send({ txHex: '0123456789abcdef', signatures: [123] })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     response = await TestUtils.request
       .post('/wallet/p2sh/tx-proposal/sign')
       .send({ txHex: '0123456789abcdef', signatures: [] })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should return the signatures for the inputs we own on the transaction', async () => {
@@ -83,6 +83,6 @@ describe('tx-proposal sign api', () => {
       .post('/wallet/p2sh/tx-proposal/sign')
       .send({ txHex, signatures: [signature, signature, signature] })
       .set({ 'x-wallet-id': walletId });
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
   });
 });

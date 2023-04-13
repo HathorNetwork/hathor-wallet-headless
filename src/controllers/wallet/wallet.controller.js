@@ -15,6 +15,7 @@ const { lock, lockTypes } = require('../../lock');
 const { cantSendTxErrorMessage, friendlyWalletState } = require('../../helpers/constants');
 const { mapTxReturn, prepareTxFunds } = require('../../helpers/tx.helper');
 const { initializedWallets } = require('../../services/wallets.service');
+const { removeAllWalletProposals } = require('../../services/atomic-swap.service');
 
 function getStatus(req, res) {
   const { wallet } = req;
@@ -558,12 +559,13 @@ async function createNft(req, res) {
   }
 }
 
-function stop(req, res) {
+async function stop(req, res) {
   // Stop wallet and remove from wallets object
   const { wallet } = req;
   wallet.stop();
 
   initializedWallets.delete(req.walletId);
+  await removeAllWalletProposals(req.walletId);
   res.send({ success: true });
 }
 

@@ -26,7 +26,7 @@ describe('create tx-proposal api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.txHex).toBeDefined();
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
     const tx = hathorLib.helpersUtils.createTxFromHex(response.body.txHex, new hathorLib.Network('testnet'));
     expect(tx.outputs.map(o => o.decodedScript.address.base58))
       .toEqual(expect.arrayContaining(['WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau']));
@@ -42,7 +42,7 @@ describe('create tx-proposal api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.txHex).toBeDefined();
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
     const tx = hathorLib.helpersUtils.createTxFromHex(response.body.txHex, new hathorLib.Network('testnet'));
     expect(tx.outputs.map(o => o.decodedScript.address.base58))
       .toEqual(expect.arrayContaining(['WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc']));
@@ -62,7 +62,7 @@ describe('create tx-proposal api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.txHex).toBeDefined();
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
   });
 
   it('should not accept transactions without address or value', async () => {
@@ -73,7 +73,7 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
 
     response = await TestUtils.request
       .post('/wallet/p2sh/tx-proposal')
@@ -82,7 +82,7 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should not accept transactions with 0 value', async () => {
@@ -93,7 +93,7 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should accept a custom token transaction', async () => {
@@ -105,7 +105,7 @@ describe('create tx-proposal api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.txHex).toBeTruthy();
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
   });
 
   it('should not accept a custom token transaction without funds to cover it', async () => {
@@ -120,7 +120,7 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 
   it('should accept a transaction with a change_address that does belong to the wallet', async () => {
@@ -132,7 +132,7 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeTruthy();
+    expect(response.body.success).toBe(true);
   });
 
   it('should not accept a transaction with a change_address that does not belong to the wallet', async () => {
@@ -144,6 +144,6 @@ describe('create tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBeFalsy();
+    expect(response.body.success).toBe(false);
   });
 });
