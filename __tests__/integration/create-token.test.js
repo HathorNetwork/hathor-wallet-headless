@@ -59,7 +59,7 @@ describe('create token', () => {
     done();
   });
 
-  it.skip('should reject a name with more than 30 characters', async done => {
+  it('should reject a name with more than 30 characters', async done => {
     const response = await TestUtils.request
       .post('/wallet/create-token')
       .send({
@@ -75,7 +75,7 @@ describe('create token', () => {
   });
 
   // The result is an error with the message "maximum size", but consumes the funds. Must be fixed.
-  it.skip('should reject a symbol with more than 5 characters', async done => {
+  it('should reject a symbol with more than 5 characters', async done => {
     const response = await TestUtils.request
       .post('/wallet/create-token')
       .send({
@@ -121,12 +121,11 @@ describe('create token', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
-    expect(response.body.error).toContain('Invalid');
+    expect(response.body.error).toContain('Change address is not from this wallet');
     done();
   });
 
-  // The application is incorrectly allowing external addresses to receive the change
-  it.skip('should reject creating token for change address not in the wallet', async done => {
+  it('should reject creating token for change address not in the wallet', async done => {
     const response = await TestUtils.request
       .post('/wallet/create-token')
       .send({

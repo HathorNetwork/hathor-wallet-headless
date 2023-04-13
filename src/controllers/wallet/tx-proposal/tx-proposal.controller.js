@@ -51,7 +51,6 @@ async function buildTxProposal(req, res) {
     const fullTxData = await sendTransaction.prepareTxData();
     // Do not sign or complete the transaction yet
     const tx = transactionUtils.createTransactionFromData(fullTxData, network);
-    tx.prepareToSend();
 
     res.send({ success: true, txHex: tx.toHex(), dataToSignHash: tx.getDataToSignHash().toString('hex') });
   } catch (err) {

@@ -99,8 +99,7 @@ describe('mint token', () => {
     done();
   });
 
-  // The application is allowing a change_address outside the wallet
-  it.skip('should not mint with change_address outside the wallet', async done => {
+  it('should not mint with change_address outside the wallet', async done => {
     const response = await TestUtils.request
       .post('/wallet/mint-tokens')
       .send({

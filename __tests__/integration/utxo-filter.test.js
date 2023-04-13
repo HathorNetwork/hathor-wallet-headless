@@ -281,20 +281,20 @@ describe('utxo-filter routes', () => {
     // Validating unfiltered response
     const unfilteredObj = unfilteredResponse.body;
     expect(unfilteredObj.total_utxos_available).toBeGreaterThan(utxosObj.total_utxos_available);
-    // for (const utxoIndex in utxosObj.utxos) {
-    //   // We expect the results to be in the same order
-    //   expect(unfilteredObj.utxos[utxoIndex]).toStrictEqual(utxosObj.utxos[utxoIndex]);
-    // }
+    for (const utxoIndex in utxosObj.utxos) {
+      // We expect the results to be in the same order
+      expect(unfilteredObj.utxos[utxoIndex]).toStrictEqual(utxosObj.utxos[utxoIndex]);
+    }
 
-    // const utxo0 = utxosObj.utxos[0];
-    // expect(utxo0.address).toBe(transactions.tx10.address);
-    // expect(utxo0.amount).toBe(10);
-    // expect(utxo0.locked).toBe(false);
+    const utxo0 = utxosObj.utxos[1];
+    expect(utxo0.address).toBe(transactions.tx10.address);
+    expect(utxo0.amount).toBe(10);
+    expect(utxo0.locked).toBe(false);
 
-    // const utxo1 = utxosObj.utxos[1];
-    // expect(utxo1.address).toBe(transactions.tx20.address);
-    // expect(utxo1.amount).toBe(20);
-    // expect(utxo1.locked).toBe(false);
+    const utxo1 = utxosObj.utxos[0];
+    expect(utxo1.address).toBe(transactions.tx20.address);
+    expect(utxo1.amount).toBe(20);
+    expect(utxo1.locked).toBe(false);
   });
 
   it('should return results for specific addresses', async () => {

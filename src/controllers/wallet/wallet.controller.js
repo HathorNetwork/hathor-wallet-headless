@@ -436,6 +436,9 @@ async function createToken(req, res) {
   const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
   try {
+    if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
+      throw new Error('Change address is not from this wallet');
+    }
     const response = await wallet.createNewToken(name, symbol, amount, { changeAddress, address });
     const configurationString = tokensUtils.getConfigurationString(
       response.hash,
@@ -469,6 +472,9 @@ async function mintTokens(req, res) {
   const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
   try {
+    if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
+      throw new Error('Change address is not from this wallet');
+    }
     const response = await wallet.mintTokens(token, amount, { address, changeAddress });
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
@@ -496,6 +502,9 @@ async function meltTokens(req, res) {
   const changeAddress = req.body.change_address || null;
   const depositAddress = req.body.deposit_address || null;
   try {
+    if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
+      throw new Error('Change address is not from this wallet');
+    }
     const response = await wallet.meltTokens(
       token,
       amount,

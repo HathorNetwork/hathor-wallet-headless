@@ -129,12 +129,12 @@ describe('melt tokens', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
-    expect(response.text).toContain('Invalid');
+    expect(response.text).toContain('Change address is not from this wallet');
     done();
   });
 
   // XXX: The application is incorrectly allowing a change address outside the wallet
-  it.skip('should not melt with a change_address outside the wallet', async done => {
+  it('should not melt with a change_address outside the wallet', async done => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send({
@@ -146,7 +146,7 @@ describe('melt tokens', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
-    expect(response.text).toContain('invalid');
+    expect(response.text).toContain('Change address is not from this wallet');
     done();
   });
 
@@ -204,6 +204,10 @@ describe('melt tokens', () => {
   });
 
   it('should melt with deposit address only', async done => {
+    // There is an issue of how change addresses are chosen on the lib
+    // Since address at index 4 was used the change address for the next operation
+    // will be the address at index 5, meaning that if we chose the address at 5
+    // we would be sending the change to the same address
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send({
