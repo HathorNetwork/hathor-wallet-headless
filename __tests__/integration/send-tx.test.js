@@ -1228,7 +1228,8 @@ describe('send tx (custom tokens)', () => {
       }
     };
 
-    const nextEmptyAddress = await wallet3.getNextAddress();
+    // next empty address
+    await wallet3.getNextAddress();
 
     await TestUtils.pauseForWsUpdate();
     // One UXTO with 1000 TKB, and another with 990 HTR
@@ -1572,7 +1573,6 @@ describe('filter query + custom tokens', () => {
 
     expect(addr5custom.total_amount_available).toBe(1000);
     expect(addr5htr.total_amount_available).toBe(1000);
-
 
     const addr0htr = await wallet1.getAddressInfo(0);
 
