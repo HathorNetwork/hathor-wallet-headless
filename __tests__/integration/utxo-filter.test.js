@@ -274,6 +274,7 @@ describe('utxo-filter routes', () => {
 
     // Validating filtered response
     expect(utxosObj.utxos).toHaveProperty('length', 2);
+    expect(utxosObj.total_amount_available).toBe(900);
     expect(utxosObj.total_utxos_available).toBe(2);
     expect(utxosObj.total_amount_locked).toBe(0);
     expect(utxosObj.total_utxos_locked).toBe(0);

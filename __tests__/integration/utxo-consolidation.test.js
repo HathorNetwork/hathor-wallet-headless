@@ -393,6 +393,7 @@ describe('utxo-consolidation routes', () => {
     });
     expect(destinationUtxos.total_amount_available).toBe(90);
     expect(destinationUtxos.total_utxos_available).toBe(1);
+    expect(destinationUtxos.utxos[0].tx_id).toBe(consolidateTx.txId);
 
     // Cleaning up
     await cleanWallet1();

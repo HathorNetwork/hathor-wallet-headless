@@ -9,6 +9,7 @@ const {
   constants: hathorLibConstants,
   SendTransaction,
   transactionUtils,
+  constants,
 } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
@@ -45,7 +46,7 @@ async function buildTxProposal(req, res) {
       changeAddress,
     });
     const txData = await sendTransaction.prepareTxData();
-    txData.version = 1;
+    txData.version = constants.DEFAULT_TX_VERSION;
     const tx = transactionUtils.createTransactionFromData(txData, network);
 
     res.send({ success: true, txHex: tx.toHex() });
