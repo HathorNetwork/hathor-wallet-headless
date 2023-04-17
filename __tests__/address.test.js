@@ -51,8 +51,8 @@ describe('address api', () => {
   });
 
   it('should return a new address with mark_as_used until the gapLimit is reached', async () => {
-    global.config.gapLimit = 20;
     const gapLimit = 20;
+    global.config.gapLimit = gapLimit;
     const startingIndex = 4; // First unused address
     const upperLimit = gapLimit + startingIndex - 1; // Last address within the gap limit
     for (let index = startingIndex; index <= upperLimit; index++) {

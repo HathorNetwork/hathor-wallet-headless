@@ -1204,6 +1204,7 @@ describe('send tx (custom tokens)', () => {
 
   it('should send a multi-input/token transaction with change address', async done => {
     const outputIndexTKB = TestUtils.getOutputIndexFromTx(tkbTx1, 1000);
+    const outputIndexHTR = TestUtils.getOutputIndexFromTx(tkbTx1, 990);
 
     /* We need to have a deep understanding of the wallet and transaction in order to validate
      * its results. First, let's build a "summary" object to help identify the main data here
@@ -1238,6 +1239,10 @@ describe('send tx (custom tokens)', () => {
           {
             hash: tkbTx1.hash,
             index: outputIndexTKB, // Input for token B
+          },
+          {
+            hash: tkbTx1.hash,
+            index: outputIndexHTR, // Input for HTR
           },
         ],
         outputs: [

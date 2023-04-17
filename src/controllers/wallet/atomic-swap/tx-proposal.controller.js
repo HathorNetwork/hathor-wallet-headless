@@ -31,6 +31,8 @@ async function buildTxProposal(req, res) {
     return;
   }
 
+  const { wallet } = req;
+
   const sendTokens = req.body.send || { tokens: [] };
   const receiveTokens = req.body.receive || { tokens: [] };
   const changeAddress = req.body.change_address || null;
@@ -50,13 +52,13 @@ async function buildTxProposal(req, res) {
   }
 
   const proposal = partialTx
-    ? PartialTxProposal.fromPartialTx(partialTx, req.wallet.storage)
-    : new PartialTxProposal(req.wallet.storage);
+    ? PartialTxProposal.fromPartialTx(partialTx, wallet.storage)
+    : new PartialTxProposal(wallet.storage);
 
   if (sendTokens.utxos && sendTokens.utxos.length > 0) {
     try {
       for (const utxo of sendTokens.utxos) {
-        const txData = await req.wallet.getTx(utxo.txId);
+        const txData = await wallet.getTx(utxo.txId);
         if (!txData) {
           // utxo not in history
           continue;
@@ -64,13 +66,13 @@ async function buildTxProposal(req, res) {
         const txout = txData.outputs[utxo.index];
         if (!await transactionUtils.canUseUtxo(
           { txId: utxo.txId, index: utxo.index },
-          req.wallet.storage,
+          wallet.storage,
         )) {
           // Cannot use this utxo
           continue;
         }
 
-        const addressIndex = await req.wallet.getAddressIndex(txout.decoded.address);
+        const addressIndex = await wallet.getAddressIndex(txout.decoded.address);
         const addressPath = addressIndex ? await req.wallet.getAddressPathForIndex(addressIndex) : '';
         let authorities = 0;
         if (transactionUtils.isMint(txout)) {

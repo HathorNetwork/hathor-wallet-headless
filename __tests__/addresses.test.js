@@ -12,8 +12,8 @@ describe('addresses api', () => {
   });
 
   it('should return 200 with a valid body', async () => {
-    global.config.gapLimit = 20;
     const gapLimit = 20;
+    global.config.gapLimit = gapLimit;
 
     const response = await TestUtils.request
       .get('/wallet/addresses')
