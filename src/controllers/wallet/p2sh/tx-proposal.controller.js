@@ -8,8 +8,8 @@
 const {
   constants: hathorLibConstants,
   SendTransaction,
-  helpersUtils,
-  storage,
+  transactionUtils,
+  constants,
 } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
@@ -28,22 +28,30 @@ async function buildTxProposal(req, res) {
   const inputs = req.body.inputs || [];
   const changeAddress = req.body.change_address || null;
 
+  if (changeAddress && !await req.wallet.isAddressMine(changeAddress)) {
+    res.send({ success: false, error: 'Change address does not belong to the loaded wallet.' });
+    return;
+  }
+
   for (const output of outputs) {
     if (!output.token) {
       output.token = hathorLibConstants.HATHOR_TOKEN_CONFIG.uid;
     }
   }
   try {
-    // XXX: This is a temporary fix until the wallet-lib solves this storage issue
-    storage.setStore(req.wallet.store);
-    const sendTransaction = new SendTransaction({ outputs, inputs, changeAddress, network });
-    const tx = helpersUtils.createTxFromData(
-      { version: 1, ...sendTransaction.prepareTxData() },
-      network
-    );
+    const sendTransaction = new SendTransaction({
+      storage: req.wallet.storage,
+      outputs,
+      inputs,
+      changeAddress,
+    });
+    const txData = await sendTransaction.prepareTxData();
+    txData.version = constants.DEFAULT_TX_VERSION;
+    const tx = transactionUtils.createTransactionFromData(txData, network);
 
     res.send({ success: true, txHex: tx.toHex() });
   } catch (err) {
+    console.error(err);
     res.send({ success: false, error: err.message });
   }
 }
@@ -57,7 +65,7 @@ async function getMySignatures(req, res) {
 
   const { txHex } = req.body;
   try {
-    const sigs = req.wallet.getAllSignatures(txHex, '123');
+    const sigs = await req.wallet.getAllSignatures(txHex, '123');
     res.send({ success: true, signatures: sigs });
   } catch (err) {
     res.send({ success: false, error: err.message });
@@ -71,20 +79,17 @@ async function getMySignatures(req, res) {
  * @param {HathorWallet} wallet The wallet object
  * @param {string} txHex The transaction in hex format
  * @param {Array[string]} signatures the serialized P2SHSignatures of this transaction
- * @returns {Transaction}
+ * @returns {Promise<Transaction>}
  */
-function assemblePartialTransaction(wallet, txHex, signatures) {
-  if (!wallet.multisig) {
-    // This wallet is not a MultiSig wallet
-    throw new Error('Invalid wallet for this operation.');
-  }
-  if (signatures.length !== wallet.multisig.numSignatures) {
+async function assemblePartialTransaction(wallet, txHex, signatures) {
+  const multisigData = await wallet.getMultisigData();
+  if (signatures.length !== multisigData.numSignatures) {
     throw new Error(
       `Quantity of signatures different than expected. \
-Expected ${wallet.multisig.numSignatures} Received ${signatures.length}`
+Expected ${multisigData.numSignatures} Received ${signatures.length}`
     );
   }
-  const tx = wallet.assemblePartialTransaction(txHex, signatures);
+  const tx = await wallet.assemblePartialTransaction(txHex, signatures);
   tx.prepareToSend();
   return tx;
 }
@@ -99,7 +104,7 @@ async function signTx(req, res) {
   const { txHex } = req.body;
   const signatures = req.body.signatures || [];
   try {
-    const tx = assemblePartialTransaction(req.wallet, txHex, signatures);
+    const tx = await assemblePartialTransaction(req.wallet, txHex, signatures);
     res.send({ success: true, txHex: tx.toHex() });
   } catch (err) {
     res.send({ success: false, error: err.message });
@@ -122,11 +127,11 @@ async function signAndPush(req, res) {
   const { txHex } = req.body;
   const signatures = req.body.signatures || [];
   try {
-    const tx = assemblePartialTransaction(req.wallet, txHex, signatures);
+    const tx = await assemblePartialTransaction(req.wallet, txHex, signatures);
 
     const sendTransaction = new SendTransaction({
+      storage: req.wallet.storage,
       transaction: tx,
-      network: req.wallet.getNetworkObject(),
     });
     const response = await sendTransaction.runFromMining();
     res.send({ success: true, ...mapTxReturn(response) });

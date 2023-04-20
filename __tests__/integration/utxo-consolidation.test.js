@@ -59,11 +59,12 @@ describe('utxo-consolidation routes', () => {
   async function cleanWallet1(token) {
     const balance = await wallet1.getBalance(token);
 
-    return wallet1.sendTx({
+    await wallet1.sendTx({
       outputs: [{ address: await wallet2.getAddressAt(0), value: balance.available, token }],
       destinationWallet: wallet2.walletId,
       title: 'Cleaning up wallet1 after test'
     });
+    await TestUtils.pauseForWsUpdate();
   }
 
   it('should reject for missing destination address', async () => {
@@ -282,7 +283,7 @@ describe('utxo-consolidation routes', () => {
       .post('/wallet/utxo-consolidation')
       .send({
         destination_address: await wallet1.getAddressAt(2),
-        amount_smaller_than: 30,
+        amount_smaller_than: 31,
         filter_address: addr1
       })
       .set({ 'x-wallet-id': wallet1.walletId });
@@ -325,7 +326,7 @@ describe('utxo-consolidation routes', () => {
       .post('/wallet/utxo-consolidation')
       .send({
         destination_address: destinationAddress,
-        amount_bigger_than: 30,
+        amount_bigger_than: 29,
         filter_address: addr0
       })
       .set({ 'x-wallet-id': wallet1.walletId });
@@ -341,6 +342,7 @@ describe('utxo-consolidation routes', () => {
     const destinationUtxos = await wallet1.getUtxos({
       filter_address: destinationAddress
     });
+
     expect(destinationUtxos.total_amount_available).toBe(120);
     expect(destinationUtxos.total_utxos_available).toBe(1);
     expect(destinationUtxos.utxos[0].tx_id).toBe(consolidateTx.txId);
@@ -362,6 +364,7 @@ describe('utxo-consolidation routes', () => {
       ],
       destinationWallet: wallet1.walletId
     });
+    await TestUtils.pauseForWsUpdate();
 
     const destinationAddress = await wallet1.getAddressAt(2);
     const utxoResponse = await TestUtils.request
@@ -375,19 +378,20 @@ describe('utxo-consolidation routes', () => {
       .set({ 'x-wallet-id': wallet1.walletId });
     const consolidateTx = utxoResponse.body;
 
-    // Evaluating results. Only possible combination is [30, 40]
-    expect(consolidateTx.total_amount).toBe(70);
+    // Evaluating results. Only possible combination is [40, 50]
+    expect(consolidateTx.total_amount).toBe(90);
     expect(consolidateTx.total_utxos_consolidated).toBe(2);
-    expect(consolidateTx.utxos.find(u => u.amount === 30)).toBeTruthy();
-    expect(consolidateTx.utxos.find(u => u.amount === 40)).toBeTruthy();
-
+    expect(consolidateTx.utxos).toEqual(expect.arrayContaining([
+      expect.objectContaining({ amount: 40 }),
+      expect.objectContaining({ amount: 50 }),
+    ]));
     await TestUtils.pauseForWsUpdate();
 
     // Evaluating destination address balance and utxos
     const destinationUtxos = await wallet1.getUtxos({
       filter_address: destinationAddress
     });
-    expect(destinationUtxos.total_amount_available).toBe(70);
+    expect(destinationUtxos.total_amount_available).toBe(90);
     expect(destinationUtxos.total_utxos_available).toBe(1);
     expect(destinationUtxos.utxos[0].tx_id).toBe(consolidateTx.txId);
 
