@@ -95,7 +95,7 @@ describe('melt-tokens api', () => {
     expect(response.body.success).toBe(false);
   });
 
-  it.skip('should melt all tokens and return HTR as change', async () => {
+  it('should melt all tokens and return HTR as change', async () => {
     const token = {
       token: '00da712d64e04866c8c9aa8fceca70e80d1693864176b6b443220cf29adab5ed',
       amount: 100,
@@ -105,7 +105,7 @@ describe('melt-tokens api', () => {
       .send(token)
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(false);
+    expect(response.body.success).toBe(true);
 
     // Mimic the full node wallet:address_history message
     TestUtils.socket.send(JSON.stringify(wsFixtures.melt));

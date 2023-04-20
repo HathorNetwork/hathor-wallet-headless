@@ -6,7 +6,7 @@ const walletId = 'stub_atomic_swap_service';
 const fakeTxId = '00003392e185c6e72d7d8073ef94649023777fd23c828514f505a7955abf0caf';
 const fakeUid = '0000219a831aaa7b011973981a286142b3002cd04763002e23ba6fec7dadda44';
 const spyApi = jest.spyOn(hathorLib.txApi, 'getTransaction');
-const spyUtxos = jest.spyOn(hathorLib.HathorWallet.prototype, 'getAllUtxos');
+const spyUtxos = jest.spyOn(hathorLib.HathorWallet.prototype, 'getAvailableUtxos');
 function* mockUtxos(options) {
   yield {
     txId: fakeTxId,

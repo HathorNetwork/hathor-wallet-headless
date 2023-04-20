@@ -9,7 +9,7 @@ const friendlyWalletState = require('../helpers/constants');
 const { initializedWallets } = require('../services/wallets.service');
 const config = require('../config');
 
-function walletMiddleware(req, res, next) {
+async function walletMiddleware(req, res, next) {
   const sendError = (message, state) => {
     res.send({
       success: false,
@@ -34,7 +34,7 @@ function walletMiddleware(req, res, next) {
 
   if (config.confirmFirstAddress) {
     const firstAddressHeader = req.headers['x-first-address'];
-    const firstAddress = wallet.getAddressAtIndex(0);
+    const firstAddress = await wallet.getAddressAtIndex(0);
     if (firstAddress !== firstAddressHeader) {
       sendError(`Wrong first address. This wallet's first address is: ${firstAddress}`);
       return;

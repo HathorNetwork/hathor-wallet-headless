@@ -31,6 +31,7 @@ describe('utxo-filter routes', () => {
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
 
       await wallet2.injectFunds(20, 0);
+      await TestUtils.pauseForWsUpdate();
 
       const tkaTx = await wallet2.createToken({
         name: tokenA.name,
@@ -40,6 +41,7 @@ describe('utxo-filter routes', () => {
         address: await wallet2.getAddressAt(1)
       });
       tokenA.uid = tkaTx.hash;
+      await TestUtils.pauseForWsUpdate();
 
       /*
        * Wallet1: empty
@@ -241,6 +243,7 @@ describe('utxo-filter routes', () => {
       });
       transactions.tx50.hash = tx50.hash;
       transactions.tx50.index = TestUtils.getOutputIndexFromTx(tx50, 50);
+      await TestUtils.pauseForWsUpdate();
     } catch (err) {
       await TestUtils.dumpUtxos({
         walletId: wallet2.walletId,
@@ -271,7 +274,7 @@ describe('utxo-filter routes', () => {
 
     // Validating filtered response
     expect(utxosObj.utxos).toHaveProperty('length', 2);
-    expect(utxosObj.total_amount_available).toBe(30);
+    expect(utxosObj.total_amount_available).toBe(900);
     expect(utxosObj.total_utxos_available).toBe(2);
     expect(utxosObj.total_amount_locked).toBe(0);
     expect(utxosObj.total_utxos_locked).toBe(0);
@@ -284,15 +287,18 @@ describe('utxo-filter routes', () => {
       expect(unfilteredObj.utxos[utxoIndex]).toStrictEqual(utxosObj.utxos[utxoIndex]);
     }
 
-    const utxo0 = utxosObj.utxos[0];
-    expect(utxo0.address).toBe(transactions.tx10.address);
-    expect(utxo0.amount).toBe(10);
-    expect(utxo0.locked).toBe(false);
-
-    const utxo1 = utxosObj.utxos[1];
-    expect(utxo1.address).toBe(transactions.tx20.address);
-    expect(utxo1.amount).toBe(20);
-    expect(utxo1.locked).toBe(false);
+    expect(utxosObj.utxos).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        address: addr0,
+        amount: 850,
+        locked: false,
+      }),
+      expect.objectContaining({
+        address: transactions.tx50.address,
+        amount: 50,
+        locked: false,
+      }),
+    ]));
   });
 
   it('should return results for specific addresses', async () => {
@@ -335,13 +341,13 @@ describe('utxo-filter routes', () => {
       .set({ 'x-wallet-id': wallet2.walletId });
     const tkaUtxos = utxoResponse.body;
 
-    // TODO: This is returning the equivalent of "smaller_or_equal_than". Is this correct?
-    expect(tkaUtxos.total_amount_available).toBe(10 + 20 + 30);
-    expect(tkaUtxos.total_utxos_available).toBe(3);
-    expect(tkaUtxos.utxos).toHaveProperty('length', 3);
-    expect(tkaUtxos.utxos[0]).toHaveProperty('tx_id', transactions.tx10.hash);
-    expect(tkaUtxos.utxos[1]).toHaveProperty('tx_id', transactions.tx20.hash);
-    expect(tkaUtxos.utxos[2]).toHaveProperty('tx_id', transactions.tx30.hash);
+    expect(tkaUtxos.total_amount_available).toBe(10 + 20);
+    expect(tkaUtxos.total_utxos_available).toBe(2);
+    expect(tkaUtxos.utxos).toHaveProperty('length', 2);
+    expect(tkaUtxos.utxos).toEqual(expect.arrayContaining([
+      expect.objectContaining({ tx_id: transactions.tx10.hash }),
+      expect.objectContaining({ tx_id: transactions.tx20.hash }),
+    ]));
   });
 
   it('should return correct results for amount_bigger_than', async () => {
@@ -354,27 +360,17 @@ describe('utxo-filter routes', () => {
       .set({ 'x-wallet-id': wallet2.walletId });
     const tkaUtxos = utxoResponse.body;
 
-    // TODO: This is returning the equivalent of "bigger_or_equal_than". Is this correct?
-    expect(tkaUtxos.total_amount_available).toBe(1000 - 10 - 20);
-    expect(tkaUtxos.total_utxos_available).toBe(4);
-    expect(tkaUtxos.utxos).toHaveProperty('length', 4);
-    expect(tkaUtxos.utxos[0]).toHaveProperty('tx_id', transactions.tx30.hash);
-    expect(tkaUtxos.utxos[1]).toHaveProperty('tx_id', transactions.tx40.hash);
-    expect(tkaUtxos.utxos[2]).toHaveProperty('tx_id', transactions.tx50.hash);
-    expect(tkaUtxos.utxos[3]).toHaveProperty('tx_id', transactions.tx50.hash);
-
-    /*
-     * Tx50 was the last executed transaction, so it has two outputs: 50 tka for one address
-     * and the remaining change for address 0. The order that the UTXOs from tx50 appear are not
-     * consistent, so we make a simple check to solve this.
-     */
-    const tkaChangeOnAddr0 = 1000 - 10 - 20 - 30 - 40 - 50;
-    if (tkaUtxos.utxos[2].amount === 50) {
-      expect(tkaUtxos.utxos[3]).toHaveProperty('amount', tkaChangeOnAddr0);
-    } else {
-      expect(tkaUtxos.utxos[2]).toHaveProperty('amount', tkaChangeOnAddr0);
-      expect(tkaUtxos.utxos[3]).toHaveProperty('amount', 50);
-    }
+    const totalAmountAvailable = 1000 - 10 - 20 - 30;
+    expect(tkaUtxos.total_amount_available).toBe(totalAmountAvailable);
+    const tkaChangeOnAddr0 = totalAmountAvailable - 40 - 50;
+    expect(tkaUtxos.total_utxos_available).toBe(3);
+    expect(tkaUtxos.utxos).toHaveProperty('length', 3);
+    // Array containing does not care for the order
+    expect(tkaUtxos.utxos).toEqual(expect.arrayContaining([
+      expect.objectContaining({ tx_id: transactions.tx40.hash }),
+      expect.objectContaining({ tx_id: transactions.tx50.hash, amount: 50 }),
+      expect.objectContaining({ tx_id: transactions.tx50.hash, amount: tkaChangeOnAddr0 }),
+    ]));
   });
 
   it('should return correct results for maximum_amount', async () => {
@@ -388,14 +384,15 @@ describe('utxo-filter routes', () => {
     const tkaUtxos = utxoResponse.body;
 
     expect(tkaUtxos.total_amount_available).toBe(100);
-    expect(tkaUtxos.total_utxos_available).toBe(4);
-    expect(tkaUtxos.utxos).toHaveProperty('length', 4);
+    expect(tkaUtxos.total_utxos_available).toBe(3);
+    expect(tkaUtxos.utxos).toHaveProperty('length', 3);
 
     // We expect these UTXOs to be in the same order as a normal query.
-    expect(tkaUtxos.utxos[0]).toHaveProperty('tx_id', transactions.tx10.hash);
-    expect(tkaUtxos.utxos[1]).toHaveProperty('tx_id', transactions.tx20.hash);
-    expect(tkaUtxos.utxos[2]).toHaveProperty('tx_id', transactions.tx30.hash);
-    expect(tkaUtxos.utxos[3]).toHaveProperty('tx_id', transactions.tx40.hash);
+    expect(tkaUtxos.utxos).toEqual(expect.arrayContaining([
+      expect.objectContaining({ tx_id: transactions.tx50.hash }),
+      expect.objectContaining({ tx_id: transactions.tx40.hash }),
+      expect.objectContaining({ tx_id: transactions.tx10.hash }),
+    ]));
   });
 
   it('should return correct results for maximum_amount and bigger_than', async () => {
@@ -409,12 +406,14 @@ describe('utxo-filter routes', () => {
       .set({ 'x-wallet-id': wallet2.walletId });
     const tkaUtxos = utxoResponse.body;
 
-    expect(tkaUtxos.total_amount_available).toBe(70);
+    expect(tkaUtxos.total_amount_available).toBe(90);
     expect(tkaUtxos.total_utxos_available).toBe(2);
     expect(tkaUtxos.utxos).toHaveProperty('length', 2);
 
-    expect(tkaUtxos.utxos[0]).toHaveProperty('tx_id', transactions.tx30.hash);
-    expect(tkaUtxos.utxos[1]).toHaveProperty('tx_id', transactions.tx40.hash);
+    expect(tkaUtxos.utxos).toEqual(expect.arrayContaining([
+      expect.objectContaining({ tx_id: transactions.tx50.hash }),
+      expect.objectContaining({ tx_id: transactions.tx40.hash }),
+    ]));
   });
 
   // It seems there is a name mismatch on the lib parameter: only_available => only_available_utxos

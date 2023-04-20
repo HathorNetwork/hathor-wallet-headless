@@ -8,9 +8,8 @@
 const {
   helpersUtils,
   SendTransaction,
-  transaction: transactionUtils,
+  transactionUtils,
   walletUtils,
-  storage,
 } = require('@hathor/wallet-lib');
 const { _ } = require('lodash');
 const { prepareTxFunds } = require('../../../helpers/tx.helper');
@@ -26,7 +25,9 @@ async function buildTxProposal(req, res) {
   // build a transaction hex
   const { wallet } = req;
 
-  const preparedFundsResponse = prepareTxFunds(
+  // Get the utxos to fill the transaction
+  // XXX this can be refactored to use the lib methods
+  const preparedFundsResponse = await prepareTxFunds(
     wallet,
     req.body.outputs,
     req.body.inputs || [],
@@ -41,22 +42,19 @@ async function buildTxProposal(req, res) {
 
   try {
     const sendTransaction = new SendTransaction({
+      storage: wallet.storage,
       outputs,
       inputs,
       changeAddress,
       pin: '123',
-      network,
     });
-    const fullTxData = sendTransaction.prepareTxData();
+    const fullTxData = await sendTransaction.prepareTxData();
     // Do not sign or complete the transaction yet
-    const preparedData = transactionUtils.prepareData(
-      fullTxData,
-      '123',
-      { getSignature: false },
-    );
-    const tx = helpersUtils.createTxFromData(preparedData, network);
+    const tx = transactionUtils.createTransactionFromData(fullTxData, network);
+
     res.send({ success: true, txHex: tx.toHex(), dataToSignHash: tx.getDataToSignHash().toString('hex') });
   } catch (err) {
+    console.error(err);
     res.send({ success: false, error: err.message });
   }
 }
@@ -81,7 +79,7 @@ async function addSignatures(req, res) {
 /**
  * Get metadata on all inputs from the loaded wallet.
  */
-function getWalletInputs(req, res) {
+async function getWalletInputs(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     res.status(400).json(validationResult);
@@ -94,22 +92,22 @@ function getWalletInputs(req, res) {
   try {
     const network = wallet.getNetworkObject();
     const tx = helpersUtils.createTxFromHex(txHex, network);
-    res.send({ success: true, inputs: wallet.getWalletInputInfo(tx) });
+    res.send({ success: true, inputs: await wallet.getWalletInputInfo(tx) });
   } catch (err) {
     res.send({ success: false, error: err.message });
   }
 }
 
-function getInputData(req, res) {
+async function getInputData(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     res.status(400).json(validationResult);
     return;
   }
 
+  const { wallet } = req;
   const { index, type } = req.body;
-  storage.setStore(req.wallet.store);
-  const accessData = storage.getItem('wallet:accessData');
+  const accessData = await wallet.getAccessData();
   let inputData;
 
   if (type === 'p2pkh') {
@@ -120,7 +118,7 @@ function getInputData(req, res) {
     );
   } else if (type === 'p2sh') {
     // check if the loaded wallet is MultiSig
-    const multisigData = accessData.multisig;
+    const { multisigData } = accessData;
     if (!multisigData) {
       res.send({ success: false, error: 'wallet is not MultiSig' });
       return;
@@ -150,7 +148,7 @@ function getInputData(req, res) {
     );
     inputData = walletUtils.getP2SHInputData(sortedSigs, redeemScript);
   } else {
-    // XXX: Should not happen due to validation
+    // Should not happen due to validation
     res.status(400).json({ success: false });
     return;
   }

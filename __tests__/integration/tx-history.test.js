@@ -76,12 +76,12 @@ describe('tx-history routes', () => {
       expect(transaction.outputs[1].value).toEqual(fundTx.outputs[1].value);
     }
 
-    // Validating the transactions' order: chronological ASCENDING
-    expect(transactions[0].tx_id).toEqual(fundHashes.tx10);
-    expect(transactions[1].tx_id).toEqual(fundHashes.tx20);
+    // Validating the transactions' order: chronological DESCENDING
+    expect(transactions[4].tx_id).toEqual(fundHashes.tx10);
+    expect(transactions[3].tx_id).toEqual(fundHashes.tx20);
     expect(transactions[2].tx_id).toEqual(fundHashes.tx30);
-    expect(transactions[3].tx_id).toEqual(fundHashes.tx40);
-    expect(transactions[4].tx_id).toEqual(fundHashes.tx50);
+    expect(transactions[1].tx_id).toEqual(fundHashes.tx40);
+    expect(transactions[0].tx_id).toEqual(fundHashes.tx50);
     done();
   });
 

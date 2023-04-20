@@ -51,7 +51,7 @@ describe('create-nft routes', () => {
       .set({ 'x-wallet-id': wallet2.walletId });
 
     expect(response.body.success).toBe(false);
-    expect(response.text).toContain('HTR funds');
+    expect(response.text).toContain('HTR tokens');
   });
 
   it('should reject for a change address outside of the wallet', async () => {

@@ -113,7 +113,7 @@ describe('melt tokens', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
-    expect(response.text).toContain('invalid');
+    expect(response.text).toContain('Invalid');
     done();
   });
 
@@ -129,12 +129,11 @@ describe('melt tokens', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
-    expect(response.text).toContain('invalid');
+    expect(response.text).toContain('Change address is not from this wallet');
     done();
   });
 
-  // The application is incorrectly allowing a change address outside the wallet
-  it.skip('should not melt with a change_address outside the wallet', async done => {
+  it('should not melt with a change_address outside the wallet', async done => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send({
@@ -146,7 +145,7 @@ describe('melt tokens', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
-    expect(response.text).toContain('invalid');
+    expect(response.text).toContain('Change address is not from this wallet');
     done();
   });
 
@@ -164,7 +163,7 @@ describe('melt tokens', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
-    expect(response.body.error).toContain('enough inputs to melt');
+    expect(response.body.error).toContain('enough tokens to melt');
     done();
   });
 
@@ -204,12 +203,16 @@ describe('melt tokens', () => {
   });
 
   it('should melt with deposit address only', async done => {
+    // There is an issue of how change addresses are chosen on the lib
+    // Since address at index 4 was used the change address for the next operation
+    // will be the address at index 5, meaning that if we chose the address at 5
+    // we would be sending the change to the same address
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send({
         token: tokenA.uid,
         amount: 100,
-        deposit_address: await wallet1.getAddressAt(5),
+        deposit_address: await wallet1.getAddressAt(6),
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
@@ -217,10 +220,10 @@ describe('melt tokens', () => {
 
     await TestUtils.pauseForWsUpdate();
 
-    const addr5htr = await wallet1.getAddressInfo(5);
-    const addr5tka = await wallet1.getAddressInfo(5, tokenA.uid);
-    expect(addr5htr.total_amount_available).toBe(1);
-    expect(addr5tka.total_amount_available).toBe(0);
+    const addr6htr = await wallet1.getAddressInfo(6);
+    const addr6tka = await wallet1.getAddressInfo(6, tokenA.uid);
+    expect(addr6htr.total_amount_available).toBe(1);
+    expect(addr6tka.total_amount_available).toBe(0);
 
     const balance1htr = await wallet1.getBalance();
     const balance1tka = await wallet1.getBalance(tokenA.uid);
@@ -236,7 +239,7 @@ describe('melt tokens', () => {
       .send({
         token: tokenA.uid,
         amount: 100,
-        change_address: await wallet1.getAddressAt(7),
+        change_address: await wallet1.getAddressAt(8),
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
@@ -244,10 +247,10 @@ describe('melt tokens', () => {
 
     await TestUtils.pauseForWsUpdate();
 
-    const addr7htr = await wallet1.getAddressInfo(7);
-    const addr7tka = await wallet1.getAddressInfo(7, tokenA.uid);
-    expect(addr7htr.total_amount_available).toBe(0);
-    expect(addr7tka.total_amount_available).toBe(300);
+    const addr8htr = await wallet1.getAddressInfo(8);
+    const addr8tka = await wallet1.getAddressInfo(8, tokenA.uid);
+    expect(addr8htr.total_amount_available).toBe(0);
+    expect(addr8tka.total_amount_available).toBe(300);
 
     const balance1htr = await wallet1.getBalance();
     const balance1tka = await wallet1.getBalance(tokenA.uid);

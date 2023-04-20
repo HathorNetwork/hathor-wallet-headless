@@ -6,9 +6,7 @@
  */
 
 import { promises as fs } from 'fs';
-import { wallet, walletUtils } from '@hathor/wallet-lib';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Address, Script } from 'bitcore-lib';
+import { addressUtils, walletUtils } from '@hathor/wallet-lib';
 import config from '../../__tests__/integration/configuration/config-fixture';
 
 export const precalculationHelpers = {
@@ -91,14 +89,13 @@ export class WalletPrecalculationHelper {
     if (params.multisig) {
       // Multisig calculation
       const pubkeys = params.multisig.wordsArray.map(w => walletUtils.getMultiSigXPubFromWords(w));
+      const multisigData = {
+        pubkeys,
+        numSignatures: params.multisig.numSignatures,
+      };
       for (let i = addressIntervalStart; i < addressIntervalEnd; ++i) {
-        const redeemScript = walletUtils.createP2SHRedeemScript(
-          pubkeys,
-          params.multisig.numSignatures,
-          i
-        );
-        const address = Address.payingTo(Script.fromBuffer(redeemScript), config.network);
-        addressesArray.push(address.toString());
+        const addressInfo = addressUtils.deriveAddressFromDataP2SH(multisigData, i, config.network);
+        addressesArray.push(addressInfo.base58.toString());
 
         // Informing debug data
         multisigDebugData = {
@@ -110,7 +107,7 @@ export class WalletPrecalculationHelper {
     } else {
       // Generating 24-word seed if none was informed
       if (!wordsInput) {
-        wordsInput = wallet.generateWalletWords();
+        wordsInput = walletUtils.generateWalletWords();
       }
 
       /*
@@ -125,16 +122,9 @@ export class WalletPrecalculationHelper {
         networkName: config.network,
         accountDerivationIndex,
       });
-      const addresses = walletUtils.getAddresses(
-        xpubkey,
-        addressIntervalStart,
-        addressIntervalEnd,
-        config.network
-      );
-
-      // Formatting addresses to a simple array format
-      for (const hash in addresses) {
-        addressesArray[addresses[hash]] = hash;
+      for (let i = addressIntervalStart; i < addressIntervalEnd; ++i) {
+        const addressInfo = addressUtils.deriveAddressFromXPubP2PKH(xpubkey, i, config.network);
+        addressesArray.push(addressInfo.base58);
       }
     }
 

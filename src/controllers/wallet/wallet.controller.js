@@ -8,7 +8,7 @@
 // import is used because there is an issue with winston logger when using require ref: #262
 import logger from '../../logger'; // eslint-disable-line import/no-import-module-exports
 
-const { txApi, walletApi, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, PartialTx } = require('@hathor/wallet-lib');
+const { txApi, walletApi, WalletType, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, PartialTx } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../lock');
@@ -17,19 +17,24 @@ const { mapTxReturn, prepareTxFunds } = require('../../helpers/tx.helper');
 const { initializedWallets } = require('../../services/wallets.service');
 const { removeAllWalletProposals } = require('../../services/atomic-swap.service');
 
-function getStatus(req, res) {
+async function getStatus(req, res) {
+  /**
+   * @type {HathorWallet} wallet - Wallet object
+   */
   const { wallet } = req;
   const data = {
     statusCode: wallet.state,
     statusMessage: friendlyWalletState[wallet.state],
     network: wallet.getNetwork(),
     serverUrl: wallet.getServerUrl(),
-    serverInfo: wallet.serverInfo,
+    serverInfo: wallet.storage.version,
   };
-  if (wallet.multisig) {
+
+  if (await wallet.getWalletType() === WalletType.MULTISIG) {
+    const multisigData = await wallet.getMultisigData();
     data.multisig = {
-      numSignatures: wallet.multisig.numSignatures,
-      totalParticipants: wallet.multisig.pubkeys.length,
+      numSignatures: multisigData.numSignatures,
+      totalParticipants: multisigData.pubkeys.length,
     };
   }
   res.send(data);
@@ -41,6 +46,9 @@ async function getBalance(req, res) {
     res.status(400).json(validationResult);
     return;
   }
+  /**
+   * @type {HathorWallet} wallet - Wallet object
+   */
   const { wallet } = req;
   // Expects token uid
   const token = req.query.token || hathorLibConstants.HATHOR_TOKEN_CONFIG.uid;
@@ -48,35 +56,41 @@ async function getBalance(req, res) {
   res.send({ available: balanceObj[0].balance.unlocked, locked: balanceObj[0].balance.locked });
 }
 
-function getAddress(req, res) {
+async function getAddress(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     res.status(400).json(validationResult);
     return;
   }
+  /**
+   * @type {HathorWallet} wallet - Wallet object
+   */
   const { wallet } = req;
   const { index } = req.query;
   let address;
   if (index !== undefined) {
     // Because of isInt and toInt, it's safe to assume that index is now an integer >= 0
-    address = wallet.getAddressAtIndex(index);
+    address = await wallet.getAddressAtIndex(index);
   } else {
     const markAsUsed = req.query.mark_as_used || false;
-    const addressInfo = wallet.getCurrentAddress({ markAsUsed });
+    const addressInfo = await wallet.getCurrentAddress({ markAsUsed });
     address = addressInfo.address;
   }
   res.send({ address });
 }
 
-function getAddressIndex(req, res) {
+async function getAddressIndex(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     res.status(400).json(validationResult);
     return;
   }
+  /**
+   * @type {HathorWallet} wallet - Wallet object
+   */
   const { wallet } = req;
   const { address } = req.query;
-  const index = wallet.getAddressIndex(address);
+  const index = await wallet.getAddressIndex(address);
   if (index === null) {
     // Address does not belong to the wallet
     res.send({ success: false });
@@ -85,18 +99,20 @@ function getAddressIndex(req, res) {
   }
 }
 
-function getAddressInfo(req, res) {
+async function getAddressInfo(req, res) {
   // Query parameters validation
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     res.status(400).json(validationResult);
     return;
   }
-
+  /**
+   * @type {HathorWallet} wallet - Wallet object
+   */
   const { wallet } = req;
   const { address, token } = matchedData(req, { locations: ['query'] });
   try {
-    const result = wallet.getAddressInfo(address, { token });
+    const result = await wallet.getAddressInfo(address, { token });
     res.send({
       success: true,
       ...result
@@ -111,10 +127,13 @@ function getAddressInfo(req, res) {
 }
 
 async function getAddresses(req, res) {
+  /**
+   * @type {HathorWallet} wallet - Wallet object
+   */
   const { wallet } = req;
   // TODO Add pagination
   const addresses = [];
-  const iterator = wallet.getAllAddresses();
+  const iterator = await wallet.getAllAddresses();
 
   // TODO: Refactor with a `while`?
   for (;;) {
@@ -130,16 +149,19 @@ async function getAddresses(req, res) {
   res.send({ addresses });
 }
 
-function getTxHistory(req, res) {
+async function getTxHistory(req, res) {
   // TODO Add pagination
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     res.status(400).json(validationResult);
     return;
   }
+  /**
+   * @type {HathorWallet} wallet - Wallet object
+   */
   const { wallet } = req;
   const limit = req.query.limit || null;
-  const history = wallet.getFullHistory();
+  const history = await wallet.getFullHistory();
   if (limit) {
     const values = Object.values(history);
     const sortedValues = values.sort((a, b) => b.timestamp - a.timestamp);
@@ -149,15 +171,18 @@ function getTxHistory(req, res) {
   }
 }
 
-function getTransaction(req, res) {
+async function getTransaction(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     res.status(400).json(validationResult);
     return;
   }
+  /**
+   * @type {HathorWallet} wallet - Wallet object
+   */
   const { wallet } = req;
   const { id } = req.query;
-  const tx = wallet.getTx(id);
+  const tx = await wallet.getTx(id);
   if (tx) {
     res.send(tx);
   } else {
@@ -171,11 +196,13 @@ async function getTxConfirmationBlocks(req, res) {
     res.status(400).json(validationResult);
     return;
   }
-
+  /**
+   * @type {HathorWallet} wallet - Wallet object
+   */
   const { wallet } = req;
   const { id } = req.query;
   // This is O(1) operation, so we can use it to check if this tx belongs to the wallet
-  const tx = wallet.getTx(id);
+  const tx = await wallet.getTx(id);
   if (!tx) {
     // We allow only to get data for transactions from the wallet
     res.send({ success: false, error: `Wallet does not contain transaction with id ${id}` });
@@ -227,7 +254,9 @@ async function simpleSendTx(req, res) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
-
+  /**
+   * @type {HathorWallet} wallet - Wallet object
+   */
   const { wallet } = req;
   const { address, value, token } = req.body;
   let tokenId;
@@ -242,6 +271,9 @@ async function simpleSendTx(req, res) {
   }
   const changeAddress = req.body.change_address || null;
   try {
+    if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
+      throw new Error('Change address is not from this wallet');
+    }
     const response = await wallet.sendTransaction(
       address,
       value,
@@ -337,10 +369,16 @@ async function sendTx(req, res) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
-
+  /**
+   * @type {HathorWallet} wallet - Wallet object
+   */
   const { wallet } = req;
 
-  const preparedFundsResponse = prepareTxFunds(
+  /**
+   * This works because it only uses facade methods so the logic is unchanged.
+   * But the best approach would be to use the new methods to select utxos and prepare the tx.
+   */
+  const preparedFundsResponse = await prepareTxFunds(
     wallet,
     req.body.outputs,
     req.body.inputs || [],
@@ -398,6 +436,9 @@ async function createToken(req, res) {
   const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
   try {
+    if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
+      throw new Error('Change address is not from this wallet');
+    }
     const response = await wallet.createNewToken(name, symbol, amount, { changeAddress, address });
     const configurationString = tokensUtils.getConfigurationString(
       response.hash,
@@ -431,6 +472,9 @@ async function mintTokens(req, res) {
   const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
   try {
+    if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
+      throw new Error('Change address is not from this wallet');
+    }
     const response = await wallet.mintTokens(token, amount, { address, changeAddress });
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
@@ -458,6 +502,9 @@ async function meltTokens(req, res) {
   const changeAddress = req.body.change_address || null;
   const depositAddress = req.body.deposit_address || null;
   try {
+    if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
+      throw new Error('Change address is not from this wallet');
+    }
     const response = await wallet.meltTokens(
       token,
       amount,
@@ -471,7 +518,7 @@ async function meltTokens(req, res) {
   }
 }
 
-function utxoFilter(req, res) {
+async function utxoFilter(req, res) {
   try {
     const validationResult = parametersValidation(req);
     if (!validationResult.success) {
@@ -482,10 +529,16 @@ function utxoFilter(req, res) {
     const { wallet } = req;
     const options = matchedData(req, { locations: ['query'] });
 
+    // XXX Internally this has been renamed to max_amount
+    // Will keep the old name in the api for compatibility
+    if (options.maximum_amount) {
+      options.max_amount = options.maximum_amount;
+    }
+
     // TODO Memory usage enhancements are required here as wallet.getUtxos can cause issues on
     //  wallets with a huge amount of utxos.
     // TODO Add pagination
-    const ret = wallet.getUtxos(options);
+    const ret = await wallet.getUtxos(options);
     res.send(ret);
   } catch (error) {
     res.send({ success: false, error: error.message || error });
@@ -539,6 +592,9 @@ async function createNft(req, res) {
   const createMint = req.body.create_mint || false;
   const createMelt = req.body.create_melt || false;
   try {
+    if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
+      throw new Error('Change address is not from this wallet');
+    }
     const response = await wallet.createNFT(
       name,
       symbol,
@@ -562,7 +618,7 @@ async function createNft(req, res) {
 async function stop(req, res) {
   // Stop wallet and remove from wallets object
   const { wallet } = req;
-  wallet.stop();
+  await wallet.stop();
 
   initializedWallets.delete(req.walletId);
   await removeAllWalletProposals(req.walletId);
