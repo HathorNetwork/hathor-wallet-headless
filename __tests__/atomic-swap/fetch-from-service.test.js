@@ -7,19 +7,18 @@ describe('fetchFromService', () => {
   const fakeTxId = '00003392e185c6e72d7d8073ef94649023777fd23c828514f505a7955abf0caf';
   const fakeUid = '0000219a831aaa7b011973981a286142b3002cd04763002e23ba6fec7dadda44';
   const spyApi = jest.spyOn(hathorLib.txApi, 'getTransaction');
-  const spyUtxos = jest.spyOn(hathorLib.HathorWallet.prototype, 'getAllUtxos');
-  function* mockUtxos(options) {
+  const spyUtxos = jest.spyOn(hathorLib.Storage.prototype, 'selectUtxos');
+  async function* mockUtxos(options) {
     yield {
       txId: fakeTxId,
       index: 0,
-      tokenId: hathorLib.constants.HATHOR_TOKEN_CONFIG.uid,
-      value: 10,
+      token: hathorLib.constants.HATHOR_TOKEN_CONFIG.uid,
       address: TestUtils.addresses[0],
-      timelock: null,
-      locked: false,
+      value: 10,
       authorities: 0,
-      heightlock: null,
-      addressPath: 'm/fake/bip32/path',
+      timelock: null,
+      type: 1,
+      height: null,
     };
   }
 
@@ -147,7 +146,11 @@ describe('fetchFromService', () => {
     );
     const mockLib = jest.spyOn(swapService, 'get')
       .mockImplementationOnce(async () => {
-        throw new Error('Proposal not found');
+        // Simulating a full axios error with the response status
+        const mockError = new Error('Proposal not found');
+        mockError.isAxiosError = true;
+        mockError.response = { status: 404 };
+        throw mockError;
       });
 
     const response = await TestUtils.request
