@@ -8,7 +8,9 @@ const {
   PartialTxProposal,
   PartialTxInputData,
   swapService,
+  AtomicSwapServiceConnection,
 } = require('@hathor/wallet-lib');
+const config = require('../config');
 
 /**
  * @typedef TxProposalConfig
@@ -28,6 +30,13 @@ const {
  * @type {Map<string,WalletListenedProposals>}
  */
 const walletListenedProposals = new Map();
+
+/**
+ * A map of the initialiazed websocket channels for the wallets to communicate
+ * with the Atomic Swap Service
+ * @type {Map<string, AtomicSwapServiceConnection>}
+ */
+const walletWebsocketChannels = new Map();
 
 /**
  * Assemble a transaction from the serialized partial tx and signatures
@@ -129,6 +138,58 @@ const removeAllWalletProposals = async walletId => {
   // TODO: Will also close the websocket channel
 };
 
+/**
+ * Retrieves the Atomic Swap websocket channel for this wallet.
+ * Returns null if there isn't any.
+ * @param {string} walletId
+ * @return {AtomicSwapServiceConnection|null}
+ */
+const getWalletChannel = walletId => {
+  if (!walletWebsocketChannels.has(walletId)) {
+    return null;
+  }
+
+  return walletWebsocketChannels.get(walletId);
+};
+
+/**
+ * Initializes an Atomic Swap websocket channel for the specified wallet and network
+ * @param {string} walletId
+ * @param {string} network
+ * @return {Promise<AtomicSwapServiceConnection>}
+ */
+const initializeWalletChannel = async (walletId, network) => {
+  // Avoid instantiating multiple channels for the same wallet
+  if (walletWebsocketChannels.has(walletId)) {
+    return getWalletChannel(walletId);
+  }
+
+  const atomicConnection = new AtomicSwapServiceConnection(
+    { network },
+    config.atomicSwapServiceWs,
+  );
+  await atomicConnection.start();
+  walletWebsocketChannels.set(walletId, atomicConnection);
+
+  return atomicConnection;
+};
+
+/**
+ * Closes the wallet channel and removes it from the local channels map
+ * @param {string} walletId
+ * @return {Promise<void>}
+ */
+const disconnectWalletChannel = async walletId => {
+  // Do nothing if there is no channel for this wallet
+  if (!walletWebsocketChannels.has(walletId)) {
+    return;
+  }
+
+  const channel = walletWebsocketChannels.get(walletId);
+  await channel.stop();
+  walletWebsocketChannels.delete(walletId);
+};
+
 module.exports = {
   assembleTransaction,
   serviceCreate,
@@ -137,4 +198,8 @@ module.exports = {
   getListenedProposals,
   removeAllWalletProposals,
   walletListenedProposals,
+
+  getWalletChannel,
+  initializeWalletChannel,
+  disconnectWalletChannel,
 };
