@@ -471,11 +471,12 @@ async function mintTokens(req, res) {
   const { token, amount } = req.body;
   const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
+  const mintAuthorityAddress = req.body.mint_authority_address || null;
   try {
     if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
       throw new Error('Change address is not from this wallet');
     }
-    const response = await wallet.mintTokens(token, amount, { address, changeAddress });
+    const response = await wallet.mintTokens(token, amount, { address, changeAddress, mintAuthorityAddress });
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
     res.send({ success: false, error: err.message });
@@ -501,6 +502,7 @@ async function meltTokens(req, res) {
   const { token, amount } = req.body;
   const changeAddress = req.body.change_address || null;
   const depositAddress = req.body.deposit_address || null;
+  const meltAuthorityAddress = req.body.melt_authority_address || null;
   try {
     if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
       throw new Error('Change address is not from this wallet');
@@ -508,7 +510,7 @@ async function meltTokens(req, res) {
     const response = await wallet.meltTokens(
       token,
       amount,
-      { address: depositAddress, changeAddress }
+      { address: depositAddress, changeAddress, meltAuthorityAddress }
     );
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {

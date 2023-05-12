@@ -357,6 +357,7 @@ walletRouter.post(
   body('amount').isInt({ min: 1 }).toInt(),
   body('address').isString().optional(),
   body('change_address').isString().optional(),
+  body('mint_authority_address').isString().optional(),
   mintTokens
 );
 
@@ -370,6 +371,7 @@ walletRouter.post(
   body('amount').isInt({ min: 1 }).toInt(),
   body('change_address').isString().optional(),
   body('deposit_address').isString().optional(),
+  body('melt_authority_address').isString().optional(),
   meltTokens
 );
 
