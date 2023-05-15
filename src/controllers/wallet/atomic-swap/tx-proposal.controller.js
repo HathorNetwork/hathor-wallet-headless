@@ -178,7 +178,6 @@ async function fetchFromService(req, res) {
     const serviceProposal = await atomicSwapService.serviceGet(proposalId, password);
     res.json({ success: true, proposal: serviceProposal });
   } catch (err) {
-    // TODO: Verify the status code instead of the message
     // If the proposal no longer exists on the backend, remove it from our listened map
     if (err.isAxiosError && err.response.status === 404) {
       res.status(404);
