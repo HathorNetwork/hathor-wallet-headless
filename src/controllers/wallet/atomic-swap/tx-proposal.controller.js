@@ -386,7 +386,16 @@ async function registerProposal(req, res) {
 
   // Avoid making requests to the service if the proposal is already on local storage
   const proposalMap = await atomicSwapService.getListenedProposals(walletId);
-  if (proposalMap.has(req.params.proposalId)) {
+  if (proposalMap.has(proposalId)) {
+    // Validating if the informed password is correct
+    const existingProposal = proposalMap.get(proposalId);
+    if (existingProposal.password !== password) {
+      res.send({
+        success: false,
+        error: 'Incorrect password',
+      });
+      return;
+    }
     res.send({ success: true });
     return;
   }

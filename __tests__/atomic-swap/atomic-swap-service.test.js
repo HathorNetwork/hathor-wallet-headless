@@ -259,7 +259,7 @@ describe('register proposal', () => {
       .post('/wallet/atomic-swap/tx-proposal/register/prop-1')
       .set({ 'x-wallet-id': walletId })
       .send({
-        password: 'abc1234' // Different password from the test above
+        password: 'abc123' // Same password that is registered
       });
 
     // Validate the HTTP response
@@ -276,5 +276,28 @@ describe('register proposal', () => {
       id: 'prop-1',
       password: 'abc123' // The proposal password must not have changed
     });
+  });
+
+  it('should raise an error if trying to re-register with an incorrect password', async () => {
+    const mockLib = jest.spyOn(atomicSwapService, 'serviceGet')
+      .mockRejectedValueOnce('Should not be called');
+
+    atomicSwapService.walletListenedProposals.get(walletId).set(
+      'prop-2',
+      { id: 'prop-2', password: 'my-pass' }
+    );
+
+    const response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal/register/prop-2')
+      .set({ 'x-wallet-id': walletId })
+      .send({
+        password: 'abc123' // Incorrect password
+      });
+
+    // Validate the HTTP response
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual({ success: false, error: 'Incorrect password' });
+    expect(mockLib).not.toHaveBeenCalled(); // Avoid service call: the proposal data is already here
+    mockLib.mockRestore();
   });
 });
