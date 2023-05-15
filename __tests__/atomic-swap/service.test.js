@@ -53,10 +53,7 @@ describe('serviceGet', () => {
       .rejects.toThrow('Invalid proposalId');
 
     await expect(serviceGet('1a574e6c-7329-4adc-b98c-b70fb20ef919'))
-      .rejects.toThrow('Password must have at least 3 characters');
-
-    await expect(serviceGet('1a574e6c-7329-4adc-b98c-b70fb20ef919', 'ab'))
-      .rejects.toThrow('Password must have at least 3 characters');
+      .rejects.toThrow('Invalid password');
   });
 
   it('should reject on empty results from the service backend', async () => {

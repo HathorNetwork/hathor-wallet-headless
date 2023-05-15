@@ -154,8 +154,8 @@ const serviceGet = async (proposalId, password) => {
   if (!proposalId) {
     throw new Error('Invalid proposalId');
   }
-  if (!password || !password.length || password.length < 3) {
-    throw new Error('Password must have at least 3 characters');
+  if (!password) {
+    throw new Error('Invalid password');
   }
 
   const proposal = await swapService.get(proposalId, password);
