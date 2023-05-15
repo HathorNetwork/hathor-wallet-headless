@@ -1678,8 +1678,93 @@ const apiDoc = {
         },
       },
     },
-    '/wallet/atomic-swap/tx-proposal/fetch': {
+    '/wallet/atomic-swap/tx-proposal/register/{proposalId}': {
       post: {
+        summary: 'Registers a proposal for the Headless Wallet to listen to and interact with the Atomic Swap Service',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'proposalId',
+            in: 'path',
+            description: 'Proposal identifier on the Atomic Swap Service',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        requestBody: {
+          description: 'Request the registration of a proposal id with the service.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['password'],
+                properties: {
+                  password: {
+                    description: 'Proposal password on the Atomic Swap Service.',
+                    type: 'string',
+                  },
+                }
+              },
+              examples: {
+                fetch: {
+                  summary: 'Registration request to interact with proposal',
+                  value: {
+                    password: 'abc123',
+                  },
+                },
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Successful proposal registration.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      success: {
+                        summary: 'Successful registration',
+                        value: {
+                          success: true,
+                        },
+                      },
+                    }
+                  },
+                  'service-failure': {
+                    summary: 'Failure validating the proposal data with the service side',
+                    value: {
+                      success: {
+                        summary: 'Unsuccessful validation with the Atomic Swap Service',
+                        value: {
+                          success: false,
+                          error: 'Failure description on the swap service',
+                        },
+                      },
+                    }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/atomic-swap/tx-proposal/fetch': {
+      get: {
         summary: 'Fetches a proposal data from the Atomic Swap Service',
         parameters: [
           {
@@ -1690,42 +1775,20 @@ const apiDoc = {
             schema: {
               type: 'string',
             },
+          },
+          {
+            name: 'proposalId',
+            in: 'path',
+            description: 'Registered proposal identifier',
+            required: true,
+            schema: {
+              type: 'string',
+            },
           }
         ],
-        requestBody: {
-          description: 'Get the requested proposal by identifier from the atomic swap service.',
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['proposal_id', 'password'],
-                properties: {
-                  proposal_id: {
-                    description: 'Proposal identifier on the Atomic Swap Service.',
-                    type: 'string',
-                  },
-                  password: {
-                    description: 'Proposal password on the Atomic Swap Service.',
-                    type: 'string',
-                  },
-                }
-              },
-              examples: {
-                fetch: {
-                  summary: 'Successful fetch from the Atomic Swap Service',
-                  value: {
-                    proposal_id: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
-                    password: 'abc123',
-                  },
-                },
-              }
-            }
-          }
-        },
         responses: {
           200: {
-            description: 'Fetches proposal data from the service.',
+            description: 'Successful data fetching from the service.',
             content: {
               'application/json': {
                 examples: {
@@ -1756,6 +1819,107 @@ const apiDoc = {
                         value: {
                           success: false,
                           error: 'Failure description on the swap service',
+                        },
+                      },
+                    }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/atomic-swap/tx-proposal/list': {
+      get: {
+        summary: 'Fetches the list of listened proposals for this wallet',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Successful listing of registered proposals.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      success: {
+                        summary: 'Successful listing',
+                        value: {
+                          success: true,
+                          proposals: [
+                            '1a574e6c-73...',
+                            '85585de5-67...',
+                          ],
+                        },
+                      },
+                    }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/atomic-swap/tx-proposal/delete': {
+      delete: {
+        summary: 'Removes a proposal from the registered listened proposals',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'proposalId',
+            in: 'path',
+            description: 'Registered proposal identifier',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        responses: {
+          200: {
+            description: 'Successful registration removal.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      success: {
+                        summary: 'Successful removal',
+                        value: {
+                          success: true,
+                        },
+                      },
+                    }
+                  },
+                  'service-failure': {
+                    summary: 'Failure on the removal',
+                    value: {
+                      success: {
+                        summary: 'Unsuccessful removal operation',
+                        value: {
+                          success: false,
+                          error: 'Failure description',
                         },
                       },
                     }
