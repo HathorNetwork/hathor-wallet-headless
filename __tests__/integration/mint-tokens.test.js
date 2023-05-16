@@ -1,6 +1,7 @@
 import { TestUtils } from './utils/test-utils-integration';
 import { WALLET_CONSTANTS } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
+import { transaction, constants } from '@hathor/wallet-lib';
 
 describe('mint token', () => {
   let wallet1;
@@ -231,6 +232,39 @@ describe('mint token', () => {
 
     const addr14 = await wallet1.getAddressInfo(14);
     expect(addr14.total_amount_available).toBe(htrChange);
+    done();
+  });
+
+  it('should mint and send mint output to the correct address', async done => {
+    // By default, will mint tokens into the next unused address
+    const address0 = await wallet1.getAddressAt(0);
+    const response = await TestUtils.request
+      .post('/wallet/mint-tokens')
+      .send({
+        token: tokenA.uid,
+        address: await wallet1.getAddressAt(16),
+        mint_authority_address: address0,
+        amount: 100
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    const transaction = response.body;
+    expect(transaction.success).toBe(true);
+    await TestUtils.pauseForWsUpdate();
+
+    const addr15 = await wallet1.getAddressInfo(16, tokenA.uid);
+    expect(addr15.total_amount_available).toBe(80);
+
+    // Validating a new mint authority was created by default
+    const authorityOutputs = transaction.outputs.filter(
+      o => transaction.isTokenDataAuthority(o.tokenData)
+    );
+    expect(authorityOutputs).toHaveLength(1);
+    const authorityOutput = authorityOutputs[0];
+    expect(authorityOutput.value).toEqual(constants.TOKEN_MINT_MASK);
+    const p2pkh = authorityOutput.parseScript(wallet1.getNetworkObject());
+    // Validate that the authority output was sent to the correct address
+    expect(p2pkh.address.base58).toEqual(address0);
     done();
   });
 });

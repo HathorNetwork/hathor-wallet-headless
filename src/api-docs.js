@@ -2311,6 +2311,10 @@ const apiDoc = {
                     type: 'string',
                     description: 'Optional address to send the change amount.'
                   },
+                  mint_authority_address: {
+                    type: 'string',
+                    description: 'Optional address to send the new mint authority output created.'
+                  },
                 }
               },
               examples: {
@@ -2372,34 +2376,6 @@ const apiDoc = {
               type: 'string',
             },
           },
-          {
-            name: 'token',
-            in: 'formData',
-            description: 'The uid of the token to melt.',
-            required: true,
-            type: 'string',
-          },
-          {
-            name: 'amount',
-            in: 'formData',
-            description: 'The amount of tokens to melt. It must be an integer with the value in cents, i.e., 123 means 1.23.',
-            required: true,
-            type: 'integer',
-          },
-          {
-            name: 'change_address',
-            in: 'formData',
-            description: 'Optional address to send the change amount of custom tokens after melt.',
-            required: false,
-            type: 'string',
-          },
-          {
-            name: 'deposit_address',
-            in: 'formData',
-            description: 'Optional address to send the deposit HTR received after the melt.',
-            required: false,
-            type: 'string',
-          },
         ],
         requestBody: {
           description: 'Data to melt tokens.',
@@ -2417,6 +2393,18 @@ const apiDoc = {
                   amount: {
                     type: 'integer',
                     description: 'The amount of tokens to melt. It must be an integer with the value in cents, i.e., 123 means 1.23.'
+                  },
+                  change_address: {
+                    type: 'string',
+                    description: 'Optional address to send the change amount of custom tokens after melt.'
+                  },
+                  deposit_address: {
+                    type: 'string',
+                    description: 'Optional address to send the deposit HTR received after the melt.'
+                  },
+                  melt_authority_address: {
+                    type: 'string',
+                    description: 'Optional address to send the new melt authority output created.'
                   },
                 }
               },
