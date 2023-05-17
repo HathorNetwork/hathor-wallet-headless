@@ -2315,6 +2315,10 @@ const apiDoc = {
                     type: 'string',
                     description: 'Optional address to send the new mint authority output created.'
                   },
+                  allow_external_mint_authority_address: {
+                    type: 'boolean',
+                    description: 'If the mint authority address is allowed to be from another wallet. Default is false.'
+                  },
                 }
               },
               examples: {
@@ -2405,6 +2409,10 @@ const apiDoc = {
                   melt_authority_address: {
                     type: 'string',
                     description: 'Optional address to send the new melt authority output created.'
+                  },
+                  allow_external_melt_authority_address: {
+                    type: 'boolean',
+                    description: 'If the melt authority address is allowed to be from another wallet. Default is false.'
                   },
                 }
               },

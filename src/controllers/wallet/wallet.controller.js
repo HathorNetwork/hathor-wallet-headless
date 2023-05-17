@@ -434,7 +434,15 @@ async function mintTokens(req, res) {
   const allowExternalMintAuthorityAddress = req.body.allow_external_mint_authority_address || false;
 
   try {
-    const response = await wallet.mintTokens(token, amount, { address, changeAddress, mintAuthorityAddress, allowExternalMintAuthorityAddress });
+    const response = await wallet.mintTokens(
+      token,
+      amount,
+      {
+        address,
+        changeAddress,
+        mintAuthorityAddress,
+        allowExternalMintAuthorityAddress
+      });
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
     res.send({ success: false, error: err.message });
@@ -467,7 +475,12 @@ async function meltTokens(req, res) {
     const response = await wallet.meltTokens(
       token,
       amount,
-      { address: depositAddress, changeAddress, meltAuthorityAddress, allowExternalMeltAuthorityAddress }
+      {
+        address: depositAddress,
+        changeAddress,
+        meltAuthorityAddress,
+        allowExternalMeltAuthorityAddress
+      }
     );
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
