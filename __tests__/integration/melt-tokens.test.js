@@ -1,7 +1,7 @@
+import { transaction as transactionUtils, constants } from '@hathor/wallet-lib';
 import { TestUtils } from './utils/test-utils-integration';
 import { WALLET_CONSTANTS } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
-import { transaction, constants } from '@hathor/wallet-lib';
 
 describe('melt tokens', () => {
   let wallet1;
@@ -330,7 +330,7 @@ describe('melt tokens', () => {
         token: tokenA.uid,
         address: await wallet1.getAddressAt(16),
         melt_authority_address: address0,
-        amount: 50
+        amount: 30
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
@@ -341,11 +341,11 @@ describe('melt tokens', () => {
     const balance1htr = await wallet1.getBalance();
     const balance1tka = await wallet1.getBalance(tokenA.uid);
     expect(balance1htr.available).toBe(9);
-    expect(balance1tka.available).toBe(0);
+    expect(balance1tka.available).toBe(20);
 
     // Validating a new melt authority was created by default
     const authorityOutputs = transaction.outputs.filter(
-      o => transaction.isTokenDataAuthority(o.tokenData)
+      o => transactionUtils.isTokenDataAuthority(o.tokenData)
     );
     expect(authorityOutputs).toHaveLength(1);
     const authorityOutput = authorityOutputs[0];
@@ -353,6 +353,53 @@ describe('melt tokens', () => {
     const p2pkh = authorityOutput.parseScript(wallet1.getNetworkObject());
     // Validate that the authority output was sent to the correct address
     expect(p2pkh.address.base58).toEqual(address0);
+    done();
+  });
+
+  it('should melt allowing external authority address', async done => {
+    const externalAddress = TestUtils.getBurnAddress();
+    const response = await TestUtils.request
+      .post('/wallet/melt-tokens')
+      .send({
+        token: tokenA.uid,
+        address: await wallet1.getAddressAt(17),
+        melt_authority_address: externalAddress,
+        amount: 20
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.success).toBe(false);
+
+    const response2 = await TestUtils.request
+      .post('/wallet/melt-tokens')
+      .send({
+        token: tokenA.uid,
+        address: await wallet1.getAddressAt(17),
+        melt_authority_address: externalAddress,
+        allow_melt_authority_address: true,
+        amount: 20
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    const transaction = response2.body;
+    expect(transaction.success).toBe(true);
+    await TestUtils.pauseForWsUpdate();
+
+    const balance1htr = await wallet1.getBalance();
+    const balance1tka = await wallet1.getBalance(tokenA.uid);
+    expect(balance1htr.available).toBe(9);
+    expect(balance1tka.available).toBe(0);
+
+    // Validating a new melt authority was created by default
+    const authorityOutputs = transaction.outputs.filter(
+      o => transactionUtils.isTokenDataAuthority(o.tokenData)
+    );
+    expect(authorityOutputs).toHaveLength(1);
+    const authorityOutput = authorityOutputs[0];
+    expect(authorityOutput.value).toEqual(constants.TOKEN_MELT_MASK);
+    const p2pkh = authorityOutput.parseScript(wallet1.getNetworkObject());
+    // Validate that the authority output was sent to the correct address
+    expect(p2pkh.address.base58).toEqual(externalAddress);
     done();
   });
 });

@@ -431,8 +431,10 @@ async function mintTokens(req, res) {
   const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
   const mintAuthorityAddress = req.body.mint_authority_address || null;
+  const allowExternalMintAuthorityAddress = req.body.allow_external_mint_authority_address || false;
+
   try {
-    const response = await wallet.mintTokens(token, amount, { address, changeAddress, mintAuthorityAddress });
+    const response = await wallet.mintTokens(token, amount, { address, changeAddress, mintAuthorityAddress, allowExternalMintAuthorityAddress });
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
     res.send({ success: false, error: err.message });
@@ -459,11 +461,13 @@ async function meltTokens(req, res) {
   const changeAddress = req.body.change_address || null;
   const depositAddress = req.body.deposit_address || null;
   const meltAuthorityAddress = req.body.melt_authority_address || null;
+  const allowExternalMeltAuthorityAddress = req.body.allow_external_melt_authority_address || false;
+
   try {
     const response = await wallet.meltTokens(
       token,
       amount,
-      { address: depositAddress, changeAddress, meltAuthorityAddress }
+      { address: depositAddress, changeAddress, meltAuthorityAddress, allowExternalMeltAuthorityAddress }
     );
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
