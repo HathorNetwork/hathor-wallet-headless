@@ -16,6 +16,7 @@ const { cantSendTxErrorMessage, friendlyWalletState } = require('../../helpers/c
 const { mapTxReturn, prepareTxFunds } = require('../../helpers/tx.helper');
 const { initializedWallets } = require('../../services/wallets.service');
 const { removeAllWalletProposals } = require('../../services/atomic-swap.service');
+const { disconnectWalletChannel } = require('../../services/atomic-swap.service');
 
 async function getStatus(req, res) {
   /**
@@ -622,6 +623,7 @@ async function stop(req, res) {
 
   initializedWallets.delete(req.walletId);
   await removeAllWalletProposals(req.walletId);
+  await disconnectWalletChannel(req.walletId);
   res.send({ success: true });
 }
 

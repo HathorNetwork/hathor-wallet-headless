@@ -16,6 +16,8 @@ const { sanitizeLogInput } = require('../logger');
 const { getReadonlyWalletConfig, getWalletConfigFromSeed, WalletStartError } = require('../helpers/wallet.helper');
 const { mapTxReturn } = require('../helpers/tx.helper');
 const { lock, lockTypes } = require('../lock');
+const constants = require('../constants');
+const { initializeWalletChannel } = require('../services/atomic-swap.service');
 
 function welcome(req, res) {
   res.send('<html><body><h1>Welcome to Hathor Wallet API!</h1>'
@@ -173,6 +175,13 @@ async function start(req, res) {
     connectionTimeout: config.connectionTimeout,
   });
   walletConfig.connection = connection;
+
+  /**
+   * Atomic Swap Service websocket connection
+   */
+  if (constants.SWAP_SERVICE_FEATURE_TOGGLE) {
+    await initializeWalletChannel(walletID, config.network);
+  }
 
   // tokenUid is optional but if not passed as parameter the wallet will use HTR
   if (config.tokenUid) {
