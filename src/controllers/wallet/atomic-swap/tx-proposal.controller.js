@@ -20,6 +20,7 @@ const { lock, lockTypes } = require('../../../lock');
 const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 const { mapTxReturn } = require('../../../helpers/tx.helper');
 const constants = require('../../../constants');
+const { removeListenedProposal } = require('../../../services/atomic-swap.service');
 
 /**
  * Build or update a partial transaction proposal.
@@ -145,6 +146,45 @@ async function buildTxProposal(req, res) {
       success: false,
       error: err.message,
     });
+  }
+}
+
+/**
+ * Fetches all proposal data from the Atomic Swap Service for a specific identifier
+ */
+async function fetchFromService(req, res) {
+  if (!constants.SWAP_SERVICE_FEATURE_TOGGLE) {
+    res.status(405).json({ success: false, error: 'Method not allowed' });
+    return;
+  }
+
+  const { walletId } = req;
+  const { proposalId } = req.params;
+  const listenedProposals = await atomicSwapService.getListenedProposals(walletId);
+  if (!listenedProposals.has(proposalId)) {
+    res.status(404);
+    res.send({
+      success: false,
+      error: 'Proposal is not registered. Register it first through [POST] /register/:proposalId',
+    });
+    return;
+  }
+
+  const requestedProposal = listenedProposals.get(proposalId);
+  const { password } = requestedProposal;
+
+  // Fetching proposal from the service
+  try {
+    const serviceProposal = await atomicSwapService.serviceGet(proposalId, password);
+    res.json({ success: true, proposal: serviceProposal });
+  } catch (err) {
+    // If the proposal no longer exists on the backend, remove it from our listened map
+    if (err.isAxiosError && err.response.status === 404) {
+      res.status(404);
+      await removeListenedProposal(walletId, proposalId);
+    }
+
+    res.send({ success: false, error: err.message });
   }
 }
 
@@ -336,6 +376,48 @@ async function listenedProposalList(req, res) {
 }
 
 /**
+ * Registers a proposal on this wallet, storing its identifier and password locally
+ */
+async function registerProposal(req, res) {
+  const { walletId } = req;
+  const { proposalId } = req.params;
+  const { password } = req.body;
+
+  // Avoid making requests to the service if the proposal is already on local storage
+  const proposalMap = await atomicSwapService.getListenedProposals(walletId);
+  if (proposalMap.has(proposalId)) {
+    // Validating if the informed password is correct
+    const existingProposal = proposalMap.get(proposalId);
+    if (existingProposal.password !== password) {
+      res.send({
+        success: false,
+        error: 'Incorrect password',
+      });
+      return;
+    }
+    res.send({ success: true });
+    return;
+  }
+
+  try {
+    const proposal = await atomicSwapService.serviceGet(proposalId, password);
+
+    await atomicSwapService.addListenedProposal(
+      walletId,
+      proposal.proposalId,
+      password,
+    );
+    res.send({ success: true });
+  } catch (err) {
+    console.error(err.stack);
+    res.send({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
+/**
  * Deletes a listened proposal by proposalId
  */
 async function deleteListenedProposal(req, res) {
@@ -351,10 +433,12 @@ module.exports = {
   buildTxProposal,
   getInputData,
   getLockedUTXOs,
+  fetchFromService,
   getMySignatures,
   signAndPush,
   signTx,
   unlockInputs,
   listenedProposalList,
+  registerProposal,
   deleteListenedProposal,
 };
