@@ -397,10 +397,10 @@ async function createToken(req, res) {
   const { name, symbol, amount } = req.body;
   const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
-  const createMint = req.body.create_mint || true;
+  const createMint = req.body.create_mint === undefined ? true : req.body.create_mint;
   const mintAuthorityAddress = req.body.mint_authority_address || null;
   const allowExternalMintAuthorityAddress = req.body.allow_external_mint_authority_address || false;
-  const createMelt = req.body.create_melt || true;
+  const createMelt = req.body.create_melt === undefined ? true : req.body.create_melt;
   const meltAuthorityAddress = req.body.melt_authority_address || null;
   const allowExternalMeltAuthorityAddress = req.body.allow_external_melt_authority_address || false;
   try {

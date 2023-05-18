@@ -1,4 +1,4 @@
-import { tokensUtils, transaction as transactionUtils, constants, network } from '@hathor/wallet-lib';
+import { tokensUtils, transaction as transactionUtils, constants, network, scriptsUtils } from '@hathor/wallet-lib';
 import { TestUtils } from './utils/test-utils-integration';
 import { AUTHORITY_VALUE, TOKEN_DATA } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
@@ -218,7 +218,6 @@ describe('create-nft routes', () => {
     expect(authorityOutputs.find(o => o.value === AUTHORITY_VALUE.MINT)).toBeTruthy();
     expect(authorityOutputs.find(o => o.value === AUTHORITY_VALUE.MELT)).toBeTruthy();
   });
-
   it('should create the NFT and send authority outputs to the correct address', async done => {
     // By default, will mint tokens into the next unused address
     const address0 = await wallet1.getAddressAt(0);
@@ -237,7 +236,6 @@ describe('create-nft routes', () => {
 
     const transaction = response.body;
     expect(transaction.success).toBe(true);
-    await TestUtils.pauseForWsUpdate();
 
     // Validating a new mint authority was created
     const authorityOutputs = transaction.outputs.filter(
@@ -247,21 +245,21 @@ describe('create-nft routes', () => {
     const mintOutput = authorityOutputs.filter(
       o => o.value === constants.TOKEN_MINT_MASK
     );
-    const mintP2pkh = mintOutput[0].parseScript(network);
+    const mintP2pkh = scriptsUtils.parseP2PKH(Buffer.from(mintOutput[0].script.data), network);
     // Validate that the mint output was sent to the correct address
     expect(mintP2pkh.address.base58).toEqual(address0);
 
     const meltOutput = authorityOutputs.filter(
       o => o.value === constants.TOKEN_MELT_MASK
     );
-    const meltP2pkh = meltOutput[0].parseScript(network);
+    const meltP2pkh = scriptsUtils.parseP2PKH(Buffer.from(meltOutput[0].script.data), network);
     // Validate that the melt output was sent to the correct address
     expect(meltP2pkh.address.base58).toEqual(address1);
 
     done();
   });
 
-  it('Create token using external mint/melt address', async done => {
+  it('Create nft using external mint/melt address', async done => {
     const address2idx0 = await wallet2.getAddressAt(0);
     const address2idx1 = await wallet2.getAddressAt(1);
 
@@ -276,7 +274,7 @@ describe('create-nft routes', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.success).toBe(false);
+    expect(response.body.success).toBe(false);
 
     // External address for melt won't be successful
     const response2 = await TestUtils.request
@@ -289,7 +287,7 @@ describe('create-nft routes', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response2.success).toBe(false);
+    expect(response2.body.success).toBe(false);
 
     // External address for both authorities will succeed with parameter allowing it
     const response3 = await TestUtils.request
@@ -306,11 +304,9 @@ describe('create-nft routes', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response3.success).toBe(true);
+    expect(response3.body.success).toBe(true);
 
-    const transaction = response.body;
-    expect(transaction.success).toBe(true);
-    await TestUtils.pauseForWsUpdate();
+    const transaction = response3.body;
 
     // Validating a new mint authority was created
     const authorityOutputs = transaction.outputs.filter(
@@ -320,14 +316,14 @@ describe('create-nft routes', () => {
     const mintOutput = authorityOutputs.filter(
       o => o.value === constants.TOKEN_MINT_MASK
     );
-    const mintP2pkh = mintOutput[0].parseScript(network);
+    const mintP2pkh = scriptsUtils.parseP2PKH(Buffer.from(mintOutput[0].script.data), network);
     // Validate that the mint output was sent to the correct address
     expect(mintP2pkh.address.base58).toEqual(address2idx0);
 
     const meltOutput = authorityOutputs.filter(
       o => o.value === constants.TOKEN_MELT_MASK
     );
-    const meltP2pkh = meltOutput[0].parseScript(network);
+    const meltP2pkh = scriptsUtils.parseP2PKH(Buffer.from(meltOutput[0].script.data), network);
     // Validate that the melt output was sent to the correct address
     expect(meltP2pkh.address.base58).toEqual(address2idx1);
 
