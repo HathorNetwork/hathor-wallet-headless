@@ -138,7 +138,6 @@ async function buildTxProposal(req, res) {
       } else if (serviceParams.proposal_id) {
         // Handling the update of an existing proposal with the Atomic Swap Service
         await atomicSwapService.serviceUpdate(
-          req.walletId,
           {
             proposalId: serviceParams.proposal_id,
             password: serviceParams.password,
