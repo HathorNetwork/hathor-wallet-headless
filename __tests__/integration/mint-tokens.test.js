@@ -1,4 +1,4 @@
-import { transaction as transactionUtils, constants } from '@hathor/wallet-lib';
+import { transaction as transactionUtils, constants, network, scriptsUtils } from '@hathor/wallet-lib';
 import { TestUtils } from './utils/test-utils-integration';
 import { WALLET_CONSTANTS } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
@@ -262,7 +262,7 @@ describe('mint token', () => {
     expect(authorityOutputs).toHaveLength(1);
     const authorityOutput = authorityOutputs[0];
     expect(authorityOutput.value).toEqual(constants.TOKEN_MINT_MASK);
-    const p2pkh = authorityOutput.parseScript(wallet1.getNetworkObject());
+    const p2pkh = scriptsUtils.parseP2PKH(Buffer.from(authorityOutput.script.data), network);
     // Validate that the authority output was sent to the correct address
     expect(p2pkh.address.base58).toEqual(address0);
     done();
@@ -280,7 +280,7 @@ describe('mint token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.success).toBe(false);
+    expect(response.body.success).toBe(false);
 
     const response2 = await TestUtils.request
       .post('/wallet/mint-tokens')
@@ -307,7 +307,7 @@ describe('mint token', () => {
     expect(authorityOutputs).toHaveLength(1);
     const authorityOutput = authorityOutputs[0];
     expect(authorityOutput.value).toEqual(constants.TOKEN_MINT_MASK);
-    const p2pkh = authorityOutput.parseScript(wallet1.getNetworkObject());
+    const p2pkh = scriptsUtils.parseP2PKH(Buffer.from(authorityOutput.script.data), network);
     // Validate that the authority output was sent to the correct address
     expect(p2pkh.address.base58).toEqual(externalAddress);
     done();
