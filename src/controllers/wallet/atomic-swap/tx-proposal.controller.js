@@ -42,7 +42,7 @@ async function buildTxProposal(req, res) {
   if (req.body.lock !== undefined) {
     markAsSelected = req.body.lock;
   }
-  /** @type {{password: string, is_new?: boolean, proposal_id?: string, version?: number}} */
+  /** @type {{password?: string, is_new?: boolean, proposal_id?: string, version?: number}} */
   const serviceParams = req.body.service || {};
 
   const utxos = [];
@@ -137,10 +137,26 @@ async function buildTxProposal(req, res) {
         createdProposalId = proposalId;
       } else if (serviceParams.proposal_id) {
         // Handling the update of an existing proposal with the Atomic Swap Service
+
+        // First, validate if the proposal is already registered with this wallet
+        const listenedProposals = await atomicSwapService.getListenedProposals(req.walletId);
+        if (!listenedProposals.has(serviceParams.proposal_id)) {
+          res.status(404);
+          res.send({
+            success: false,
+            error: 'Proposal is not registered. Register it first through [POST] /register/:proposalId',
+          });
+          return;
+        }
+
+        // Retrieving registered proposal password
+        const requestedProposal = listenedProposals.get(serviceParams.proposal_id);
+        const { password } = requestedProposal;
+
         await atomicSwapService.serviceUpdate(
           {
             proposalId: serviceParams.proposal_id,
-            password: serviceParams.password,
+            password,
             partialTx: proposal.partialTx.serialize(),
             version: serviceParams.version,
           }

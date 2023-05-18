@@ -1,5 +1,6 @@
 import hathorLib, { config, swapService } from '@hathor/wallet-lib';
 import TestUtils from '../test-utils';
+import atomicSwapServiceMethods from '../../src/services/atomic-swap.service';
 
 const walletId = 'stub_atomic_swap_create_tx_proposal';
 
@@ -400,7 +401,7 @@ describe('create tx-proposal api', () => {
 
     it('should require the mandatory parameters', async () => {
       // Missing password
-      let response = await TestUtils.request
+      const response = await TestUtils.request
         .post('/wallet/atomic-swap/tx-proposal')
         .send({
           receive: {
@@ -408,27 +409,6 @@ describe('create tx-proposal api', () => {
           },
           service: {
             proposal_id: 'mock-id',
-            // password: 'abc',
-            version: 0,
-          }
-        })
-        .set({ 'x-wallet-id': walletId });
-      expect(response.status).toBe(200);
-      expect(response.body).toMatchObject({
-        success: false,
-        error: 'Missing mandatory parameters: password'
-      });
-
-      // Missing version number
-      response = await TestUtils.request
-        .post('/wallet/atomic-swap/tx-proposal')
-        .send({
-          receive: {
-            tokens: [{ token: '00', value: 10 }],
-          },
-          service: {
-            proposal_id: 'mock-id',
-            password: 'abc',
             // version: 0,
           }
         })
@@ -440,7 +420,40 @@ describe('create tx-proposal api', () => {
       });
     });
 
+    it('should require the proposal to be registered', async () => {
+      // Ensure the proposal does not exist in the listened proposals map
+      await atomicSwapServiceMethods.removeListenedProposal(
+        walletId,
+        'mock-id',
+      );
+
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal')
+        .send({
+          receive: {
+            tokens: [{ token: '00', value: 10 }],
+          },
+          service: {
+            proposal_id: 'mock-id',
+            version: 0,
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(404);
+      expect(response.body).toMatchObject({
+        success: false,
+        error: 'Proposal is not registered. Register it first through [POST] /register/:proposalId'
+      });
+    });
+
     it('should return no success when service throws', async () => {
+      // Configuring the local storage for the following tests
+      await atomicSwapServiceMethods.addListenedProposal(
+        walletId,
+        '1a574e6c-7329-4adc-b98c-b70fb20ef919',
+        'abc123',
+      );
+
       const mockLib = jest.spyOn(swapService, 'update')
         .mockImplementationOnce(async () => { throw new Error('Test Service failure'); });
 
@@ -452,8 +465,7 @@ describe('create tx-proposal api', () => {
             tokens: [{ token: '00', value: 10 }],
           },
           service: {
-            proposal_id: 'mock-id',
-            password: 'abc',
+            proposal_id: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
             version: 0,
           }
         })
@@ -479,8 +491,7 @@ describe('create tx-proposal api', () => {
             tokens: [{ token: '00', value: 10 }],
           },
           service: {
-            proposal_id: 'mock-id',
-            password: 'abc',
+            proposal_id: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
             version: 0,
           }
         })
@@ -495,8 +506,8 @@ describe('create tx-proposal api', () => {
     });
 
     it('should return success when the service mediator also had success', async () => {
-      const mockLib = jest.spyOn(swapService, 'create')
-        .mockResolvedValue({ success: true, id: 'mock-id' });
+      const mockLib = jest.spyOn(swapService, 'update')
+        .mockResolvedValue({ success: true });
 
       const response = await TestUtils.request
         .post('/wallet/atomic-swap/tx-proposal')
@@ -505,8 +516,8 @@ describe('create tx-proposal api', () => {
             tokens: [{ token: '00', value: 10 }],
           },
           service: {
-            is_new: true,
-            password: 'abc'
+            proposal_id: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
+            version: 0,
           }
         })
         .set({ 'x-wallet-id': walletId });
