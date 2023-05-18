@@ -152,7 +152,7 @@ describe('create token', () => {
       .send({
         name: tokenA.name,
         symbol: tokenA.symbol,
-        amount: 3000
+        amount: 4000
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
