@@ -202,7 +202,7 @@ describe('create token', () => {
 
     const htrBalance = await wallet1.getBalance();
     const tkaBalance = await wallet1.getBalance(response.body.hash);
-    expect(htrBalance.available).toBe(19); // The initial 20 minus 1
+    expect(htrBalance.available).toBe(29); // The initial 30 minus 1
     expect(tkaBalance.available).toBe(100); // The newly minted TKA tokens
     done();
   });
@@ -363,6 +363,8 @@ describe('create token', () => {
   });
 
   it('should create the token and send authority outputs to the correct address', async done => {
+    // Since no pause was necessary on the last test, we will add one here to improve stability
+    await TestUtils.pauseForWsUpdate();
     // By default, will mint tokens into the next unused address
     const address0 = await wallet1.getAddressAt(0);
     const address1 = await wallet1.getAddressAt(1);
@@ -405,6 +407,8 @@ describe('create token', () => {
   });
 
   it('Create token using external mint/melt address', async done => {
+    // Since no pause was necessary on the last test, we will add one here to improve stability
+    await TestUtils.pauseForWsUpdate();
     const address2idx0 = await wallet2.getAddressAt(0);
     const address2idx1 = await wallet2.getAddressAt(1);
 

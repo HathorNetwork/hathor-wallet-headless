@@ -218,7 +218,9 @@ describe('create-nft routes', () => {
     expect(authorityOutputs.find(o => o.value === AUTHORITY_VALUE.MINT)).toBeTruthy();
     expect(authorityOutputs.find(o => o.value === AUTHORITY_VALUE.MELT)).toBeTruthy();
   });
+
   it('should create the NFT and send authority outputs to the correct address', async done => {
+    await TestUtils.pauseForWsUpdate();
     // By default, will mint tokens into the next unused address
     const address0 = await wallet1.getAddressAt(0);
     const address1 = await wallet1.getAddressAt(1);
@@ -260,6 +262,7 @@ describe('create-nft routes', () => {
   });
 
   it('Create nft using external mint/melt address', async done => {
+    await TestUtils.pauseForWsUpdate();
     const address2idx0 = await wallet2.getAddressAt(0);
     const address2idx1 = await wallet2.getAddressAt(1);
 
