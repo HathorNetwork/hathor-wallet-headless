@@ -400,7 +400,7 @@ describe('create tx-proposal api', () => {
     global.constants.SWAP_SERVICE_FEATURE_TOGGLE = true;
 
     it('should require the mandatory parameters', async () => {
-      // Missing password
+      // Missing version
       const response = await TestUtils.request
         .post('/wallet/atomic-swap/tx-proposal')
         .send({
@@ -457,7 +457,6 @@ describe('create tx-proposal api', () => {
       const mockLib = jest.spyOn(swapService, 'update')
         .mockImplementationOnce(async () => { throw new Error('Test Service failure'); });
 
-      // Missing password
       const response = await TestUtils.request
         .post('/wallet/atomic-swap/tx-proposal')
         .send({
@@ -483,7 +482,6 @@ describe('create tx-proposal api', () => {
       const mockLib = jest.spyOn(swapService, 'update')
         .mockResolvedValue({ success: false });
 
-      // Missing password
       const response = await TestUtils.request
         .post('/wallet/atomic-swap/tx-proposal')
         .send({

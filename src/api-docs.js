@@ -1564,7 +1564,7 @@ const apiDoc = {
                   }
                 },
                 update_proposal_with_service: {
-                  summary: 'Update an existing proposal using the Atomic Swap Service',
+                  summary: 'Update a registered proposal using the Atomic Swap Service',
                   value: {
                     partial_tx: 'PartialTx|...',
                     send: {
@@ -1585,7 +1585,6 @@ const apiDoc = {
                     },
                     service: {
                       proposal_id: 'b11948c7-48...',
-                      password: 'abc123',
                       version: 1,
                     }
                   },
