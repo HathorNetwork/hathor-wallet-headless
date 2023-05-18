@@ -75,6 +75,33 @@ const serviceCreate = async (walletId, partialTx, password) => {
 };
 
 /**
+ * Creates the proposal on the Atomic Swap Service, handling errors that may occur on the process
+ * @param {string} walletId The initialized wallet identifier that created this proposal
+ * @param updateParams Parameters related to the proposal itself
+ * @param {string} updateParams.partialTx Serialized PartialTx
+ * @param {string} updateParams.proposalId Proposal identifier
+ * @param {string} updateParams.password Proposal password on the Atomic Swap Service
+ * @param {number} updateParams.version Proposal version on the Atomic Swap Service
+ * @param {string} [updateParams.signatures] Proposal signatures, if any
+ * @returns {Promise<{ success: boolean }>} Returns if the operation was successful
+ */
+const serviceUpdate = async (walletId, updateParams) => {
+  if (!updateParams.partialTx) {
+    throw new Error('Missing PartialTx');
+  }
+  if (!updateParams.password) {
+    throw new Error('Missing password');
+  }
+
+  const { success } = await swapService.update(updateParams);
+  if (!success) {
+    throw new Error('Unable to update the proposal on the Atomic Swap Service');
+  }
+
+  return { success };
+};
+
+/**
  * Adds a new proposal to the `listenedProposals` map of a wallet.
  * @param {string} walletId
  * @param {string} proposalId
@@ -175,4 +202,5 @@ module.exports = {
   removeAllWalletProposals,
   walletListenedProposals,
   serviceGet,
+  serviceUpdate,
 };

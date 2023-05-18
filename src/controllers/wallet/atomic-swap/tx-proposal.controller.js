@@ -42,7 +42,7 @@ async function buildTxProposal(req, res) {
   if (req.body.lock !== undefined) {
     markAsSelected = req.body.lock;
   }
-  /** @type {{password: string, is_new?: boolean, proposal_id?: string}} */
+  /** @type {{password?: string, is_new?: boolean, proposal_id?: string, version?: number}} */
   const serviceParams = req.body.service || {};
 
   const utxos = [];
@@ -126,13 +126,30 @@ async function buildTxProposal(req, res) {
     }
 
     let createdProposalId;
-    if (constants.SWAP_SERVICE_FEATURE_TOGGLE && serviceParams.is_new) {
-      const { proposalId } = await atomicSwapService.serviceCreate(
-        req.walletId,
-        proposal.partialTx.serialize(),
-        serviceParams.password
-      );
-      createdProposalId = proposalId;
+    if (constants.SWAP_SERVICE_FEATURE_TOGGLE) {
+      if (serviceParams.is_new) {
+        // Handling the creation of a new proposal with the Atomic Swap Service
+        const { proposalId } = await atomicSwapService.serviceCreate(
+          req.walletId,
+          proposal.partialTx.serialize(),
+          serviceParams.password
+        );
+        createdProposalId = proposalId;
+      } else if (serviceParams.proposal_id) {
+        // Handling the update of an existing proposal with the Atomic Swap Service
+        const updateResponse = await atomicSwapService.serviceUpdate(
+          req.walletId,
+          {
+            proposalId: serviceParams.proposal_id,
+            password: serviceParams.password,
+            partialTx: proposal.partialTx.serialize(),
+            version: serviceParams.version,
+          }
+        );
+        if (!updateResponse.success) {
+          throw new Error(`Could not update proposal ${serviceParams.proposal_id}`);
+        }
+      }
     }
 
     res.send({
