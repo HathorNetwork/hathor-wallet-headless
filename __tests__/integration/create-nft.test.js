@@ -1,4 +1,4 @@
-import { tokensUtils, transaction as transactionUtils, constants } from '@hathor/wallet-lib';
+import { tokensUtils, transaction as transactionUtils, constants, network } from '@hathor/wallet-lib';
 import { TestUtils } from './utils/test-utils-integration';
 import { AUTHORITY_VALUE, TOKEN_DATA } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
@@ -247,23 +247,23 @@ describe('create-nft routes', () => {
     const mintOutput = authorityOutputs.filter(
       o => o.value === constants.TOKEN_MINT_MASK
     );
-    const mintP2pkh = mintOutput[0].parseScript(hWallet.getNetworkObject());
+    const mintP2pkh = mintOutput[0].parseScript(network);
     // Validate that the mint output was sent to the correct address
     expect(mintP2pkh.address.base58).toEqual(address0);
 
     const meltOutput = authorityOutputs.filter(
       o => o.value === constants.TOKEN_MELT_MASK
     );
-    const meltP2pkh = meltOutput[0].parseScript(hWallet.getNetworkObject());
+    const meltP2pkh = meltOutput[0].parseScript(network);
     // Validate that the melt output was sent to the correct address
     expect(meltP2pkh.address.base58).toEqual(address1);
 
     done();
   });
 
-  it('Create token using external mint/melt address', async () => {
-    const address2_0 = await wallet2.getAddressAt(0);
-    const address2_1 = await wallet2.getAddressAt(1);
+  it('Create token using external mint/melt address', async done => {
+    const address2idx0 = await wallet2.getAddressAt(0);
+    const address2idx1 = await wallet2.getAddressAt(1);
 
     // External address for mint won't be successful
     const response = await TestUtils.request
@@ -272,7 +272,7 @@ describe('create-nft routes', () => {
         ...nftData,
         amount: 1,
         create_mint: true,
-        mint_authority_address: address2_0,
+        mint_authority_address: address2idx0,
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
@@ -285,7 +285,7 @@ describe('create-nft routes', () => {
         ...nftData,
         amount: 1,
         create_melt: true,
-        melt_authority_address: address2_1,
+        melt_authority_address: address2idx1,
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
@@ -298,10 +298,10 @@ describe('create-nft routes', () => {
         ...nftData,
         amount: 1,
         create_mint: true,
-        mint_authority_address: address2_0,
+        mint_authority_address: address2idx0,
         allow_external_mint_authority_address: true,
         create_melt: true,
-        melt_authority_address: address2_1,
+        melt_authority_address: address2idx1,
         allow_external_melt_authority_address: true,
       })
       .set({ 'x-wallet-id': wallet1.walletId });
@@ -320,16 +320,16 @@ describe('create-nft routes', () => {
     const mintOutput = authorityOutputs.filter(
       o => o.value === constants.TOKEN_MINT_MASK
     );
-    const mintP2pkh = mintOutput[0].parseScript(hWallet.getNetworkObject());
+    const mintP2pkh = mintOutput[0].parseScript(network);
     // Validate that the mint output was sent to the correct address
-    expect(mintP2pkh.address.base58).toEqual(address2_0);
+    expect(mintP2pkh.address.base58).toEqual(address2idx0);
 
     const meltOutput = authorityOutputs.filter(
       o => o.value === constants.TOKEN_MELT_MASK
     );
-    const meltP2pkh = meltOutput[0].parseScript(hWallet.getNetworkObject());
+    const meltP2pkh = meltOutput[0].parseScript(network);
     // Validate that the melt output was sent to the correct address
-    expect(meltP2pkh.address.base58).toEqual(address2_1);
+    expect(meltP2pkh.address.base58).toEqual(address2idx1);
 
     done();
   });
