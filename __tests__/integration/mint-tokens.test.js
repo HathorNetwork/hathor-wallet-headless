@@ -18,7 +18,7 @@ describe('mint token', () => {
     await WalletHelper.startMultipleWalletsForTest([wallet1]);
 
     // Creating a token for the tests
-    await wallet1.injectFunds(10, 0);
+    await wallet1.injectFunds(12, 0);
     const tkAtx = await wallet1.createToken({
       name: tokenA.name,
       symbol: tokenA.symbol,
