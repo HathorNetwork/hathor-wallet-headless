@@ -397,8 +397,28 @@ async function createToken(req, res) {
   const { name, symbol, amount } = req.body;
   const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
+  const createMint = req.body.create_mint || true;
+  const mintAuthorityAddress = req.body.mint_authority_address || null;
+  const allowExternalMintAuthorityAddress = req.body.allow_external_mint_authority_address || false;
+  const createMelt = req.body.create_melt || true;
+  const meltAuthorityAddress = req.body.melt_authority_address || null;
+  const allowExternalMeltAuthorityAddress = req.body.allow_external_melt_authority_address || false;
   try {
-    const response = await wallet.createNewToken(name, symbol, amount, { changeAddress, address });
+    const response = await wallet.createNewToken(
+      name,
+      symbol,
+      amount,
+      {
+        changeAddress,
+        address,
+        createMint,
+        mintAuthorityAddress,
+        allowExternalMintAuthorityAddress,
+        createMelt,
+        meltAuthorityAddress,
+        allowExternalMeltAuthorityAddress,
+      }
+    );
     const configurationString = tokensUtils.getConfigurationString(
       response.hash,
       response.name,
@@ -537,14 +557,27 @@ async function createNft(req, res) {
   const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
   const createMint = req.body.create_mint || false;
+  const mintAuthorityAddress = req.body.mint_authority_address || null;
+  const allowExternalMintAuthorityAddress = req.body.allow_external_mint_authority_address || false;
   const createMelt = req.body.create_melt || false;
+  const meltAuthorityAddress = req.body.melt_authority_address || null;
+  const allowExternalMeltAuthorityAddress = req.body.allow_external_melt_authority_address || false;
   try {
     const response = await wallet.createNFT(
       name,
       symbol,
       amount,
       data,
-      { address, changeAddress, createMint, createMelt }
+      {
+        address,
+        changeAddress,
+        createMint,
+        mintAuthorityAddress,
+        allowExternalMintAuthorityAddress,
+        createMelt,
+        meltAuthorityAddress,
+        allowExternalMeltAuthorityAddress,
+      }
     );
     const configurationString = tokensUtils.getConfigurationString(
       response.hash,
