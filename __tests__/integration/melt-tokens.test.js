@@ -376,7 +376,7 @@ describe('melt tokens', () => {
         token: tokenA.uid,
         address: await wallet1.getAddressAt(17),
         melt_authority_address: externalAddress,
-        allow_melt_authority_address: true,
+        allow_external_melt_authority_address: true,
         amount: 20
       })
       .set({ 'x-wallet-id': wallet1.walletId });
