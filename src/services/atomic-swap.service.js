@@ -76,7 +76,6 @@ const serviceCreate = async (walletId, partialTx, password) => {
 
 /**
  * Creates the proposal on the Atomic Swap Service, handling errors that may occur on the process
- * @param {string} walletId The initialized wallet identifier that created this proposal
  * @param updateParams Parameters related to the proposal itself
  * @param {string} updateParams.partialTx Serialized PartialTx
  * @param {string} updateParams.proposalId Proposal identifier
@@ -85,8 +84,9 @@ const serviceCreate = async (walletId, partialTx, password) => {
  * @param {string} [updateParams.signatures] Proposal signatures, if any
  * @returns {Promise<{ success: boolean }>} Returns if the operation was successful
  */
-const serviceUpdate = async (walletId, updateParams) => {
+const serviceUpdate = async updateParams => {
   const { success } = await swapService.update(updateParams);
+
   if (!success) {
     throw new Error('Unable to update the proposal on the Atomic Swap Service');
   }

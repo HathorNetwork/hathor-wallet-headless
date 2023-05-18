@@ -1478,6 +1478,10 @@ const apiDoc = {
                         description: 'Mandatory password for interacting with a service-mediated proposal.',
                         type: 'string',
                       },
+                      version: {
+                        description: 'Version of the proposal to be updated on the service mediator',
+                        type: 'integer',
+                      },
                     },
                   },
                 }
@@ -1558,6 +1562,33 @@ const apiDoc = {
                       password: 'abc123'
                     }
                   }
+                },
+                update_proposal_with_service: {
+                  summary: 'Update an existing proposal using the Atomic Swap Service',
+                  value: {
+                    partial_tx: 'PartialTx|...',
+                    send: {
+                      tokens: [
+                        {
+                          value: 10,
+                          token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
+                        },
+                      ],
+                    },
+                    receive: {
+                      tokens: [
+                        {
+                          value: 10,
+                          token: '00',
+                        },
+                      ],
+                    },
+                    service: {
+                      proposal_id: 'b11948c7-48...',
+                      password: 'abc123',
+                      version: 1,
+                    }
+                  },
                 },
               }
             }

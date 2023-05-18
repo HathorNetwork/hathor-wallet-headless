@@ -42,7 +42,7 @@ async function buildTxProposal(req, res) {
   if (req.body.lock !== undefined) {
     markAsSelected = req.body.lock;
   }
-  /** @type {{password?: string, is_new?: boolean, proposal_id?: string, version?: number}} */
+  /** @type {{password: string, is_new?: boolean, proposal_id?: string, version?: number}} */
   const serviceParams = req.body.service || {};
 
   const utxos = [];
