@@ -442,7 +442,8 @@ async function mintTokens(req, res) {
         changeAddress,
         mintAuthorityAddress,
         allowExternalMintAuthorityAddress
-      });
+      }
+    );
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
     res.send({ success: false, error: err.message });
