@@ -86,13 +86,6 @@ const serviceCreate = async (walletId, partialTx, password) => {
  * @returns {Promise<{ success: boolean }>} Returns if the operation was successful
  */
 const serviceUpdate = async (walletId, updateParams) => {
-  if (!updateParams.partialTx) {
-    throw new Error('Missing PartialTx');
-  }
-  if (!updateParams.password) {
-    throw new Error('Missing password');
-  }
-
   const { success } = await swapService.update(updateParams);
   if (!success) {
     throw new Error('Unable to update the proposal on the Atomic Swap Service');

@@ -137,7 +137,7 @@ async function buildTxProposal(req, res) {
         createdProposalId = proposalId;
       } else if (serviceParams.proposal_id) {
         // Handling the update of an existing proposal with the Atomic Swap Service
-        const updateResponse = await atomicSwapService.serviceUpdate(
+        await atomicSwapService.serviceUpdate(
           req.walletId,
           {
             proposalId: serviceParams.proposal_id,
@@ -146,9 +146,6 @@ async function buildTxProposal(req, res) {
             version: serviceParams.version,
           }
         );
-        if (!updateResponse.success) {
-          throw new Error(`Could not update proposal ${serviceParams.proposal_id}`);
-        }
       }
     }
 

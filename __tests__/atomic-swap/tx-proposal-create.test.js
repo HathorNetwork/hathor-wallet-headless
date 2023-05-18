@@ -394,4 +394,130 @@ describe('create tx-proposal api', () => {
       mockLib.mockRestore();
     });
   });
+
+  describe('updating a proposal on the service mediator', () => {
+    global.constants.SWAP_SERVICE_FEATURE_TOGGLE = true;
+
+    it('should require the mandatory parameters', async () => {
+      // Missing password
+      let response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal')
+        .send({
+          receive: {
+            tokens: [{ token: '00', value: 10 }],
+          },
+          service: {
+            proposal_id: 'mock-id',
+            // password: 'abc',
+            version: 0,
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        success: false,
+        error: 'Missing mandatory parameters: password'
+      });
+
+      // Missing version number
+      response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal')
+        .send({
+          receive: {
+            tokens: [{ token: '00', value: 10 }],
+          },
+          service: {
+            proposal_id: 'mock-id',
+            password: 'abc',
+            // version: 0,
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        success: false,
+        error: 'Missing mandatory parameters: version'
+      });
+    });
+
+    it('should return no success when service throws', async () => {
+      const mockLib = jest.spyOn(swapService, 'update')
+        .mockImplementationOnce(async () => { throw new Error('Test Service failure'); });
+
+      // Missing password
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal')
+        .send({
+          receive: {
+            tokens: [{ token: '00', value: 10 }],
+          },
+          service: {
+            proposal_id: 'mock-id',
+            password: 'abc',
+            version: 0,
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        success: false,
+        error: 'Test Service failure'
+      });
+
+      mockLib.mockRestore();
+    });
+
+    it('should return no success when service also had no success', async () => {
+      const mockLib = jest.spyOn(swapService, 'update')
+        .mockResolvedValue({ success: false });
+
+      // Missing password
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal')
+        .send({
+          receive: {
+            tokens: [{ token: '00', value: 10 }],
+          },
+          service: {
+            proposal_id: 'mock-id',
+            password: 'abc',
+            version: 0,
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        success: false,
+        error: 'Unable to update the proposal on the Atomic Swap Service'
+      });
+
+      mockLib.mockRestore();
+    });
+
+    it('should return success when the service mediator also had success', async () => {
+      const mockLib = jest.spyOn(swapService, 'create')
+        .mockResolvedValue({ success: true, id: 'mock-id' });
+
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal')
+        .send({
+          receive: {
+            tokens: [{ token: '00', value: 10 }],
+          },
+          service: {
+            is_new: true,
+            password: 'abc'
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        success: true,
+        data: expect.any(String),
+        isComplete: false,
+      });
+
+      mockLib.mockRestore();
+    });
+  });
 });
