@@ -225,7 +225,7 @@ async function signTx(req, res) {
 
   const partialTx = req.body.partial_tx;
   const signatures = req.body.signatures || [];
-  const { proposalId, version } = req.body.service || {};
+  const { proposal_id: proposalId, version } = req.body.service || {};
 
   try {
     const tx = atomicSwapService.assembleTransaction(partialTx, signatures, req.wallet.storage);
