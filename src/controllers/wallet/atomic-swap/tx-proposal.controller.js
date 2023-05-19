@@ -52,9 +52,15 @@ async function buildTxProposal(req, res) {
     return;
   }
 
-  const proposal = partialTx
-    ? PartialTxProposal.fromPartialTx(partialTx, wallet.storage)
-    : new PartialTxProposal(wallet.storage);
+  let proposal;
+  try {
+    proposal = partialTx
+      ? PartialTxProposal.fromPartialTx(partialTx, wallet.storage)
+      : new PartialTxProposal(wallet.storage);
+  } catch (e) {
+    res.status(400).json({ success: false, error: 'Invalid serialized partial_tx' });
+    return;
+  }
 
   if (sendTokens.utxos && sendTokens.utxos.length > 0) {
     try {

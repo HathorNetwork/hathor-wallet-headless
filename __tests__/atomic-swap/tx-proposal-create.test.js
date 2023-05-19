@@ -113,6 +113,23 @@ describe('create tx-proposal api', () => {
     });
   });
 
+  it('should return 400 with an invalid body', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal')
+      .send({
+        partial_tx: 'invalid-partial-tx',
+        receive: {
+          tokens: [{ value: 5, address: TestUtils.addresses[3] }],
+        },
+      })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({
+      success: false,
+      error: 'Invalid serialized partial_tx',
+    });
+  });
+
   it('should return 200 with receive.tokens', async () => {
     const response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
