@@ -74,6 +74,10 @@ export const partialTxSignatureSchema = {
     errorMessage: 'Invalid signature',
     isString: true,
   },
+};
+
+export const partialTxSignatureSchemaWithService = {
+  ...partialTxSignatureSchema,
   'service.proposal_id': {
     in: ['body'],
     errorMessage: 'Invalid proposal id',
