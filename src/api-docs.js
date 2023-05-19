@@ -1966,6 +1966,21 @@ const apiDoc = {
                       description: 'Signatures of the proposal.',
                     },
                   },
+                  service: {
+                    description: 'Property containing references for this proposal on the Atomic Swap Service',
+                    type: 'object',
+                    required: ['proposal_id', 'version'],
+                    properties: {
+                      proposal_id: {
+                        description: 'Determines the identifier of the registered proposal that is being referenced in this request',
+                        type: 'string',
+                      },
+                      version: {
+                        description: 'Version of the proposal to be updated on the service mediator',
+                        type: 'integer',
+                      },
+                    },
+                  },
                 }
               },
               examples: {
@@ -1974,6 +1989,17 @@ const apiDoc = {
                   value: {
                     partial_tx: 'PartialTx|...',
                     signatures: ['PartialTxInputData|...', 'PartialTxInputData|...'],
+                  },
+                },
+                sign_with_service: {
+                  summary: 'Add signatures to the proposal with the Atomic Swap Service.',
+                  value: {
+                    partial_tx: 'PartialTx|...',
+                    signatures: ['PartialTxInputData|...', 'PartialTxInputData|...'],
+                    service: {
+                      proposal_id: 'b11948c7-48...',
+                      version: 3,
+                    }
                   },
                 },
               }

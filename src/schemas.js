@@ -74,6 +74,12 @@ export const partialTxSignatureSchema = {
     errorMessage: 'Invalid signature',
     isString: true,
   },
+  'service.proposal_id': {
+    in: ['body'],
+    errorMessage: 'Invalid proposal id',
+    isString: true,
+    optional: true,
+  },
 };
 
 export const atomicSwapCreateSchema = {
