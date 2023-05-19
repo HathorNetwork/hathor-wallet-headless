@@ -198,7 +198,7 @@ describe('tx-proposal sign api', () => {
     });
 
     it('should require the mandatory parameters', async () => {
-      // Ensure the proposal does not exist in the listened proposals map
+      // Ensure the proposal exists in the listened proposals map
       await atomicSwapServiceMethods.addListenedProposal(
         walletId,
         'mock-id',
@@ -224,13 +224,6 @@ describe('tx-proposal sign api', () => {
     });
 
     it('should return no success when service throws', async () => {
-      // Configuring the local storage for the following tests
-      await atomicSwapServiceMethods.addListenedProposal(
-        walletId,
-        '1a574e6c-7329-4adc-b98c-b70fb20ef919',
-        'abc123',
-      );
-
       const mockLib = jest.spyOn(swapService, 'update')
         .mockImplementationOnce(async () => { throw new Error('Sigs update Service failure'); });
 
