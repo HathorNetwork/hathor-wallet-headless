@@ -225,9 +225,38 @@ async function signTx(req, res) {
 
   const partialTx = req.body.partial_tx;
   const signatures = req.body.signatures || [];
+  const { proposalId, version } = req.body.service || {};
 
   try {
     const tx = atomicSwapService.assembleTransaction(partialTx, signatures, req.wallet.storage);
+
+    // Updating the service, if a proposal id was informed
+    if (constants.SWAP_SERVICE_FEATURE_TOGGLE && proposalId) {
+      // First, validate if the proposal is already registered with this wallet
+      const listenedProposals = await atomicSwapService.getListenedProposals(req.walletId);
+      if (!listenedProposals.has(proposalId)) {
+        res.status(404);
+        res.send({
+          success: false,
+          error: 'Proposal is not registered. Register it first through [POST] /register/:proposalId',
+        });
+        return;
+      }
+
+      // Retrieving registered proposal password
+      const requestedProposal = listenedProposals.get(proposalId);
+      const { password } = requestedProposal;
+
+      await atomicSwapService.serviceUpdate(
+        {
+          proposalId,
+          password,
+          partialTx,
+          version,
+          signatures: tx.signatures,
+        }
+      );
+    }
 
     res.send({ success: true, txHex: tx.toHex() });
   } catch (err) {
