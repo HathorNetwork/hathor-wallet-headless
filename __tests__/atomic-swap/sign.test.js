@@ -163,8 +163,9 @@ describe('tx-proposal sign api', () => {
         })
         .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(200);
-      expect(response.body).toMatchObject({
+      expect(response.body).toStrictEqual({
         success: true,
+        txHex: 'mock-hexed-tx',
       });
       expect(listenedProposalsSpy).not.toHaveBeenCalled();
     });
@@ -190,7 +191,7 @@ describe('tx-proposal sign api', () => {
         })
         .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(404);
-      expect(response.body).toMatchObject({
+      expect(response.body).toStrictEqual({
         success: false,
         error: 'Proposal is not registered. Register it first through [POST] /register/:proposalId'
       });
@@ -216,7 +217,7 @@ describe('tx-proposal sign api', () => {
         })
         .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(200);
-      expect(response.body).toMatchObject({
+      expect(response.body).toStrictEqual({
         success: false,
         error: 'Missing mandatory parameters: version'
       });
@@ -244,7 +245,7 @@ describe('tx-proposal sign api', () => {
         })
         .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(200);
-      expect(response.body).toMatchObject({
+      expect(response.body).toStrictEqual({
         success: false,
         error: 'Sigs update Service failure'
       });
@@ -267,7 +268,7 @@ describe('tx-proposal sign api', () => {
         })
         .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(200);
-      expect(response.body).toMatchObject({
+      expect(response.body).toStrictEqual({
         success: false,
         error: 'Unable to update the proposal on the Atomic Swap Service'
       });
@@ -290,7 +291,7 @@ describe('tx-proposal sign api', () => {
         })
         .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(200);
-      expect(response.body).toMatchObject({
+      expect(response.body).toStrictEqual({
         success: true,
         txHex: 'mock-hexed-tx',
       });
