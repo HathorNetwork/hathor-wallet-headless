@@ -2530,6 +2530,30 @@ const apiDoc = {
                     type: 'string',
                     description: 'Optional address to send the change amount.'
                   },
+                  create_mint: {
+                    type: 'boolean',
+                    description: 'If should create mint authority for the created token. Default is true.'
+                  },
+                  mint_authority_address: {
+                    type: 'string',
+                    description: 'Optional address to send the mint authority output created.'
+                  },
+                  allow_external_mint_authority_address: {
+                    type: 'boolean',
+                    description: 'If the mint authority address is allowed to be from another wallet. Default is false.'
+                  },
+                  create_melt: {
+                    type: 'boolean',
+                    description: 'If should create melt authority for the created token. Default is true.'
+                  },
+                  melt_authority_address: {
+                    type: 'string',
+                    description: 'Optional address to send the melt authority output created.'
+                  },
+                  allow_external_melt_authority_address: {
+                    type: 'boolean',
+                    description: 'If the melt authority address is allowed to be from another wallet. Default is false.'
+                  },
                 }
               },
               examples: {
@@ -2818,9 +2842,25 @@ const apiDoc = {
                     type: 'boolean',
                     description: 'If should create mint authority for the created NFT. Default is false.'
                   },
+                  mint_authority_address: {
+                    type: 'string',
+                    description: 'Optional address to send the mint authority output created.'
+                  },
+                  allow_external_mint_authority_address: {
+                    type: 'boolean',
+                    description: 'If the mint authority address is allowed to be from another wallet. Default is false.'
+                  },
                   create_melt: {
                     type: 'boolean',
                     description: 'If should create melt authority for the created NFT. Default is false.'
+                  },
+                  melt_authority_address: {
+                    type: 'string',
+                    description: 'Optional address to send the melt authority output created.'
+                  },
+                  allow_external_melt_authority_address: {
+                    type: 'boolean',
+                    description: 'If the melt authority address is allowed to be from another wallet. Default is false.'
                   },
                 }
               },

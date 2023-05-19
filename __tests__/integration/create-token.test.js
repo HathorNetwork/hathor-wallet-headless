@@ -1,4 +1,4 @@
-import { tokensUtils } from '@hathor/wallet-lib';
+import { tokensUtils, transaction as transactionUtils, constants, network, scriptsUtils } from '@hathor/wallet-lib';
 import { getRandomInt } from './utils/core.util';
 import { TestUtils } from './utils/test-utils-integration';
 import { WALLET_CONSTANTS } from './configuration/test-constants';
@@ -21,6 +21,7 @@ describe('create token', () => {
     await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
     await wallet1.injectFunds(10, 0);
     await wallet1.injectFunds(10, 1);
+    await wallet1.injectFunds(10, 2);
     await wallet2.injectFunds(10, 0);
   });
 
@@ -30,7 +31,6 @@ describe('create token', () => {
   });
 
   // Testing failures first, that do not cause side-effects on the blockchain
-
   it('should reject missing name parameter', async done => {
     const response = await TestUtils.request
       .post('/wallet/create-token')
@@ -151,7 +151,7 @@ describe('create token', () => {
       .send({
         name: tokenA.name,
         symbol: tokenA.symbol,
-        amount: 3000
+        amount: 4000
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
@@ -201,7 +201,7 @@ describe('create token', () => {
 
     const htrBalance = await wallet1.getBalance();
     const tkaBalance = await wallet1.getBalance(response.body.hash);
-    expect(htrBalance.available).toBe(19); // The initial 20 minus 1
+    expect(htrBalance.available).toBe(29); // The initial 30 minus 1
     expect(tkaBalance.available).toBe(100); // The newly minted TKA tokens
     done();
   });
@@ -278,6 +278,207 @@ describe('create token', () => {
     expect(addr4.total_amount_received).toBe(htrChange);
     const addr4C = await wallet2.getAddressInfo(4, transaction.hash);
     expect(addr4C.total_amount_available).toBe(200);
+    done();
+  });
+
+  it('should create token with only mint authority', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/create-token')
+      .send({
+        name: 'Token X',
+        symbol: 'TKX',
+        amount: 100,
+        create_mint: true,
+        create_melt: false
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.body.success).toBe(true);
+    const tx = response.body;
+
+    expect(tx.hash).toBeDefined();
+
+    // Validating authority tokens
+    const authorityOutputs = tx.outputs.filter(
+      o => transactionUtils.isTokenDataAuthority(o.tokenData)
+    );
+    expect(authorityOutputs.length).toBe(1);
+    expect(authorityOutputs[0].value).toBe(constants.TOKEN_MINT_MASK);
+  });
+
+  it('should create token with only melt authority', async () => {
+    // Since no pause was necessary on the last test, we will add one here to improve stability
+    await TestUtils.pauseForWsUpdate();
+
+    const response = await TestUtils.request
+      .post('/wallet/create-token')
+      .send({
+        name: 'Token X',
+        symbol: 'TKX',
+        amount: 100,
+        create_mint: false,
+        create_melt: true
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.body.success).toBe(true);
+    const tx = response.body;
+
+    expect(tx.hash).toBeDefined();
+
+    // Validating authority tokens
+    const authorityOutputs = tx.outputs.filter(
+      o => transactionUtils.isTokenDataAuthority(o.tokenData)
+    );
+    expect(authorityOutputs.length).toBe(1);
+    expect(authorityOutputs[0].value).toBe(constants.TOKEN_MELT_MASK);
+  });
+
+  it('should create token with mint and melt authorities', async () => {
+    await TestUtils.pauseForWsUpdate();
+    const response = await TestUtils.request
+      .post('/wallet/create-token')
+      .send({
+        name: 'Token X',
+        symbol: 'TKX',
+        amount: 100,
+        create_mint: true,
+        create_melt: true
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.body.success).toBe(true);
+    const tx = response.body;
+
+    expect(tx.hash).toBeDefined();
+
+    // Validating authority tokens
+    const authorityOutputs = tx.outputs.filter(
+      o => transactionUtils.isTokenDataAuthority(o.tokenData)
+    );
+    expect(authorityOutputs.length).toBe(2);
+    expect(authorityOutputs.find(o => o.value === constants.TOKEN_MINT_MASK)).toBeTruthy();
+    expect(authorityOutputs.find(o => o.value === constants.TOKEN_MELT_MASK)).toBeTruthy();
+  });
+
+  it('should create the token and send authority outputs to the correct address', async done => {
+    // Since no pause was necessary on the last test, we will add one here to improve stability
+    await TestUtils.pauseForWsUpdate();
+    // By default, will mint tokens into the next unused address
+    const address0 = await wallet1.getAddressAt(0);
+    const address1 = await wallet1.getAddressAt(1);
+    const response = await TestUtils.request
+      .post('/wallet/create-token')
+      .send({
+        name: 'Token X',
+        symbol: 'TKX',
+        amount: 100,
+        create_mint: true,
+        mint_authority_address: address0,
+        create_melt: true,
+        melt_authority_address: address1,
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    const transaction = response.body;
+    expect(transaction.success).toBe(true);
+
+    // Validating a new mint authority was created
+    const authorityOutputs = transaction.outputs.filter(
+      o => transactionUtils.isTokenDataAuthority(o.tokenData)
+    );
+    expect(authorityOutputs).toHaveLength(2);
+    const mintOutput = authorityOutputs.filter(
+      o => o.value === constants.TOKEN_MINT_MASK
+    );
+    const mintP2pkh = scriptsUtils.parseP2PKH(Buffer.from(mintOutput[0].script.data), network);
+    // Validate that the mint output was sent to the correct address
+    expect(mintP2pkh.address.base58).toEqual(address0);
+
+    const meltOutput = authorityOutputs.filter(
+      o => o.value === constants.TOKEN_MELT_MASK
+    );
+    const meltP2pkh = scriptsUtils.parseP2PKH(Buffer.from(meltOutput[0].script.data), network);
+    // Validate that the melt output was sent to the correct address
+    expect(meltP2pkh.address.base58).toEqual(address1);
+
+    done();
+  });
+
+  it('Create token using external mint/melt address', async done => {
+    // Since no pause was necessary on the last test, we will add one here to improve stability
+    await TestUtils.pauseForWsUpdate();
+    const address2idx0 = await wallet2.getAddressAt(0);
+    const address2idx1 = await wallet2.getAddressAt(1);
+
+    // External address for mint won't be successful
+    const response = await TestUtils.request
+      .post('/wallet/create-token')
+      .send({
+        name: 'Token X',
+        symbol: 'TKX',
+        amount: 100,
+        create_mint: true,
+        mint_authority_address: address2idx0,
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response.body.success).toBe(false);
+
+    // External address for melt won't be successful
+    const response2 = await TestUtils.request
+      .post('/wallet/create-token')
+      .send({
+        name: 'Token X',
+        symbol: 'TKX',
+        amount: 100,
+        create_melt: true,
+        melt_authority_address: address2idx1,
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response2.body.success).toBe(false);
+
+    // External address for both authorities will succeed with parameter allowing it
+    const response3 = await TestUtils.request
+      .post('/wallet/create-token')
+      .send({
+        name: 'Token X',
+        symbol: 'TKX',
+        amount: 100,
+        create_mint: true,
+        mint_authority_address: address2idx0,
+        allow_external_mint_authority_address: true,
+        create_melt: true,
+        melt_authority_address: address2idx1,
+        allow_external_melt_authority_address: true,
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    expect(response3.body.success).toBe(true);
+
+    const transaction = response3.body;
+    expect(transaction.success).toBe(true);
+
+    // Validating a new mint authority was created
+    const authorityOutputs = transaction.outputs.filter(
+      o => transactionUtils.isTokenDataAuthority(o.tokenData)
+    );
+    expect(authorityOutputs).toHaveLength(2);
+    const mintOutput = authorityOutputs.filter(
+      o => o.value === constants.TOKEN_MINT_MASK
+    );
+    const mintP2pkh = scriptsUtils.parseP2PKH(Buffer.from(mintOutput[0].script.data), network);
+    // Validate that the mint output was sent to the correct address
+    expect(mintP2pkh.address.base58).toEqual(address2idx0);
+
+    const meltOutput = authorityOutputs.filter(
+      o => o.value === constants.TOKEN_MELT_MASK
+    );
+    const meltP2pkh = scriptsUtils.parseP2PKH(Buffer.from(meltOutput[0].script.data), network);
+    // Validate that the melt output was sent to the correct address
+    expect(meltP2pkh.address.base58).toEqual(address2idx1);
+
     done();
   });
 });
