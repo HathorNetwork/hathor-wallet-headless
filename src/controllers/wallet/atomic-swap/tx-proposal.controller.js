@@ -52,13 +52,14 @@ async function buildTxProposal(req, res) {
     return;
   }
 
+  // Deserializing the proposal from the partial_tx, if informed, or creating an empty new one
   let proposal;
   try {
     proposal = partialTx
       ? PartialTxProposal.fromPartialTx(partialTx, wallet.storage)
       : new PartialTxProposal(wallet.storage);
   } catch (e) {
-    res.status(400).json({ success: false, error: 'Invalid serialized partial_tx' });
+    res.json({ success: false, error: e.message });
     return;
   }
 

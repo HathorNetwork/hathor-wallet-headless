@@ -123,10 +123,10 @@ describe('create tx-proposal api', () => {
         },
       })
       .set({ 'x-wallet-id': walletId });
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
       success: false,
-      error: 'Invalid serialized partial_tx',
+      error: 'Invalid PartialTx',
     });
   });
 
