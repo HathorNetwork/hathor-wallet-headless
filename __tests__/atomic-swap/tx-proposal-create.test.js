@@ -113,7 +113,7 @@ describe('create tx-proposal api', () => {
     });
   });
 
-  it('should return 400 with an invalid body', async () => {
+  it('should return no success with an invalid partial_tx', async () => {
     const response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
