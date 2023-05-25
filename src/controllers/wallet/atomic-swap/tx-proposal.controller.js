@@ -52,9 +52,16 @@ async function buildTxProposal(req, res) {
     return;
   }
 
-  const proposal = partialTx
-    ? PartialTxProposal.fromPartialTx(partialTx, wallet.storage)
-    : new PartialTxProposal(wallet.storage);
+  // Deserializing the proposal from the partial_tx, if informed, or creating an empty new one
+  let proposal;
+  try {
+    proposal = partialTx
+      ? PartialTxProposal.fromPartialTx(partialTx, wallet.storage)
+      : new PartialTxProposal(wallet.storage);
+  } catch (e) {
+    res.json({ success: false, error: e.message });
+    return;
+  }
 
   if (sendTokens.utxos && sendTokens.utxos.length > 0) {
     try {
