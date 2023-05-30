@@ -193,7 +193,7 @@ describe('tx-proposal sign api', () => {
       expect(response.status).toBe(404);
       expect(response.body).toStrictEqual({
         success: false,
-        error: 'Proposal is not registered. Register it first through [POST] /register/:proposalId'
+        error: 'Proposal is not registered. Register it first.'
       });
     });
 
