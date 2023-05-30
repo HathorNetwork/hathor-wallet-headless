@@ -144,7 +144,7 @@ async function buildTxProposal(req, res) {
           res.status(404);
           res.send({
             success: false,
-            error: 'Proposal is not registered. Register it first through [POST] /register/:proposalId',
+            error: 'Proposal is not registered. Register it first.',
           });
           return;
         }

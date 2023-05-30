@@ -442,7 +442,7 @@ describe('create tx-proposal api', () => {
       expect(response.status).toBe(404);
       expect(response.body).toMatchObject({
         success: false,
-        error: 'Proposal is not registered. Register it first through [POST] /register/:proposalId'
+        error: 'Proposal is not registered. Register it first.'
       });
     });
 
