@@ -97,6 +97,13 @@ const serviceCreate = async (walletId, partialTx, password) => {
  * @throws {SwapServiceError} In case of unhandled errors
  */
 const serviceUpdate = async updateParams => {
+  if (!updateParams.partialTx) {
+    throw new Error('Missing PartialTx');
+  }
+  if (!updateParams.password) {
+    throw new Error('Missing password');
+  }
+
   const { success } = await swapService.update(updateParams);
 
   if (!success) {
