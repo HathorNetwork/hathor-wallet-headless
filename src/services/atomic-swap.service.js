@@ -30,6 +30,17 @@ const {
 const walletListenedProposals = new Map();
 
 /**
+ * Represents errors related to interactions with the Atomic Swap Service
+ */
+class SwapServiceError extends Error {
+  constructor(message) {
+    super();
+    this.name = 'SwapServiceError';
+    this.message = message;
+  }
+}
+
+/**
  * Assemble a transaction from the serialized partial tx and signatures
  * @param {string} partialTx The serialized partial tx
  * @param {string[]} signatures The serialized signatures
@@ -82,7 +93,8 @@ const serviceCreate = async (walletId, partialTx, password) => {
  * @param {string} updateParams.password Proposal password on the Atomic Swap Service
  * @param {number} updateParams.version Proposal version on the Atomic Swap Service
  * @param {string} [updateParams.signatures] Proposal signatures, if any
- * @returns {Promise<{ success: boolean }>} Returns if the operation was successful
+ * @returns {Promise<void>}
+ * @throws {SwapServiceError} In case of unhandled errors
  */
 const serviceUpdate = async updateParams => {
   if (!updateParams.partialTx) {
@@ -95,10 +107,8 @@ const serviceUpdate = async updateParams => {
   const { success } = await swapService.update(updateParams);
 
   if (!success) {
-    throw new Error('Unable to update the proposal on the Atomic Swap Service');
+    throw new SwapServiceError('Unable to update the proposal on the Atomic Swap Service');
   }
-
-  return { success };
 };
 
 /**

@@ -1,5 +1,5 @@
 import { swapService } from '@hathor/wallet-lib';
-import { serviceCreate, serviceGet } from '../../src/services/atomic-swap.service';
+import { serviceCreate, serviceGet, serviceUpdate } from '../../src/services/atomic-swap.service';
 
 const walletId = 'mock-wallet';
 
@@ -73,6 +73,43 @@ describe('serviceGet', () => {
 
     const results = await serviceGet('1a574e6c-7329-4adc-b98c-b70fb20ef919', 'abc');
     expect(results).toStrictEqual(expectedProposal);
+
+    mockLib.mockRestore();
+  });
+});
+
+describe('serviceUpdate', () => {
+  it('should reject missing mandatory parameters', async () => {
+    await expect(serviceUpdate({}))
+      .rejects.toThrow('Missing PartialTx');
+
+    await expect(serviceUpdate({ partialTx: 'abc' }))
+      .rejects.toThrow('Missing password');
+  });
+
+  it('should reject on empty results from the service backend', async () => {
+    const mockLib = jest.spyOn(swapService, 'update')
+      .mockResolvedValue({});
+
+    await expect(serviceUpdate({
+      partialTx: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
+      password: 'abc',
+    }))
+      .rejects.toThrow('Unable to update the proposal on the Atomic Swap Service');
+
+    mockLib.mockRestore();
+  });
+
+  it('should not throw on backend success', async () => {
+    const expectedResponse = { success: true };
+    const mockLib = jest.spyOn(swapService, 'update')
+      .mockResolvedValue(expectedResponse);
+
+    const results = await serviceUpdate({
+      partialTx: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
+      password: 'abc',
+    });
+    expect(results).toBeUndefined();
 
     mockLib.mockRestore();
   });
