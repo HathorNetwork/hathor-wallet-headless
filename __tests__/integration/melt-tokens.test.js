@@ -348,7 +348,7 @@ describe('melt tokens', () => {
 
     // Validating a new melt authority was created by default
     const authorityOutputs = transaction.outputs.filter(
-      o => transactionUtils.isTokenDataAuthority(o.tokenData)
+      o => transactionUtils.isAuthorityOutput({ token_data: o.tokenData })
     );
     expect(authorityOutputs).toHaveLength(1);
     const authorityOutput = authorityOutputs[0];
@@ -395,7 +395,7 @@ describe('melt tokens', () => {
 
     // Validating a new melt authority was created by default
     const authorityOutputs = transaction.outputs.filter(
-      o => transactionUtils.isTokenDataAuthority(o.tokenData)
+      o => transactionUtils.isAuthorityOutput({ token_data: o.tokenData })
     );
     expect(authorityOutputs).toHaveLength(1);
     const authorityOutput = authorityOutputs[0];
