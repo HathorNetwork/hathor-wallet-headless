@@ -1,4 +1,4 @@
-import { transaction as transactionUtils, constants, network, scriptsUtils } from '@hathor/wallet-lib';
+import { transactionUtils, constants, network, scriptsUtils } from '@hathor/wallet-lib';
 import { TestUtils } from './utils/test-utils-integration';
 import { WALLET_CONSTANTS } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
