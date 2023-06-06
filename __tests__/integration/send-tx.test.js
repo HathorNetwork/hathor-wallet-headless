@@ -178,7 +178,7 @@ describe('send tx (HTR)', () => {
           address: await wallet2.getAddressAt(0),
           value: 10
         }],
-        change_address: wallet2.getAddressAt(1),
+        change_address: await wallet2.getAddressAt(1),
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
