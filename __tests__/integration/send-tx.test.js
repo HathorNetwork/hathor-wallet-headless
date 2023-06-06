@@ -117,7 +117,7 @@ describe('send tx (HTR)', () => {
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeUndefined();
     expect(response.body.success).toBe(false);
-    expect(response.body.error).toContain('Invalid');
+    expect(response.body.error).toContain('Change address is not from the wallet');
     done();
   });
 
@@ -186,7 +186,7 @@ describe('send tx (HTR)', () => {
     expect(response.body.success).toBe(false);
     const errorElement = response.body.error[0];
     expect(errorElement.param).toBe('change_address');
-    expect(errorElement.msg).toContain('Invalid');
+    expect(errorElement.msg).toContain('Change address is not from the wallet');
     done();
   });
 
