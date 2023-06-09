@@ -1,4 +1,4 @@
-import { tokensUtils, transaction as transactionUtils, constants, network, scriptsUtils } from '@hathor/wallet-lib';
+import { tokensUtils, transactionUtils, constants, network, scriptsUtils } from '@hathor/wallet-lib';
 import { getRandomInt } from './utils/core.util';
 import { TestUtils } from './utils/test-utils-integration';
 import { WALLET_CONSTANTS } from './configuration/test-constants';
@@ -300,7 +300,7 @@ describe('create token', () => {
 
     // Validating authority tokens
     const authorityOutputs = tx.outputs.filter(
-      o => transactionUtils.isTokenDataAuthority(o.tokenData)
+      o => transactionUtils.isAuthorityOutput({ token_data: o.tokenData })
     );
     expect(authorityOutputs.length).toBe(1);
     expect(authorityOutputs[0].value).toBe(constants.TOKEN_MINT_MASK);
@@ -328,7 +328,7 @@ describe('create token', () => {
 
     // Validating authority tokens
     const authorityOutputs = tx.outputs.filter(
-      o => transactionUtils.isTokenDataAuthority(o.tokenData)
+      o => transactionUtils.isAuthorityOutput({ token_data: o.tokenData })
     );
     expect(authorityOutputs.length).toBe(1);
     expect(authorityOutputs[0].value).toBe(constants.TOKEN_MELT_MASK);
@@ -354,7 +354,7 @@ describe('create token', () => {
 
     // Validating authority tokens
     const authorityOutputs = tx.outputs.filter(
-      o => transactionUtils.isTokenDataAuthority(o.tokenData)
+      o => transactionUtils.isAuthorityOutput({ token_data: o.tokenData })
     );
     expect(authorityOutputs.length).toBe(2);
     expect(authorityOutputs.find(o => o.value === constants.TOKEN_MINT_MASK)).toBeTruthy();
@@ -385,7 +385,7 @@ describe('create token', () => {
 
     // Validating a new mint authority was created
     const authorityOutputs = transaction.outputs.filter(
-      o => transactionUtils.isTokenDataAuthority(o.tokenData)
+      o => transactionUtils.isAuthorityOutput({ token_data: o.tokenData })
     );
     expect(authorityOutputs).toHaveLength(2);
     const mintOutput = authorityOutputs.filter(
@@ -462,7 +462,7 @@ describe('create token', () => {
 
     // Validating a new mint authority was created
     const authorityOutputs = transaction.outputs.filter(
-      o => transactionUtils.isTokenDataAuthority(o.tokenData)
+      o => transactionUtils.isAuthorityOutput({ token_data: o.tokenData })
     );
     expect(authorityOutputs).toHaveLength(2);
     const mintOutput = authorityOutputs.filter(

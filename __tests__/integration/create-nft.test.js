@@ -1,4 +1,4 @@
-import { tokensUtils, transaction as transactionUtils, constants, network, scriptsUtils } from '@hathor/wallet-lib';
+import { tokensUtils, transactionUtils, constants, network, scriptsUtils } from '@hathor/wallet-lib';
 import { TestUtils } from './utils/test-utils-integration';
 import { AUTHORITY_VALUE, TOKEN_DATA } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
@@ -241,7 +241,7 @@ describe('create-nft routes', () => {
 
     // Validating a new mint authority was created
     const authorityOutputs = transaction.outputs.filter(
-      o => transactionUtils.isTokenDataAuthority(o.tokenData)
+      o => transactionUtils.isAuthorityOutput({ token_data: o.tokenData })
     );
     expect(authorityOutputs).toHaveLength(2);
     const mintOutput = authorityOutputs.filter(
@@ -313,7 +313,7 @@ describe('create-nft routes', () => {
 
     // Validating a new mint authority was created
     const authorityOutputs = transaction.outputs.filter(
-      o => transactionUtils.isTokenDataAuthority(o.tokenData)
+      o => transactionUtils.isAuthorityOutput({ token_data: o.tokenData })
     );
     expect(authorityOutputs).toHaveLength(2);
     const mintOutput = authorityOutputs.filter(
