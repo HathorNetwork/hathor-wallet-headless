@@ -31,17 +31,6 @@ const { SwapServiceError } = require('../errors');
 const walletListenedProposals = new Map();
 
 /**
- * Represents errors related to interactions with the Atomic Swap Service
- */
-class SwapServiceError extends Error {
-  constructor(message) {
-    super();
-    this.name = 'SwapServiceError';
-    this.message = message;
-  }
-}
-
-/**
  * Assemble a transaction from the serialized partial tx and signatures
  * @param {string} partialTx The serialized partial tx
  * @param {string[]} signatures The serialized signatures
