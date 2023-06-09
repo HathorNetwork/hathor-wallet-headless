@@ -9,6 +9,7 @@ const {
   PartialTxInputData,
   swapService,
 } = require('@hathor/wallet-lib');
+const { SwapServiceError } = require('../errors');
 
 /**
  * @typedef TxProposalConfig
@@ -72,6 +73,32 @@ const serviceCreate = async (walletId, partialTx, password) => {
 
   await addListenedProposal(walletId, id, password);
   return { proposalId: id };
+};
+
+/**
+ * Creates the proposal on the Atomic Swap Service, handling errors that may occur on the process
+ * @param updateParams Parameters related to the proposal itself
+ * @param {string} updateParams.partialTx Serialized PartialTx
+ * @param {string} updateParams.proposalId Proposal identifier
+ * @param {string} updateParams.password Proposal password on the Atomic Swap Service
+ * @param {number} updateParams.version Proposal version on the Atomic Swap Service
+ * @param {string} [updateParams.signatures] Proposal signatures, if any
+ * @returns {Promise<void>}
+ * @throws {SwapServiceError} In case of unhandled errors
+ */
+const serviceUpdate = async updateParams => {
+  if (!updateParams.partialTx) {
+    throw new Error('Missing PartialTx');
+  }
+  if (!updateParams.password) {
+    throw new Error('Missing password');
+  }
+
+  const { success } = await swapService.update(updateParams);
+
+  if (!success) {
+    throw new SwapServiceError('Unable to update the proposal on the Atomic Swap Service');
+  }
 };
 
 /**
@@ -175,4 +202,5 @@ module.exports = {
   removeAllWalletProposals,
   walletListenedProposals,
   serviceGet,
+  serviceUpdate,
 };
