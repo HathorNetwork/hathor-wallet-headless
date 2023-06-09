@@ -9,6 +9,7 @@ const {
   PartialTxInputData,
   swapService,
 } = require('@hathor/wallet-lib');
+const { SwapServiceError } = require('../errors');
 
 /**
  * @typedef TxProposalConfig
@@ -28,17 +29,6 @@ const {
  * @type {Map<string,WalletListenedProposals>}
  */
 const walletListenedProposals = new Map();
-
-/**
- * Represents errors related to interactions with the Atomic Swap Service
- */
-class SwapServiceError extends Error {
-  constructor(message) {
-    super();
-    this.name = 'SwapServiceError';
-    this.message = message;
-  }
-}
 
 /**
  * Assemble a transaction from the serialized partial tx and signatures
