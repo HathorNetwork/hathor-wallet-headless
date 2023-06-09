@@ -9,6 +9,7 @@ const {
   PartialTxInputData,
   swapService,
 } = require('@hathor/wallet-lib');
+const { SwapServiceError } = require('../errors');
 
 /**
  * @typedef TxProposalConfig

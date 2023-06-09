@@ -222,6 +222,16 @@ export const atomicSwapCreateSchema = {
     errorMessage: 'Invalid password',
     isString: true,
     optional: true,
+  },
+  'service.version': {
+    in: ['body'],
+    errorMessage: 'Invalid version number',
+    isInt: {
+      options: {
+        min: 0,
+      },
+    },
+    optional: true,
   }
 };
 

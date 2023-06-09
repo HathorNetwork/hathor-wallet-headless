@@ -6,7 +6,7 @@ const apiDoc = {
   info: {
     title: 'Headless Hathor Wallet API',
     description: 'This wallet is fully controlled through an HTTP API.',
-    version: '0.20.0',
+    version: '0.21.0-rc1',
   },
   produces: ['application/json'],
   components: {
@@ -1478,6 +1478,10 @@ const apiDoc = {
                         description: 'Mandatory password for interacting with a service-mediated proposal.',
                         type: 'string',
                       },
+                      version: {
+                        description: 'Version of the proposal to be updated on the service mediator',
+                        type: 'integer',
+                      },
                     },
                   },
                 }
@@ -1558,6 +1562,32 @@ const apiDoc = {
                       password: 'abc123'
                     }
                   }
+                },
+                update_proposal_with_service: {
+                  summary: 'Update a registered proposal using the Atomic Swap Service',
+                  value: {
+                    partial_tx: 'PartialTx|...',
+                    send: {
+                      tokens: [
+                        {
+                          value: 10,
+                          token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
+                        },
+                      ],
+                    },
+                    receive: {
+                      tokens: [
+                        {
+                          value: 10,
+                          token: '00',
+                        },
+                      ],
+                    },
+                    service: {
+                      proposal_id: 'b11948c7-48...',
+                      version: 1,
+                    }
+                  },
                 },
               }
             }
@@ -2643,6 +2673,14 @@ const apiDoc = {
                     type: 'string',
                     description: 'Optional address to send the change amount.'
                   },
+                  mint_authority_address: {
+                    type: 'string',
+                    description: 'Optional address to send the new mint authority output created.'
+                  },
+                  allow_external_mint_authority_address: {
+                    type: 'boolean',
+                    description: 'If the mint authority address is allowed to be from another wallet. Default is false.'
+                  },
                 }
               },
               examples: {
@@ -2704,34 +2742,6 @@ const apiDoc = {
               type: 'string',
             },
           },
-          {
-            name: 'token',
-            in: 'formData',
-            description: 'The uid of the token to melt.',
-            required: true,
-            type: 'string',
-          },
-          {
-            name: 'amount',
-            in: 'formData',
-            description: 'The amount of tokens to melt. It must be an integer with the value in cents, i.e., 123 means 1.23.',
-            required: true,
-            type: 'integer',
-          },
-          {
-            name: 'change_address',
-            in: 'formData',
-            description: 'Optional address to send the change amount of custom tokens after melt.',
-            required: false,
-            type: 'string',
-          },
-          {
-            name: 'deposit_address',
-            in: 'formData',
-            description: 'Optional address to send the deposit HTR received after the melt.',
-            required: false,
-            type: 'string',
-          },
         ],
         requestBody: {
           description: 'Data to melt tokens.',
@@ -2749,6 +2759,22 @@ const apiDoc = {
                   amount: {
                     type: 'integer',
                     description: 'The amount of tokens to melt. It must be an integer with the value in cents, i.e., 123 means 1.23.'
+                  },
+                  change_address: {
+                    type: 'string',
+                    description: 'Optional address to send the change amount of custom tokens after melt.'
+                  },
+                  deposit_address: {
+                    type: 'string',
+                    description: 'Optional address to send the deposit HTR received after the melt.'
+                  },
+                  melt_authority_address: {
+                    type: 'string',
+                    description: 'Optional address to send the new melt authority output created.'
+                  },
+                  allow_external_melt_authority_address: {
+                    type: 'boolean',
+                    description: 'If the melt authority address is allowed to be from another wallet. Default is false.'
                   },
                 }
               },

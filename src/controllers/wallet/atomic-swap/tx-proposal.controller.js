@@ -42,7 +42,7 @@ async function buildTxProposal(req, res) {
   if (req.body.lock !== undefined) {
     markAsSelected = req.body.lock;
   }
-  /** @type {{password: string, is_new?: boolean, proposal_id?: string}} */
+  /** @type {{password?: string, is_new?: boolean, proposal_id?: string, version?: number}} */
   const serviceParams = req.body.service || {};
 
   const utxos = [];
@@ -52,9 +52,16 @@ async function buildTxProposal(req, res) {
     return;
   }
 
-  const proposal = partialTx
-    ? PartialTxProposal.fromPartialTx(partialTx, wallet.storage)
-    : new PartialTxProposal(wallet.storage);
+  // Deserializing the proposal from the partial_tx, if informed, or creating an empty new one
+  let proposal;
+  try {
+    proposal = partialTx
+      ? PartialTxProposal.fromPartialTx(partialTx, wallet.storage)
+      : new PartialTxProposal(wallet.storage);
+  } catch (e) {
+    res.json({ success: false, error: e.message });
+    return;
+  }
 
   if (sendTokens.utxos && sendTokens.utxos.length > 0) {
     try {
@@ -126,13 +133,42 @@ async function buildTxProposal(req, res) {
     }
 
     let createdProposalId;
-    if (constants.SWAP_SERVICE_FEATURE_TOGGLE && serviceParams.is_new) {
-      const { proposalId } = await atomicSwapService.serviceCreate(
-        req.walletId,
-        proposal.partialTx.serialize(),
-        serviceParams.password
-      );
-      createdProposalId = proposalId;
+    if (constants.SWAP_SERVICE_FEATURE_TOGGLE) {
+      if (serviceParams.is_new) {
+        // Handling the creation of a new proposal with the Atomic Swap Service
+        const { proposalId } = await atomicSwapService.serviceCreate(
+          req.walletId,
+          proposal.partialTx.serialize(),
+          serviceParams.password
+        );
+        createdProposalId = proposalId;
+      } else if (serviceParams.proposal_id) {
+        // Handling the update of an existing proposal with the Atomic Swap Service
+
+        // First, validate if the proposal is already registered with this wallet
+        const listenedProposals = await atomicSwapService.getListenedProposals(req.walletId);
+        if (!listenedProposals.has(serviceParams.proposal_id)) {
+          res.status(404);
+          res.send({
+            success: false,
+            error: 'Proposal is not registered. Register it first.',
+          });
+          return;
+        }
+
+        // Retrieving registered proposal password
+        const requestedProposal = listenedProposals.get(serviceParams.proposal_id);
+        const { password } = requestedProposal;
+
+        await atomicSwapService.serviceUpdate(
+          {
+            proposalId: serviceParams.proposal_id,
+            password,
+            partialTx: proposal.partialTx.serialize(),
+            version: serviceParams.version,
+          }
+        );
+      }
     }
 
     res.send({
