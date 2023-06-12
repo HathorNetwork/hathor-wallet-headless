@@ -13,6 +13,7 @@ const {
   partialTxSchema,
   atomicSwapCreateSchema,
   proposalRegisterSchema,
+  partialTxSignatureSchemaWithService,
 } = require('../../../schemas');
 const {
   buildTxProposal,
@@ -64,7 +65,7 @@ txProposalRouter.post(
 
 txProposalRouter.post(
   '/sign',
-  checkSchema(partialTxSignatureSchema),
+  checkSchema(partialTxSignatureSchemaWithService),
   signTx,
 );
 

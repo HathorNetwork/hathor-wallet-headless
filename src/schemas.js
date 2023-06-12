@@ -76,6 +76,26 @@ export const partialTxSignatureSchema = {
   },
 };
 
+export const partialTxSignatureSchemaWithService = {
+  ...partialTxSignatureSchema,
+  'service.proposal_id': {
+    in: ['body'],
+    errorMessage: 'Invalid proposal id',
+    isString: true,
+    optional: true,
+  },
+  'service.version': {
+    in: ['body'],
+    errorMessage: 'Invalid version number',
+    isInt: {
+      options: {
+        min: 0,
+      },
+    },
+    optional: true,
+  },
+};
+
 export const atomicSwapCreateSchema = {
   'send.utxos': {
     in: ['body'],
