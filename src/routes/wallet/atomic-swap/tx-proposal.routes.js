@@ -12,6 +12,8 @@ const {
   partialTxSignatureSchema,
   partialTxSchema,
   atomicSwapCreateSchema,
+  proposalRegisterSchema,
+  partialTxSignatureSchemaWithService,
 } = require('../../../schemas');
 const {
   buildTxProposal,
@@ -23,6 +25,8 @@ const {
   getInputData,
   listenedProposalList,
   deleteListenedProposal,
+  fetchFromService,
+  registerProposal,
 } = require('../../../controllers/wallet/atomic-swap/tx-proposal.controller');
 
 const txProposalRouter = Router({ mergeParams: true });
@@ -44,6 +48,11 @@ txProposalRouter.get(
   getLockedUTXOs,
 );
 
+txProposalRouter.get(
+  '/fetch/:proposalId',
+  fetchFromService,
+);
+
 /*
  * XXX: Currently only works for P2PKH wallets
  * since signing a tx in a MultiSig wallet requires a process among participants.
@@ -56,7 +65,7 @@ txProposalRouter.post(
 
 txProposalRouter.post(
   '/sign',
-  checkSchema(partialTxSignatureSchema),
+  checkSchema(partialTxSignatureSchemaWithService),
   signTx,
 );
 
@@ -75,6 +84,12 @@ txProposalRouter.post(
 txProposalRouter.get(
   '/list',
   listenedProposalList,
+);
+
+txProposalRouter.post(
+  '/register/:proposalId',
+  checkSchema(proposalRegisterSchema),
+  registerProposal,
 );
 
 txProposalRouter.delete(

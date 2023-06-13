@@ -2,6 +2,7 @@ import {
   HathorWallet,
   helpersUtils,
   Network,
+  transactionUtils,
 } from '@hathor/wallet-lib';
 import { HATHOR_TOKEN_CONFIG } from '@hathor/wallet-lib/lib/constants';
 import TestUtils from '../test-utils';
@@ -25,7 +26,7 @@ describe('create tx-proposal api', () => {
 
   beforeEach(() => {
     spyUtxos = jest.spyOn(HathorWallet.prototype, 'getUtxos');
-    spyCreateTx = jest.spyOn(helpersUtils, 'createTxFromData');
+    spyCreateTx = jest.spyOn(transactionUtils, 'createTransactionFromData');
   });
 
   afterEach(() => {

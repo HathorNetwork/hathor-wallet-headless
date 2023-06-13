@@ -26,7 +26,7 @@ function docs(req, res) {
   res.send(apiDocs);
 }
 
-function start(req, res) {
+async function start(req, res) {
   // We expect the user to either send the seed or an xpubkey he wants to use.
   if (!('xpubkey' in req.body) && !('seedKey' in req.body) && !('seed' in req.body)) {
     res.send({
@@ -187,8 +187,16 @@ function start(req, res) {
 
   const wallet = new HathorWallet(walletConfig);
 
+  if (config.gapLimit) {
+    // XXX: The gap limit is now a per-wallet configuration
+    // To keep the same behavior as before, we set the gap limit
+    // when creating the wallet, but we should move this to the
+    // wallet configuration in the future
+    await wallet.setGapLimit(config.gapLimit);
+  }
+
   // subscribe to wallet events with notificationBus
-  notificationBus.subscribeHathorWallet(req.body['wallet-id'], wallet);
+  notificationBus.subscribeHathorWallet(walletID, wallet);
 
   wallet.start().then(info => {
     // The replace avoids Log Injection
@@ -283,7 +291,7 @@ async function pushTxHex(req, res) {
   try {
     const network = new Network(config.network);
     const tx = helpersUtils.createTxFromHex(txHex, network);
-    const sendTransaction = new SendTransaction({ transaction: tx, network });
+    const sendTransaction = new SendTransaction({ transaction: tx });
     const response = await sendTransaction.runFromMining();
     res.send({ success: true, tx: mapTxReturn(response) });
   } catch (err) {

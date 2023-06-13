@@ -30,6 +30,21 @@ export const partialTxSchema = {
   }
 };
 
+export const proposalRegisterSchema = {
+  password: {
+    in: ['body'],
+    errorMessage: 'Invalid password',
+    isString: true,
+    custom: {
+      options: (value, { req, location, path }) => {
+        // Test if the password has at least 3 characters
+        if (!(/^.{3,}$/.test(value))) return false;
+        return true;
+      }
+    },
+  },
+};
+
 export const txHexSignatureSchema = {
   ...txHexSchema,
   signatures: {
@@ -58,6 +73,26 @@ export const partialTxSignatureSchema = {
     in: ['body'],
     errorMessage: 'Invalid signature',
     isString: true,
+  },
+};
+
+export const partialTxSignatureSchemaWithService = {
+  ...partialTxSignatureSchema,
+  'service.proposal_id': {
+    in: ['body'],
+    errorMessage: 'Invalid proposal id',
+    isString: true,
+    optional: true,
+  },
+  'service.version': {
+    in: ['body'],
+    errorMessage: 'Invalid version number',
+    isInt: {
+      options: {
+        min: 0,
+      },
+    },
+    optional: true,
   },
 };
 
@@ -186,6 +221,16 @@ export const atomicSwapCreateSchema = {
     in: ['body'],
     errorMessage: 'Invalid password',
     isString: true,
+    optional: true,
+  },
+  'service.version': {
+    in: ['body'],
+    errorMessage: 'Invalid version number',
+    isInt: {
+      options: {
+        min: 0,
+      },
+    },
     optional: true,
   }
 };

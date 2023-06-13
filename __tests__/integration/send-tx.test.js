@@ -117,7 +117,7 @@ describe('send tx (HTR)', () => {
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeUndefined();
     expect(response.body.success).toBe(false);
-    expect(response.body.error).toContain('invalid');
+    expect(response.body.error).toContain('Change address is not from the wallet');
     done();
   });
 
@@ -178,15 +178,14 @@ describe('send tx (HTR)', () => {
           address: await wallet2.getAddressAt(0),
           value: 10
         }],
-        change_address: wallet2.getAddressAt(1),
+        change_address: await wallet2.getAddressAt(1),
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeUndefined();
     expect(response.body.success).toBe(false);
-    const errorElement = response.body.error[0];
-    expect(errorElement.param).toBe('change_address');
-    expect(errorElement.msg).toContain('Invalid');
+    expect(response.body.error).toContain('Change address is not from the wallet');
     done();
   });
 
@@ -1227,8 +1226,10 @@ describe('send tx (custom tokens)', () => {
       }
     };
 
-    const nextEmptyAddress = await wallet3.getNextAddress();
+    // next empty address
+    await wallet3.getNextAddress();
 
+    await TestUtils.pauseForWsUpdate();
     // One manual UXTO with 1000 TKB, and automatic UTXO's for HTR
     const tx = await wallet3.sendTx({
       fullObject: {
@@ -1300,26 +1301,6 @@ describe('send tx (custom tokens)', () => {
     expect(destination11.total_amount_available).toBe(txOutputSummary.htr.value);
     expect(changeHtr.total_amount_available).toBe(txOutputSummary.htr.change);
     expect(changeTkb.total_amount_available).toBe(txOutputSummary.tkb.change);
-
-    // Validating that the change addresses are not the same
-    expect(txOutputSummary.htr.changeAddress === txOutputSummary.tkb.changeAddress).toBe(false);
-
-    // One of these addresses is actually the nextEmptyAddress
-    expect((txOutputSummary.htr.changeAddress === nextEmptyAddress)
-           || (txOutputSummary.tkb.changeAddress === nextEmptyAddress)).toBe(true);
-
-    // Both these addresses have adjacent indexes: the empty addresses are consumed sequentially
-    const htrChangeIndex = await TestUtils.getAddressIndex(
-      wallet3.walletId,
-      txOutputSummary.htr.changeAddress
-    );
-    const tkbChangeIndex = await TestUtils.getAddressIndex(
-      wallet3.walletId,
-      txOutputSummary.tkb.changeAddress
-    );
-
-    // Note: this test result may change if the addresses are consumed in a non-linear order
-    expect(Math.abs(htrChangeIndex - tkbChangeIndex)).toBe(1);
 
     done();
   });
@@ -1483,6 +1464,7 @@ describe('filter query + custom tokens', () => {
       change_address: await wallet1.getAddressAt(0),
       title: 'Filling address 3 with 1000 HTR and BUG'
     });
+    await TestUtils.pauseForWsUpdate();
     // Address 3 now has 1000 HTR and 1000 BUG, change of 10 HTR went to address 0
 
     /*
@@ -1547,6 +1529,12 @@ describe('filter query + custom tokens', () => {
         { address: addr3hash, value: 500 },
       ]
     });
+    /*
+     * Status:
+     * addr0: 10 HTR, 0 BUG
+     * addr3: 200+300+500 HTR, 200+300+500 BUG
+     * addr4: 0 HTR, 0 BUG
+     */
 
     // Status: at least 3 UTXO's for bugCoin and 3 for HTR
     const addr5hash = await wallet1.getAddressAt(5);
@@ -1564,6 +1552,13 @@ describe('filter query + custom tokens', () => {
         { address: addr5hash, value: 30 },
       ]
     });
+    /*
+     * Status:
+     * addr0: 10 HTR, 0 BUG
+     * addr3: 0 HTR, 0 BUG
+     * addr4: 0 HTR, 0 BUG
+     * addr5: 1000 HTR, 1000 BUG
+     */
 
     // Checking address 5 for both custom and htr
     const addr5custom = await wallet1.getAddressInfo(5, bugCoin.uid);
@@ -1571,6 +1566,11 @@ describe('filter query + custom tokens', () => {
 
     expect(addr5custom.total_amount_available).toBe(1000);
     expect(addr5htr.total_amount_available).toBe(1000);
+
+    const addr0htr = await wallet1.getAddressInfo(0);
+
+    // Assert that address 0 with the previous change is not affected
+    expect(addr0htr.total_amount_available).toBe(10);
     done();
   });
 

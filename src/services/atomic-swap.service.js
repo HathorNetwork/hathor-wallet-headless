@@ -9,6 +9,7 @@ const {
   PartialTxInputData,
   swapService,
 } = require('@hathor/wallet-lib');
+const { SwapServiceError } = require('../errors');
 
 /**
  * @typedef TxProposalConfig
@@ -33,10 +34,10 @@ const walletListenedProposals = new Map();
  * Assemble a transaction from the serialized partial tx and signatures
  * @param {string} partialTx The serialized partial tx
  * @param {string[]} signatures The serialized signatures
- * @param {Network} network The network object
+ * @param {IStorage} storage The storage object
  */
-const assembleTransaction = (partialTx, signatures, network) => {
-  const proposal = PartialTxProposal.fromPartialTx(partialTx, network);
+const assembleTransaction = (partialTx, signatures, storage) => {
+  const proposal = PartialTxProposal.fromPartialTx(partialTx, storage);
 
   const tx = proposal.partialTx.getTx();
   const inputData = new PartialTxInputData(tx.getDataToSign().toString('hex'), tx.inputs.length);
@@ -72,6 +73,32 @@ const serviceCreate = async (walletId, partialTx, password) => {
 
   await addListenedProposal(walletId, id, password);
   return { proposalId: id };
+};
+
+/**
+ * Creates the proposal on the Atomic Swap Service, handling errors that may occur on the process
+ * @param updateParams Parameters related to the proposal itself
+ * @param {string} updateParams.partialTx Serialized PartialTx
+ * @param {string} updateParams.proposalId Proposal identifier
+ * @param {string} updateParams.password Proposal password on the Atomic Swap Service
+ * @param {number} updateParams.version Proposal version on the Atomic Swap Service
+ * @param {string} [updateParams.signatures] Proposal signatures, if any
+ * @returns {Promise<void>}
+ * @throws {SwapServiceError} In case of unhandled errors
+ */
+const serviceUpdate = async updateParams => {
+  if (!updateParams.partialTx) {
+    throw new Error('Missing PartialTx');
+  }
+  if (!updateParams.password) {
+    throw new Error('Missing password');
+  }
+
+  const { success } = await swapService.update(updateParams);
+
+  if (!success) {
+    throw new SwapServiceError('Unable to update the proposal on the Atomic Swap Service');
+  }
 };
 
 /**
@@ -129,6 +156,43 @@ const removeAllWalletProposals = async walletId => {
   // TODO: Will also close the websocket channel
 };
 
+/**
+ @typedef {Object} AtomicSwapProposal
+ @property {string} proposalId - The unique identifier of the atomic swap proposal.
+ @property {string} partialTx - The partially constructed transaction of the atomic swap proposal.
+ @property {string | null} signatures - The signatures for the atomic swap proposal, if any.
+ @property {string} timestamp - The timestamp of when the atomic swap proposal last modified.
+ @property {number} version - The current version of the atomic swap proposal.
+ @property {Array} history - The history of the atomic swap proposal.
+ @property {string} history.partialTx - The partially constructed transaction at a specific point in
+ the proposal's history.
+ @property {string} history.timestamp - The timestamp of when the proposal reached the corresponding
+ partially constructed transaction in its history.
+ */
+
+/**
+ * Fetches the proposal data from the Atomic Swap Service, handling errors that may occur on the
+ * process
+ * @param {string} proposalId Proposal identifier on the Service
+ * @param {string} password Password, length 3 or more
+ * @returns {Promise<AtomicSwapProposal>} Returns the proposal identifier created by the service
+ */
+const serviceGet = async (proposalId, password) => {
+  if (!proposalId) {
+    throw new Error('Invalid proposalId');
+  }
+  if (!password) {
+    throw new Error('Invalid password');
+  }
+
+  const proposal = await swapService.get(proposalId, password);
+  if (!proposal) {
+    throw new Error('Unable to fetch the proposal from the Atomic Swap Service');
+  }
+
+  return proposal;
+};
+
 module.exports = {
   assembleTransaction,
   serviceCreate,
@@ -137,4 +201,6 @@ module.exports = {
   getListenedProposals,
   removeAllWalletProposals,
   walletListenedProposals,
+  serviceGet,
+  serviceUpdate,
 };

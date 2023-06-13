@@ -5,10 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { walletUtils, errors } from '@hathor/wallet-lib';
+import { errors, walletUtils } from '@hathor/wallet-lib';
 import config from '../config';
-
-export class WalletStartError extends Error {}
+import { WalletStartError } from '../errors';
 
 export function getReadonlyWalletConfig({
   xpub,

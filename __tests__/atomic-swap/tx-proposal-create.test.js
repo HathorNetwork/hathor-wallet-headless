@@ -1,5 +1,6 @@
 import hathorLib, { config, swapService } from '@hathor/wallet-lib';
 import TestUtils from '../test-utils';
+import atomicSwapServiceMethods from '../../src/services/atomic-swap.service';
 
 const walletId = 'stub_atomic_swap_create_tx_proposal';
 
@@ -7,19 +8,18 @@ describe('create tx-proposal api', () => {
   const fakeTxId = '00003392e185c6e72d7d8073ef94649023777fd23c828514f505a7955abf0caf';
   const fakeUid = '0000219a831aaa7b011973981a286142b3002cd04763002e23ba6fec7dadda44';
   const spyApi = jest.spyOn(hathorLib.txApi, 'getTransaction');
-  const spyUtxos = jest.spyOn(hathorLib.HathorWallet.prototype, 'getAllUtxos');
-  function* mockUtxos(options) {
+  const spyUtxos = jest.spyOn(hathorLib.Storage.prototype, 'selectUtxos');
+  async function* mockUtxos(options) {
     yield {
       txId: fakeTxId,
       index: 0,
-      tokenId: hathorLib.constants.HATHOR_TOKEN_CONFIG.uid,
-      value: 10,
+      token: hathorLib.constants.HATHOR_TOKEN_CONFIG.uid,
       address: TestUtils.addresses[0],
-      timelock: null,
-      locked: false,
+      value: 10,
       authorities: 0,
-      heightlock: null,
-      addressPath: 'm/fake/bip32/path',
+      timelock: null,
+      type: 1,
+      height: null,
     };
   }
 
@@ -114,6 +114,23 @@ describe('create tx-proposal api', () => {
     });
   });
 
+  it('should return no success with an invalid partial_tx', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/atomic-swap/tx-proposal')
+      .send({
+        partial_tx: 'invalid-partial-tx',
+        receive: {
+          tokens: [{ value: 5, address: TestUtils.addresses[3] }],
+        },
+      })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      success: false,
+      error: 'Invalid PartialTx',
+    });
+  });
+
   it('should return 200 with receive.tokens', async () => {
     const response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
@@ -143,7 +160,7 @@ describe('create tx-proposal api', () => {
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
         send: {
-          tokens: [{ token: '00', value: 10 }], // value match input on getAllUtxos, so no change
+          tokens: [{ token: '00', value: 10 }], // value match input on getAvailableUtxos, so no change
         },
       })
       .set({ 'x-wallet-id': walletId });
@@ -167,7 +184,7 @@ describe('create tx-proposal api', () => {
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
         send: {
-          tokens: [{ value: 1 }], // value less than input from getAllUtxos
+          tokens: [{ value: 1 }], // value less than input from getAvailableUtxos
         },
       })
       .set({ 'x-wallet-id': walletId });
@@ -215,19 +232,20 @@ describe('create tx-proposal api', () => {
 
   it('should be complete with custom tokens', async () => {
     // Mock tokenUid utxos
-    spyUtxos.mockImplementationOnce((hwallet, token) => ([{
-      txId: fakeTxId,
-      index: 1,
-      tokenId: fakeUid,
-      value: 10,
-      address: TestUtils.addresses[0],
-      timelock: null,
-      locked: false,
-      authorities: 0,
-      heightlock: null,
-      addressPath: 'm/fake/bip32/path',
-      tokenData: 0,
-    }]));
+    async function* mockUtxosToken(hwallet, token) {
+      yield {
+        txId: fakeTxId,
+        index: 1,
+        token: fakeUid,
+        address: TestUtils.addresses[0],
+        value: 10,
+        authorities: 0,
+        timelock: null,
+        type: 1,
+        height: null,
+      };
+    }
+    spyUtxos.mockImplementationOnce(mockUtxosToken);
     const response = await TestUtils.request
       .post('/wallet/atomic-swap/tx-proposal')
       .send({
@@ -265,6 +283,8 @@ describe('create tx-proposal api', () => {
     config.setSwapServiceBaseUrl('http://fake-swap-service');
 
     it('should not interact with the service if the feature flag is disabled', async () => {
+      // De-activating the global feature flag.
+      global.constants.SWAP_SERVICE_FEATURE_TOGGLE = false;
       const response = await TestUtils.request
         .post('/wallet/atomic-swap/tx-proposal')
         .send({
@@ -387,6 +407,140 @@ describe('create tx-proposal api', () => {
       expect(response.body).toStrictEqual({
         success: true,
         proposals: ['mock-id'],
+      });
+
+      mockLib.mockRestore();
+    });
+  });
+
+  describe('updating a proposal on the service mediator', () => {
+    global.constants.SWAP_SERVICE_FEATURE_TOGGLE = true;
+
+    it('should require the mandatory parameters', async () => {
+      // Missing version
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal')
+        .send({
+          receive: {
+            tokens: [{ token: '00', value: 10 }],
+          },
+          service: {
+            proposal_id: 'mock-id',
+            // version: 0,
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        success: false,
+        error: 'Missing mandatory parameters: version'
+      });
+    });
+
+    it('should require the proposal to be registered', async () => {
+      // Ensure the proposal does not exist in the listened proposals map
+      await atomicSwapServiceMethods.removeListenedProposal(
+        walletId,
+        'mock-id',
+      );
+
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal')
+        .send({
+          receive: {
+            tokens: [{ token: '00', value: 10 }],
+          },
+          service: {
+            proposal_id: 'mock-id',
+            version: 0,
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(404);
+      expect(response.body).toMatchObject({
+        success: false,
+        error: 'Proposal is not registered. Register it first.'
+      });
+    });
+
+    it('should return no success when service throws', async () => {
+      // Configuring the local storage for the following tests
+      await atomicSwapServiceMethods.addListenedProposal(
+        walletId,
+        '1a574e6c-7329-4adc-b98c-b70fb20ef919',
+        'abc123',
+      );
+
+      const mockLib = jest.spyOn(swapService, 'update')
+        .mockImplementationOnce(async () => { throw new Error('Test Service failure'); });
+
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal')
+        .send({
+          receive: {
+            tokens: [{ token: '00', value: 10 }],
+          },
+          service: {
+            proposal_id: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
+            version: 0,
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        success: false,
+        error: 'Test Service failure'
+      });
+
+      mockLib.mockRestore();
+    });
+
+    it('should return no success when service also had no success', async () => {
+      const mockLib = jest.spyOn(swapService, 'update')
+        .mockResolvedValue({ success: false });
+
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal')
+        .send({
+          receive: {
+            tokens: [{ token: '00', value: 10 }],
+          },
+          service: {
+            proposal_id: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
+            version: 0,
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        success: false,
+        error: 'Unable to update the proposal on the Atomic Swap Service'
+      });
+
+      mockLib.mockRestore();
+    });
+
+    it('should return success when the service mediator also had success', async () => {
+      const mockLib = jest.spyOn(swapService, 'update')
+        .mockResolvedValue({ success: true });
+
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal')
+        .send({
+          receive: {
+            tokens: [{ token: '00', value: 10 }],
+          },
+          service: {
+            proposal_id: '1a574e6c-7329-4adc-b98c-b70fb20ef919',
+            version: 0,
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        success: true,
+        data: expect.any(String),
+        isComplete: false,
       });
 
       mockLib.mockRestore();

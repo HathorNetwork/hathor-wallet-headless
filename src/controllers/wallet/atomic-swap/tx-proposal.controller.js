@@ -11,9 +11,8 @@ const {
   helpersUtils,
   PartialTxInputData,
   PartialTx,
-  storage,
+  transactionUtils,
   constants: { HATHOR_TOKEN_CONFIG, TOKEN_MINT_MASK, TOKEN_MELT_MASK },
-  wallet: oldWallet,
 } = require('@hathor/wallet-lib');
 const atomicSwapService = require('../../../services/atomic-swap.service');
 const { parametersValidation } = require('../../../helpers/validations.helper');
@@ -21,6 +20,7 @@ const { lock, lockTypes } = require('../../../lock');
 const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 const { mapTxReturn } = require('../../../helpers/tx.helper');
 const constants = require('../../../constants');
+const { removeListenedProposal } = require('../../../services/atomic-swap.service');
 
 /**
  * Build or update a partial transaction proposal.
@@ -32,7 +32,7 @@ async function buildTxProposal(req, res) {
     return;
   }
 
-  const network = req.wallet.getNetworkObject();
+  const { wallet } = req;
 
   const sendTokens = req.body.send || { tokens: [] };
   const receiveTokens = req.body.receive || { tokens: [] };
@@ -42,7 +42,7 @@ async function buildTxProposal(req, res) {
   if (req.body.lock !== undefined) {
     markAsSelected = req.body.lock;
   }
-  /** @type {{password: string, is_new?: boolean, proposal_id?: string}} */
+  /** @type {{password?: string, is_new?: boolean, proposal_id?: string, version?: number}} */
   const serviceParams = req.body.service || {};
 
   const utxos = [];
@@ -52,39 +52,42 @@ async function buildTxProposal(req, res) {
     return;
   }
 
-  const proposal = partialTx
-    ? PartialTxProposal.fromPartialTx(partialTx, network) : new PartialTxProposal(network);
+  // Deserializing the proposal from the partial_tx, if informed, or creating an empty new one
+  let proposal;
+  try {
+    proposal = partialTx
+      ? PartialTxProposal.fromPartialTx(partialTx, wallet.storage)
+      : new PartialTxProposal(wallet.storage);
+  } catch (e) {
+    res.json({ success: false, error: e.message });
+    return;
+  }
 
   if (sendTokens.utxos && sendTokens.utxos.length > 0) {
     try {
       for (const utxo of sendTokens.utxos) {
-        const txData = req.wallet.getTx(utxo.txId);
+        const txData = await wallet.getTx(utxo.txId);
         if (!txData) {
           // utxo not in history
           continue;
         }
         const txout = txData.outputs[utxo.index];
-        if (!oldWallet.canUseUnspentTx(txout, txData.height)) {
+        if (!await transactionUtils.canUseUtxo(
+          { txId: utxo.txId, index: utxo.index },
+          wallet.storage,
+        )) {
           // Cannot use this utxo
           continue;
         }
 
-        const addressIndex = req.wallet.getAddressIndex(txout.decoded.address);
-        const addressPath = addressIndex ? req.wallet.getAddressPathForIndex(addressIndex) : '';
+        const addressIndex = await wallet.getAddressIndex(txout.decoded.address);
+        const addressPath = addressIndex ? await req.wallet.getAddressPathForIndex(addressIndex) : '';
         let authorities = 0;
-        if (oldWallet.isMintOutput(txout)) {
+        if (transactionUtils.isMint(txout)) {
           authorities += TOKEN_MINT_MASK;
         }
-        if (oldWallet.isMeltOutput(txout)) {
+        if (transactionUtils.isMelt(txout)) {
           authorities += TOKEN_MELT_MASK;
-        }
-
-        let tokenId = txout.token;
-        if (!tokenId) {
-          const tokenIndex = oldWallet.getTokenIndex(txout.token_data) - 1;
-          tokenId = txout.token_data === 0
-            ? HATHOR_TOKEN_CONFIG.uid
-            : txData.tx.tokens[tokenIndex].uid;
         }
 
         utxos.push({
@@ -93,7 +96,7 @@ async function buildTxProposal(req, res) {
           value: txout.value,
           address: txout.decoded.address,
           timelock: txout.decoded.timelock,
-          tokenId,
+          tokenId: txout.token,
           authorities,
           addressPath,
           heightlock: null,
@@ -115,15 +118,14 @@ async function buildTxProposal(req, res) {
   try {
     for (const send of sendTokens.tokens) {
       const token = send.token || HATHOR_TOKEN_CONFIG.uid;
-      proposal.addSend(req.wallet, token, send.value, { utxos, changeAddress, markAsSelected });
+      await proposal.addSend(token, send.value, { utxos, changeAddress, markAsSelected });
     }
 
     for (const receive of receiveTokens.tokens) {
       const token = receive.token || HATHOR_TOKEN_CONFIG.uid;
       const timelock = receive.timelock || null;
       const address = receive.address || null;
-      proposal.addReceive(
-        req.wallet,
+      await proposal.addReceive(
         token,
         receive.value,
         { timelock, address }
@@ -131,13 +133,42 @@ async function buildTxProposal(req, res) {
     }
 
     let createdProposalId;
-    if (constants.SWAP_SERVICE_FEATURE_TOGGLE && serviceParams.is_new) {
-      const { proposalId } = await atomicSwapService.serviceCreate(
-        req.walletId,
-        proposal.partialTx.serialize(),
-        serviceParams.password
-      );
-      createdProposalId = proposalId;
+    if (constants.SWAP_SERVICE_FEATURE_TOGGLE) {
+      if (serviceParams.is_new) {
+        // Handling the creation of a new proposal with the Atomic Swap Service
+        const { proposalId } = await atomicSwapService.serviceCreate(
+          req.walletId,
+          proposal.partialTx.serialize(),
+          serviceParams.password
+        );
+        createdProposalId = proposalId;
+      } else if (serviceParams.proposal_id) {
+        // Handling the update of an existing proposal with the Atomic Swap Service
+
+        // First, validate if the proposal is already registered with this wallet
+        const listenedProposals = await atomicSwapService.getListenedProposals(req.walletId);
+        if (!listenedProposals.has(serviceParams.proposal_id)) {
+          res.status(404);
+          res.send({
+            success: false,
+            error: 'Proposal is not registered. Register it first.',
+          });
+          return;
+        }
+
+        // Retrieving registered proposal password
+        const requestedProposal = listenedProposals.get(serviceParams.proposal_id);
+        const { password } = requestedProposal;
+
+        await atomicSwapService.serviceUpdate(
+          {
+            proposalId: serviceParams.proposal_id,
+            password,
+            partialTx: proposal.partialTx.serialize(),
+            version: serviceParams.version,
+          }
+        );
+      }
     }
 
     res.send({
@@ -155,6 +186,45 @@ async function buildTxProposal(req, res) {
 }
 
 /**
+ * Fetches all proposal data from the Atomic Swap Service for a specific identifier
+ */
+async function fetchFromService(req, res) {
+  if (!constants.SWAP_SERVICE_FEATURE_TOGGLE) {
+    res.status(405).json({ success: false, error: 'Method not allowed' });
+    return;
+  }
+
+  const { walletId } = req;
+  const { proposalId } = req.params;
+  const listenedProposals = await atomicSwapService.getListenedProposals(walletId);
+  if (!listenedProposals.has(proposalId)) {
+    res.status(404);
+    res.send({
+      success: false,
+      error: 'Proposal is not registered. Register it first through [POST] /register/:proposalId',
+    });
+    return;
+  }
+
+  const requestedProposal = listenedProposals.get(proposalId);
+  const { password } = requestedProposal;
+
+  // Fetching proposal from the service
+  try {
+    const serviceProposal = await atomicSwapService.serviceGet(proposalId, password);
+    res.json({ success: true, proposal: serviceProposal });
+  } catch (err) {
+    // If the proposal no longer exists on the backend, remove it from our listened map
+    if (err.isAxiosError && err.response.status === 404) {
+      res.status(404);
+      await removeListenedProposal(walletId, proposalId);
+    }
+
+    res.send({ success: false, error: err.message });
+  }
+}
+
+/**
  * Get signatures as a serialized PartialTxInputData.
  * Obs: Only signs the loaded wallet inputs.
  */
@@ -165,13 +235,10 @@ async function getMySignatures(req, res) {
     return;
   }
 
-  const network = req.wallet.getNetworkObject();
   const partialTx = req.body.partial_tx;
 
-  // TODO remove this when we create a method to sign inputs in the wallet facade
-  storage.setStore(req.wallet.store);
   try {
-    const proposal = PartialTxProposal.fromPartialTx(partialTx, network);
+    const proposal = PartialTxProposal.fromPartialTx(partialTx, req.wallet.storage);
     await proposal.signData('123');
     res.send({
       success: true,
@@ -192,15 +259,40 @@ async function signTx(req, res) {
     return;
   }
 
-  const network = req.wallet.getNetworkObject();
-
   const partialTx = req.body.partial_tx;
   const signatures = req.body.signatures || [];
+  const { proposal_id: proposalId, version } = req.body.service || {};
 
-  // TODO remove this when we create a method to sign inputs in the wallet facade
-  storage.setStore(req.wallet.store);
   try {
-    const tx = atomicSwapService.assembleTransaction(partialTx, signatures, network);
+    const tx = atomicSwapService.assembleTransaction(partialTx, signatures, req.wallet.storage);
+
+    // Updating the service, if a proposal id was informed
+    if (constants.SWAP_SERVICE_FEATURE_TOGGLE && proposalId) {
+      // First, validate if the proposal is already registered with this wallet
+      const listenedProposals = await atomicSwapService.getListenedProposals(req.walletId);
+      if (!listenedProposals.has(proposalId)) {
+        res.status(404);
+        res.send({
+          success: false,
+          error: 'Proposal is not registered. Register it first.',
+        });
+        return;
+      }
+
+      // Retrieving registered proposal password
+      const requestedProposal = listenedProposals.get(proposalId);
+      const { password } = requestedProposal;
+
+      await atomicSwapService.serviceUpdate(
+        {
+          proposalId,
+          password,
+          partialTx,
+          version,
+          signatures: tx.signatures,
+        }
+      );
+    }
 
     res.send({ success: true, txHex: tx.toHex() });
   } catch (err) {
@@ -224,17 +316,13 @@ async function signAndPush(req, res) {
     return;
   }
 
-  const network = req.wallet.getNetworkObject();
-
   const partialTx = req.body.partial_tx;
   const sigs = req.body.signatures || [];
 
-  // TODO remove this when we create a method to sign inputs in the wallet facade
-  storage.setStore(req.wallet.store);
   try {
-    const transaction = atomicSwapService.assembleTransaction(partialTx, sigs, network);
+    const transaction = atomicSwapService.assembleTransaction(partialTx, sigs, req.wallet.storage);
 
-    const sendTransaction = new SendTransaction({ transaction, network });
+    const sendTransaction = new SendTransaction({ transaction, storage: req.wallet.storage });
     const response = await sendTransaction.runFromMining();
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
@@ -286,21 +374,19 @@ async function getInputData(req, res) {
  */
 async function getLockedUTXOs(req, res) {
   try {
+    const txMap = new Map();
+    for await (const utxo of req.wallet.storage.utxoSelectedAsInputIter()) {
+      if (!txMap.has(utxo.txId)) {
+        txMap.set(utxo.txId, new Set());
+      }
+      txMap.get(utxo.txId).add(utxo.index);
+    }
     const utxos = [];
-    const historyTransactions = req.wallet.getFullHistory();
-    for (const tx of Object.values(historyTransactions)) {
-      const marked = [];
-      for (const [index, output] of tx.outputs.entries()) {
-        if ((!output.spent_by) && output.selected_as_input === true) {
-          marked.push(index);
-        }
-      }
-      if (marked.length !== 0) {
-        utxos.push({
-          tx_id: tx.tx_id,
-          outputs: marked,
-        });
-      }
+    for (const txEntry of txMap.entries()) {
+      utxos.push({
+        tx_id: txEntry[0],
+        outputs: Array.from(txEntry[1]),
+      });
     }
 
     res.send({ success: true, locked_utxos: utxos });
@@ -332,7 +418,7 @@ async function unlockInputs(req, res) {
     const tx = partial.getTx();
 
     for (const input of tx.inputs) {
-      req.wallet.markUtxoSelected(input.hash, input.index, false);
+      await req.wallet.markUtxoSelected(input.hash, input.index, false);
     }
 
     res.send({ success: true });
@@ -355,6 +441,48 @@ async function listenedProposalList(req, res) {
 }
 
 /**
+ * Registers a proposal on this wallet, storing its identifier and password locally
+ */
+async function registerProposal(req, res) {
+  const { walletId } = req;
+  const { proposalId } = req.params;
+  const { password } = req.body;
+
+  // Avoid making requests to the service if the proposal is already on local storage
+  const proposalMap = await atomicSwapService.getListenedProposals(walletId);
+  if (proposalMap.has(proposalId)) {
+    // Validating if the informed password is correct
+    const existingProposal = proposalMap.get(proposalId);
+    if (existingProposal.password !== password) {
+      res.send({
+        success: false,
+        error: 'Incorrect password',
+      });
+      return;
+    }
+    res.send({ success: true });
+    return;
+  }
+
+  try {
+    const proposal = await atomicSwapService.serviceGet(proposalId, password);
+
+    await atomicSwapService.addListenedProposal(
+      walletId,
+      proposal.proposalId,
+      password,
+    );
+    res.send({ success: true });
+  } catch (err) {
+    console.error(err.stack);
+    res.send({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
+/**
  * Deletes a listened proposal by proposalId
  */
 async function deleteListenedProposal(req, res) {
@@ -370,10 +498,12 @@ module.exports = {
   buildTxProposal,
   getInputData,
   getLockedUTXOs,
+  fetchFromService,
   getMySignatures,
   signAndPush,
   signTx,
   unlockInputs,
   listenedProposalList,
+  registerProposal,
   deleteListenedProposal,
 };

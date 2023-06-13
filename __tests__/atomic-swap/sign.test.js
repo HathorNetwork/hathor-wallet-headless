@@ -1,6 +1,7 @@
-import hathorLib from '@hathor/wallet-lib';
-import { ProposalInput, ProposalOutput, PartialTx } from '@hathor/wallet-lib/lib/models/partial_tx';
+import hathorLib, { config, swapService } from '@hathor/wallet-lib';
+import { PartialTx, ProposalInput, ProposalOutput } from '@hathor/wallet-lib/lib/models/partial_tx';
 import TestUtils from '../test-utils';
+import atomicSwapServiceMethods from '../../src/services/atomic-swap.service';
 
 const walletId = 'stub_atomic_swap_tx_proposal_sign';
 
@@ -131,6 +132,164 @@ describe('tx-proposal sign api', () => {
     expect(response.body).toEqual({
       success: false,
       error: expect.any(String),
+    });
+  });
+
+  describe('updating a proposal signatures on the service mediator', () => {
+    config.setSwapServiceBaseUrl('http://fake-swap-service');
+    let assembleTxSpy;
+
+    beforeAll(async () => {
+      assembleTxSpy = jest
+        .spyOn(atomicSwapServiceMethods, 'assembleTransaction')
+        .mockReturnValue({ signatures: 'mocked-sigs', toHex: () => 'mock-hexed-tx' });
+    });
+
+    afterAll(async () => {
+      assembleTxSpy.mockRestore();
+    });
+
+    it('should not interact with the service if the feature flag is disabled', async () => {
+      // De-activating the global feature flag.
+      global.constants.SWAP_SERVICE_FEATURE_TOGGLE = false;
+
+      const listenedProposalsSpy = jest.spyOn(atomicSwapServiceMethods, 'getListenedProposals');
+
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal/sign')
+        .send({
+          partial_tx: 'partial-tx-data',
+          service: { proposal_id: 'mock-id', version: 0 },
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toStrictEqual({
+        success: true,
+        txHex: 'mock-hexed-tx',
+      });
+      expect(listenedProposalsSpy).not.toHaveBeenCalled();
+    });
+
+    it('should require the proposal to be registered', async () => {
+      // Activating the global feature flag.
+      global.constants.SWAP_SERVICE_FEATURE_TOGGLE = true;
+
+      // Ensure the proposal does not exist in the listened proposals map
+      await atomicSwapServiceMethods.removeListenedProposal(
+        walletId,
+        'mock-id',
+      );
+
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal/sign')
+        .send({
+          partial_tx: 'partial-tx-data',
+          service: {
+            proposal_id: 'mock-id',
+            version: 0,
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(404);
+      expect(response.body).toStrictEqual({
+        success: false,
+        error: 'Proposal is not registered. Register it first.'
+      });
+    });
+
+    it('should require the mandatory parameters', async () => {
+      // Ensure the proposal exists in the listened proposals map
+      await atomicSwapServiceMethods.addListenedProposal(
+        walletId,
+        'mock-id',
+        'abc123',
+      );
+
+      // Missing version
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal/sign')
+        .send({
+          partial_tx: 'partial-tx-data',
+          service: {
+            proposal_id: 'mock-id',
+            // version: 0,
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toStrictEqual({
+        success: false,
+        error: 'Missing mandatory parameters: version'
+      });
+    });
+
+    it('should return no success when service throws', async () => {
+      const mockLib = jest.spyOn(swapService, 'update')
+        .mockImplementationOnce(async () => { throw new Error('Sigs update Service failure'); });
+
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal/sign')
+        .send({
+          partial_tx: 'partial-tx-data',
+          service: {
+            proposal_id: 'mock-id',
+            version: 0,
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toStrictEqual({
+        success: false,
+        error: 'Sigs update Service failure'
+      });
+
+      mockLib.mockRestore();
+    });
+
+    it('should return no success when service also had no success', async () => {
+      const mockLib = jest.spyOn(swapService, 'update')
+        .mockResolvedValue({ success: false });
+
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal/sign')
+        .send({
+          partial_tx: 'partial-tx-data',
+          service: {
+            proposal_id: 'mock-id',
+            version: 0,
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toStrictEqual({
+        success: false,
+        error: 'Unable to update the proposal on the Atomic Swap Service'
+      });
+
+      mockLib.mockRestore();
+    });
+
+    it('should return success when the service mediator also had success', async () => {
+      const mockLib = jest.spyOn(swapService, 'update')
+        .mockResolvedValue({ success: true });
+
+      const response = await TestUtils.request
+        .post('/wallet/atomic-swap/tx-proposal/sign')
+        .send({
+          partial_tx: 'partial-tx-data',
+          service: {
+            proposal_id: 'mock-id',
+            version: 0,
+          }
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toStrictEqual({
+        success: true,
+        txHex: 'mock-hexed-tx',
+      });
+
+      mockLib.mockRestore();
     });
   });
 });

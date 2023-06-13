@@ -32,7 +32,7 @@ function mapTxReturn(tx) {
  * XXX this method should be created in the lib itself
  * however the current version of the lib is already incompatible with
  * the method calls we have right now after some refactors were done
- * to use the facada in the wallets mobile/desktop.
+ * to use the facade in the wallets mobile/desktop.
  * Because of that I decided to create this method here for now,
  * not only because it would require more changes to fix the incompatibilities but
  * we will change even more in the following weeks when we finish the integration
@@ -43,18 +43,20 @@ function mapTxReturn(tx) {
  * and align the methods signatures, we will fix the incompatibilities in the headless and then we
  * can add this method in the lib
  *
+ * XXX This can be refactored to use the lib methods, specially the storage.selectUtxos
+ *
  * @param {HathorWallet} wallet The wallet object
  * @param {number} sumOutputs The sum of outputs of the transaction I need to fill
  * @param {Object} options The options to filter the utxos
  *                         (see utxo-filter API to see the possibilities)
  */
-function getUtxosToFillTx(wallet, sumOutputs, options) {
+async function getUtxosToFillTx(wallet, sumOutputs, options) {
   // We want to find only utxos to use in the tx, so we must filter by available only
   const getUtxosOptions = {
     ...options,
     only_available_utxos: true
   };
-  const utxosDetails = wallet.getUtxos(getUtxosOptions);
+  const utxosDetails = await wallet.getUtxos(getUtxosOptions);
   // If I can't fill all the amount with the returned utxos, then return null
   if (utxosDetails.total_amount_available < sumOutputs) {
     return null;
@@ -111,14 +113,13 @@ function getUtxosToFillTx(wallet, sumOutputs, options) {
  */
 
 /**
- *
  * @param {HathorWallet} wallet The wallet proposing the transaction
  * @param {Object[]} outputs Array of outputs to send
  * @param {Object[]} inputs Array of inputs to use
  * @param {string} defaultToken='00' Default token uid to use
- * @returns {PreparedTxResponse|PreparedTxErrorResponse}
+ * @returns {Promise<PreparedTxResponse|PreparedTxErrorResponse>}
  */
-function prepareTxFunds(wallet, outputs, inputs, defaultToken = HATHOR_TOKEN_CONFIG.uid) {
+async function prepareTxFunds(wallet, outputs, inputs, defaultToken = HATHOR_TOKEN_CONFIG.uid) {
   const preparedOutputs = [];
   let preparedInputs = [];
 
@@ -174,7 +175,7 @@ function prepareTxFunds(wallet, outputs, inputs, defaultToken = HATHOR_TOKEN_CON
           ...query,
           token: tokenUid
         };
-        const utxos = getUtxosToFillTx(wallet, tokenObj.amount, queryOptions);
+        const utxos = await getUtxosToFillTx(wallet, tokenObj.amount, queryOptions);
         if (!utxos) {
           return {
             success: false,

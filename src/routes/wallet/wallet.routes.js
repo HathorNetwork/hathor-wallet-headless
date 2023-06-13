@@ -344,6 +344,12 @@ walletRouter.post(
   body('amount').isInt({ min: 1 }).toInt(),
   body('address').isString().optional(),
   body('change_address').isString().optional(),
+  body('create_mint').isBoolean().optional().toBoolean(),
+  body('mint_authority_address').isString().optional(),
+  body('allow_external_mint_authority_address').isBoolean().optional().toBoolean(),
+  body('create_melt').isBoolean().optional().toBoolean(),
+  body('melt_authority_address').isString().optional(),
+  body('allow_external_melt_authority_address').isBoolean().optional().toBoolean(),
   createToken
 );
 
@@ -357,6 +363,8 @@ walletRouter.post(
   body('amount').isInt({ min: 1 }).toInt(),
   body('address').isString().optional(),
   body('change_address').isString().optional(),
+  body('mint_authority_address').isString().optional(),
+  body('allow_external_mint_authority_address').isBoolean().optional().toBoolean(),
   mintTokens
 );
 
@@ -370,6 +378,8 @@ walletRouter.post(
   body('amount').isInt({ min: 1 }).toInt(),
   body('change_address').isString().optional(),
   body('deposit_address').isString().optional(),
+  body('melt_authority_address').isString().optional(),
+  body('allow_external_melt_authority_address').isBoolean().optional().toBoolean(),
   meltTokens
 );
 
@@ -418,7 +428,11 @@ walletRouter.post(
   body('address').isString().optional(),
   body('change_address').isString().optional(),
   body('create_mint').isBoolean().optional().toBoolean(),
+  body('mint_authority_address').isString().optional(),
+  body('allow_external_mint_authority_address').isBoolean().optional().toBoolean(),
   body('create_melt').isBoolean().optional().toBoolean(),
+  body('melt_authority_address').isString().optional(),
+  body('allow_external_melt_authority_address').isBoolean().optional().toBoolean(),
   createNft
 );
 

@@ -6,7 +6,7 @@ const apiDoc = {
   info: {
     title: 'Headless Hathor Wallet API',
     description: 'This wallet is fully controlled through an HTTP API.',
-    version: '0.20.0',
+    version: '0.21.0-rc1',
   },
   produces: ['application/json'],
   components: {
@@ -1461,6 +1461,29 @@ const apiDoc = {
                     type: 'string',
                     description: 'Optional address to send the change amount.'
                   },
+                  service: {
+                    description: 'Property containing references for this proposal on the Atomic Swap Service',
+                    type: 'object',
+                    required: ['password'],
+                    properties: {
+                      is_new: {
+                        description: 'Determines if this is a new proposal, so that a new proposalId is added to the response',
+                        type: 'boolean',
+                      },
+                      proposal_id: {
+                        description: 'Determines the identifier of the existing proposal that is being referenced in this request',
+                        type: 'string',
+                      },
+                      password: {
+                        description: 'Mandatory password for interacting with a service-mediated proposal.',
+                        type: 'string',
+                      },
+                      version: {
+                        description: 'Version of the proposal to be updated on the service mediator',
+                        type: 'integer',
+                      },
+                    },
+                  },
                 }
               },
               examples: {
@@ -1518,7 +1541,54 @@ const apiDoc = {
                       ],
                     }
                   },
-                }
+                },
+                just_send_with_service: {
+                  summary: 'Create a proposal sending tokens using the Atomic Swap Service',
+                  value: {
+                    send: {
+                      tokens: [
+                        {
+                          value: 10,
+                          token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
+                        },
+                        {
+                          value: 100,
+                          token: '00',
+                        },
+                      ],
+                    },
+                    service: {
+                      is_new: true,
+                      password: 'abc123'
+                    }
+                  }
+                },
+                update_proposal_with_service: {
+                  summary: 'Update a registered proposal using the Atomic Swap Service',
+                  value: {
+                    partial_tx: 'PartialTx|...',
+                    send: {
+                      tokens: [
+                        {
+                          value: 10,
+                          token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
+                        },
+                      ],
+                    },
+                    receive: {
+                      tokens: [
+                        {
+                          value: 10,
+                          token: '00',
+                        },
+                      ],
+                    },
+                    service: {
+                      proposal_id: 'b11948c7-48...',
+                      version: 1,
+                    }
+                  },
+                },
               }
             }
           }
@@ -1548,6 +1618,19 @@ const apiDoc = {
                   'invalid-wallet-id': {
                     summary: 'Wallet id parameter is invalid',
                     value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                  'service-invalid-password': {
+                    summary: 'Atomic Swap Service password is invalid',
+                    value: { success: false, error: 'Password must have at least 3 characters' }
+                  },
+                  'service-new-proposal': {
+                    summary: 'Success creating a service-mediated proposal.',
+                    value: {
+                      success: true,
+                      data: 'PartialTx|...',
+                      isComplete: false,
+                      createdProposalId: 'b11948c7-48...',
+                    }
                   },
                 },
               },
@@ -1625,6 +1708,259 @@ const apiDoc = {
         },
       },
     },
+    '/wallet/atomic-swap/tx-proposal/register/{proposalId}': {
+      post: {
+        summary: 'Registers a proposal for the Headless Wallet to listen to and interact with the Atomic Swap Service',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'proposalId',
+            in: 'path',
+            description: 'Proposal identifier on the Atomic Swap Service',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        requestBody: {
+          description: 'Request the registration of a proposal id with the service.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['password'],
+                properties: {
+                  password: {
+                    description: 'Proposal password on the Atomic Swap Service.',
+                    type: 'string',
+                  },
+                }
+              },
+              examples: {
+                fetch: {
+                  summary: 'Registration request to interact with proposal',
+                  value: {
+                    password: 'abc123',
+                  },
+                },
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Successful proposal registration.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      success: {
+                        summary: 'Successful registration',
+                        value: {
+                          success: true,
+                        },
+                      },
+                    }
+                  },
+                  'service-failure': {
+                    summary: 'Failure validating the proposal data with the service side',
+                    value: {
+                      success: {
+                        summary: 'Unsuccessful validation with the Atomic Swap Service',
+                        value: {
+                          success: false,
+                          error: 'Failure description on the swap service',
+                        },
+                      },
+                    }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/atomic-swap/tx-proposal/fetch': {
+      get: {
+        summary: 'Fetches a proposal data from the Atomic Swap Service',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'proposalId',
+            in: 'path',
+            description: 'Registered proposal identifier',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        responses: {
+          200: {
+            description: 'Successful data fetching from the service.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      success: {
+                        summary: 'Successful fetch',
+                        value: {
+                          success: true,
+                          proposal: {
+                            proposalId: '1a574e6c-73...',
+                            version: 1,
+                            timestamp: 'Fri Mar 10 2023 23:13:...',
+                            partialTx: 'PartialTx|000100010...',
+                            signatures: null,
+                            history: []
+                          },
+                        },
+                      },
+                    }
+                  },
+                  'service-failure': {
+                    summary: 'Failure on the service side',
+                    value: {
+                      success: {
+                        summary: 'Unsuccessful fetch from the Atomic Swap Service',
+                        value: {
+                          success: false,
+                          error: 'Failure description on the swap service',
+                        },
+                      },
+                    }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/atomic-swap/tx-proposal/list': {
+      get: {
+        summary: 'Fetches the list of listened proposals for this wallet',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Successful listing of registered proposals.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      success: {
+                        summary: 'Successful listing',
+                        value: {
+                          success: true,
+                          proposals: [
+                            '1a574e6c-73...',
+                            '85585de5-67...',
+                          ],
+                        },
+                      },
+                    }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/atomic-swap/tx-proposal/delete': {
+      delete: {
+        summary: 'Removes a proposal from the registered listened proposals',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'proposalId',
+            in: 'path',
+            description: 'Registered proposal identifier',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        responses: {
+          200: {
+            description: 'Successful registration removal.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      success: {
+                        summary: 'Successful removal',
+                        value: {
+                          success: true,
+                        },
+                      },
+                    }
+                  },
+                  'service-failure': {
+                    summary: 'Failure on the removal',
+                    value: {
+                      success: {
+                        summary: 'Unsuccessful removal operation',
+                        value: {
+                          success: false,
+                          error: 'Failure description',
+                        },
+                      },
+                    }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     '/wallet/atomic-swap/tx-proposal/sign': {
       post: {
         summary: 'Add signatures to a proposal and return the signed transaction in hex format.',
@@ -1660,6 +1996,21 @@ const apiDoc = {
                       description: 'Signatures of the proposal.',
                     },
                   },
+                  service: {
+                    description: 'Property containing references for this proposal on the Atomic Swap Service',
+                    type: 'object',
+                    required: ['proposal_id', 'version'],
+                    properties: {
+                      proposal_id: {
+                        description: 'Determines the identifier of the registered proposal that is being referenced in this request',
+                        type: 'string',
+                      },
+                      version: {
+                        description: 'Version of the proposal to be updated on the service mediator',
+                        type: 'integer',
+                      },
+                    },
+                  },
                 }
               },
               examples: {
@@ -1668,6 +2019,17 @@ const apiDoc = {
                   value: {
                     partial_tx: 'PartialTx|...',
                     signatures: ['PartialTxInputData|...', 'PartialTxInputData|...'],
+                  },
+                },
+                sign_with_service: {
+                  summary: 'Add signatures to the proposal with the Atomic Swap Service.',
+                  value: {
+                    partial_tx: 'PartialTx|...',
+                    signatures: ['PartialTxInputData|...', 'PartialTxInputData|...'],
+                    service: {
+                      proposal_id: 'b11948c7-48...',
+                      version: 3,
+                    }
                   },
                 },
               }
@@ -2224,6 +2586,30 @@ const apiDoc = {
                     type: 'string',
                     description: 'Optional address to send the change amount.'
                   },
+                  create_mint: {
+                    type: 'boolean',
+                    description: 'If should create mint authority for the created token. Default is true.'
+                  },
+                  mint_authority_address: {
+                    type: 'string',
+                    description: 'Optional address to send the mint authority output created.'
+                  },
+                  allow_external_mint_authority_address: {
+                    type: 'boolean',
+                    description: 'If the mint authority address is allowed to be from another wallet. Default is false.'
+                  },
+                  create_melt: {
+                    type: 'boolean',
+                    description: 'If should create melt authority for the created token. Default is true.'
+                  },
+                  melt_authority_address: {
+                    type: 'string',
+                    description: 'Optional address to send the melt authority output created.'
+                  },
+                  allow_external_melt_authority_address: {
+                    type: 'boolean',
+                    description: 'If the melt authority address is allowed to be from another wallet. Default is false.'
+                  },
                 }
               },
               examples: {
@@ -2311,6 +2697,14 @@ const apiDoc = {
                     type: 'string',
                     description: 'Optional address to send the change amount.'
                   },
+                  mint_authority_address: {
+                    type: 'string',
+                    description: 'Optional address to send the new mint authority output created.'
+                  },
+                  allow_external_mint_authority_address: {
+                    type: 'boolean',
+                    description: 'If the mint authority address is allowed to be from another wallet. Default is false.'
+                  },
                 }
               },
               examples: {
@@ -2372,34 +2766,6 @@ const apiDoc = {
               type: 'string',
             },
           },
-          {
-            name: 'token',
-            in: 'formData',
-            description: 'The uid of the token to melt.',
-            required: true,
-            type: 'string',
-          },
-          {
-            name: 'amount',
-            in: 'formData',
-            description: 'The amount of tokens to melt. It must be an integer with the value in cents, i.e., 123 means 1.23.',
-            required: true,
-            type: 'integer',
-          },
-          {
-            name: 'change_address',
-            in: 'formData',
-            description: 'Optional address to send the change amount of custom tokens after melt.',
-            required: false,
-            type: 'string',
-          },
-          {
-            name: 'deposit_address',
-            in: 'formData',
-            description: 'Optional address to send the deposit HTR received after the melt.',
-            required: false,
-            type: 'string',
-          },
         ],
         requestBody: {
           description: 'Data to melt tokens.',
@@ -2417,6 +2783,22 @@ const apiDoc = {
                   amount: {
                     type: 'integer',
                     description: 'The amount of tokens to melt. It must be an integer with the value in cents, i.e., 123 means 1.23.'
+                  },
+                  change_address: {
+                    type: 'string',
+                    description: 'Optional address to send the change amount of custom tokens after melt.'
+                  },
+                  deposit_address: {
+                    type: 'string',
+                    description: 'Optional address to send the deposit HTR received after the melt.'
+                  },
+                  melt_authority_address: {
+                    type: 'string',
+                    description: 'Optional address to send the new melt authority output created.'
+                  },
+                  allow_external_melt_authority_address: {
+                    type: 'boolean',
+                    description: 'If the melt authority address is allowed to be from another wallet. Default is false.'
                   },
                 }
               },
@@ -2516,9 +2898,25 @@ const apiDoc = {
                     type: 'boolean',
                     description: 'If should create mint authority for the created NFT. Default is false.'
                   },
+                  mint_authority_address: {
+                    type: 'string',
+                    description: 'Optional address to send the mint authority output created.'
+                  },
+                  allow_external_mint_authority_address: {
+                    type: 'boolean',
+                    description: 'If the mint authority address is allowed to be from another wallet. Default is false.'
+                  },
                   create_melt: {
                     type: 'boolean',
                     description: 'If should create melt authority for the created NFT. Default is false.'
+                  },
+                  melt_authority_address: {
+                    type: 'string',
+                    description: 'Optional address to send the melt authority output created.'
+                  },
+                  allow_external_melt_authority_address: {
+                    type: 'boolean',
+                    description: 'If the melt authority address is allowed to be from another wallet. Default is false.'
                   },
                 }
               },
