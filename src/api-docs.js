@@ -6,7 +6,7 @@ const apiDoc = {
   info: {
     title: 'Headless Hathor Wallet API',
     description: 'This wallet is fully controlled through an HTTP API.',
-    version: '0.21.0-rc1',
+    version: '0.22.0-rc1',
   },
   produces: ['application/json'],
   components: {
