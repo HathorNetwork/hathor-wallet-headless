@@ -37,8 +37,7 @@ const MULTISIG_DATA = {
   }
 };
 
-const app = createApp();
-const request = supertest(app);
+let request, server;
 
 const httpMock = new MockAdapter(axios);
 
@@ -226,10 +225,26 @@ class TestUtils {
         }
       });
     });
+
+  }
+
+  static startServer() {
+    return new Promise((resolve, reject) => {
+      const app = createApp();
+      server = app.listen(8088, (err) => {
+        if (err) {
+          reject(err);
+        }
+
+        request = supertest.agent(server);
+        resolve();
+      });
+    });
   }
 
   static stopMocks() {
     httpMock.reset();
+    server.close();
     return new Promise(resolve => {
       wsMock.stop(resolve);
     });
