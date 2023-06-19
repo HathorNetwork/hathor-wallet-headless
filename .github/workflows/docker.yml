@@ -9,33 +9,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout
+      uses: actions/checkout@v3
     - name: Prepare tags
       id: tags
-      shell: python
       run: |
-        import datetime
+        export GITHUB_REF='${{ github.ref }}'
+        export GITHUB_SHA='${{ github.sha }}'
+        export AWS_ECR_URL='${{ secrets.AWS_ECR_URL }}'
 
-        timestamp = str(int(datetime.datetime.now().timestamp()))
-        base_ecr_tag = '${{ secrets.AWS_ECR_URL }}:'
-        base_dockerhub_tag = 'docker.io/hathornetwork/hathor-wallet-headless:'
-
-        tags = set()
-
-        ref = '${{ github.ref }}'
-        if ref.startswith('refs/tags/'):
-            version = ref[10:].split('-', 1)[0]
-
-            tags.add(base_ecr_tag + version)
-            tags.add(base_ecr_tag + 'latest')
-
-            tags.add(base_dockerhub_tag + version)
-            tags.add(base_dockerhub_tag + 'latest')
-        elif ref == 'refs/heads/master':
-            tags.add(base_ecr_tag + 'staging-${{ github.sha }}-' + timestamp)
-        else:
-            tags.add(base_ecr_tag + 'dev-${{ github.sha }}-' + timestamp)
-
-        print("::set-output name=tags::" + ",".join(tags))
+        python scripts/github/docker.py
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2  # we are trusting the action creator when using tags like this
     - name: Set up Docker Buildx
