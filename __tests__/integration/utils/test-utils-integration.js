@@ -806,4 +806,33 @@ export class TestUtils {
 
     return networkHeight;
   }
+
+  static async getTransaction(walletId, txId) {
+    return await TestUtils.request
+      .get(`/wallet/transaction/?id=${txId}`)
+      .set(TestUtils.generateHeader(walletId));
+  }
+
+  static async waitForTxReceived(walletId, txId, timeout) {
+    // Only return the positive response after the tx is found in the wallet's storage
+    return new Promise(async (resolve, reject) => {
+      let timeoutHandler;
+      if (timeout) {
+        // Timeout handler
+        timeoutHandler = setTimeout(async () => {
+          reject(new Error(`Timeout of ${timeout}ms without receiving a new block`));
+        }, timeout);
+      }
+
+      while ((await TestUtils.getTransaction(walletId, txId)).body.success === false) {
+        await delay(1000);
+      }
+
+      if (timeoutHandler) {
+        clearTimeout(timeoutHandler);
+      }
+
+      resolve();
+    });
+  }
 }
