@@ -808,18 +808,19 @@ export class TestUtils {
   }
 
   static async getTransaction(walletId, txId) {
-    return await TestUtils.request
+    return TestUtils.request
       .get(`/wallet/transaction/?id=${txId}`)
       .set(TestUtils.generateHeader(walletId));
   }
 
   static async waitForTxReceived(walletId, txId, timeout) {
     // Only return the positive response after the tx is found in the wallet's storage
+    /* eslint-disable no-async-promise-executor */
     return new Promise(async (resolve, reject) => {
       let timeoutHandler;
       if (timeout) {
         // Timeout handler
-        timeoutHandler = setTimeout(async () => {
+        timeoutHandler = setTimeout(() => {
           reject(new Error(`Timeout of ${timeout}ms without receiving a new block`));
         }, timeout);
       }
@@ -834,5 +835,6 @@ export class TestUtils {
 
       resolve();
     });
+    /* eslint-enable no-async-promise-executor */
   }
 }
