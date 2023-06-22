@@ -807,25 +807,48 @@ export class TestUtils {
     return networkHeight;
   }
 
+  /**
+   * Call headless API to get a transaction from the wallet storage
+   *
+   * @param {string} walletId ID of the wallet to get the transaction from
+   * @param {string} txId ID of the transaction to get
+   *
+   * @returns {Promise<*>} The return is an object with { success: boolean }
+   *                       and the transaction object in case of success
+   */
   static async getTransaction(walletId, txId) {
-    return TestUtils.request
+    const response = await TestUtils.request
       .get(`/wallet/transaction/?id=${txId}`)
       .set(TestUtils.generateHeader(walletId));
+
+    return response.body;
   }
 
+  /**
+   * Waits until the transaction arrives in the wallet ws, or a timeout (optional)
+   * is reached
+   *
+   * @param {string} walletId ID of the wallet to get the transaction from
+   * @param {string} txId ID of the transaction to get
+   * @param {number | undefined} timeout The timeout to stop waiting for the tx to arrive
+   *                             if not present, it will wait forever
+   *
+   * @returns {Promise<void>} Resolves when the tx is found in the wallet's storage
+   *                          or rejects if timeout is reached
+   */
   static async waitForTxReceived(walletId, txId, timeout) {
-    // Only return the positive response after the tx is found in the wallet's storage
     /* eslint-disable no-async-promise-executor */
     return new Promise(async (resolve, reject) => {
       let timeoutHandler;
       if (timeout) {
         // Timeout handler
         timeoutHandler = setTimeout(() => {
-          reject(new Error(`Timeout of ${timeout}ms without receiving a new block`));
+          reject(new Error(`Timeout of ${timeout}ms without receiving the tx with id ${txId}`));
         }, timeout);
       }
 
-      while ((await TestUtils.getTransaction(walletId, txId)).body.success === false) {
+      while ((await TestUtils.getTransaction(walletId, txId)).success === false) {
+        // Tx not found, wait 1s before trying again
         await delay(1000);
       }
 
