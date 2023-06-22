@@ -96,6 +96,45 @@ async function buildCreateTokenTxProposal(req, res) {
   }
 }
 
+async function buildMintTokensTxProposal(req, res) {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    res.status(400).json(validationResult);
+    return;
+  }
+
+  const {
+    token,
+    amount,
+  } = req.body;
+  const address = req.body.address || null;
+  const changeAddress = req.body.change_address || null;
+  const createAnotherMint = req.body.create_mint ?? true;
+  const mintAuthorityAddress = req.body.mint_authority_address || null;
+  const allowExternalMintAuthorityAddress = req.body.allow_external_mint_authority_address || null;
+
+  try {
+    if (changeAddress && !await req.wallet.isAddressMine(changeAddress)) {
+      throw new Error('Change address is not from this wallet');
+    }
+
+    const mintTokenTransaction = await req.wallet.prepareMintTokensData(
+      token,
+      amount,
+      {
+        address,
+        changeAddress,
+        createAnotherMint,
+        mintAuthorityAddress,
+        allowExternalMintAuthorityAddress,
+      }
+    );
+    res.send({ success: true, txHex: mintTokenTransaction.toHex() });
+  } catch (err) {
+    res.send({ success: false, error: err.message });
+  }
+}
+
 async function getMySignatures(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
@@ -185,6 +224,7 @@ async function signAndPush(req, res) {
 module.exports = {
   buildTxProposal,
   buildCreateTokenTxProposal,
+  buildMintTokensTxProposal,
   getMySignatures,
   signTx,
   signAndPush,

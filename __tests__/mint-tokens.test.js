@@ -15,7 +15,7 @@ describe('mint-tokens api', () => {
     const response = await TestUtils.request
       .post('/wallet/mint-tokens')
       .send({
-        token: '03',
+        token: '0000073b972162f70061f61cf0082b7a47263cc1659a05976aca5cd01b3351ee',
         amount: 1,
       })
       .set({ 'x-wallet-id': walletId });
@@ -27,7 +27,7 @@ describe('mint-tokens api', () => {
     const response = await TestUtils.request
       .post('/wallet/mint-tokens')
       .send({
-        token: '03',
+        token: '0000073b972162f70061f61cf0082b7a47263cc1659a05976aca5cd01b3351ee',
         amount: '1',
       })
       .set({ 'x-wallet-id': walletId });
@@ -38,7 +38,7 @@ describe('mint-tokens api', () => {
   it('should not mint a token without the required parameters', async () => {
     ['token', 'amount'].forEach(async field => {
       const token = {
-        token: '03',
+        token: '0000073b972162f70061f61cf0082b7a47263cc1659a05976aca5cd01b3351ee',
         amount: 1,
       };
       delete token[field];
@@ -55,7 +55,7 @@ describe('mint-tokens api', () => {
     const promise1 = TestUtils.request
       .post('/wallet/mint-tokens')
       .send({
-        token: '03',
+        token: '0000073b972162f70061f61cf0082b7a47263cc1659a05976aca5cd01b3351ee',
         amount: 1,
       })
       .set({ 'x-wallet-id': walletId });
