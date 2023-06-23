@@ -1,5 +1,6 @@
 import { PartialTx, ProposalInput, ProposalOutput } from '@hathor/wallet-lib/lib/models/partial_tx';
 import { Network, Address, P2PKH } from '@hathor/wallet-lib';
+import httpFixtures from './__fixtures__/http-fixtures';
 import TestUtils from './test-utils';
 
 const walletId = 'stub_decode';
@@ -84,10 +85,12 @@ describe('decode api', () => {
     const expected = {
       success: true,
       tx: {
+        completeSignatures: false,
         tokens: [],
         inputs: [],
         outputs: [],
-      }
+      },
+      balance: {},
     };
 
     let response = await TestUtils.request
@@ -135,7 +138,11 @@ describe('decode api', () => {
     let address = new Address(TestUtils.addresses[0]);
     let script = new P2PKH(address);
     partialTx.outputs.push(
-      new ProposalOutput(10, script.createScript(), { token: fakeToken1, tokenData: 1 })
+      new ProposalOutput(
+        10,
+        script.createScript(),
+        { token: fakeToken1, tokenData: 1 }
+      )
     );
 
     address = new Address(TestUtils.addresses[1]);
@@ -152,6 +159,18 @@ describe('decode api', () => {
       )
     );
 
+    const txHistoryResponse = httpFixtures['/thin_wallet/address_history'];
+    const txHistory = txHistoryResponse.history;
+    const fakeTx = txHistory[0];
+    const fakeTxResponse = {
+      success: true,
+      tx: fakeTx,
+      meta: {
+        first_block_height: 1234,
+      },
+    };
+    TestUtils.httpMock.onGet('/transaction').reply(200, fakeTxResponse);
+
     // 1 input, 2 outputs
     const response = await TestUtils.request
       .post('/wallet/decode')
@@ -162,22 +181,61 @@ describe('decode api', () => {
     expect(response.body).toEqual({
       success: true,
       tx: expect.objectContaining({
-        tokens: [fakeToken1, fakeToken2],
-        inputs: [{ txId: fakeInputHash, index: 1 }],
+        completeSignatures: false,
+        tokens: expect.arrayContaining([fakeToken1, fakeToken2]),
+        inputs: [
+          {
+            txId: fakeInputHash,
+            index: 1,
+            value: 6400,
+            decoded: {
+              address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
+              type: 'MultiSig',
+              timelock: null,
+            },
+            script: expect.any(String),
+            token: '00',
+            tokenData: 0,
+            mine: true,
+            signed: false,
+          },
+        ],
         outputs: [
           expect.objectContaining({
             value: 10,
             tokenData: 1,
             token: fakeToken1,
-            decoded: expect.objectContaining({ address: TestUtils.addresses[0] })
+            decoded: {
+              address: TestUtils.addresses[0],
+              timelock: null,
+              mine: false,
+            },
+            script: expect.any(String),
+            type: 'p2pkh',
           }),
           expect.objectContaining({
             value: 20,
             tokenData: 0,
-            decoded: expect.objectContaining({ address: TestUtils.addresses[1] })
+            decoded: {
+              address: TestUtils.addresses[1],
+              timelock: null,
+              mine: false,
+            },
+            script: expect.any(String),
+            token: '00',
+            type: 'p2pkh',
           }),
         ],
       }),
+      balance: {
+        '00': {
+          tokens: { available: -6400, locked: 0 },
+          authorities: {
+            melt: { available: 0, locked: 0 },
+            mint: { available: 0, locked: 0 },
+          },
+        },
+      },
     });
 
     spy.mockRestore();

@@ -6,14 +6,15 @@
  */
 
 // import is used because there is an issue with winston logger when using require ref: #262
+import { HATHOR_TOKEN_CONFIG } from '@hathor/wallet-lib/lib/constants';
 import logger from '../../logger'; // eslint-disable-line import/no-import-module-exports
 
-const { txApi, walletApi, WalletType, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, PartialTx } = require('@hathor/wallet-lib');
+const { txApi, walletApi, WalletType, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, transactionUtils, PartialTx } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../lock');
 const { cantSendTxErrorMessage, friendlyWalletState } = require('../../helpers/constants');
-const { mapTxReturn, prepareTxFunds } = require('../../helpers/tx.helper');
+const { mapTxReturn, prepareTxFunds, getTx } = require('../../helpers/tx.helper');
 const { initializedWallets } = require('../../services/wallets.service');
 const { removeAllWalletProposals } = require('../../services/atomic-swap.service');
 
@@ -318,11 +319,37 @@ async function decodeTx(req, res) {
       }
       tx = partial.getTx();
     }
+
     const data = {
       tokens: tx.tokens,
-      inputs: tx.inputs.map(input => ({ txId: input.hash, index: input.index })),
+      inputs: await tx.inputs.reduce(async (acc, input) => {
+        // the accumulator must be awaited to enforce the sequence processing
+        const results = await acc;
+
+        const _tx = await getTx(req.wallet, input.hash);
+        if (!_tx) {
+          throw new Error(`Could not find input transaction for txId ${input.hash}`);
+        }
+
+        const utxo = _tx.outputs[input.index];
+        return [
+          ...results,
+          {
+            txId: input.hash,
+            index: input.index,
+            decoded: utxo.decoded,
+            token: utxo.token,
+            value: utxo.value,
+            tokenData: utxo.token_data,
+            script: utxo.script,
+            signed: !!input.data,
+            mine: await req.wallet.isAddressMine(utxo.decoded.address),
+          },
+        ];
+      }, []),
       outputs: [],
     };
+
     for (const output of tx.outputs) {
       output.parseScript(req.wallet.getNetworkObject());
       const outputData = {
@@ -334,6 +361,8 @@ async function decodeTx(req, res) {
       };
       if (output.tokenData !== 0) {
         outputData.token = tx.tokens[output.getTokenIndex()];
+      } else {
+        outputData.token = HATHOR_TOKEN_CONFIG.uid;
       }
       switch (outputData.type) {
         case 'data':
@@ -347,11 +376,41 @@ async function decodeTx(req, res) {
           outputData.decoded = {
             address: output.decodedScript.address.base58,
             timelock: output.decodedScript.timelock,
+            mine: await req.wallet.isAddressMine(output.decodedScript.address.base58)
           };
       }
       data.outputs.push(outputData);
     }
-    res.send({ success: true, tx: data });
+
+    // True if all the inputs are signed, false otherwise
+    data.completeSignatures = data.inputs.length > 0
+      ? data.inputs.every(input => input.signed) // true until find a false statement
+      : false; // empty data.inputs
+
+    // Get balance
+    const balance = {};
+    const balanceObj = await transactionUtils.getTxBalance(data, req.wallet.storage);
+    for (const token of Object.keys(balanceObj)) {
+      const balanceObj = await transactionUtils.getTxBalance(data, req.wallet.storage);
+      balance[token] = ({
+        tokens: {
+          available: balanceObj[token].tokens.unlocked,
+          locked: balanceObj[token].tokens.locked,
+        },
+        authorities: {
+          melt: {
+            available: balanceObj[token].authorities.melt.unlocked,
+            locked: balanceObj[token].authorities.melt.locked,
+          },
+          mint: {
+            available: balanceObj[token].authorities.mint.unlocked,
+            locked: balanceObj[token].authorities.mint.locked,
+          },
+        }
+      });
+    }
+
+    res.send({ success: true, tx: data, balance });
   } catch (err) {
     res.send({ success: false, error: err.message });
   }

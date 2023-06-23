@@ -542,9 +542,9 @@ const apiDoc = {
     },
     '/wallet/decode': {
       post: {
-        summary: 'Decode tx hex into human readable inputs and outputs.',
+        summary: 'Decode tx hex or serialized partial tx into human readable inputs and outputs with metadata to assist informed decision-making. To obtain input metadata, this method retrieves a transaction per input from the wallet\'s transaction history. If the required transaction is not located, the method queries the fullnode for the transaction details.',
         requestBody: {
-          description: 'Transaction hex representation',
+          description: 'Transaction hex representation or a partial transaction serialization.',
           required: true,
           content: {
             'application/json': {
