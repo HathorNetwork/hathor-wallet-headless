@@ -9,7 +9,7 @@ from typing import Dict
 # It will be used to match the second part of the tag name after the dash.
 release_candidate_regex = re.compile(r'^rc(\.?)[0-9]{1,3}$')
 # This regex matches semver tags, e.g. v1.0.0
-version_regex = re.compile(r'^v\d\.\d\.\d$')
+version_regex = re.compile(r'^v(\d+)\.(\d+)\.(\d+)$')
 
 def prep_tags(environ: Dict):
     timestamp = str(int(datetime.datetime.now().timestamp()))
