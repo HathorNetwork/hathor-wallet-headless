@@ -88,6 +88,11 @@ async function buildCreateTokenTxProposal(req, res) {
       meltAuthorityAddress,
       allowExternalMeltAuthorityAddress,
     });
+    createTokenTransaction.inputs.map(eachInput => {
+      const { data, ...input } = eachInput;
+      return input;
+    });
+
     res.send({ success: true, txHex: createTokenTransaction.toHex() });
   } catch (err) {
     res.send({ success: false, error: err.message });
