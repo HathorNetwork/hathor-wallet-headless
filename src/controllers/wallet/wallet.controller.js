@@ -340,6 +340,10 @@ async function decodeTx(req, res) {
             decoded: utxo.decoded,
             token: utxo.token,
             value: utxo.value,
+            // This is required by transactionUtils.getTxBalance
+            // It should be ignored by users
+            token_data: utxo.token_data,
+            // User facing duplication to keep scheme consistency
             tokenData: utxo.token_data,
             script: utxo.script,
             signed: !!input.data,
@@ -354,6 +358,10 @@ async function decodeTx(req, res) {
       output.parseScript(req.wallet.getNetworkObject());
       const outputData = {
         value: output.value,
+        // This is required by transactionUtils.getTxBalance
+        // It should be ignored by users
+        token_data: output.tokenData,
+        // User facing duplication to keep scheme consistency
         tokenData: output.tokenData,
         script: output.script.toString('base64'),
         type: output.decodedScript.getType(),

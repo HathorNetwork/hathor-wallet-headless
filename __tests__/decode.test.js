@@ -196,6 +196,7 @@ describe('decode api', () => {
             script: expect.any(String),
             token: '00',
             tokenData: 0,
+            token_data: 0,
             mine: true,
             signed: false,
           },
@@ -204,6 +205,7 @@ describe('decode api', () => {
           expect.objectContaining({
             value: 10,
             tokenData: 1,
+            token_data: 1,
             token: fakeToken1,
             decoded: {
               address: TestUtils.addresses[0],
@@ -216,6 +218,7 @@ describe('decode api', () => {
           expect.objectContaining({
             value: 20,
             tokenData: 0,
+            token_data: 0,
             decoded: {
               address: TestUtils.addresses[1],
               timelock: null,
