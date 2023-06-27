@@ -130,6 +130,11 @@ async function buildMintTokensTxProposal(req, res) {
         signTx: false,
       }
     );
+    mintTokenTransaction.inputs.map(eachInput => {
+      const { data, ...input } = eachInput;
+      return input;
+    });
+
     res.send({ success: true, txHex: mintTokenTransaction.toHex() });
   } catch (err) {
     res.send({ success: false, error: err.message });
