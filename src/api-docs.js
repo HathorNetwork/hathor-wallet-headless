@@ -1175,6 +1175,121 @@ const apiDoc = {
         },
       },
     },
+    '/wallet/p2sh/tx-proposal/create-token': {
+      post: {
+        summary: 'Get the hex representation of a create a token transaction without input data.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        requestBody: {
+          description: 'Data to create the token.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['name', 'symbol', 'amount'],
+                properties: {
+                  name: {
+                    type: 'string',
+                    description: 'Name of the token.'
+                  },
+                  symbol: {
+                    type: 'string',
+                    description: 'Symbol of the token.'
+                  },
+                  amount: {
+                    type: 'integer',
+                    description: 'The amount of tokens to mint. It must be an integer with the value in cents, i.e., 123 means 1.23.'
+                  },
+                  address: {
+                    type: 'string',
+                    description: 'Destination address of the minted tokens.'
+                  },
+                  change_address: {
+                    type: 'string',
+                    description: 'Optional address to send the change amount.'
+                  },
+                  create_mint: {
+                    type: 'boolean',
+                    description: 'If should create mint authority for the created token. Default is true.'
+                  },
+                  mint_authority_address: {
+                    type: 'string',
+                    description: 'Optional address to send the mint authority output created.'
+                  },
+                  allow_external_mint_authority_address: {
+                    type: 'boolean',
+                    description: 'If the mint authority address is allowed to be from another wallet. Default is false.'
+                  },
+                  create_melt: {
+                    type: 'boolean',
+                    description: 'If should create melt authority for the created token. Default is true.'
+                  },
+                  melt_authority_address: {
+                    type: 'string',
+                    description: 'Optional address to send the melt authority output created.'
+                  },
+                  allow_external_melt_authority_address: {
+                    type: 'boolean',
+                    description: 'If the melt authority address is allowed to be from another wallet. Default is false.'
+                  },
+                }
+              },
+              examples: {
+                data: {
+                  summary: 'Data to create the token',
+                  value: {
+                    name: 'Test Coin',
+                    symbol: 'TSC',
+                    amount: 100,
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Create the token',
+            content: {
+              'application/json': {
+                examples: {
+                  error: {
+                    summary: 'Insuficient amount of tokens',
+                    value: { success: false, error: "Don't have enough HTR funds to mint this amount." }
+                  },
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, txHex: '00020104000016392ed330ed99ff0f74e4169a8d257fd1d07d3b38c4f8ecf21a78f10efa000069463044022074a1bf9c2d56e887558f459573d75df647acbde7b90de3502b7220425ff69dcb022000e0690e43ad306adef7f59bd07cf817ab8da29bce5cd82ede61ffb99cb460022102a5c1b462ccdcd8b4bb2cf672e0672576420c3102ecbe74da15b2cf56cf49b4a5000001f1000017a91462d397b360118b99a8d35892366074fe16fa6f098700000001010017a91462d397b360118b99a8d35892366074fe16fa6f098700000001810017a91462d397b360118b99a8d35892366074fe16fa6f098700000002810017a91462d397b360118b99a8d35892366074fe16fa6f098701164d7920437573746f6d20546f6b656e204d616e75616c034d43544031dbcd5cef20c5649b59130000000000' }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     '/wallet/p2sh/tx-proposal/get-my-signatures': {
       post: {
         summary: 'Get the signatures for all inputs from the wallet',
