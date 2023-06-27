@@ -116,7 +116,7 @@ txProposalRouter.post(
   '/melt-tokens',
   body('token').isString().notEmpty(),
   body('amount').isInt({ min: 1 }).toInt(),
-  body('address').isString().notEmpty().optional(),
+  body('deposit_address').isString().notEmpty().optional(),
   body('change_address').isString().notEmpty().optional(),
   body('create_melt').isBoolean().optional(),
   body('melt_authority_address').isString().notEmpty().optional(),

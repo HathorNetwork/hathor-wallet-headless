@@ -146,7 +146,8 @@ async function buildMeltTokensTxProposal(req, res) {
     token,
     amount,
   } = req.body;
-  const address = req.body.address || null;
+
+  const depositAddress = req.body.deposit_address || null;
   const changeAddress = req.body.change_address || null;
   const createAnotherMelt = req.body.create_melt ?? true;
   const meltAuthorityAddress = req.body.melt_authority_address || null;
@@ -161,7 +162,7 @@ async function buildMeltTokensTxProposal(req, res) {
       token,
       amount,
       {
-        address,
+        address: depositAddress,
         changeAddress,
         createAnotherMelt,
         meltAuthorityAddress,

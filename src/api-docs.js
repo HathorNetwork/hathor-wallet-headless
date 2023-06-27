@@ -816,9 +816,9 @@ const apiDoc = {
                     type: 'integer',
                     description: 'The amount of tokens to melt. It must be an integer with the value in cents, i.e., 123 means 1.23.'
                   },
-                  address: {
+                  deposit_address: {
                     type: 'string',
-                    description: 'Optional address to send the deposit HTR received after the melt.'
+                    description: 'Optional deposit_address to send the deposit HTR received after the melt.'
                   },
                   change_address: {
                     type: 'string',

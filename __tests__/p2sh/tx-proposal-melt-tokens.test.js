@@ -74,14 +74,14 @@ describe('melt-tokens tx-proposal api', () => {
     expect(response.body.success).toBe(false);
   });
 
-  it('should return 200 with a valid body selecting address', async () => {
-    const address = TestUtils.multisigAddresses[2];
+  it('should return 200 with a valid body selecting deposit address', async () => {
+    const depositAddress = TestUtils.multisigAddresses[2];
     const response = await TestUtils.request
       .post('/wallet/p2sh/tx-proposal/melt-tokens')
       .send({
         token: '0000073b972162f70061f61cf0082b7a47263cc1659a05976aca5cd01b3351ee',
         amount: 100,
-        address,
+        deposit_address: depositAddress,
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
@@ -89,16 +89,16 @@ describe('melt-tokens tx-proposal api', () => {
     expect(response.body.txHex).toBeDefined();
     const tx = hathorLib.helpersUtils.createTxFromHex(response.body.txHex, new hathorLib.Network('testnet'));
     expect(tx.outputs.map(o => o.decodedScript.address.base58))
-      .toEqual(expect.arrayContaining(['wbe2eJdyZVimA7nJjmBQnKYJSXmpnpMKgG', address]));
+      .toEqual(expect.arrayContaining(['wbe2eJdyZVimA7nJjmBQnKYJSXmpnpMKgG', depositAddress]));
   });
 
-  it('should not accept melt token with empty address', async () => {
+  it('should not accept melt token with empty deposit address', async () => {
     const response = await TestUtils.request
       .post('/wallet/p2sh/tx-proposal/melt-tokens')
       .send({
         token: '0000073b972162f70061f61cf0082b7a47263cc1659a05976aca5cd01b3351ee',
         amount: 1,
-        address: '',
+        deposit_address: '',
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);
