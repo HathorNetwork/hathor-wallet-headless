@@ -168,6 +168,11 @@ async function buildMeltTokensTxProposal(req, res) {
         allowExternalMeltAuthorityAddress,
       }
     );
+    meltTokenTransaction.inputs.map(eachInput => {
+      const { data, ...input } = eachInput;
+      return input;
+    });
+
     res.send({ success: true, txHex: meltTokenTransaction.toHex() });
   } catch (err) {
     res.send({ success: false, error: err.message });
