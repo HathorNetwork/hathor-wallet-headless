@@ -167,12 +167,9 @@ async function buildMeltTokensTxProposal(req, res) {
         createAnotherMelt,
         meltAuthorityAddress,
         allowExternalMeltAuthorityAddress,
+        signTx: false,
       }
     );
-    meltTokenTransaction.inputs.map(eachInput => {
-      const { data, ...input } = eachInput;
-      return input;
-    });
 
     res.send({ success: true, txHex: meltTokenTransaction.toHex() });
   } catch (err) {

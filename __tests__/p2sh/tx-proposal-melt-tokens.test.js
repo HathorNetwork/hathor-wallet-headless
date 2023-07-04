@@ -90,6 +90,11 @@ describe('melt-tokens tx-proposal api', () => {
     const tx = hathorLib.helpersUtils.createTxFromHex(response.body.txHex, new hathorLib.Network('testnet'));
     expect(tx.outputs.map(o => o.decodedScript.address.base58))
       .toEqual(expect.arrayContaining(['wbe2eJdyZVimA7nJjmBQnKYJSXmpnpMKgG', depositAddress]));
+    expect(tx.inputs).toEqual(expect.not.arrayContaining([
+      expect.objectContaining({
+        data: expect.any(Object),
+      }),
+    ]));
   });
 
   it('should not accept melt token with empty deposit address', async () => {
