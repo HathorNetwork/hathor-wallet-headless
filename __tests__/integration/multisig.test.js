@@ -220,12 +220,12 @@ describe('send tx (HTR)', () => {
       .send({ txHex, signatures: [sig1, sig2, sig3] })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    await TestUtils.pauseForWsUpdate();
-
     loggers.test.insertLineToLog('multisig[should send minsig]: sign+push', { body: response.body });
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
     expect(response.body.hash).toBeDefined();
+
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
   });
 
   it('Should fail to send a transaction with more than min signatures', async () => {
