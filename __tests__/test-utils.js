@@ -233,9 +233,10 @@ class TestUtils {
       const app = createApp();
       server = app.listen(8088, err => {
         if (err) {
-          reject(err);
+          return reject(err);
         }
 
+        // Ensures the supertest agent will be bound to the correct express port
         request = supertest.agent(server);
         resolve();
       });
