@@ -37,8 +37,8 @@ const MULTISIG_DATA = {
   }
 };
 
-const app = createApp();
-const request = supertest(app);
+let request; let
+  server;
 
 const httpMock = new MockAdapter(axios);
 
@@ -228,8 +228,24 @@ class TestUtils {
     });
   }
 
+  static startServer() {
+    return new Promise((resolve, reject) => {
+      const app = createApp();
+      server = app.listen(8088, err => {
+        if (err) {
+          return reject(err);
+        }
+
+        // Ensures the supertest agent will be bound to the correct express port
+        request = supertest.agent(server);
+        return resolve();
+      });
+    });
+  }
+
   static stopMocks() {
     httpMock.reset();
+    server.close();
     return new Promise(resolve => {
       wsMock.stop(resolve);
     });

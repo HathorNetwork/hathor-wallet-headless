@@ -32,6 +32,7 @@ jest.mock(
 
 // Start the stub wallet
 beforeAll(async () => {
+  await TestUtils.startServer();
   TestUtils.startMocks();
   TestUtils.initLogger();
 });
