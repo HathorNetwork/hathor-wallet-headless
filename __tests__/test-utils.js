@@ -238,7 +238,7 @@ class TestUtils {
 
         // Ensures the supertest agent will be bound to the correct express port
         request = supertest.agent(server);
-        resolve();
+        return resolve();
       });
     });
   }
