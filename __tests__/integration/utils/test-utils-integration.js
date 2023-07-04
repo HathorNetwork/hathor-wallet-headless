@@ -840,14 +840,18 @@ export class TestUtils {
     /* eslint-disable no-async-promise-executor */
     return new Promise(async (resolve, reject) => {
       let timeoutHandler;
+      let timeoutReached = false;
       if (timeout) {
         // Timeout handler
         timeoutHandler = setTimeout(() => {
-          reject(new Error(`Timeout of ${timeout}ms without receiving the tx with id ${txId}`));
+          timeoutReached = true;
         }, timeout);
       }
 
       while ((await TestUtils.getTransaction(walletId, txId)).success === false) {
+        if (timeoutReached) {
+          break;
+        }
         // Tx not found, wait 1s before trying again
         await delay(1000);
       }
@@ -856,7 +860,13 @@ export class TestUtils {
         clearTimeout(timeoutHandler);
       }
 
-      resolve();
+      if (timeoutReached) {
+        // We must do the timeout handling like this because if I reject the promise directly
+        // inside the setTimeout block, this while block will continue running forever.
+        reject(new Error(`Timeout of ${timeout}ms without receiving the tx with id ${txId}`));
+      } else {
+        resolve();
+      }
     });
     /* eslint-enable no-async-promise-executor */
   }
