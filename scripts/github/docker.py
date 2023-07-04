@@ -54,8 +54,9 @@ def prep_tags(environ: Dict):
     return tags
 
 def print_output(output: Dict):
-    for k, v in output.items():
-        print(f'::set-output name={k}::{v}')
+    outputs = ['{}={}'.format(k, v) for k, v in output.items()]
+    with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+        f.writelines(outputs)
 
 if __name__ == '__main__':
     tags = prep_tags(os.environ)
