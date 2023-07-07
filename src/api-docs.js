@@ -1242,6 +1242,10 @@ const apiDoc = {
                     type: 'boolean',
                     description: 'If the melt authority address is allowed to be from another wallet. Default is false.'
                   },
+                }
+              },
+              examples: {
+                data: {
                   summary: 'Data to create the token',
                   value: {
                     name: 'Test Coin',
