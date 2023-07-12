@@ -1311,7 +1311,7 @@ const apiDoc = {
             'application/json': {
               schema: {
                 type: 'object',
-                required: ['token', 'amount', 'address'],
+                required: ['token', 'amount'],
                 properties: {
                   token: {
                     type: 'string',
@@ -1359,7 +1359,7 @@ const apiDoc = {
               'application/json': {
                 examples: {
                   error: {
-                    summary: 'Insuficient amount of tokens',
+                    summary: 'Insufficient amount of tokens',
                     value: { success: false, error: "Don't have enough HTR funds to mint this amount." }
                   },
                   success: {
