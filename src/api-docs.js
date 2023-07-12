@@ -111,6 +111,7 @@ const apiDoc = {
           },
         },
       },
+    },
     '/multisig-pubkey': {
       post: {
         summary: 'Get MultiSig xpub for a seed.',
