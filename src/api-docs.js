@@ -1345,39 +1345,38 @@ const apiDoc = {
               },
               examples: {
                 data: {
-                    amount: 100,
-                  }
+                  amount: 100,
                 }
               }
             }
           }
-        },
-        responses: {
-          200: {
-            description: 'Mint tokens.',
-            content: {
-              'application/json': {
-                examples: {
-                  error: {
-                    summary: 'Insufficient amount of tokens',
-                    value: { success: false, error: "Don't have enough HTR funds to mint this amount." }
-                  },
-                  success: {
-                    summary: 'Success',
-                    value: { success: true, txHex: '0001010203000016392ed330ed99ff0f74e4169a8d257fd1d07d3b38c4f8ecf21a78f10efa000016392ed330ed99ff0f74e4169a8d257fd1d07d3b38c4f8ecf21a78f10efa00006946304402201166baf8513c0bfd21edcb169a4df5645ca826b22b6ed22d13945628094a04c502204f382ef9e6b903397b2bcaaed5316b0bb54212037a30e5cda7a5cf4d785b8f332102a5c1b462ccdcd8b4bb2cf672e0672576420c3102ecbe74da15b2cf56cf49b4a5000016392ed330ed99ff0f74e4169a8d257fd1d07d3b38c4f8ecf21a78f10efa02006946304402201166baf8513c0bfd21edcb169a4df5645ca826b22b6ed22d13945628094a04c502204f382ef9e6b903397b2bcaaed5316b0bb54212037a30e5cda7a5cf4d785b8f332102a5c1b462ccdcd8b4bb2cf672e0672576420c3102ecbe74da15b2cf56cf49b4a5000001f1000017a91462d397b360118b99a8d35892366074fe16fa6f098700000001010017a91462d397b360118b99a8d35892366074fe16fa6f098700000001810017a91462d397b360118b99a8d35892366074fe16fa6f098740327a9b3baad50b649b5f1d0000000000' }
-                  },
-                  'wallet-not-ready': {
-                    summary: 'Wallet is not ready yet',
-                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
-                  },
-                  'no-wallet-id': {
-                    summary: 'No wallet id parameter',
-                    value: { success: false, message: "Parameter 'wallet-id' is required." }
-                  },
-                  'invalid-wallet-id': {
-                    summary: 'Wallet id parameter is invalid',
-                    value: { success: false, message: 'Invalid wallet-id parameter.' }
-                  },
+        }
+      },
+      responses: {
+        200: {
+          description: 'Mint tokens.',
+          content: {
+            'application/json': {
+              examples: {
+                error: {
+                  summary: 'Insufficient amount of tokens',
+                  value: { success: false, error: "Don't have enough HTR funds to mint this amount." }
+                },
+                success: {
+                  summary: 'Success',
+                  value: { success: true, txHex: '0001010203000016392ed330ed99ff0f74e4169a8d257fd1d07d3b38c4f8ecf21a78f10efa000016392ed330ed99ff0f74e4169a8d257fd1d07d3b38c4f8ecf21a78f10efa00006946304402201166baf8513c0bfd21edcb169a4df5645ca826b22b6ed22d13945628094a04c502204f382ef9e6b903397b2bcaaed5316b0bb54212037a30e5cda7a5cf4d785b8f332102a5c1b462ccdcd8b4bb2cf672e0672576420c3102ecbe74da15b2cf56cf49b4a5000016392ed330ed99ff0f74e4169a8d257fd1d07d3b38c4f8ecf21a78f10efa02006946304402201166baf8513c0bfd21edcb169a4df5645ca826b22b6ed22d13945628094a04c502204f382ef9e6b903397b2bcaaed5316b0bb54212037a30e5cda7a5cf4d785b8f332102a5c1b462ccdcd8b4bb2cf672e0672576420c3102ecbe74da15b2cf56cf49b4a5000001f1000017a91462d397b360118b99a8d35892366074fe16fa6f098700000001010017a91462d397b360118b99a8d35892366074fe16fa6f098700000001810017a91462d397b360118b99a8d35892366074fe16fa6f098740327a9b3baad50b649b5f1d0000000000' }
+                },
+                'wallet-not-ready': {
+                  summary: 'Wallet is not ready yet',
+                  value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                },
+                'no-wallet-id': {
+                  summary: 'No wallet id parameter',
+                  value: { success: false, message: "Parameter 'wallet-id' is required." }
+                },
+                'invalid-wallet-id': {
+                  summary: 'Wallet id parameter is invalid',
+                  value: { success: false, message: 'Invalid wallet-id parameter.' }
                 },
               },
             },
