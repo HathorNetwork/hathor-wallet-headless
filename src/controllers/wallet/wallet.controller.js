@@ -5,12 +5,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-// import is used because there is an issue with winston logger when using require ref: #262
-import { HATHOR_TOKEN_CONFIG } from '@hathor/wallet-lib/lib/constants';
-import logger from '../../logger'; // eslint-disable-line import/no-import-module-exports
+const { HATHOR_TOKEN_CONFIG } = require('@hathor/wallet-lib/lib/constants'); // eslint-disable-line import/no-import-module-exports
 
 const { txApi, walletApi, WalletType, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, transactionUtils, PartialTx } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
+// import is used because there is an issue with winston logger when using require ref: #262
+const logger = require('../../logger');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../lock');
 const { cantSendTxErrorMessage, friendlyWalletState } = require('../../helpers/constants');
@@ -391,7 +391,6 @@ async function decodeTx(req, res) {
     const balance = {};
     const balanceObj = await transactionUtils.getTxBalance(data, req.wallet.storage);
     for (const token of Object.keys(balanceObj)) {
-      const balanceObj = await transactionUtils.getTxBalance(data, req.wallet.storage);
       balance[token] = ({
         tokens: {
           available: balanceObj[token].tokens.unlocked,

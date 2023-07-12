@@ -211,7 +211,7 @@ async function prepareTxFunds(wallet, outputs, inputs, defaultToken = HATHOR_TOK
  * @return {Promise<DecodedTx|FullNodeTx|null>} Data from the transaction to get.
  *    Can be null if both the wallet and fullnode does not contain the tx.
  *
- * @see DecodedTx at {@link https://github.com/HathorNetwork/hathor-wallet-lib/blob/bc94221cece2bd6d7b64d971ef30b7d593f07e42/src/new/wallet.js#L1058} 
+ * @see DecodedTx at {@link https://github.com/HathorNetwork/hathor-wallet-lib/blob/bc94221cece2bd6d7b64d971ef30b7d593f07e42/src/new/wallet.js#L1058}
  * @see FullNodeTx at {@link https://github.com/HathorNetwork/hathor-wallet-lib/blob/bc94221cece2bd6d7b64d971ef30b7d593f07e42/src/wallet/types.ts#L500}
  */
 async function getTx(wallet, id) {
