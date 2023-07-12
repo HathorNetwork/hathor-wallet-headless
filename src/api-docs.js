@@ -575,20 +575,50 @@ const apiDoc = {
                     value: {
                       success: true,
                       tx: {
+                        completeSignatures: false,
+                        tokens: [],
                         outputs: [
                           {
-                            address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
+                            decoded: {
+                              address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
+                              mine: true,
+                              timelock: null,
+                            },
+                            token: '00',
                             value: 100,
-                            tokenData: 1,
-                            token: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d'
+                            tokenData: 0,
+                            token_data: 0,
+                            script: 'dqkUISAnpOn9Vo269QBvOfBeWJTLx82IrA==',
+                            type: 'p2sh',
                           }
                         ],
                         inputs: [
                           {
+                            decoded: {
+                              type: 'MultiSig',
+                              address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
+                              timelock: null,
+                            },
                             txId: '006e18f3c303892076a12e68b5c9c30afe9a96a528f0f3385898001858f9c35d',
                             index: 0,
+                            token: '00',
+                            value: 100,
+                            tokenData: 0,
+                            token_data: 0,
+                            script: 'dqkUISAnpOn9Vo269QBvOfBeWJTLx82IrA==',
+                            signed: false,
+                            mine: true,
                           }
                         ]
+                      },
+                      balance: {
+                        '00': {
+                          tokens: { available: 0, locked: 0 },
+                          authorities: {
+                            melt: { available: 0, locked: 0 },
+                            mint: { available: 0, locked: 0 },
+                          },
+                        },
                       },
                     },
                   },
