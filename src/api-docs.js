@@ -1212,7 +1212,7 @@ const apiDoc = {
                   },
                   address: {
                     type: 'string',
-                    description: 'Destination address of the minted tokens.'
+                    description: 'Optional destination address of the minted tokens.'
                   },
                   change_address: {
                     type: 'string',
@@ -1345,6 +1345,7 @@ const apiDoc = {
               },
               examples: {
                 data: {
+                  token: '0000073b972162f70061f61cf0082b7a47263cc1659a05976aca5cd01b3351ee',
                   amount: 100,
                 }
               }

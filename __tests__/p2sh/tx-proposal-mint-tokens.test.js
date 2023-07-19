@@ -76,7 +76,7 @@ describe('mint-tokens tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(false);
+    expect(response.body.error).toEqual('Not enough HTR tokens for deposit: 10000000000 required, 89600 available');
   });
 
   it('should return 200 with a valid body selecting address', async () => {
@@ -94,7 +94,7 @@ describe('mint-tokens tx-proposal api', () => {
     expect(response.body.txHex).toBeDefined();
     const tx = hathorLib.helpersUtils.createTxFromHex(response.body.txHex, new hathorLib.Network('testnet'));
     expect(tx.outputs.map(o => o.decodedScript.address.base58))
-      .toEqual(expect.arrayContaining(['wbe2eJdyZVimA7nJjmBQnKYJSXmpnpMKgG', address]));
+      .toEqual(expect.arrayContaining([TestUtils.multisigAddresses[1], address]));
   });
 
   it('should not accept mint token with empty address', async () => {
@@ -125,7 +125,7 @@ describe('mint-tokens tx-proposal api', () => {
     expect(response.body.txHex).toBeDefined();
     const tx = hathorLib.helpersUtils.createTxFromHex(response.body.txHex, new hathorLib.Network('testnet'));
     expect(tx.outputs.map(o => o.decodedScript.address.base58))
-      .toEqual(expect.arrayContaining(['wbe2eJdyZVimA7nJjmBQnKYJSXmpnpMKgG', changeAddress]));
+      .toEqual(expect.arrayContaining([TestUtils.multisigAddresses[1], changeAddress]));
   });
 
   it('should not accept mint token with empty change address', async () => {
@@ -169,7 +169,7 @@ describe('mint-tokens tx-proposal api', () => {
     expect(response.body.txHex).toBeDefined();
     const tx = hathorLib.helpersUtils.createTxFromHex(response.body.txHex, new hathorLib.Network('testnet'));
     expect(tx.outputs.map(o => o.decodedScript.address.base58))
-      .toEqual(expect.arrayContaining(['wbe2eJdyZVimA7nJjmBQnKYJSXmpnpMKgG']));
+      .toEqual(expect.arrayContaining([TestUtils.multisigAddresses[1]]));
     expect(tx.outputs).toHaveLength(2);
   });
 
@@ -188,7 +188,7 @@ describe('mint-tokens tx-proposal api', () => {
     expect(response.body.txHex).toBeDefined();
     const tx = hathorLib.helpersUtils.createTxFromHex(response.body.txHex, new hathorLib.Network('testnet'));
     expect(tx.outputs.map(o => o.decodedScript.address.base58))
-      .toEqual(expect.arrayContaining(['wbe2eJdyZVimA7nJjmBQnKYJSXmpnpMKgG', mintAuthorityAddress]));
+      .toEqual(expect.arrayContaining([TestUtils.multisigAddresses[1], mintAuthorityAddress]));
     expect(tx.outputs).toHaveLength(3);
     const authorityOutputs = tx.outputs.filter(o => TOKEN_DATA.isAuthorityToken(o.tokenData));
     expect(authorityOutputs).toHaveLength(1);
@@ -224,7 +224,7 @@ describe('mint-tokens tx-proposal api', () => {
     expect(response.body.txHex).toBeDefined();
     const tx = hathorLib.helpersUtils.createTxFromHex(response.body.txHex, new hathorLib.Network('testnet'));
     expect(tx.outputs.map(o => o.decodedScript.address.base58))
-      .toEqual(expect.arrayContaining(['wbe2eJdyZVimA7nJjmBQnKYJSXmpnpMKgG', mintAuthorityAddress]));
+      .toEqual(expect.arrayContaining([TestUtils.multisigAddresses[1], mintAuthorityAddress]));
     expect(tx.outputs).toHaveLength(3);
     const authorityOutputs = tx.outputs.filter(o => TOKEN_DATA.isAuthorityToken(o.tokenData));
     expect(authorityOutputs).toHaveLength(1);
