@@ -714,7 +714,7 @@ export default {
             selected_as_input: false,
           },
           {
-            value: 100,
+            value: 200,
             token_data: 1,
             script: 'dqkU/qcZVmiK7oEMzDyVX9kwfldkR8CIrA==',
             decoded: {

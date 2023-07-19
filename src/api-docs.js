@@ -855,7 +855,7 @@ const apiDoc = {
                 examples: {
                   error: {
                     summary: 'Insuficient amount of tokens',
-                    value: { success: false, error: "There aren't enough inputs to melt." }
+                    value: { success: false, error: "There aren't enough tokens in the inputs to melt." }
                   },
                   success: {
                     summary: 'Success',
