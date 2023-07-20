@@ -696,7 +696,20 @@ export default {
               address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN',
               timelock: 32522094000,
             },
-            token: '03',
+            token: '0000073b972162f70061f61cf0082b7a47263cc1659a05976aca5cd01b3351ee',
+            spent_by: null,
+            selected_as_input: false,
+          },
+          {
+            value: 1,
+            token_data: 129,
+            script: 'qRTqJUJmzEmBNvhkmDuZ4JxcMh5/ioc=',
+            decoded: {
+              type: 'P2SH',
+              address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
+              timelock: null
+            },
+            token: '0000073b972162f70061f61cf0082b7a47263cc1659a05976aca5cd01b3351ee',
             spent_by: null,
             selected_as_input: false,
           },
@@ -720,7 +733,7 @@ export default {
           '00e161a6b0bee1781ea9300680913fb76fd0fac4acab527cd9626cc1514abdc9',
         ],
         height: 19,
-        tokens: ['03']
+        tokens: ['0000073b972162f70061f61cf0082b7a47263cc1659a05976aca5cd01b3351ee']
       },
       {
         tx_id:
