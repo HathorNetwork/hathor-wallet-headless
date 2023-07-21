@@ -201,8 +201,42 @@ async function prepareTxFunds(wallet, outputs, inputs, defaultToken = HATHOR_TOK
   };
 }
 
+/**
+ * Best effort to get a transaction. First look up at the storage to get a trasaction
+ * from the history. If not found, query the fullnode about the transaction.
+ * If the transaction is not found in the fullnode, return null.
+ *
+ * @param {HathorWallet} wallet
+ * @param {string} id Hash of the transaction to get data from
+ * @return {Promise<DecodedTx|FullNodeTx|null>} Data from the transaction to get.
+ *    Can be null if both the wallet and fullnode does not contain the tx.
+ *
+ * @see DecodedTx at {@link https://github.com/HathorNetwork/hathor-wallet-lib/blob/bc94221cece2bd6d7b64d971ef30b7d593f07e42/src/new/wallet.js#L1058}
+ * @see FullNodeTx at {@link https://github.com/HathorNetwork/hathor-wallet-lib/blob/bc94221cece2bd6d7b64d971ef30b7d593f07e42/src/wallet/types.ts#L500}
+ */
+async function getTx(wallet, id) {
+  const tx = await wallet.getTx(id);
+  if (tx) {
+    return tx;
+  }
+
+  try {
+    const response = await wallet.getFullTxById(id);
+    if (response.success) {
+      return response.tx;
+    }
+
+    console.warn('Failed to get transaction from fullnode.', response.message);
+    return null;
+  } catch (error) {
+    console.error('Error while getting transaction from fullnode.', error);
+    return null;
+  }
+}
+
 module.exports = {
   mapTxReturn,
   getUtxosToFillTx,
   prepareTxFunds,
+  getTx
 };
