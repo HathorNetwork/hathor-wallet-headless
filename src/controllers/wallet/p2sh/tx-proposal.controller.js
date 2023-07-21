@@ -136,6 +136,49 @@ async function buildMintTokensTxProposal(req, res) {
   }
 }
 
+async function buildMeltTokensTxProposal(req, res) {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    res.status(400).json(validationResult);
+    return;
+  }
+
+  const {
+    token,
+    amount,
+  } = req.body;
+
+  const depositAddress = req.body.deposit_address || null;
+  const changeAddress = req.body.change_address || null;
+  const createAnotherMelt = req.body.create_melt ?? true;
+  const meltAuthorityAddress = req.body.melt_authority_address || null;
+  const allowExternalMeltAuthorityAddress = req.body.allow_external_melt_authority_address || null;
+
+  try {
+    if (changeAddress && !await req.wallet.isAddressMine(changeAddress)) {
+      throw new Error('Change address is not from this wallet');
+    }
+
+    const meltTokenTransaction = await req.wallet.prepareMeltTokensData(
+      token,
+      amount,
+      {
+        address: depositAddress,
+        changeAddress,
+        createAnotherMelt,
+        meltAuthorityAddress,
+        allowExternalMeltAuthorityAddress,
+        signTx: false,
+      }
+    );
+
+    res.send({ success: true, txHex: meltTokenTransaction.toHex() });
+  } catch (err) {
+    console.error(err);
+    res.send({ success: false, error: err.message });
+  }
+}
+
 async function getMySignatures(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
@@ -226,6 +269,7 @@ module.exports = {
   buildTxProposal,
   buildCreateTokenTxProposal,
   buildMintTokensTxProposal,
+  buildMeltTokensTxProposal,
   getMySignatures,
   signTx,
   signAndPush,

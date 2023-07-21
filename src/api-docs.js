@@ -786,6 +786,100 @@ const apiDoc = {
         },
       },
     },
+    '/wallet/tx-proposal/melt-tokens': {
+      post: {
+        summary: 'Get the hex representation of a melt tokens transaction without input data.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        requestBody: {
+          description: 'Data to melt tokens.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['token', 'amount'],
+                properties: {
+                  token: {
+                    type: 'string',
+                    description: 'UID of the token to melt.'
+                  },
+                  amount: {
+                    type: 'integer',
+                    description: 'The amount of tokens to melt. It must be an integer with the value in cents, i.e., 123 means 1.23.'
+                  },
+                  deposit_address: {
+                    type: 'string',
+                    description: 'Optional deposit_address to send the deposit HTR received after the melt.'
+                  },
+                  change_address: {
+                    type: 'string',
+                    description: 'Optional address to send the change amount of custom tokens after melt.'
+                  },
+                  melt_authority_address: {
+                    type: 'string',
+                    description: 'Optional address to send the new melt authority output created.'
+                  },
+                  allow_external_melt_authority_address: {
+                    type: 'boolean',
+                    description: 'If the melt authority address is allowed to be from another wallet. Default is false.'
+                  },
+                }
+              },
+              examples: {
+                data: {
+                  summary: 'Data to melt tokens.',
+                  value: {
+                    token: '000016392ed330ed99ff0f74e4169a8d257fd1d07d3b38c4f8ecf21a78f10efa',
+                    amount: 100,
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Melt tokens.',
+            content: {
+              'application/json': {
+                examples: {
+                  error: {
+                    summary: 'Insuficient amount of tokens',
+                    value: { success: false, error: "There aren't enough tokens in the inputs to melt." }
+                  },
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, txHex: '0001010201000016392ed330ed99ff0f74e4169a8d257fd1d07d3b38c4f8ecf21a78f10efa000016392ed330ed99ff0f74e4169a8d257fd1d07d3b38c4f8ecf21a78f10efa030069463044022011ebd6bfa5e49d504542e58b55dc79cea70e97069546eae2d4b7f470f7b9d6d302203cb7739de69eded37a5ef15e1d669768057a68d4b6089911ee63d746100a6a1b2102a5c1b462ccdcd8b4bb2cf672e0672576420c3102ecbe74da15b2cf56cf49b4a5000016392ed330ed99ff0f74e4169a8d257fd1d07d3b38c4f8ecf21a78f10efa010069463044022011ebd6bfa5e49d504542e58b55dc79cea70e97069546eae2d4b7f470f7b9d6d302203cb7739de69eded37a5ef15e1d669768057a68d4b6089911ee63d746100a6a1b2102a5c1b462ccdcd8b4bb2cf672e0672576420c3102ecbe74da15b2cf56cf49b4a500000002810017a91462d397b360118b99a8d35892366074fe16fa6f09874031fc9b86a7279e649b63f60000000000' }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     '/wallet/tx-proposal/add-signatures': {
       post: {
         summary: 'Add signatures to the transaction and return the txHex with the signatures.',
