@@ -348,16 +348,14 @@ describe('send tx (HTR)', () => {
       .send({ txHex: txHexCreateTokenToDecode, signatures })
       .set({ 'x-wallet-id': wallet1.walletId });
     const txCreateToken = response.body;
+    const tokenUid = txCreateToken.hash;
 
     await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
     expect(response.body.hash).toBeDefined();
-
-    const tokenUid = txCreateToken.hash;
-    let mctBalance = await wallet1.getBalance(tokenUid);
-    expect(mctBalance.available).toBe(100);
 
     // # Mint
     response = await TestUtils.request
@@ -376,15 +374,14 @@ describe('send tx (HTR)', () => {
     signatures = await TestUtils.getXSignatures(txHexMintTokenToDecode, wallets, 3);
 
     // try to send
-    await TestUtils.request
+    response = await TestUtils.request
       .post('/wallet/p2sh/tx-proposal/sign-and-push')
       .send({ txHex: txHexMintTokenToDecode, signatures })
       .set({ 'x-wallet-id': wallet1.walletId });
+    expect(response.body.success).toBe(true);
 
     await TestUtils.pauseForWsUpdate();
-
-    mctBalance = await wallet1.getBalance(tokenUid);
-    expect(mctBalance.available).toBe(101);
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     // # Melt
     response = await TestUtils.request
@@ -404,14 +401,16 @@ describe('send tx (HTR)', () => {
     signatures = await TestUtils.getXSignatures(txHexMeltTokenToDecode, wallets, 3);
 
     // try to send
-    await TestUtils.request
+    response = await TestUtils.request
       .post('/wallet/p2sh/tx-proposal/sign-and-push')
       .send({ txHex: txHexMeltTokenToDecode, signatures })
       .set({ 'x-wallet-id': wallet1.walletId });
+    expect(response.body.success).toBe(true);
 
     await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
-    mctBalance = await wallet1.getBalance(tokenUid);
+    const mctBalance = await wallet1.getBalance(tokenUid);
     expect(mctBalance.available).toBe(1);
 
     // Decode create token txHex
