@@ -453,10 +453,10 @@ describe('send tx (HTR)', () => {
         ]),
       }),
     });
-    decodeResponse.body.tx.inputs.map(input => expect(input).toEqual({
+    decodeResponse.body.tx.inputs.map(input => expect(input).toEqual(expect.objectContaining({
       txId: expect.any(String),
       index: expect.any(Number),
-    }));
+    })));
 
     expect(response.body.isComplete).toBe(false);
 
@@ -507,10 +507,10 @@ describe('send tx (HTR)', () => {
         ]),
       },
     });
-    decodeResponse.body.tx.inputs.map(input => expect(input).toEqual({
+    decodeResponse.body.tx.inputs.map(input => expect(input).toEqual(expect.objectContaining({
       txId: expect.any(String),
       index: expect.any(Number),
-    }));
+    })));
 
     // wallet1: sign data
     response = await TestUtils.request

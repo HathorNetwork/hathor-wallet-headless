@@ -10,7 +10,6 @@ const { HATHOR_TOKEN_CONFIG } = require('@hathor/wallet-lib/lib/constants'); // 
 const { txApi, walletApi, WalletType, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, transactionUtils, PartialTx } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
 // import is used because there is an issue with winston logger when using require ref: #262
-const logger = require('../../logger');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../lock');
 const { cantSendTxErrorMessage, friendlyWalletState } = require('../../helpers/constants');
@@ -340,6 +339,10 @@ async function decodeTx(req, res) {
             decoded: utxo.decoded,
             token: utxo.token,
             value: utxo.value,
+            // This is required by transactionUtils.getTxBalance
+            // It should be ignored by users
+            token_data: utxo.token_data,
+            // User facing duplication to keep scheme consistency
             tokenData: utxo.token_data,
             script: utxo.script,
             signed: !!input.data,
@@ -354,6 +357,10 @@ async function decodeTx(req, res) {
       output.parseScript(req.wallet.getNetworkObject());
       const outputData = {
         value: output.value,
+        // This is required by transactionUtils.getTxBalance
+        // It should be ignored by users
+        token_data: output.tokenData,
+        // User facing duplication to keep scheme consistency
         tokenData: output.tokenData,
         script: output.script.toString('base64'),
         type: output.decodedScript.getType(),
@@ -461,7 +468,7 @@ async function sendTx(req, res) {
   } catch (err) {
     const ret = { success: false, error: err.message };
     if (debug) {
-      logger.debug('/send-tx failed', {
+      console.debug('/send-tx failed', {
         body: JSON.stringify(req.body),
         response: JSON.stringify(ret),
       });
