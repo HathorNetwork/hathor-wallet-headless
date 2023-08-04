@@ -35,7 +35,9 @@
     "get_xpub_from_seed": "babel-node scripts/get_xpub_from_seed.js",
     "docs:convert": "babel-node scripts/convert-docs.js",
     "docs:lint": "npx @redocly/cli lint tmp/api-docs.json",
-    "docs": "npm run docs:convert && npm run docs:lint"
+    "docs:server": "npx @redocly/cli preview-docs tmp/api-docs.json",
+    "docs:clean": "rm tmp/api-docs.json",
+    "docs": "npm run docs:convert && npm run docs:lint && npm run docs:server && npm run docs:clean"
   },
   "repository": {
     "type": "git",
