@@ -302,6 +302,101 @@ export class WalletHelper {
   }
 
   /**
+   * Build a create-token transaction proposal.
+   *
+   * @param params
+   * @param {string} params.name Long name of the token
+   * @param {string} params.symbol Token symbol
+   * @param {number} params.amount of tokens to generate
+   * @param {string} [params.address] Destination address for the custom token
+   * @returns {Promise<string>} txHex as the transaction proposal
+   *
+   * XXX: only supports multisig
+   */
+  async buildCreateToken(params) {
+    if (!this.#multisig) {
+      throw new Error('The wallet is not a multisig.');
+    }
+
+    // no param null is allowed
+    const paramKeys = ['name', 'symbol', 'amount', 'address'];
+    for (const key of paramKeys) {
+      if (!params[key]) {
+        throw new Error(`'${key} param can not be null or undefined.'`);
+      }
+    }
+
+    const response = await TestUtils.request
+      .post('/wallet/p2sh/tx-proposal/create-token')
+      .send({
+        name: params.name,
+        symbol: params.symbol,
+        amount: params.amount,
+        address: params.address,
+        change_address: params.address,
+      })
+      .set({ 'x-wallet-id': this.#walletId });
+    return response.body.txHex;
+  }
+
+  /**
+   * Sign the transaction proposal and send the signed transaction.
+   *
+   * @param params
+   * @param {string} params.txHex Transaction proposal
+   * @param {string} params.wallets Set of all wallets composing the multisig wallet
+   * @param {number} params.xSignatures Number X of signatures to be generated for the transaction
+   * @param {boolean} [params.dontLogErrors] Skip logging errors.
+   * @returns {Promise<unknown>} Sent transaction
+   *
+   * XXX: only supports multisig
+   */
+  async signAndPush(params) {
+    if (!this.#multisig) {
+      throw new Error('The wallet is not a multisig.');
+    }
+    const {
+      txHex = null,
+      wallets = null,
+      xSignatures = null,
+    } = params;
+    const _params = { txHex, wallets, xSignatures };
+
+    // no param null is allowed
+    for (const key of Object.keys(_params)) {
+      if (!_params[key]) {
+        throw new Error(`'${key} param can not be null.'`);
+      }
+    }
+
+    // Creating the request body from mandatory and optional parameters
+    const tokenCreationBody = {
+      txHex: _params.txHex,
+      signatures: await TestUtils.getXSignatures(
+        _params.txHex,
+        _params.wallets,
+        _params.xSignatures
+      ),
+    };
+
+    const newTokenResponse = await TestUtils.request
+      .post('/wallet/p2sh/tx-proposal/sign-and-push')
+      .send(tokenCreationBody)
+      .set({ 'x-wallet-id': this.#walletId });
+    await TestUtils.pauseForWsUpdate();
+
+    const transaction = TestUtils.handleTransactionResponse({
+      methodName: 'createToken',
+      requestBody: tokenCreationBody,
+      txResponse: newTokenResponse,
+      dontLogErrors: params.dontLogErrors
+    });
+
+    TestUtils.log('Sign and push transaction', { transaction });
+    return transaction;
+  }
+
+  /**
    * @typedef SendTxInputParam
    * @property {string} [hash] UTXO transaction hash
    * @property {number} [index] UTXO output index

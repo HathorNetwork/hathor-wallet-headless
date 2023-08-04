@@ -870,4 +870,53 @@ export class TestUtils {
     });
     /* eslint-enable no-async-promise-executor */
   }
+
+  /**
+   * Generate X signatures from a set of wallets for a given txHex.
+   * The wallets to compose the signature are selected randomly.
+   *
+   * @param {string} txHex the encoded transaction proposal to be signed.
+   * @param {WalletHelper[]} wallets a set of wallets corresponding to the multisig wallet.
+   * @param {number} xSignatures amount of signatures.
+   *
+   * @return {Promise<string[]>} a set of signatures of X degree.
+   */
+  static async getXSignatures(txHex, wallets, xSignatures) {
+    if (!txHex) {
+      throw new Error(`'txHex' cannot be null or undefined`);
+    }
+    if (!Array.isArray(wallets)) {
+      throw new Error(`'wallets' is not an array.`);
+    }
+    if (!(Number.isInteger(xSignatures) && Number.isFinite(xSignatures))) {
+      throw new Error(`'xSignatures' is not a finite integer.`);
+    }
+    if (xSignatures < 1) {
+      throw new Error(`'xSignatures' should be at least 1.`);
+    }
+    if (xSignatures > wallets.length) {
+      throw new Error(`'xSignatures' can not be greater than the number of wallets.`);
+    }
+
+    const selectedWallets = {};
+    let xLeft = xSignatures;
+    while (xLeft > 0) {
+      const rndIdx = Math.floor(Math.random() * wallets.length);
+      if (selectedWallets[rndIdx]) {
+        continue;
+      }
+      selectedWallets[rndIdx] = wallets[rndIdx];
+      xLeft--;
+    }
+
+    const signatures = [];
+    for (const wallet of Object.values(selectedWallets)) {
+      if (!('getSignatures' in wallet)) {
+        throw new Error(`'wallet' is not an instance of WalletHelper.`);
+      }
+      signatures.push(await wallet.getSignatures(txHex));
+    }
+
+    return signatures;
+  }
 }
