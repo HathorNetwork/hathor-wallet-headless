@@ -32,7 +32,8 @@
     "lint_fix": "eslint . --fix",
     "generate_words": "babel-node scripts/generate_words.js",
     "generate_wallets": "babel-node scripts/generate_wallets.js",
-    "get_xpub_from_seed": "babel-node scripts/get_xpub_from_seed.js"
+    "get_xpub_from_seed": "babel-node scripts/get_xpub_from_seed.js",
+    "docs": "babel-node scripts/convert-docs.js"
   },
   "repository": {
     "type": "git",

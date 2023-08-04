@@ -9,3 +9,5 @@ coverage
 coverage-integration
 
 .DS_Store
+
+tmp/
