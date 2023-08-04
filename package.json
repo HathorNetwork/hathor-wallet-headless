@@ -33,7 +33,9 @@
     "generate_words": "babel-node scripts/generate_words.js",
     "generate_wallets": "babel-node scripts/generate_wallets.js",
     "get_xpub_from_seed": "babel-node scripts/get_xpub_from_seed.js",
-    "docs": "babel-node scripts/convert-docs.js"
+    "docs:convert": "babel-node scripts/convert-docs.js",
+    "docs:lint": "npx @redocly/cli lint tmp/api-docs.json",
+    "docs": "npm run docs:convert && npm run docs:lint"
   },
   "repository": {
     "type": "git",
@@ -47,6 +49,7 @@
   "homepage": "https://github.com/HathorNetwork/hathor-wallet-headless#readme",
   "devDependencies": {
     "@babel/eslint-parser": "^7.17.0",
+    "@redocly/cli": "^1.0.0",
     "axios-mock-adapter": "^1.19.0",
     "babel-jest": "^26.6.3",
     "eslint": "^8.12.0",
