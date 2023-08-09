@@ -581,7 +581,6 @@ const apiDoc = {
                           {
                             decoded: {
                               address: 'Wk2j7odPbC4Y98xKYBCFyNogxaRimU6BUj',
-                              mine: true,
                               timelock: null,
                             },
                             token: '00',
@@ -590,6 +589,7 @@ const apiDoc = {
                             token_data: 0,
                             script: 'dqkUISAnpOn9Vo269QBvOfBeWJTLx82IrA==',
                             type: 'p2sh',
+                            mine: true,
                           }
                         ],
                         inputs: [
