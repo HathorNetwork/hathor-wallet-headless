@@ -446,7 +446,6 @@ describe('send tx (HTR)', () => {
           {
             decoded: {
               address: expect.any(String),
-              mine: true,
               timelock: null,
             },
             token: '00',
@@ -455,11 +454,11 @@ describe('send tx (HTR)', () => {
             token_data: 0,
             script: expect.any(String),
             type: 'p2sh',
+            mine: true,
           },
           {
             decoded: {
               address: expect.any(String),
-              mine: true,
               timelock: null,
             },
             value: 100,
@@ -467,11 +466,11 @@ describe('send tx (HTR)', () => {
             token_data: 1,
             script: expect.any(String),
             type: 'p2sh',
+            mine: true,
           },
           {
             decoded: {
               address: expect.any(String),
-              mine: true,
               timelock: null,
             },
             value: 1,
@@ -479,11 +478,11 @@ describe('send tx (HTR)', () => {
             token_data: 129,
             script: expect.any(String),
             type: 'p2sh',
+            mine: true,
           },
           {
             decoded: {
               address: expect.any(String),
-              mine: true,
               timelock: null,
             },
             value: 2,
@@ -491,6 +490,7 @@ describe('send tx (HTR)', () => {
             token_data: 129,
             script: expect.any(String),
             type: 'p2sh',
+            mine: true,
           },
         ]),
       },
@@ -561,7 +561,6 @@ describe('send tx (HTR)', () => {
           {
             decoded: {
               address: expect.any(String),
-              mine: true,
               timelock: null,
             },
             token: '00',
@@ -570,11 +569,11 @@ describe('send tx (HTR)', () => {
             token_data: 0,
             script: expect.any(String),
             type: 'p2sh',
+            mine: true,
           },
           {
             decoded: {
               address: expect.any(String),
-              mine: true,
               timelock: null,
             },
             token: tokenUid,
@@ -583,11 +582,11 @@ describe('send tx (HTR)', () => {
             token_data: 1,
             script: expect.any(String),
             type: 'p2sh',
+            mine: true,
           },
           {
             decoded: {
               address: expect.any(String),
-              mine: true,
               timelock: null,
             },
             token: tokenUid,
@@ -596,6 +595,7 @@ describe('send tx (HTR)', () => {
             token_data: 129,
             script: expect.any(String),
             type: 'p2sh',
+            mine: true,
           },
         ]),
       }),
@@ -684,7 +684,6 @@ describe('send tx (HTR)', () => {
           {
             decoded: {
               address: expect.any(String),
-              mine: true,
               timelock: null,
             },
             script: expect.any(String),
@@ -693,11 +692,11 @@ describe('send tx (HTR)', () => {
             token_data: 1,
             type: 'p2sh',
             value: 1,
+            mine: true,
           },
           {
             decoded: {
               address: expect.any(String),
-              mine: true,
               timelock: null,
             },
             script: expect.any(String),
@@ -706,11 +705,11 @@ describe('send tx (HTR)', () => {
             token_data: 129,
             type: 'p2sh',
             value: 2,
+            mine: true,
           },
           {
             decoded: {
               address: expect.any(String),
-              mine: true,
               timelock: null,
             },
             script: expect.any(String),
@@ -719,6 +718,7 @@ describe('send tx (HTR)', () => {
             token_data: 0,
             type: 'p2sh',
             value: 1,
+            mine: true,
           },
         ],
       },

@@ -210,10 +210,10 @@ describe('decode api', () => {
             decoded: {
               address: TestUtils.addresses[0],
               timelock: null,
-              mine: false,
             },
             script: expect.any(String),
             type: 'p2pkh',
+            mine: false,
           }),
           expect.objectContaining({
             value: 20,
@@ -222,11 +222,11 @@ describe('decode api', () => {
             decoded: {
               address: TestUtils.addresses[1],
               timelock: null,
-              mine: false,
             },
             script: expect.any(String),
             token: '00',
             type: 'p2pkh',
+            mine: false,
           }),
         ],
       }),
