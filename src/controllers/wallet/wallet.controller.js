@@ -356,11 +356,6 @@ async function decodeTx(req, res) {
     for (const output of tx.outputs) {
       output.parseScript(req.wallet.getNetworkObject());
 
-      let mine = false;
-      if (output.decodedScript) {
-        mine = await req.wallet.isAddressMine(output.decodedScript.address.base58);
-      }
-
       const outputData = {
         value: output.value,
         // This is required by transactionUtils.getTxBalance
@@ -371,8 +366,9 @@ async function decodeTx(req, res) {
         script: output.script.toString('base64'),
         type: output.decodedScript.getType(),
         decoded: output.decodedScript,
-        mine,
+        mine: false,
       };
+
       if (output.tokenData !== 0) {
         outputData.token = tx.tokens[output.getTokenIndex()];
       } else {
@@ -391,6 +387,7 @@ async function decodeTx(req, res) {
             address: output.decodedScript.address.base58,
             timelock: output.decodedScript.timelock,
           };
+          outputData.mine = await req.wallet.isAddressMine(output.decodedScript.address.base58);
       }
       data.outputs.push(outputData);
     }
