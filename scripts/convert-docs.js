@@ -9,8 +9,8 @@ const { writeFile } = require('fs/promises');
 const apiDocs = require('../src/api-docs');
 
 (async () => {
-  // Remove redundant `default` property
-  const docsObj = apiDocs.default || apiDocs;
+  // Remove `default` export property
+  const docsObj = apiDocs.default;
 
   // Remove obsolete properties
   delete docsObj.components.securitySchemes;
