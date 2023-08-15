@@ -384,6 +384,7 @@ export class WalletHelper {
       .send(tokenCreationBody)
       .set({ 'x-wallet-id': this.#walletId });
     await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(this.#walletId, newTokenResponse.body.hash);
 
     const transaction = TestUtils.handleTransactionResponse({
       methodName: 'createToken',

@@ -428,6 +428,7 @@ export class TestUtils {
     });
 
     await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(WALLET_CONSTANTS.genesis.walletId, response.body.hash);
 
     return transaction;
   }
