@@ -4,6 +4,7 @@ import { WALLET_CONSTANTS } from '../configuration/test-constants';
 import { WalletBenchmarkUtil } from './benchmark/wallet-benchmark.util';
 import { TxTimeHelper } from './benchmark/tx-time.helper';
 import { precalculationHelpers } from '../../../scripts/helpers/wallet-precalculation.helper';
+import { delay } from './core.util';
 
 /**
  * A helper for testing the wallet
@@ -571,5 +572,14 @@ export class WalletHelper {
    */
   async createNft(params) {
     return TestUtils.createNft({ ...params, walletId: this.#walletId });
+  }
+
+  async waitHasUtxoAtAddress(address) {
+    let utxosAvailable = 0;
+    while (utxosAvailable == 0) {
+      await delay(500);
+      const utxos = await this.getUtxos({ filter_address: address });
+      utxosAvailable = utxos.total_utxos_available;
+    }
   }
 }

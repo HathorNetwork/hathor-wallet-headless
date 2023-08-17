@@ -28,6 +28,8 @@ describe('balance routes', () => {
       );
 
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3, minerWallet]);
+      // Wait until at least one block is mined
+      await minerWallet.waitHasUtxoAtAddress(WALLET_CONSTANTS.miner.addresses[0]);
       await wallet2.injectFunds(wallet2Balance);
       await wallet3.injectFunds(100);
     } catch (err) {

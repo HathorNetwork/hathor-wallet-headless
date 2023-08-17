@@ -431,6 +431,8 @@ describe('utxo-filter routes', () => {
       }
     );
     await WalletHelper.startMultipleWalletsForTest([minerWallet]);
+    // Wait until at least one block is mined
+    await minerWallet.waitHasUtxoAtAddress(WALLET_CONSTANTS.miner.addresses[0]);
 
     const allUtxosPromise = await TestUtils.request
       .get('/wallet/utxo-filter')

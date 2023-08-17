@@ -25,6 +25,8 @@ describe('address-info routes', () => {
       );
 
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, minerWallet]);
+      // Wait until at least one block is mined
+      await minerWallet.waitHasUtxoAtAddress(WALLET_CONSTANTS.miner.addresses[0]);
       await wallet1.injectFunds(address1balance, 1);
       await wallet2.injectFunds(10);
       const customToken = await wallet2.createToken({
