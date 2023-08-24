@@ -427,8 +427,9 @@ export class TestUtils {
       id: transaction.hash
     });
 
-    await TestUtils.pauseForWsUpdate();
+    // Wait for both wallets to receive this transaction, so we can continue the tests
     await TestUtils.waitForTxReceived(WALLET_CONSTANTS.genesis.walletId, response.body.hash);
+    await TestUtils.waitForTxReceived(destinationWalletId, response.body.hash);
 
     return transaction;
   }
