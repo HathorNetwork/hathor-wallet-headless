@@ -13,6 +13,11 @@ import config from './config';
 import createApp from './app';
 import { EVENTBUS_EVENT_NAME, notificationBus } from './services/notification.service';
 import version from './version';
+import settings from './settings';
+
+settings.setup_config().then(() => {
+  console.log(JSON.stringify(settings.get_config()));
+});
 
 if (config.enabled_plugins && config.enabled_plugins.length > 0) {
   // There are configured plugins, we should start the child process
