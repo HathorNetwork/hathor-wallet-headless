@@ -16,6 +16,7 @@ const { sanitizeLogInput } = require('../logger');
 const { getReadonlyWalletConfig, getWalletConfigFromSeed, WalletStartError } = require('../helpers/wallet.helper');
 const { mapTxReturn } = require('../helpers/tx.helper');
 const { lock, lockTypes } = require('../lock');
+const settings = require('../settings');
 
 function welcome(req, res) {
   res.send('<html><body><h1>Welcome to Hathor Wallet API!</h1>'
@@ -301,6 +302,16 @@ async function pushTxHex(req, res) {
   }
 }
 
+async function getConfig(_, res) {
+  res.send({ success: true, config: settings.get_config()});
+}
+
+async function reloadConfig(_, res) {
+  await settings.reload_config();
+  res.send({success: true, config: await settings.get_config() });
+}
+
+
 module.exports = {
   welcome,
   docs,
@@ -308,4 +319,6 @@ module.exports = {
   multisigPubkey,
   getConfigurationString,
   pushTxHex,
+  getConfig,
+  reloadConfig,
 };

@@ -35,6 +35,9 @@ mainRouter.get(
   rootControllers.getConfigurationString
 );
 
+mainRouter.get('/config', rootControllers.getConfig);
+mainRouter.post('/reload-config', rootControllers.reloadConfig);
+
 mainRouter.use('/wallet', walletRouter);
 
 mainRouter.use(ReadonlyErrorHandler);
