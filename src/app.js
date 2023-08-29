@@ -12,6 +12,7 @@ import { SWAP_SERVICE_MAINNET_BASE_URL, SWAP_SERVICE_TESTNET_BASE_URL } from './
 
 import config from './config';
 import apiKeyAuth from './middlewares/api-key-auth.middleware';
+import { ConfigErrorHandler } from './middlewares/config-error-handler.middleware';
 import logger from './logger';
 import version from './version';
 import mainRouter from './routes/index.routes';
@@ -61,6 +62,7 @@ const createApp = () => {
     app.use(apiKeyAuth(config.http_api_key));
   }
 
+  app.use(ConfigErrorHandler);
   app.use(mainRouter);
 
   return app;

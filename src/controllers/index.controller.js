@@ -303,12 +303,12 @@ async function pushTxHex(req, res) {
 }
 
 async function getConfig(_, res) {
-  res.send({ success: true, config: settings.get_config()});
+  res.send({ success: true, config: settings.getConfig()});
 }
 
 async function reloadConfig(_, res) {
-  await settings.reload_config();
-  res.send({success: true, config: await settings.get_config() });
+  await settings.reloadConfig();
+  res.send({success: true, config: await settings.getConfig() });
 }
 
 
