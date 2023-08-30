@@ -7,7 +7,6 @@
 
 const { walletApi, tokensUtils, walletUtils, Connection, HathorWallet, Network, helpersUtils, SendTransaction } = require('@hathor/wallet-lib');
 const apiDocs = require('../api-docs');
-const config = require('../config');
 const { initializedWallets } = require('../services/wallets.service');
 const { notificationBus } = require('../services/notification.service');
 const { cantSendTxErrorMessage, API_ERROR_CODES } = require('../helpers/constants');
@@ -28,6 +27,7 @@ function docs(req, res) {
 }
 
 async function start(req, res) {
+  const config = settings.getConfig();
   // We expect the user to either send the seed or an xpubkey he wants to use.
   if (!('xpubkey' in req.body) && !('seedKey' in req.body) && !('seed' in req.body)) {
     res.send({
@@ -154,6 +154,7 @@ async function start(req, res) {
         seed,
         multisigData,
         passphrase: req.body.passphrase,
+        allowPassphrase: config.allowPassphrase,
       });
     } catch (e) {
       if (e instanceof WalletStartError) {
@@ -219,6 +220,8 @@ async function start(req, res) {
 }
 
 function multisigPubkey(req, res) {
+  const config = settings.getConfig();
+
   if (!('seedKey' in req.body)) {
     res.send({
       success: false,
@@ -275,6 +278,8 @@ function getConfigurationString(req, res) {
 }
 
 async function pushTxHex(req, res) {
+  const config = settings.getConfig();
+
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     res.status(400).json(validationResult);
@@ -302,13 +307,9 @@ async function pushTxHex(req, res) {
   }
 }
 
-async function getConfig(_, res) {
-  res.send({ success: true, config: settings.getConfig()});
-}
-
 async function reloadConfig(_, res) {
   await settings.reloadConfig();
-  res.send({success: true, config: await settings.getConfig() });
+  res.send({ success: true });
 }
 
 
@@ -319,6 +320,5 @@ module.exports = {
   multisigPubkey,
   getConfigurationString,
   pushTxHex,
-  getConfig,
   reloadConfig,
 };

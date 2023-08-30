@@ -6,7 +6,6 @@
  */
 
 import { errors, walletUtils } from '@hathor/wallet-lib';
-import config from '../config';
 import { WalletStartError } from '../errors';
 
 export function getReadonlyWalletConfig({
@@ -29,6 +28,7 @@ export function getWalletConfigFromSeed({
   seed,
   multisigData = null,
   passphrase = null,
+  allowPassphrase = false,
 } = {}) {
   let words;
   // Seed validation
@@ -54,8 +54,6 @@ export function getWalletConfigFromSeed({
 
   if (passphrase) {
     // If config explicitly allows the /start endpoint to have a passphrase
-    const allowPassphrase = config.allowPassphrase || false;
-
     if (!allowPassphrase) {
       // To use a passphrase on /start POST request
       // the configuration of the headless must explicitly allow it

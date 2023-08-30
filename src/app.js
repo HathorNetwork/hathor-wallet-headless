@@ -10,15 +10,14 @@ import morgan from 'morgan';
 import { config as hathorLibConfig } from '@hathor/wallet-lib';
 import { SWAP_SERVICE_MAINNET_BASE_URL, SWAP_SERVICE_TESTNET_BASE_URL } from './constants';
 
-import config from './config';
 import apiKeyAuth from './middlewares/api-key-auth.middleware';
 import { ConfigErrorHandler } from './middlewares/config-error-handler.middleware';
-import logger from './logger';
+import buildLogger from './logger';
 import version from './version';
 import mainRouter from './routes/index.routes';
 
 // Initializing Hathor Lib
-export const initHathorLib = () => {
+export const initHathorLib = (config) => {
   if (config.txMiningUrl) {
     hathorLibConfig.setTxMiningUrl(config.txMiningUrl);
   }
@@ -49,8 +48,10 @@ export const initHathorLib = () => {
   hathorLibConfig.setNetwork(config.network);
 };
 
-const createApp = () => {
-  initHathorLib();
+const createApp = (config) => {
+  initHathorLib(config);
+
+  const logger = buildLogger(config);
 
   // Initializing ExpressJS
   const app = express();
