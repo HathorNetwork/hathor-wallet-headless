@@ -16,8 +16,9 @@ const {
   signTx,
   signAndPush,
 } = require('../../../controllers/wallet/p2sh/tx-proposal.controller');
+const { patchExpressRouter } = require('../../../patch');
 
-const txProposalRouter = Router({ mergeParams: true });
+const txProposalRouter = patchExpressRouter(Router({ mergeParams: true }));
 
 txProposalRouter.post(
   '/',
