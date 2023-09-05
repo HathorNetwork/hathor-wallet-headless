@@ -6,7 +6,7 @@
  */
 
 const _ = require('lodash');
-const { config: hathorLibConfig } = require('@hathor/wallet-lib');
+const { config: hathorLibConfig, walletUtils, errors: hathorLibErrors } = require('@hathor/wallet-lib');
 
 const errors = require('./errors');
 const { initializedWallets } = require('./services/wallets.service');
@@ -114,6 +114,8 @@ async function _stopAllWallets() {
 async function _analizeConfig(oldConfig, newConfig) {
   // TODO: analize newConfig to check that we have a good config
 
+  // Checking changes in the fields:
+  // http_post, http_bind_address, http_api_key, consoleLevel, httpLogFormat, enabled_plugins
   if ((oldConfig.http_port !== newConfig.http_port)
     || (oldConfig.http_bind_address !== newConfig.http_bind_address)
     || (oldConfig.http_api_key !== newConfig.http_api_key)
@@ -124,6 +126,53 @@ async function _analizeConfig(oldConfig, newConfig) {
     throw new errors.NonRecoverableConfigChangeError();
   }
 
+  // Checking for changes in seed and multisig fields
+  if (oldConfig.seeds) {
+    let shouldStop = false;
+    for (const [seedKey, oldSeed] of Object.entries(oldConfig.seeds)) {
+      // If the new config has changed a seed, we nee to stop the wallets
+      if (newConfig[seedKey] != oldSeed) {
+        shouldStop = true;
+        break;
+      }
+      // If we had a multisig configuration we need to check that it is still relevant
+      // Adding a new multisig configuration will not trigger this
+      if (oldConfig.multisig && oldConfig.multisig[seedKey]) {
+        // Here we check in order that the newConfig has a multisig config for the same seedKey
+        // Then we check that all fields are the same
+        if ((!(newConfig.multisig && newConfig.multisig[seedKey])) ||
+            (newConfig.multisig[seedKey].total !== oldConfig.multisig[seedKey].total) ||
+            (newConfig.multisig[seedKey].numSignatures !== oldConfig.multisig[seedKey].numSignatures) ||
+            (newConfig.multisig[seedKey].pubkeys.sort().join(';') !== oldConfig.multisig[seedKey].pubkeys.sort().join(';'))
+        ) {
+          shouldStop = true;
+          break;
+        }
+      }
+    }
+    if (shouldStop) {
+      await _stopAllWallets();
+    }
+  }
+  if (newConfig.seeds) {
+    for (const seed of Object.values(newConfig.seeds)) {
+      try {
+        const isValid = walletUtils.wordsValid(seed);
+        if (!isValid.valid) {
+          throw new errors.NonRecoverableConfigChangeError();
+        }
+      } catch(err) {
+        // If the method throws InvalidWords, we should stop the service
+        if (err instanceof hathorLibErrors.InvalidWords) {
+          throw new errors.NonRecoverableConfigChangeError();
+        }
+        // If another error is thrown, just bubble it up
+        throw err;
+      }
+    }
+  }
+
+  // Checking for changes in server and network
   if ((oldConfig.server !== newConfig.server)
     || (oldConfig.network !== newConfig.network)
   ) {
@@ -134,6 +183,7 @@ async function _analizeConfig(oldConfig, newConfig) {
     return;
   }
 
+  // Checking for changes in tokenUid, gapLimit and connectionTimeout
   if ((oldConfig.tokenUid !== newConfig.tokenUid)
   || (oldConfig.gapLimit !== newConfig.gapLimit)
   || (oldConfig.connectionTimeout !== newConfig.connectionTimeout)
@@ -142,6 +192,7 @@ async function _analizeConfig(oldConfig, newConfig) {
     return;
   }
 
+  // Checking for changes in txMiningUrl, atomicSwapService, txMiningApiKey
   if ((oldConfig.txMiningUrl !== newConfig.txMiningUrl)
   || (oldConfig.atomicSwapService !== newConfig.atomicSwapService)
   || (oldConfig.txMiningApiKey !== newConfig.txMiningApiKey)

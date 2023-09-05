@@ -5,9 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { NonRecoverableConfigChangeError }  = require('../errors');
+const { NonRecoverableConfigChangeError, UnavailableConfigError }  = require('../errors');
 
 const NONRECOVERABLE_ERROR = 'A non recoverable change in the config was made, the service will shutdown.';
+const UNAVAILABLE_ERROR = 'Service currently unavailable';
 
 function ConfigErrorHandler(err, req, res, next) {
   if (err instanceof NonRecoverableConfigChangeError) {
@@ -15,6 +16,12 @@ function ConfigErrorHandler(err, req, res, next) {
     res.send({ success: false, error: NONRECOVERABLE_ERROR });
     process.exit(0);
   }
+
+  if (err instanceof UnavailableConfigError) {
+    res.status(503);
+    res.send({ success: false, error: UNAVAILABLE_ERROR});
+  }
+
   return next(err);
 }
 

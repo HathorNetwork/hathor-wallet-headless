@@ -63,8 +63,8 @@ const createApp = (config) => {
     app.use(apiKeyAuth(config.http_api_key));
   }
 
-  app.use(ConfigErrorHandler);
   app.use(mainRouter);
+  app.use(ConfigErrorHandler);
 
   return app;
 };
