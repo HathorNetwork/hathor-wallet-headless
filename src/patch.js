@@ -3,6 +3,10 @@
  */
 export function patchExpressRouter(router) {
   function handlerWrapper(originalHandler) {
+    if (!originalHandler.call) {
+      return originalHandler;
+    }
+
     return function(req, res, next) {
       const ret = originalHandler.call(this, req, res, next);
       if (ret.catch) {
