@@ -9,7 +9,7 @@ export function patchExpressRouter(router) {
 
     function wrappedHandler(req, res, next) {
       const ret = originalHandler.call(this, req, res, next);
-      if (ret.catch) {
+      if (ret && ret.catch) {
         ret.catch(err => next(err));
       }
       return ret;
