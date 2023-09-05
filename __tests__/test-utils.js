@@ -6,9 +6,11 @@ import MockAdapter from 'axios-mock-adapter';
 import { Server } from 'mock-socket';
 import { HathorWallet } from '@hathor/wallet-lib';
 import createApp from '../src/app';
-import config from '../src/config';
+import settings from '../src/settings';
 import httpFixtures from './__fixtures__/http-fixtures';
 import wsFixtures from './__fixtures__/ws-fixtures';
+
+const config = settings.getConfig();
 
 const WALLET_ID = 'stub_wallet';
 const SEED_KEY = 'stub_seed';
@@ -230,7 +232,7 @@ class TestUtils {
 
   static startServer() {
     return new Promise((resolve, reject) => {
-      const app = createApp();
+      const app = createApp(config);
       server = app.listen(8088, err => {
         if (err) {
           return reject(err);

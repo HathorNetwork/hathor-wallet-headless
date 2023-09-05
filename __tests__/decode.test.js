@@ -2,12 +2,15 @@ import { PartialTx, ProposalInput, ProposalOutput } from '@hathor/wallet-lib/lib
 import { Network, Address, P2PKH } from '@hathor/wallet-lib';
 import httpFixtures from './__fixtures__/http-fixtures';
 import TestUtils from './test-utils';
+import settings from '../src/settings';
 
 const walletId = 'stub_decode';
 
 describe('decode api', () => {
   beforeAll(async () => {
-    global.config.multisig = TestUtils.multisigData;
+    const config = settings.getConfig();
+    config.multisig = TestUtils.multisigData;
+    settings._setConfig(config);
     await TestUtils.startWallet({
       walletId,
       preCalculatedAddresses: TestUtils.multisigAddresses,
@@ -16,7 +19,9 @@ describe('decode api', () => {
   });
 
   afterAll(async () => {
-    global.config.multisig = {};
+    const config = settings.getConfig();
+    config.multisig = {};
+    settings._setConfig(config);
     await TestUtils.stopWallet({ walletId });
   });
 

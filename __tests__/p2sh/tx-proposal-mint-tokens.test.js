@@ -6,7 +6,9 @@ const walletId = 'stub_mint_tokens';
 
 describe('mint-tokens tx-proposal api', () => {
   beforeAll(async () => {
-    global.config.multisig = TestUtils.multisigData;
+    const config = settings.getConfig();
+    config.multisig = TestUtils.multisigData;
+    settings._setConfig(config);
     await TestUtils.startWallet(
       {
         walletId,
@@ -17,7 +19,9 @@ describe('mint-tokens tx-proposal api', () => {
   });
 
   afterAll(async () => {
-    global.config.multisig = {};
+    const config = settings.getConfig();
+    config.multisig = {};
+    settings._setConfig(config);
     await TestUtils.stopWallet({ walletId });
   });
 

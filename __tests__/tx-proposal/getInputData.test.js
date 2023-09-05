@@ -6,7 +6,9 @@ const walletIdMultisig = 'stub_tx_proposal_input_data_p2sh';
 
 describe('Get input-data api', () => {
   beforeAll(async () => {
-    global.config.multisig = TestUtils.multisigData;
+    const config = settings.getConfig();
+    config.multisig = TestUtils.multisigData;
+    settings._setConfig(config);
     await TestUtils.startWallet({ walletId, preCalculatedAddresses: TestUtils.addresses });
     await TestUtils.startWallet({
       walletId: walletIdMultisig,
@@ -18,7 +20,9 @@ describe('Get input-data api', () => {
   afterAll(async () => {
     await TestUtils.stopWallet({ walletId });
     await TestUtils.stopWallet({ walletId: walletIdMultisig });
-    global.config.multisig = {};
+    const config = settings.getConfig();
+    config.multisig = {};
+    settings._setConfig(config);
   });
 
   it('should not accept invalid signatures', async () => {
