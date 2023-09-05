@@ -312,7 +312,6 @@ async function reloadConfig(_, res) {
   res.send({ success: true });
 }
 
-
 module.exports = {
   welcome,
   docs,

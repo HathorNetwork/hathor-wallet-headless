@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { HathorWallet } = require("@hathor/wallet-lib");
+const { HathorWallet } = require('@hathor/wallet-lib');
 
 /**
  * @type {Map<string, HathorWallet>}

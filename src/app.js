@@ -17,7 +17,7 @@ import version from './version';
 import mainRouter from './routes/index.routes';
 
 // Initializing Hathor Lib
-export const initHathorLib = (config) => {
+export const initHathorLib = config => {
   if (config.txMiningUrl) {
     hathorLibConfig.setTxMiningUrl(config.txMiningUrl);
   }
@@ -48,7 +48,7 @@ export const initHathorLib = (config) => {
   hathorLibConfig.setNetwork(config.network);
 };
 
-const createApp = (config) => {
+const createApp = config => {
   initHathorLib(config);
 
   const logger = buildLogger(config);

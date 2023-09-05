@@ -6,7 +6,11 @@
  */
 
 const _ = require('lodash');
-const { config: hathorLibConfig, walletUtils, errors: hathorLibErrors } = require('@hathor/wallet-lib');
+const {
+  config: hathorLibConfig,
+  walletUtils,
+  errors: hathorLibErrors,
+} = require('@hathor/wallet-lib');
 
 const errors = require('./errors');
 const { initializedWallets } = require('./services/wallets.service');
@@ -16,8 +20,10 @@ const { initHathorLib } = require('./app');
 /**
  * The multisig configuration object
  * @typedef {Object} MultiSigConfig
- * @property {number} total - Total number of participants, must be equal to the length of `pubkeys`.
- * @property {number} numSignatures - Number of signatures required to send a transaction, must be lower than `total`.
+ * @property {number} total - Total number of participants, must be equal to the
+ * length of `pubkeys`.
+ * @property {number} numSignatures - Number of signatures required to send a transaction,
+ * must be lower than `total`.
  * @property {string[]} pubkeys - list of participant xpubkeys.
  */
 
@@ -32,26 +38,34 @@ const { initHathorLib } = require('./app');
  * @typedef {Object} Configuration
  * @property {string} http_bind_address - The address to run the service
  * @property {number} http_port - The port to run the service
- * @property {string} [http_api_key] - The api key to use, if not present, the api key middleware will be disabled
- * @property {'mainnet'|'testnet'|'privatenet'} network - The expected Hathor network name
+ * @property {string} [http_api_key] - The api key to use, if not present, the
+ * api key middleware will be disabled
+ * @property {'mainnet'|'testnet'|'privatenet'} network - The expected Hathor
+ * network name
  * @property {string} server - The server to connect to.
  * @property {Record<string, string>} seeds - The seeds object.
  * @property {string|null} [httpLogFormat] - The log format to use.
  * @property {string|null} [consoleLevel] - The log level to expose on the console.
  * @property {Record<string, Record<string, any>>} [logging] - The logging configuration
- * @property {string|null} [txMiningUrl] - The tx-mining-service url to use, if not present we will use the default.
- * @property {string|null} [txMiningApiKey] - The api key to send with all requests to the tx-mining-service.
- * @property {string|null} [atomicSwapService] - The atomic swap service url to use, it not present we will use the default.
+ * @property {string|null} [txMiningUrl] - The tx-mining-service url to use,
+ * if not present we will use the default.
+ * @property {string|null} [txMiningApiKey] - The api key to send with all
+ * requests to the tx-mining-service.
+ * @property {string|null} [atomicSwapService] - The atomic swap service url to
+ * use, it not present we will use the default.
  * @property {Record<string, MultiSigConfig>} [multisig] - The multisig config object
  * @property {string} [tokenUid] - The default token.
- * @property {number|null} [gapLimit] - a custom gap limit, if not present we will use the default.
+ * @property {number|null} [gapLimit] - a custom gap limit, if not present we
+ * will use the default.
  * @property {number|null} [connectionTimeout] - Websocket connection timeout in ms.
- * @property {boolean} [allowPassphrase] - If we allow the use of passphrases when starting a wallet.
- * @property {boolean} [confirmFirstAddress] - If true the user will have to provide the address at index 0 of the wallet he is trying to interact with.
- * @property {string[]} [enabled_plugins] - The plugins we should start when the service starts up.
+ * @property {boolean} [allowPassphrase] - If we allow the use of passphrases
+ * when starting a wallet.
+ * @property {boolean} [confirmFirstAddress] - If true the user will have to
+ * provide the address at index 0 of the wallet he is trying to interact with.
+ * @property {string[]} [enabled_plugins] - The plugins we should start when
+ * the service starts up.
  * @property {Record<string, PluginConfig>} [plugin_config] - The custom plugin configuration.
  */
-
 
 /** @type {Configuration} */
 let _config = null;
@@ -116,12 +130,14 @@ async function _analizeConfig(oldConfig, newConfig) {
 
   // Checking changes in the fields:
   // http_post, http_bind_address, http_api_key, consoleLevel, httpLogFormat, enabled_plugins
-  if ((oldConfig.http_port !== newConfig.http_port)
-    || (oldConfig.http_bind_address !== newConfig.http_bind_address)
-    || (oldConfig.http_api_key !== newConfig.http_api_key)
-    || (oldConfig.consoleLevel !== newConfig.consoleLevel)
-    || (oldConfig.httpLogFormat !== newConfig.httpLogFormat)
-    || (oldConfig.enabled_plugins.sort().join('#') !== newConfig.enabled_plugins.sort().join('#'))
+  if (
+    oldConfig.http_port !== newConfig.http_port
+    || oldConfig.http_bind_address !== newConfig.http_bind_address
+    || oldConfig.http_api_key !== newConfig.http_api_key
+    || oldConfig.consoleLevel !== newConfig.consoleLevel
+    || oldConfig.httpLogFormat !== newConfig.httpLogFormat
+    || oldConfig.enabled_plugins.sort().join('#')
+      !== newConfig.enabled_plugins.sort().join('#')
   ) {
     throw new errors.NonRecoverableConfigChangeError();
   }
@@ -131,7 +147,7 @@ async function _analizeConfig(oldConfig, newConfig) {
     let shouldStop = false;
     for (const [seedKey, oldSeed] of Object.entries(oldConfig.seeds)) {
       // If the new config has changed a seed, we nee to stop the wallets
-      if (newConfig[seedKey] != oldSeed) {
+      if (newConfig[seedKey] !== oldSeed) {
         shouldStop = true;
         break;
       }
@@ -140,10 +156,14 @@ async function _analizeConfig(oldConfig, newConfig) {
       if (oldConfig.multisig && oldConfig.multisig[seedKey]) {
         // Here we check in order that the newConfig has a multisig config for the same seedKey
         // Then we check that all fields are the same
-        if ((!(newConfig.multisig && newConfig.multisig[seedKey])) ||
-            (newConfig.multisig[seedKey].total !== oldConfig.multisig[seedKey].total) ||
-            (newConfig.multisig[seedKey].numSignatures !== oldConfig.multisig[seedKey].numSignatures) ||
-            (newConfig.multisig[seedKey].pubkeys.sort().join(';') !== oldConfig.multisig[seedKey].pubkeys.sort().join(';'))
+        if (
+          !(newConfig.multisig && newConfig.multisig[seedKey])
+          || newConfig.multisig[seedKey].total
+            !== oldConfig.multisig[seedKey].total
+          || newConfig.multisig[seedKey].numSignatures
+            !== oldConfig.multisig[seedKey].numSignatures
+          || newConfig.multisig[seedKey].pubkeys.sort().join(';')
+            !== oldConfig.multisig[seedKey].pubkeys.sort().join(';')
         ) {
           shouldStop = true;
           break;
@@ -161,7 +181,7 @@ async function _analizeConfig(oldConfig, newConfig) {
         if (!isValid.valid) {
           throw new errors.NonRecoverableConfigChangeError();
         }
-      } catch(err) {
+      } catch (err) {
         // If the method throws InvalidWords, we should stop the service
         if (err instanceof hathorLibErrors.InvalidWords) {
           throw new errors.NonRecoverableConfigChangeError();
@@ -173,8 +193,9 @@ async function _analizeConfig(oldConfig, newConfig) {
   }
 
   // Checking for changes in server and network
-  if ((oldConfig.server !== newConfig.server)
-    || (oldConfig.network !== newConfig.network)
+  if (
+    oldConfig.server !== newConfig.server
+    || oldConfig.network !== newConfig.network
   ) {
     await _stopAllWallets();
     // change network and server in active configuration
@@ -184,18 +205,20 @@ async function _analizeConfig(oldConfig, newConfig) {
   }
 
   // Checking for changes in tokenUid, gapLimit and connectionTimeout
-  if ((oldConfig.tokenUid !== newConfig.tokenUid)
-  || (oldConfig.gapLimit !== newConfig.gapLimit)
-  || (oldConfig.connectionTimeout !== newConfig.connectionTimeout)
+  if (
+    oldConfig.tokenUid !== newConfig.tokenUid
+    || oldConfig.gapLimit !== newConfig.gapLimit
+    || oldConfig.connectionTimeout !== newConfig.connectionTimeout
   ) {
     await _stopAllWallets();
     return;
   }
 
   // Checking for changes in txMiningUrl, atomicSwapService, txMiningApiKey
-  if ((oldConfig.txMiningUrl !== newConfig.txMiningUrl)
-  || (oldConfig.atomicSwapService !== newConfig.atomicSwapService)
-  || (oldConfig.txMiningApiKey !== newConfig.txMiningApiKey)
+  if (
+    oldConfig.txMiningUrl !== newConfig.txMiningUrl
+    || oldConfig.atomicSwapService !== newConfig.atomicSwapService
+    || oldConfig.txMiningApiKey !== newConfig.txMiningApiKey
   ) {
     initHathorLib();
   }

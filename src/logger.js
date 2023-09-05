@@ -64,7 +64,8 @@ function buildLogger(config) {
   // create a stream object with a 'write' function that will be used by `morgan`
   logger.stream = {
     write(message, encoding) {
-      // use the 'info' log level so the output will be picked up by both transports (file + console)
+      // use the 'info' log level so the output will be picked up by
+      // both transports (file + console)
       logger.info(message.trim(), {
         service: 'http',
       });
