@@ -4,6 +4,7 @@ import { precalculationHelpers, singleMultisigWalletData } from '../../scripts/h
 import { TestUtils } from './utils/test-utils-integration';
 import { loggers } from './utils/logger.util';
 import { WalletHelper } from './utils/wallet-helper';
+import settings from '../../src/settings';
 
 function newReadOnlyWallet() {
   const accountDerivationIndex = '0\'/0';
@@ -19,11 +20,15 @@ describe('Readonly wallet', () => {
   const { walletConfig: multisigWalletConfig } = singleMultisigWalletData;
 
   beforeAll(async () => {
-    global.config.multisig = { multisig: multisigWalletConfig };
+    const config = settings.getConfig();
+    config.multisig = { multisig: multisigWalletConfig };
+    settings._setConfig(config);
   });
 
   afterAll(async () => {
-    global.config.multisig = {};
+    const config = settings.getConfig();
+    config.multisig = {};
+    settings._setConfig(config);
   });
 
   it('should start readonly wallets', async () => {

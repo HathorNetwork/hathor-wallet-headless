@@ -39,11 +39,11 @@ function getTestNameFromGlobalJasmineInstance() {
 
 // Mock config file
 jest.mock(
-  './src/config',
+  './src/settings',
   () => {
-    let config = require('./__tests__/integration/configuration/config-fixture');
-    if (config.default) config = config.default;
-    return config;
+    let settings = require('./__tests__/integration/configuration/settings-fixture');
+    if (settings.default) settings = settings.default;
+    return settings;
   },
   { virtual: true },
 );
