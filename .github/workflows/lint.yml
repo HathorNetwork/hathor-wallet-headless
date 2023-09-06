@@ -30,7 +30,7 @@ jobs:
 
       # This file is required by most controllers and triggers "import/no-unresolved" if missing
       - name: Copy config file
-        run: cp ./__tests__/integration/configuration/config-fixture.js ./src/config.js
+        run: cp ./__tests__/integration/configuration/settings-fixture.js ./src/settings.js
 
       - name: Lint
         run: npm run lint
