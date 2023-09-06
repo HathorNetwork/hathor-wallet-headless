@@ -20,11 +20,9 @@ let config = cloneDeep(defaultConfig);
 export default {
   setupConfig: jest.fn().mockImplementation(() => Promise.resolve()),
   reloadConfig: jest.fn().mockImplementation(() => Promise.resolve()),
-  getConfig: () => { return config; },
+  getConfig: () => config,
   // utilities to change the configuration at runtime
-  _getDefaultConfig: () => {
-    return cloneDeep(defaultConfig);
-  },
+  _getDefaultConfig: () => cloneDeep(defaultConfig),
   _setConfig: c => {
     config = c;
   },

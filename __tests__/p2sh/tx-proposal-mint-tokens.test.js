@@ -1,6 +1,7 @@
 import hathorLib from '@hathor/wallet-lib';
 import TestUtils from '../test-utils';
 import { TOKEN_DATA, AUTHORITY_VALUE } from '../integration/configuration/test-constants';
+import settings from '../../src/settings';
 
 const walletId = 'stub_mint_tokens';
 

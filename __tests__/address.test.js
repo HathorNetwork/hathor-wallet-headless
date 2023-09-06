@@ -73,9 +73,9 @@ describe('address api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.address).toBe(TestUtils.addresses[upperLimit]);
-  });
 
-  config = settings.getConfig();
-  config.gapLimit = null;
-  settings._setConfig(config);
+    config = settings.getConfig();
+    config.gapLimit = null;
+    settings._setConfig(config);
+  });
 });

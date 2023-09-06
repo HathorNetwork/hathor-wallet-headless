@@ -1,5 +1,6 @@
 import { walletUtils } from '@hathor/wallet-lib';
 import TestUtils from '../test-utils';
+import settings from '../../src/settings';
 
 const walletId = 'stub_tx_proposal_input_data';
 const walletIdMultisig = 'stub_tx_proposal_input_data_p2sh';

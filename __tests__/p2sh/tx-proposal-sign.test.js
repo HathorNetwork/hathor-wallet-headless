@@ -1,4 +1,5 @@
 import TestUtils from '../test-utils';
+import settings from '../../src/settings';
 
 const walletId = 'stub_p2sh_tx_proposal_sign';
 

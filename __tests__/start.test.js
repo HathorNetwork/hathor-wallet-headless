@@ -77,7 +77,7 @@ describe('start api', () => {
   });
 
   it('should require x-first-address if confirmFirstAddress is true', async () => {
-    let config = settings.getConfig();
+    const config = settings.getConfig();
     config.confirmFirstAddress = true;
     settings._setConfig(config);
 
