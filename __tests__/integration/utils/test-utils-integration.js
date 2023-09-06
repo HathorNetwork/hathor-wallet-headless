@@ -9,10 +9,13 @@ import { WALLET_EVENTS, WalletBenchmarkUtil } from './benchmark/wallet-benchmark
 import { delay } from './core.util';
 import { TxTimeHelper } from './benchmark/tx-time.helper';
 import { WALLET_CONSTANTS } from '../configuration/test-constants';
+import settings from '../configuration/settings-fixture';
+
 
 export { getRandomInt } from './core.util';
 
-const app = createApp();
+const config = settings._getDefaultConfig()
+const app = createApp(config);
 const request = supertest(app);
 
 /**
