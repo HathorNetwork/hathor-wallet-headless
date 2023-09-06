@@ -11,10 +11,9 @@ import { TxTimeHelper } from './benchmark/tx-time.helper';
 import { WALLET_CONSTANTS } from '../configuration/test-constants';
 import settings from '../configuration/settings-fixture';
 
-
 export { getRandomInt } from './core.util';
 
-const config = settings._getDefaultConfig()
+const config = settings._getDefaultConfig();
 const app = createApp(config);
 const request = supertest(app);
 
