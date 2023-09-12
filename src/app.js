@@ -12,6 +12,7 @@ import { SWAP_SERVICE_MAINNET_BASE_URL, SWAP_SERVICE_TESTNET_BASE_URL } from './
 
 import apiKeyAuth from './middlewares/api-key-auth.middleware';
 import { ConfigErrorHandler } from './middlewares/config-error-handler.middleware';
+import { ReadonlyErrorHandler } from './middlewares/xpub-error-handler.middleware';
 import buildLogger from './logger';
 import version from './version';
 import mainRouter from './routes/index.routes';
@@ -65,6 +66,11 @@ const createApp = config => {
 
   app.use(mainRouter);
   app.use(ConfigErrorHandler);
+  app.use(ReadonlyErrorHandler);
+  app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(err.statusCode || 500).json({ message: err.message, stack: err.stack });
+  });
 
   return app;
 };
