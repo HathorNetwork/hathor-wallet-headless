@@ -294,7 +294,7 @@ async function decodeTx(req, res) {
     const tokenIndex = (utxo.token_data & TOKEN_INDEX_MASK) - 1;
     if (txObj.tokens.length > tokenIndex) return txObj.tokens[tokenIndex];
     return undefined;
-  };
+  }
 
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
