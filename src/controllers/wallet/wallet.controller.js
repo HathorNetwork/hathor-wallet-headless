@@ -318,12 +318,12 @@ async function decodeTx(req, res) {
       tx = partial.getTx();
     }
 
-    const getToken = utxo => {
+    const getToken = (utxo, txObj) => {
       if (utxo.token) return utxo.token;
       if (utxo.token_data === 0) return HATHOR_TOKEN_CONFIG.uid;
 
       const tokenIndex = (utxo.token_data & TOKEN_INDEX_MASK) - 1;
-      if (tx.tokens.length > tokenIndex) return tx.tokens[tokenIndex];
+      if (txObj.tokens.length > tokenIndex) return txObj.tokens[tokenIndex];
       return undefined;
     };
 
@@ -342,7 +342,7 @@ async function decodeTx(req, res) {
           txId: input.hash,
           index: input.index,
           decoded: utxo.decoded,
-          token: getToken(utxo),
+          token: getToken(utxo, _tx),
           value: utxo.value,
           // This is required by transactionUtils.getTxBalance
           // It should be ignored by users
