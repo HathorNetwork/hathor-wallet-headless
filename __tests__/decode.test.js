@@ -85,6 +85,8 @@ describe('decode api', () => {
     const expected = {
       success: true,
       tx: {
+        type: "Transaction",
+        version: 1,
         completeSignatures: false,
         tokens: [],
         inputs: [],

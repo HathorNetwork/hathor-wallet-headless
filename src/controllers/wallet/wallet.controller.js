@@ -5,8 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { HATHOR_TOKEN_CONFIG } = require('@hathor/wallet-lib/lib/constants'); // eslint-disable-line import/no-import-module-exports
-
+const { constants: { HATHOR_TOKEN_CONFIG, TOKEN_INDEX_MASK } } = require('@hathor/wallet-lib');
 const { txApi, walletApi, WalletType, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, transactionUtils, PartialTx } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
 // import is used because there is an issue with winston logger when using require ref: #262
@@ -319,37 +318,42 @@ async function decodeTx(req, res) {
       tx = partial.getTx();
     }
 
-    const data = {
-      tokens: tx.tokens,
-      inputs: await tx.inputs.reduce(async (acc, input) => {
-        // the accumulator must be awaited to enforce the sequence processing
-        const results = await acc;
+    const getToken = utxo => {
+      if (utxo.token) return utxo.token;
+      if (utxo.token_data === 0) return HATHOR_TOKEN_CONFIG.uid;
 
+      const tokenIndex = (utxo.token_data & TOKEN_INDEX_MASK) - 1;
+      if (tx.tokens.length > tokenIndex) return tx.tokens[tokenIndex];
+      return undefined;
+    };
+
+    const data = {
+      version: tx.version,
+      type: tx.getType(),
+      tokens: tx.tokens,
+      inputs: await Promise.all(tx.inputs.map(async input => {
         const _tx = await getTx(req.wallet, input.hash);
         if (!_tx) {
           throw new Error(`Could not find input transaction for txId ${input.hash}`);
         }
 
         const utxo = _tx.outputs[input.index];
-        return [
-          ...results,
-          {
-            txId: input.hash,
-            index: input.index,
-            decoded: utxo.decoded,
-            token: utxo.token,
-            value: utxo.value,
-            // This is required by transactionUtils.getTxBalance
-            // It should be ignored by users
-            token_data: utxo.token_data,
-            // User facing duplication to keep scheme consistency
-            tokenData: utxo.token_data,
-            script: utxo.script,
-            signed: !!input.data,
-            mine: await req.wallet.isAddressMine(utxo.decoded.address),
-          },
-        ];
-      }, []),
+        return {
+          txId: input.hash,
+          index: input.index,
+          decoded: utxo.decoded,
+          token: getToken(utxo),
+          value: utxo.value,
+          // This is required by transactionUtils.getTxBalance
+          // It should be ignored by users
+          token_data: utxo.token_data,
+          // User facing duplication to keep scheme consistency
+          tokenData: utxo.token_data,
+          script: utxo.script,
+          signed: !!input.data,
+          mine: await req.wallet.isAddressMine(utxo.decoded.address),
+        };
+      })),
       outputs: [],
     };
 
