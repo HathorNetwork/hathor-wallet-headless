@@ -7,8 +7,9 @@
 
 const { Router } = require('express');
 const txProposalRouter = require('./tx-proposal.routes');
+const { patchExpressRouter } = require('../../../patch');
 
-const p2shRouter = Router({ mergeParams: true });
+const p2shRouter = patchExpressRouter(Router({ mergeParams: true }));
 p2shRouter.use('/tx-proposal', txProposalRouter);
 
 module.exports = p2shRouter;

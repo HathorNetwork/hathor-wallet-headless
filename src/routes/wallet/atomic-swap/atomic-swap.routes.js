@@ -7,8 +7,9 @@
 
 const { Router } = require('express');
 const txProposalRouter = require('./tx-proposal.routes');
+const { patchExpressRouter } = require('../../../patch');
 
-const atomicSwapRouter = Router({ mergeParams: true });
+const atomicSwapRouter = patchExpressRouter(Router({ mergeParams: true }));
 atomicSwapRouter.use('/tx-proposal', txProposalRouter);
 
 module.exports = atomicSwapRouter;
