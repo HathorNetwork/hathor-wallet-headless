@@ -19,7 +19,7 @@ describe('config error middleware', () => {
     });
     const exitMock = jest.spyOn(process, 'exit').mockImplementation(jest.fn);
 
-    let response = await TestUtils.request
+    const response = await TestUtils.request
       .post('/reload-config')
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
@@ -36,7 +36,7 @@ describe('config error middleware', () => {
       throw new errors.UnavailableConfigError();
     });
 
-    let response = await TestUtils.request
+    const response = await TestUtils.request
       .post('/reload-config')
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(503);
@@ -49,7 +49,7 @@ describe('config error middleware', () => {
   it('reload config success', async () => {
     const settingsMock = jest.spyOn(settings, 'reloadConfig');
 
-    let response = await TestUtils.request
+    const response = await TestUtils.request
       .post('/reload-config')
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
