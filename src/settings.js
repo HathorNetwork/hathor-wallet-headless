@@ -136,8 +136,8 @@ async function _analizeConfig(oldConfig, newConfig) {
     || oldConfig.http_api_key !== newConfig.http_api_key
     || oldConfig.consoleLevel !== newConfig.consoleLevel
     || oldConfig.httpLogFormat !== newConfig.httpLogFormat
-    || oldConfig.enabled_plugins.sort().join('#')
-      !== newConfig.enabled_plugins.sort().join('#')
+    || (oldConfig.enabled_plugins && oldConfig.enabled_plugins.sort().join('#'))
+      !== (newConfig.enabled_plugins && newConfig.enabled_plugins.sort().join('#'))
   ) {
     throw new errors.NonRecoverableConfigChangeError();
   }
