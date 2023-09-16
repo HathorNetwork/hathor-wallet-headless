@@ -423,6 +423,8 @@ describe('send tx (HTR)', () => {
       success: true,
       tx: {
         completeSignatures: false,
+        type: 'Create Token Transaction',
+        version: 2,
         tokens: [],
         inputs: [
           {
@@ -522,6 +524,8 @@ describe('send tx (HTR)', () => {
       success: true,
       tx: expect.objectContaining({
         completeSignatures: false,
+        type: 'Transaction',
+        version: 1,
         tokens: [txCreateToken.hash],
         inputs: [
           expect.objectContaining({
@@ -626,6 +630,8 @@ describe('send tx (HTR)', () => {
     expect(response.body).toEqual({
       success: true,
       tx: {
+        type: 'Transaction',
+        version: 1,
         tokens: [
           txCreateToken.hash,
         ],
