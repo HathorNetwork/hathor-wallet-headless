@@ -14,8 +14,9 @@ const {
   getInputData,
 } = require('../../../controllers/wallet/tx-proposal/tx-proposal.controller');
 const { txBuildSchema, queryInputSchema, txInputSchema, txHexInputDataSchema, p2pkhSignature, p2shSignature } = require('../../../schemas');
+const { patchExpressRouter } = require('../../../patch');
 
-const txProposalRouter = Router({ mergeParams: true });
+const txProposalRouter = patchExpressRouter(Router({ mergeParams: true }));
 
 txProposalRouter.post(
   '/',

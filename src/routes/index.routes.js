@@ -10,8 +10,9 @@ const { query, checkSchema } = require('express-validator');
 const rootControllers = require('../controllers/index.controller');
 const { ReadonlyErrorHandler } = require('../middlewares/xpub-error-handler.middleware');
 const { txHexSchema } = require('../schemas');
+const { patchExpressRouter } = require('../patch');
 
-const mainRouter = Router({ mergeParams: true });
+const mainRouter = patchExpressRouter(Router({ mergeParams: true }));
 const walletRouter = require('./wallet/wallet.routes');
 
 mainRouter.get('/', rootControllers.welcome);

@@ -19,8 +19,9 @@ const p2shRouter = require('./p2sh/p2sh.routes');
 const atomicSwapRouter = require('./atomic-swap/atomic-swap.routes');
 const txProposalRouter = require('./tx-proposal/tx-proposal.routes');
 const { MAX_DATA_SCRIPT_LENGTH } = require('../../constants');
+const { patchExpressRouter } = require('../../patch');
 
-const walletRouter = Router({ mergeParams: true });
+const walletRouter = patchExpressRouter(Router({ mergeParams: true }));
 walletRouter.use(walletMiddleware);
 walletRouter.use('/atomic-swap', atomicSwapRouter);
 walletRouter.use('/p2sh', p2shRouter);

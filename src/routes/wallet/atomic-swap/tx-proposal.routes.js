@@ -28,8 +28,9 @@ const {
   fetchFromService,
   registerProposal,
 } = require('../../../controllers/wallet/atomic-swap/tx-proposal.controller');
+const { patchExpressRouter } = require('../../../patch');
 
-const txProposalRouter = Router({ mergeParams: true });
+const txProposalRouter = patchExpressRouter(Router({ mergeParams: true }));
 
 txProposalRouter.post(
   '/',
