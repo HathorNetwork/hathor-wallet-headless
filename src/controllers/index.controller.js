@@ -201,7 +201,8 @@ async function start(req, res) {
   wallet.start().then(info => {
     // The replace avoids Log Injection
     console.log(
-      `Wallet started with wallet id ${sanitizeLogInput(walletID)}. Full-node info: ${info}`
+      `Wallet started with wallet id ${sanitizeLogInput(walletID)}. \
+Full-node info: ${JSON.stringify(info, null, 2)}`
     );
 
     initializedWallets.set(walletID, wallet);
