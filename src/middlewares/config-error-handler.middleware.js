@@ -18,14 +18,13 @@ function ConfigErrorHandler(err, req, res, next) {
     res.status(200);
     res.send({ success: false, error: NONRECOVERABLE_ERROR });
     process.exit(0);
-  }
-
-  if (err instanceof UnavailableConfigError) {
+  } else if (err instanceof UnavailableConfigError) {
     res.status(503);
     res.send({ success: false, error: UNAVAILABLE_ERROR });
+  } else {
+    // Only call next if we could not handle the error
+    return next(err);
   }
-
-  return next(err);
 }
 
 module.exports = {

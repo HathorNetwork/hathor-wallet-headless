@@ -146,7 +146,7 @@ async function _analizeConfig(oldConfig, newConfig) {
   if (oldConfig.seeds) {
     let shouldStop = false;
     for (const [seedKey, oldSeed] of Object.entries(oldConfig.seeds)) {
-      // If the new config has changed a seed, we nee to stop the wallets
+      // If the new config has changed a seed, we need to stop the wallets
       if (newConfig[seedKey] !== oldSeed) {
         shouldStop = true;
         break;
