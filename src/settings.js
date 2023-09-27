@@ -13,8 +13,7 @@ const {
 } = require('@hathor/wallet-lib');
 
 const errors = require('./errors');
-const { initializedWallets } = require('./services/wallets.service');
-const { removeAllWalletProposals } = require('./services/atomic-swap.service');
+const { stopAllWallets } = require('./services/wallets.service');
 const { initHathorLib } = require('./app');
 
 /**
@@ -67,6 +66,13 @@ const { initHathorLib } = require('./app');
  * @property {Record<string, PluginConfig>} [plugin_config] - The custom plugin configuration.
  */
 
+/**
+ * @typedef {Object} ConfigReloadAction
+ * @property {bool} stopAllWallets If we should stop all running wallets.
+ * @property {bool} reconfigLib If we should run a method to update all known lib configuration.
+ * @property {bool} nonRecoverable The change is unrecoverable for the current running app.
+ */
+
 /** @type {Configuration} */
 let _config = null;
 let started = false;
@@ -105,18 +111,24 @@ async function setupConfig() {
   started = true;
 }
 
-async function _stopAllWallets() {
-  // stop all wallets
-  for (const wallet of initializedWallets.values()) {
-    await wallet.stop({ cleanStorage: true, cleanAddresses: true });
-    wallet.conn.removeAllListeners();
+/**
+ * Take the necessary actions to update the configuration.
+ * @param {ConfigReloadAction} action
+ * @returns {Promise<void>}
+ * @throws {NonRecoverableConfigChangeError}
+ */
+async function _updateConfig(action, config) {
+  if (action.nonRecoverable) {
+    throw new errors.NonRecoverableConfigChangeError();
   }
 
-  // Remove from initialized wallets
-  const keys = Array.from(initializedWallets.keys());
-  for (const walletId of keys) {
-    initializedWallets.delete(walletId);
-    await removeAllWalletProposals(walletId);
+  if (action.stopAllWallets) {
+    await stopAllWallets();
+  }
+
+  if (action.reconfigLib) {
+    hathorLibConfig.setNetwork(config.network);
+    hathorLibConfig.setServerUrl(config.server);
   }
 }
 
@@ -127,6 +139,13 @@ async function _stopAllWallets() {
  */
 async function _analizeConfig(oldConfig, newConfig) {
   // TODO: analize newConfig to check that we have a good config
+
+  /** @type {ConfigReloadAction} */
+  const action = {
+    stopAllWallets: false,
+    reconfigLib: false,
+    nonRecoverable: false,
+  };
 
   // Checking changes in the fields:
   // http_post, http_bind_address, http_api_key, consoleLevel, httpLogFormat, enabled_plugins
@@ -139,7 +158,8 @@ async function _analizeConfig(oldConfig, newConfig) {
     || (oldConfig.enabled_plugins && oldConfig.enabled_plugins.sort().join('#'))
       !== (newConfig.enabled_plugins && newConfig.enabled_plugins.sort().join('#'))
   ) {
-    throw new errors.NonRecoverableConfigChangeError();
+    action.nonRecoverable = true;
+    return action;
   }
 
   // Checking for changes in seed and multisig fields
@@ -147,7 +167,7 @@ async function _analizeConfig(oldConfig, newConfig) {
     let shouldStop = false;
     for (const [seedKey, oldSeed] of Object.entries(oldConfig.seeds)) {
       // If the new config has changed a seed, we need to stop the wallets
-      if (newConfig[seedKey] !== oldSeed) {
+      if (newConfig.seeds[seedKey] !== oldSeed) {
         shouldStop = true;
         break;
       }
@@ -171,7 +191,7 @@ async function _analizeConfig(oldConfig, newConfig) {
       }
     }
     if (shouldStop) {
-      await _stopAllWallets();
+      action.stopAllWallets = true;
     }
   }
   if (newConfig.seeds) {
@@ -179,12 +199,14 @@ async function _analizeConfig(oldConfig, newConfig) {
       try {
         const isValid = walletUtils.wordsValid(seed);
         if (!isValid.valid) {
-          throw new errors.NonRecoverableConfigChangeError();
+          action.nonRecoverable = true;
+          return action;
         }
       } catch (err) {
         // If the method throws InvalidWords, we should stop the service
         if (err instanceof hathorLibErrors.InvalidWords) {
-          throw new errors.NonRecoverableConfigChangeError();
+          action.nonRecoverable = true;
+          return action;
         }
         // If another error is thrown, just bubble it up
         throw err;
@@ -197,11 +219,8 @@ async function _analizeConfig(oldConfig, newConfig) {
     oldConfig.server !== newConfig.server
     || oldConfig.network !== newConfig.network
   ) {
-    await _stopAllWallets();
-    // change network and server in active configuration
-    hathorLibConfig.setNetwork(newConfig.network);
-    hathorLibConfig.setServerUrl(newConfig.server);
-    return;
+    action.stopAllWallets = true;
+    action.reconfigLib = true;
   }
 
   // Checking for changes in tokenUid, gapLimit and connectionTimeout
@@ -210,8 +229,7 @@ async function _analizeConfig(oldConfig, newConfig) {
     || oldConfig.gapLimit !== newConfig.gapLimit
     || oldConfig.connectionTimeout !== newConfig.connectionTimeout
   ) {
-    await _stopAllWallets();
-    return;
+    action.stopAllWallets = true;
   }
 
   // Checking for changes in txMiningUrl, atomicSwapService, txMiningApiKey
@@ -220,8 +238,10 @@ async function _analizeConfig(oldConfig, newConfig) {
     || oldConfig.atomicSwapService !== newConfig.atomicSwapService
     || oldConfig.txMiningApiKey !== newConfig.txMiningApiKey
   ) {
-    initHathorLib();
+    action.reconfigLib = true;
   }
+
+  return action;
 }
 
 async function reloadConfig() {
@@ -236,7 +256,8 @@ async function reloadConfig() {
   const newConfig = await _importConfig();
 
   // Check config changes
-  await _analizeConfig(oldConfig, newConfig);
+  const action = await _analizeConfig(oldConfig, newConfig);
+  await _updateConfig(action, newConfig);
 
   // All checks have passed, settings the singleton
   _config = newConfig;

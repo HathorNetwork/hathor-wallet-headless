@@ -5,32 +5,47 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { HathorWallet } = require('@hathor/wallet-lib');
+const { removeAllWalletProposals } = require('./atomic-swap.service');
 
 /**
  * @type {Map<string, HathorWallet>}
  */
 const initializedWallets = new Map();
-/**
- * @typedef TxProposalConfig
- * @property {string} id Proposal identifier on the Atomic Swap Service
- * @property {string} password Password to access it
- */
 
 /**
- * A map of all the proposals for a wallet.
- * The keys are the proposal ids
- * @typedef {Map<string,TxProposalConfig>} WalletListenedProposals
+ * Stop a wallet
+ * @param {string} walletId
+ * @returns {Promise<void>}
  */
+async function stopWallet(walletId) {
+  const wallet = initializedWallets.get(walletId);
+  if (!wallet) {
+    return;
+  }
+  await wallet.stop();
+  initializedWallets.delete(walletId);
+  await removeAllWalletProposals(walletId);
+}
 
 /**
- * A map of the initialized wallets and their listened proposals.
- * The keys are the wallet-ids
- * @type {Map<string,WalletListenedProposals>}
+ * Stop all wallets
+ * @returns {Promise<void>}
+ * @throws {NonRecoverableConfigChangeError}
  */
-const walletListenedProposals = new Map();
+async function stopAllWallets() {
+  for (const wallet of initializedWallets.values()) {
+    await wallet.stop({ cleanStorage: true, cleanAddresses: true });
+    wallet.conn.removeAllListeners();
+  }
+
+  for (const walletId of Array.from(initializedWallets.keys())) {
+    initializedWallets.delete(walletId);
+    await removeAllWalletProposals(walletId);
+  }
+}
 
 module.exports = {
   initializedWallets,
-  walletListenedProposals,
+  stopWallet,
+  stopAllWallets,
 };
