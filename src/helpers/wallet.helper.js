@@ -5,8 +5,42 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { errors, walletUtils } from '@hathor/wallet-lib';
+import { errors, walletUtils, config as hathorLibConfig, constants as hathorLibConstants } from '@hathor/wallet-lib';
 import { WalletStartError } from '../errors';
+import version from '../version';
+
+const { SWAP_SERVICE_MAINNET_BASE_URL, SWAP_SERVICE_TESTNET_BASE_URL } = hathorLibConstants;
+
+export function initHathorLib(config) {
+  if (config.txMiningUrl) {
+    hathorLibConfig.setTxMiningUrl(config.txMiningUrl);
+  }
+
+  if (config.txMiningApiKey) {
+    hathorLibConfig.setTxMiningApiKey(config.txMiningApiKey);
+  }
+
+  // Configures Atomic Swap Service url. Prefers explicit config input, then mainnet or testnet
+  if (config.atomicSwapService) {
+    hathorLibConfig.setSwapServiceBaseUrl(config.atomicSwapService);
+  } else if (config.network === 'mainnet') {
+    hathorLibConfig.setSwapServiceBaseUrl(SWAP_SERVICE_MAINNET_BASE_URL);
+  } else {
+    hathorLibConfig.setSwapServiceBaseUrl(SWAP_SERVICE_TESTNET_BASE_URL);
+  }
+
+  // Set package version in user agent
+  // We use this string to parse the version from user agent
+  // in some of our services, so changing this might break another service
+  hathorLibConfig.setUserAgent(`Hathor Wallet Headless / ${version}`);
+
+  // Those configurations will be set when starting the wallet
+  // however we can already set them because they are fixed
+  // for all wallets and it's useful if we need to run any request
+  // to the full node before starting a wallet
+  hathorLibConfig.setServerUrl(config.server);
+  hathorLibConfig.setNetwork(config.network);
+}
 
 export function getReadonlyWalletConfig({
   xpub,

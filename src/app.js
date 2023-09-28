@@ -7,47 +7,15 @@
 
 import express from 'express';
 import morgan from 'morgan';
-import { config as hathorLibConfig } from '@hathor/wallet-lib';
-import { SWAP_SERVICE_MAINNET_BASE_URL, SWAP_SERVICE_TESTNET_BASE_URL } from './constants';
 
 import apiKeyAuth from './middlewares/api-key-auth.middleware';
 import { ConfigErrorHandler } from './middlewares/config-error-handler.middleware';
 import { ReadonlyErrorHandler } from './middlewares/xpub-error-handler.middleware';
 import buildLogger from './logger';
-import version from './version';
 import mainRouter from './routes/index.routes';
+import { initHathorLib } from './helpers/wallet.helper';
 
 // Initializing Hathor Lib
-export const initHathorLib = config => {
-  if (config.txMiningUrl) {
-    hathorLibConfig.setTxMiningUrl(config.txMiningUrl);
-  }
-
-  if (config.txMiningApiKey) {
-    hathorLibConfig.setTxMiningApiKey(config.txMiningApiKey);
-  }
-
-  // Configures Atomic Swap Service url. Prefers explicit config input, then mainnet or testnet
-  if (config.atomicSwapService) {
-    hathorLibConfig.setSwapServiceBaseUrl(config.atomicSwapService);
-  } else if (config.network === 'mainnet') {
-    hathorLibConfig.setSwapServiceBaseUrl(SWAP_SERVICE_MAINNET_BASE_URL);
-  } else {
-    hathorLibConfig.setSwapServiceBaseUrl(SWAP_SERVICE_TESTNET_BASE_URL);
-  }
-
-  // Set package version in user agent
-  // We use this string to parse the version from user agent
-  // in some of our services, so changing this might break another service
-  hathorLibConfig.setUserAgent(`Hathor Wallet Headless / ${version}`);
-
-  // Those configurations will be set when starting the wallet
-  // however we can already set them because they are fixed
-  // for all wallets and it's useful if we need to run any request
-  // to the full node before starting a wallet
-  hathorLibConfig.setServerUrl(config.server);
-  hathorLibConfig.setNetwork(config.network);
-};
 
 const createApp = config => {
   initHathorLib(config);

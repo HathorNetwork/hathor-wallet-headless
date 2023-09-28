@@ -5,14 +5,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import _ from 'lodash';
-import {
+const _ = require('lodash');
+const {
   walletUtils,
-  errors as hathorLibErrors,
-} from '@hathor/wallet-lib';
-import errors from './errors';
-import { stopAllWallets } from './services/wallets.service';
-import { initHathorLib } from './app';
+  errors: hathorLibErrors,
+} = require('@hathor/wallet-lib');
+const errors = require('./errors');
+const { stopAllWallets } = require('./services/wallets.service');
+const { initHathorLib } = require('./helpers/wallet.helper');
 
 /**
  * The multisig configuration object
@@ -260,7 +260,7 @@ async function reloadConfig() {
   _config = newConfig;
 }
 
-export default {
+module.exports = {
   getConfig,
   reloadConfig,
   setupConfig,
