@@ -5,16 +5,15 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const _ = require('lodash');
-const {
-  config: hathorLibConfig,
+import _ from 'lodash';
+import {
+  config as hathorLibConfig,
   walletUtils,
-  errors: hathorLibErrors,
-} = require('@hathor/wallet-lib');
-
-const errors = require('./errors');
-const { stopAllWallets } = require('./services/wallets.service');
-const { initHathorLib } = require('./app');
+  errors as hathorLibErrors,
+} from '@hathor/wallet-lib';
+import errors from './errors';
+import { stopAllWallets } from './services/wallets.service';
+import { initHathorLib } from './app';
 
 /**
  * The multisig configuration object
@@ -90,7 +89,7 @@ async function _importConfig() {
  * Returns the config object.
  * @returns {Configuration}
  */
-function getConfig() {
+export function getConfig() {
   if (_config) {
     return _config;
   }
@@ -101,7 +100,7 @@ function getConfig() {
 /**
  *
  */
-async function setupConfig() {
+export async function setupConfig() {
   if (started) {
     // This is a server error, so the default middleware will handle it correctly.
     throw new Error('Cannot setup the configuration twice.');
@@ -127,8 +126,7 @@ async function _updateConfig(action, config) {
   }
 
   if (action.reconfigLib) {
-    hathorLibConfig.setNetwork(config.network);
-    hathorLibConfig.setServerUrl(config.server);
+    initHathorLib(config);
   }
 }
 
@@ -244,7 +242,7 @@ async function _analizeConfig(oldConfig, newConfig) {
   return action;
 }
 
-async function reloadConfig() {
+export async function reloadConfig() {
   const oldConfig = _.cloneDeep(_config);
   _config = null;
   /**
@@ -263,7 +261,7 @@ async function reloadConfig() {
   _config = newConfig;
 }
 
-module.exports = {
+export default {
   getConfig,
   reloadConfig,
   setupConfig,
