@@ -5,11 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { errors, walletUtils, config as hathorLibConfig, constants as hathorLibConstants } from '@hathor/wallet-lib';
+import { errors, walletUtils, config as hathorLibConfig } from '@hathor/wallet-lib';
 import { WalletStartError } from '../errors';
 import version from '../version';
-
-const { SWAP_SERVICE_MAINNET_BASE_URL, SWAP_SERVICE_TESTNET_BASE_URL } = hathorLibConstants;
+import { SWAP_SERVICE_MAINNET_BASE_URL, SWAP_SERVICE_TESTNET_BASE_URL } from '../constants';
 
 export function initHathorLib(config) {
   if (config.txMiningUrl) {
