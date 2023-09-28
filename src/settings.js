@@ -7,7 +7,6 @@
 
 import _ from 'lodash';
 import {
-  config as hathorLibConfig,
   walletUtils,
   errors as hathorLibErrors,
 } from '@hathor/wallet-lib';
@@ -89,7 +88,7 @@ async function _importConfig() {
  * Returns the config object.
  * @returns {Configuration}
  */
-export function getConfig() {
+function getConfig() {
   if (_config) {
     return _config;
   }
@@ -100,7 +99,7 @@ export function getConfig() {
 /**
  *
  */
-export async function setupConfig() {
+async function setupConfig() {
   if (started) {
     // This is a server error, so the default middleware will handle it correctly.
     throw new Error('Cannot setup the configuration twice.');
@@ -242,7 +241,7 @@ async function _analizeConfig(oldConfig, newConfig) {
   return action;
 }
 
-export async function reloadConfig() {
+async function reloadConfig() {
   const oldConfig = _.cloneDeep(_config);
   _config = null;
   /**
