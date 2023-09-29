@@ -3816,6 +3816,30 @@ const apiDoc = {
         },
       },
     },
+    '/reload-config': {
+      post: {
+        summary: 'Reload configuration of the wallet.',
+        responses: {
+          200: {
+            description: 'A JSON with the indication of success or error.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true },
+                  },
+                  'Non-recoverable config change': {
+                    summary: 'The running app cannot successfully recover from this change.',
+                    value: { success: false, error: 'A non recoverable change in the config was made, the service will shutdown.' }
+                  }
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
 };
 
