@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { walletApi, tokensUtils, walletUtils, Connection, HathorWallet, Network, helpersUtils, SendTransaction } = require('@hathor/wallet-lib');
+const { walletApi, tokensUtils, walletUtils, Connection, HathorWallet, Network, helpersUtils, SendTransaction, constants: hathorLibConstants } = require('@hathor/wallet-lib');
 const { getApiDocs } = require('../api-docs');
 const { initializedWallets } = require('../services/wallets.service');
 const { notificationBus } = require('../services/notification.service');
@@ -16,6 +16,8 @@ const { getReadonlyWalletConfig, getWalletConfigFromSeed, WalletStartError } = r
 const { mapTxReturn } = require('../helpers/tx.helper');
 const { lock, lockTypes } = require('../lock');
 const settings = require('../settings');
+
+const { GAP_LIMIT } = hathorLibConstants;
 
 function welcome(req, res) {
   res.send('<html><body><h1>Welcome to Hathor Wallet API!</h1>'
@@ -112,6 +114,44 @@ async function start(req, res) {
                 + `and ${multisigData.numSignatures} numSignatures`);
   }
 
+  // Validate address scanning policy
+  let scanPolicyData;
+  if ('scanPolicy' in req.body) {
+    const policy = req.body.scanPolicy;
+    switch (policy) {
+      case 'index-limit':
+        // We require policyStartIndex to be set
+        // policyEndIndex is optional and will default to the policyStartIndex given
+        if (!('policyStartIndex' in req.body)) {
+          res.send({
+            success: false,
+            message: 'Parameter \'policyStartIndex\' is required to configure index-limit address scanning.',
+          });
+          return;
+        }
+        scanPolicyData = {
+          policy,
+          startIndex: req.body.policyStartIndex,
+          endIndex: req.body.policyEndIndex || req.body.policyStartIndex,
+        };
+        break;
+      case 'gap-limit':
+        // The gapLimit is optional and will default to 20
+        scanPolicyData = {
+          policy,
+          gapLimit: req.body.gapLimit || GAP_LIMIT,
+        };
+        break;
+      default:
+        // address scanning policy requested is not supported
+        res.send({
+          success: false,
+          message: `Address scanning policy ${policy} is not supported.`,
+        });
+        return;
+    }
+  }
+
   let walletConfig;
   if ('xpubkey' in req.body) {
     try {
@@ -119,6 +159,7 @@ async function start(req, res) {
       walletConfig = getReadonlyWalletConfig({
         xpub: req.body.xpubkey,
         multisigData,
+        scanPolicy: scanPolicyData,
       });
     } catch (e) {
       if (e instanceof WalletStartError) {
@@ -155,6 +196,7 @@ async function start(req, res) {
         multisigData,
         passphrase: req.body.passphrase,
         allowPassphrase: config.allowPassphrase,
+        scanPolicy: scanPolicyData,
       });
     } catch (e) {
       if (e instanceof WalletStartError) {

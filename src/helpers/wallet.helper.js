@@ -44,6 +44,7 @@ export function initHathorLib(config) {
 export function getReadonlyWalletConfig({
   xpub,
   multisigData = null,
+  scanPolicy = null,
 }) {
   // Previous versions of the lib would have password and pin default as '123'
   // We currently need something to be defined, otherwise we get an error when starting the wallet
@@ -52,6 +53,7 @@ export function getReadonlyWalletConfig({
     password: '123',
     pinCode: '123',
     multisig: multisigData,
+    scanPolicy,
   };
 
   return walletConfig;
@@ -62,6 +64,7 @@ export function getWalletConfigFromSeed({
   multisigData = null,
   passphrase = null,
   allowPassphrase = false,
+  scanPolicy,
 } = {}) {
   let words;
   // Seed validation
@@ -83,6 +86,7 @@ export function getWalletConfigFromSeed({
     password: '123',
     pinCode: '123',
     multisig: multisigData,
+    scanPolicy,
   };
 
   if (passphrase) {
