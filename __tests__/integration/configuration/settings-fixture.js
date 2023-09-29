@@ -1,4 +1,6 @@
-const config = {
+const { cloneDeep } = require('lodash');
+
+const defaultConfig = {
   http_bind_address: 'localhost',
   http_port: 8000,
 
@@ -34,7 +36,18 @@ const config = {
   confirmFirstAddress: false,
 };
 
-// Allow change config at runtime
-global.config = config;
+let config = cloneDeep(defaultConfig);
 
-export default config;
+export default {
+  setupConfig: jest.fn().mockImplementation(() => Promise.resolve()),
+  reloadConfig: jest.fn().mockImplementation(() => Promise.resolve()),
+  getConfig: () => config,
+  // utilities to change the configuration at runtime
+  _getDefaultConfig: () => cloneDeep(defaultConfig),
+  _setConfig: c => {
+    config = c;
+  },
+  _resetConfig: () => {
+    config = cloneDeep(defaultConfig);
+  },
+};

@@ -7,7 +7,7 @@
 
 const friendlyWalletState = require('../helpers/constants');
 const { initializedWallets } = require('../services/wallets.service');
-const config = require('../config');
+const settings = require('../settings');
 
 async function walletMiddleware(req, res, next) {
   const sendError = (message, state) => {
@@ -18,6 +18,8 @@ async function walletMiddleware(req, res, next) {
       statusMessage: (state ? friendlyWalletState[state] : ''),
     });
   };
+
+  const config = settings.getConfig();
 
   // Get X-WALLET-ID header that defines which wallet the request refers to
   if (!('x-wallet-id' in req.headers)) {

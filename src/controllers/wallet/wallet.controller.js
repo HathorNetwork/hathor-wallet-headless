@@ -13,8 +13,7 @@ const { parametersValidation } = require('../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../lock');
 const { cantSendTxErrorMessage, friendlyWalletState } = require('../../helpers/constants');
 const { mapTxReturn, prepareTxFunds, getTx } = require('../../helpers/tx.helper');
-const { initializedWallets } = require('../../services/wallets.service');
-const { removeAllWalletProposals } = require('../../services/atomic-swap.service');
+const { stopWallet } = require('../../services/wallets.service');
 
 async function getStatus(req, res) {
   /**
@@ -748,11 +747,7 @@ async function createNft(req, res) {
 
 async function stop(req, res) {
   // Stop wallet and remove from wallets object
-  const { wallet } = req;
-  await wallet.stop();
-
-  initializedWallets.delete(req.walletId);
-  await removeAllWalletProposals(req.walletId);
+  await stopWallet(req.walletId);
   res.send({ success: true });
 }
 

@@ -1,12 +1,15 @@
 import hathorLib from '@hathor/wallet-lib';
 import TestUtils from '../test-utils';
 import { TOKEN_DATA, AUTHORITY_VALUE } from '../integration/configuration/test-constants';
+import settings from '../../src/settings';
 
 const walletId = 'stub_melt_tokens';
 
 describe('melt-tokens tx-proposal api', () => {
   beforeAll(async () => {
-    global.config.multisig = TestUtils.multisigData;
+    const config = settings.getConfig();
+    config.multisig = TestUtils.multisigData;
+    settings._setConfig(config);
     await TestUtils.startWallet(
       {
         walletId,
@@ -17,7 +20,9 @@ describe('melt-tokens tx-proposal api', () => {
   });
 
   afterAll(async () => {
-    global.config.multisig = {};
+    const config = settings.getConfig();
+    config.multisig = {};
+    settings._setConfig(config);
     await TestUtils.stopWallet({ walletId });
   });
 

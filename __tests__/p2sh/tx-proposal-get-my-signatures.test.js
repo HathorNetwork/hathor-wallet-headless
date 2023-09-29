@@ -1,10 +1,13 @@
 import TestUtils from '../test-utils';
+import settings from '../../src/settings';
 
 const walletId = 'stub_p2sh_get_my_signatures';
 
 describe('get-my-signatures api', () => {
   beforeAll(async () => {
-    global.config.multisig = TestUtils.multisigData;
+    const config = settings._getDefaultConfig();
+    config.multisig = TestUtils.multisigData;
+    settings._setConfig(config);
     await TestUtils.startWallet({
       walletId,
       preCalculatedAddresses: TestUtils.multisigAddresses,
@@ -13,7 +16,7 @@ describe('get-my-signatures api', () => {
   });
 
   afterAll(async () => {
-    global.config.multisig = {};
+    settings._resetConfig();
     await TestUtils.stopWallet({ walletId });
   });
 

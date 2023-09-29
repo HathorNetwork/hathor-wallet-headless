@@ -1,5 +1,6 @@
 import TestUtils from './test-utils';
 import { WALLET_CONSTANTS } from './integration/configuration/test-constants';
+import settings from '../src/settings';
 
 /*
  * Developer note:
@@ -76,7 +77,9 @@ describe('start api', () => {
   });
 
   it('should require x-first-address if confirmFirstAddress is true', async () => {
-    global.config.confirmFirstAddress = true;
+    const config = settings.getConfig();
+    config.confirmFirstAddress = true;
+    settings._setConfig(config);
 
     let response = await TestUtils.request
       .post('/start')
@@ -97,11 +100,14 @@ describe('start api', () => {
     expect(response.status).toBe(200);
     expect(response.body.available).toBeDefined();
 
-    global.config.confirmFirstAddress = null;
+    config.confirmFirstAddress = null;
+    settings._setConfig(config);
   });
 
   it('should start a MultiSig wallet if multisig is true', async () => {
-    global.config.multisig = TestUtils.multisigData;
+    const config = settings.getConfig();
+    config.multisig = TestUtils.multisigData;
+    settings._setConfig(config);
 
     const response1 = await TestUtils.request
       .post('/start')
@@ -118,11 +124,14 @@ describe('start api', () => {
     expect(response2.status).toBe(200);
     expect(response2.body.address).toBe(TestUtils.multisigAddresses[0]);
 
-    global.config.multisig = {};
+    config.multisig = {};
+    settings._setConfig(config);
   });
 
   it('should not start a incorrectly configured MultiSig if multisig is true', async () => {
-    global.config.multisig = {};
+    const config = settings.getConfig();
+    config.multisig = {};
+    settings._setConfig(config);
 
     const response1 = await TestUtils.request
       .post('/start')
@@ -130,8 +139,9 @@ describe('start api', () => {
     expect(response1.status).toBe(200);
     expect(response1.body.success).toBe(false);
 
-    global.config.multisig = TestUtils.multisigData;
-    global.config.multisig[TestUtils.seedKey].total = 6;
+    config.multisig = TestUtils.multisigData;
+    config.multisig[TestUtils.seedKey].total = 6;
+    settings._setConfig(config);
 
     const response2 = await TestUtils.request
       .post('/start')
@@ -139,8 +149,9 @@ describe('start api', () => {
     expect(response2.status).toBe(200);
     expect(response2.body.success).toBe(false);
 
-    global.config.multisig[TestUtils.seedKey].total = 5;
-    global.config.multisig[TestUtils.seedKey].numSignatures = 6;
+    config.multisig[TestUtils.seedKey].total = 5;
+    config.multisig[TestUtils.seedKey].numSignatures = 6;
+    settings._setConfig(config);
 
     const response3 = await TestUtils.request
       .post('/start')
@@ -148,6 +159,7 @@ describe('start api', () => {
     expect(response3.status).toBe(200);
     expect(response3.body.success).toBe(false);
 
-    global.config.multisig = {};
+    config.multisig = {};
+    settings._setConfig(config);
   });
 });

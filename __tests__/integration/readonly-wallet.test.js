@@ -1,11 +1,12 @@
 import { helpersUtils, Network, walletUtils } from '@hathor/wallet-lib';
-import config from './configuration/config-fixture';
 import { precalculationHelpers, singleMultisigWalletData } from '../../scripts/helpers/wallet-precalculation.helper';
 import { TestUtils } from './utils/test-utils-integration';
 import { loggers } from './utils/logger.util';
 import { WalletHelper } from './utils/wallet-helper';
+import settings from '../../src/settings';
 
 function newReadOnlyWallet() {
+  const config = settings.getConfig();
   const accountDerivationIndex = '0\'/0';
   const { words, addresses } = precalculationHelpers.test.getPrecalculatedWallet();
   const xpubkey = walletUtils.getXPubKeyFromSeed(words, {
@@ -19,11 +20,15 @@ describe('Readonly wallet', () => {
   const { walletConfig: multisigWalletConfig } = singleMultisigWalletData;
 
   beforeAll(async () => {
-    global.config.multisig = { multisig: multisigWalletConfig };
+    const config = settings.getConfig();
+    config.multisig = { multisig: multisigWalletConfig };
+    settings._setConfig(config);
   });
 
   afterAll(async () => {
-    global.config.multisig = {};
+    const config = settings.getConfig();
+    config.multisig = {};
+    settings._setConfig(config);
   });
 
   it('should start readonly wallets', async () => {

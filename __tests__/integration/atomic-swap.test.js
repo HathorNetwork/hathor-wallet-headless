@@ -4,6 +4,7 @@ import { WalletHelper } from './utils/wallet-helper';
 import { singleMultisigWalletData } from '../../scripts/helpers/wallet-precalculation.helper';
 import { loggers } from './utils/logger.util';
 import { delay } from './utils/core.util';
+import settings from '../../src/settings';
 
 describe('send tx (HTR)', () => {
   let wallet1;
@@ -20,8 +21,10 @@ describe('send tx (HTR)', () => {
   } = singleMultisigWalletData;
 
   beforeAll(async () => {
-    global.config.seeds = { multisig: multisigWords[0] };
-    global.config.multisig = { multisig: multisigWalletConfig };
+    const config = settings.getConfig();
+    config.seeds = { multisig: multisigWords[0] };
+    config.multisig = { multisig: multisigWalletConfig };
+    settings._setConfig(config);
     try {
       wallet1 = WalletHelper.getPrecalculatedWallet('atomic-swap-1');
       wallet2 = WalletHelper.getPrecalculatedWallet('atomic-swap-2');
@@ -53,8 +56,10 @@ describe('send tx (HTR)', () => {
   });
 
   afterAll(async () => {
-    global.config.seeds = {};
-    global.config.multisig = {};
+    const config = settings.getConfig();
+    config.seeds = {};
+    config.multisig = {};
+    settings._setConfig(config);
     await wallet1.stop();
     await wallet2.stop();
     await walletMultisig.stop();

@@ -1,16 +1,21 @@
 import hathorLib from '@hathor/wallet-lib';
 import TestUtils from '../test-utils';
+import settings from '../../src/settings';
 
 const walletId = 'stub_p2sh_create_tx_proposal';
 
 describe('create tx-proposal api', () => {
   beforeAll(async () => {
-    global.config.multisig = TestUtils.multisigData;
+    const config = settings.getConfig();
+    config.multisig = TestUtils.multisigData;
+    settings._setConfig(config);
     await TestUtils.startWallet({ walletId, multisig: true });
   });
 
   afterAll(async () => {
-    global.config.multisig = {};
+    const config = settings.getConfig();
+    config.multisig = {};
+    settings._setConfig(config);
     await TestUtils.stopWallet({ walletId });
   });
 
