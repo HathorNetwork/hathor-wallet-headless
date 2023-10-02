@@ -1,5 +1,6 @@
 import { Input, Output, Transaction, Network, Address, P2PKH, P2SH, helpersUtils } from '@hathor/wallet-lib';
 import TestUtils from '../test-utils';
+import settings from '../../src/settings';
 
 const walletId = 'stub_atomic_swap_p2sh';
 
@@ -17,7 +18,9 @@ describe('atomic-swap with p2sh', () => {
   };
 
   beforeAll(async () => {
-    global.config.multisig = TestUtils.multisigData;
+    const config = settings.getConfig();
+    config.multisig = TestUtils.multisigData;
+    settings._setConfig(config);
     return TestUtils.startWallet({
       walletId,
       preCalculatedAddresses: TestUtils.multisigAddresses,
@@ -26,7 +29,9 @@ describe('atomic-swap with p2sh', () => {
   });
 
   afterAll(async () => {
-    global.config.multisig = {};
+    const config = settings.getConfig();
+    config.multisig = {};
+    settings._setConfig(config);
     await TestUtils.stopWallet({ walletId });
   });
 

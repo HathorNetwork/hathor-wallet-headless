@@ -1,4 +1,5 @@
 import TestUtils from './test-utils';
+import settings from '../src/settings';
 
 const walletId = 'stub_address';
 
@@ -52,7 +53,9 @@ describe('address api', () => {
 
   it('should return a new address with mark_as_used until the gapLimit is reached', async () => {
     const gapLimit = 20;
-    global.config.gapLimit = gapLimit;
+    let config = settings.getConfig();
+    config.gapLimit = gapLimit;
+    settings._setConfig(config);
     const startingIndex = 4; // First unused address
     const upperLimit = gapLimit + startingIndex - 1; // Last address within the gap limit
     for (let index = startingIndex; index <= upperLimit; index++) {
@@ -70,7 +73,9 @@ describe('address api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.address).toBe(TestUtils.addresses[upperLimit]);
-  });
 
-  global.config.gapLimit = null;
+    config = settings.getConfig();
+    config.gapLimit = null;
+    settings._setConfig(config);
+  });
 });

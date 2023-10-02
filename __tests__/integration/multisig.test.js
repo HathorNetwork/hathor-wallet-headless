@@ -4,6 +4,7 @@ import { WalletHelper } from './utils/wallet-helper';
 import { multisigWalletsData } from '../../scripts/helpers/wallet-precalculation.helper';
 import precalculatedMultisig from './configuration/precalculated-multisig-wallets.json';
 import { loggers } from './utils/logger.util';
+import settings from '../../src/settings';
 
 describe('send tx (HTR)', () => {
   let wallet1;
@@ -27,7 +28,8 @@ describe('send tx (HTR)', () => {
   }; // Fund for auto-input transactions
 
   beforeAll(async () => {
-    global.config.seeds = {
+    const config = settings.getConfig();
+    config.seeds = {
       'multisig-1': words[0],
       'multisig-2': words[1],
       'multisig-3': words[2],
@@ -35,7 +37,7 @@ describe('send tx (HTR)', () => {
       'multisig-5': words[4],
       'multisig-extra': words[4],
     };
-    global.config.multisig = {
+    config.multisig = {
       'multisig-1': walletConfig,
       'multisig-2': walletConfig,
       'multisig-3': walletConfig,
@@ -47,6 +49,7 @@ describe('send tx (HTR)', () => {
         numSignatures: 2, // Having a different numSignatures will change the wallet completely
       },
     };
+    settings._setConfig(config);
     try {
       wallet1 = new WalletHelper('multisig-1', {
         seedKey: 'multisig-1',
@@ -111,8 +114,10 @@ describe('send tx (HTR)', () => {
   });
 
   afterAll(async () => {
-    global.config.seeds = {};
-    global.config.multisig = {};
+    const config = settings.getConfig();
+    config.seeds = {};
+    config.multisig = {};
+    settings._setConfig(config);
     await wallet1.stop();
     await wallet2.stop();
     await wallet3.stop();
@@ -423,6 +428,8 @@ describe('send tx (HTR)', () => {
       success: true,
       tx: {
         completeSignatures: false,
+        type: 'Create Token Transaction',
+        version: 2,
         tokens: [],
         inputs: [
           {
@@ -522,6 +529,8 @@ describe('send tx (HTR)', () => {
       success: true,
       tx: expect.objectContaining({
         completeSignatures: false,
+        type: 'Transaction',
+        version: 1,
         tokens: [txCreateToken.hash],
         inputs: [
           expect.objectContaining({
@@ -626,6 +635,8 @@ describe('send tx (HTR)', () => {
     expect(response.body).toEqual({
       success: true,
       tx: {
+        type: 'Transaction',
+        version: 1,
         tokens: [
           txCreateToken.hash,
         ],

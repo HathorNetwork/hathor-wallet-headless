@@ -6,7 +6,7 @@
  */
 
 import path from 'path';
-import config from '../config';
+import settings from '../settings';
 
 import { notificationBus, EVENTBUS_EVENT_NAME } from '../services/notification.service';
 
@@ -73,7 +73,7 @@ export const importPlugin = async pluginConfig => {
  * @param {string[]} enabled List of enabled plugins to import.
  * @param {Record<string, PluginConfig>} customConfig Custom plugin configuration.
  *
- * @returns {Promise<Plugin>[]} Array of plugin modules.
+ * @returns {Promise<Plugin[]>} Array of plugin modules.
  */
 export const loadPlugins = async (enabled, customConfig) => {
   const promises = [];
@@ -99,6 +99,7 @@ export const loadPlugins = async (enabled, customConfig) => {
 };
 
 export const main = async () => {
+  const config = settings.getConfig();
   const plugins = await loadPlugins(config.enabled_plugins, config.plugin_config);
 
   // Start plugins

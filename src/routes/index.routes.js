@@ -8,7 +8,6 @@
 const { Router } = require('express');
 const { query, checkSchema } = require('express-validator');
 const rootControllers = require('../controllers/index.controller');
-const { ReadonlyErrorHandler } = require('../middlewares/xpub-error-handler.middleware');
 const { txHexSchema } = require('../schemas');
 const { patchExpressRouter } = require('../patch');
 
@@ -35,12 +34,8 @@ mainRouter.get(
   rootControllers.getConfigurationString
 );
 
-mainRouter.use('/wallet', walletRouter);
+mainRouter.post('/reload-config', rootControllers.reloadConfig);
 
-mainRouter.use(ReadonlyErrorHandler);
-mainRouter.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(err.statusCode || 500).json({ message: err.message, stack: err.stack });
-});
+mainRouter.use('/wallet', walletRouter);
 
 module.exports = mainRouter;

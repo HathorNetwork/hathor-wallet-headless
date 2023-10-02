@@ -6,7 +6,7 @@ const apiDoc = {
   info: {
     title: 'Headless Hathor Wallet API',
     description: 'This wallet is fully controlled through an HTTP API.',
-    version: '0.22.0',
+    version: '0.23.0',
   },
   produces: ['application/json'],
   components: {
@@ -3808,6 +3808,30 @@ const apiDoc = {
                   'invalid-token': {
                     summary: 'Token uid is invalid',
                     value: { success: false, message: 'Invalid token uid.' }
+                  }
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/reload-config': {
+      post: {
+        summary: 'Reload configuration of the wallet.',
+        responses: {
+          200: {
+            description: 'A JSON with the indication of success or error.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true },
+                  },
+                  'Non-recoverable config change': {
+                    summary: 'The running app cannot successfully recover from this change.',
+                    value: { success: false, error: 'A non recoverable change in the config was made, the service will shutdown.' }
                   }
                 },
               },

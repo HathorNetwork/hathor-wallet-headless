@@ -7,6 +7,7 @@
 
 import path from 'path';
 import { getPluginPath, importPlugin, loadPlugins, main } from '../../src/plugins/child';
+import settings from '../../src/settings';
 
 beforeAll(() => {
   jest.mock(getPluginPath('hathor_websocket.js'), () => ({ init: jest.fn() }));
@@ -36,10 +37,12 @@ test('loadPlugins', async () => {
 
 test('main', async () => {
   jest.mock(getPluginPath('custom_pluginA.js'), () => ({ init: jest.fn() }), { virtual: true });
-  global.config.enabled_plugins = ['ws', 'custom'];
-  global.config.plugin_config = {
+  const config = settings.getConfig();
+  config.enabled_plugins = ['ws', 'custom'];
+  config.plugin_config = {
     custom: { file: 'custom_pluginA.js' },
   };
+  settings._setConfig(config);
   await main();
   const wsMocked = await import(getPluginPath('hathor_websocket.js'));
   const customMocked = await import(getPluginPath('custom_pluginA.js'));

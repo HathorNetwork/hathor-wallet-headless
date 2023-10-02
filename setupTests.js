@@ -10,11 +10,11 @@ jest.mock('isomorphic-ws', () => require('mock-socket').WebSocket);
 
 // Mock config file
 jest.mock(
-  './src/config',
+  './src/settings',
   () => {
-    let config = require('./__tests__/__fixtures__/config-fixture');
-    if (config.default) config = config.default;
-    return config;
+    let settings = require('./__tests__/__fixtures__/settings-fixture');
+    if (settings.default) settings = settings.default;
+    return settings;
   },
   { virtual: true }
 );
