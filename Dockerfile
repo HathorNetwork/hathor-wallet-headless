@@ -1,9 +1,9 @@
-FROM node:16.14-alpine3.14
+FROM node:18-alpine3.18
 WORKDIR /usr/src/app/
 
 COPY .babelrc package.json package-lock.json ./
 RUN apk add --no-cache --virtual .gyp python3 make g++ &&\
-    npm install &&\
+    npm clean-install &&\
     apk del .gyp
 
 COPY ./src/ ./src/
