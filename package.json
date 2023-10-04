@@ -3,6 +3,7 @@
   "version": "0.23.0",
   "description": "Hathor Wallet Headless, i.e., without graphical user interface",
   "main": "index.js",
+  "type": "module",
   "engines": {
     "node": ">=18.0.0"
   },
