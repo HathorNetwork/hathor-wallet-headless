@@ -4,6 +4,13 @@ const { buildComponentHealthCheck } = require('../helpers/healthcheck.helper');
 const { friendlyWalletState } = require('../helpers/constants');
 
 const healthService = {
+  /**
+   * Returns the health object for a specific wallet
+   *
+   * @param {HathorWallet} wallet
+   * @param {string} walletId
+   * @returns {Object}
+   */
   async getWalletHealth(wallet, walletId) {
     let healthData;
 
@@ -26,6 +33,11 @@ const healthService = {
     return healthData;
   },
 
+  /**
+   * Returns the health object for the connected fullnode
+   *
+   * @returns {Object}
+   */
   async getFullnodeHealth() {
     let output;
     let healthStatus;
@@ -57,6 +69,11 @@ const healthService = {
     return fullnodeHealthData;
   },
 
+  /**
+   * Returns the health object for the connected tx-mining-service
+   *
+   * @returns {Object}
+   */
   async getTxMiningServiceHealth() {
     let output;
     let healthStatus;

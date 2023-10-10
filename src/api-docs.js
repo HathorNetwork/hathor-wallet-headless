@@ -3836,6 +3836,243 @@ const defaultApiDocs = {
         },
       },
     },
+    '/health/wallet': {
+      get: {
+        summary: 'Return the health of a specific wallet.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the corresponding wallet id whose health to check.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'A JSON with the health object.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      status: 'pass',
+                      componentType: 'internal',
+                      componentName: 'Wallet <wallet-id>',
+                      output: 'Wallet is ready',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          503: {
+            description: 'A JSON with the health object.',
+            content: {
+              'application/json': {
+                examples: {
+                  unhealthy: {
+                    summary: 'Unhealthy wallet',
+                    value: {
+                      status: 'fail',
+                      componentType: 'internal',
+                      componentName: 'Wallet <wallet-id>',
+                      output: 'Wallet is not ready. Current state: <state>',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/health/fullnode': {
+      get: {
+        summary: 'Return the health of the fullnode.',
+        responses: {
+          200: {
+            description: 'A JSON with the health object.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      status: 'pass',
+                      componentType: 'fullnode',
+                      componentName: 'Fullnode <fullnode_url>',
+                      output: 'Fullnode is responding',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          503: {
+            description: 'A JSON with the health object.',
+            content: {
+              'application/json': {
+                examples: {
+                  unhealthy: {
+                    summary: 'Unhealthy fullnode',
+                    value: {
+                      status: 'fail',
+                      componentType: 'internal',
+                      componentName: 'Fullnode',
+                      output: 'Fullnode reported as unhealthy: <fullnode response>',
+                    },
+                  },
+                  unreachable: {
+                    summary: 'Unreachable fullnode',
+                    value: {
+                      status: 'fail',
+                      componentType: 'internal',
+                      componentName: 'Fullnode',
+                      output: 'Error getting fullnode health: <error>',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/health/tx-mining': {
+      get: {
+        summary: 'Return the health of the tx mining service.',
+        responses: {
+          200: {
+            description: 'A JSON with the health object.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      status: 'pass',
+                      componentType: 'service',
+                      componentName: 'TxMiningService <tx_mining_url>',
+                      output: 'Tx Mining Service is healthy',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          503: {
+            description: 'A JSON with the health object.',
+            content: {
+              'application/json': {
+                examples: {
+                  unhealthy: {
+                    summary: 'Unhealthy tx mining',
+                    value: {
+                      status: 'fail',
+                      componentType: 'service',
+                      componentName: 'TxMiningService <tx_mining_url>',
+                      output: 'Tx Mining Service reported as unhealthy: <tx mining response>',
+                    },
+                  },
+                  unreachable: {
+                    summary: 'Unreachable tx mining',
+                    value: {
+                      status: 'fail',
+                      componentType: 'service',
+                      componentName: 'TxMiningService <tx_mining_url>',
+                      output: 'Error getting tx-mining-service health: <error>',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/health': {
+      get: {
+        summary: 'Return the health of the wallet headless.',
+        responses: {
+          200: {
+            description: 'A JSON with the health object. It will contain info about all components that were checked.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      status: 'pass',
+                      description: 'Wallet-headless health',
+                      checks: {
+                        'Wallet <wallet-id>': [{
+                          status: 'pass',
+                          componentType: 'internal',
+                          componentName: 'Wallet <wallet-id>',
+                          output: 'Wallet is ready',
+                        }],
+                        fullnode: [{
+                          status: 'pass',
+                          componentType: 'fullnode',
+                          componentName: 'Fullnode <fullnode_url>',
+                          output: 'Fullnode is responding',
+                        }],
+                        txMining: [{
+                          status: 'pass',
+                          componentType: 'service',
+                          componentName: 'TxMiningService <tx_mining_url>',
+                          output: 'Tx Mining Service is healthy',
+                        }]
+                      }
+                    },
+                  },
+                },
+              },
+            },
+          },
+          503: {
+            description: 'A JSON with the health object. It will contain info about all components that were checked.',
+            content: {
+              'application/json': {
+                examples: {
+                  unhealthy: {
+                    summary: 'Unhealthy wallet headless',
+                    value: {
+                      status: 'fail',
+                      description: 'Wallet-headless health',
+                      checks: {
+                        'Wallet <wallet-id>': [{
+                          status: 'pass',
+                          componentType: 'internal',
+                          componentName: 'Wallet <wallet-id>',
+                          output: 'Wallet is ready',
+                        }],
+                        fullnode: [{
+                          status: 'fail',
+                          componentType: 'fullnode',
+                          componentName: 'Fullnode <fullnode_url>',
+                          output: 'Fullnode reported as unhealthy: <fullnode response>',
+                        }],
+                        txMining: [{
+                          status: 'pass',
+                          componentType: 'service',
+                          componentName: 'TxMiningService <tx_mining_url>',
+                          output: 'Tx Mining Service is healthy',
+                        }]
+                      }
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
 };
 

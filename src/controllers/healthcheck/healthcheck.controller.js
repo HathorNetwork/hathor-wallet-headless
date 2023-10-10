@@ -2,6 +2,11 @@ import { buildServiceHealthCheck } from '../../helpers/healthcheck.helper';
 import { initializedWallets } from '../../services/wallets.service';
 import healthService from '../../services/healthcheck.service';
 
+/**
+ * Controller for the /health endpoint that returns the health
+ * of the wallet-headless service, including all started wallets,
+ * the connected fullnode and the tx-mining-service
+ */
 async function getGlobalHealth(req, res) {
   const promises = [];
 
@@ -48,6 +53,10 @@ async function getGlobalHealth(req, res) {
   res.status(httpStatus).send(serviceHealth);
 }
 
+/**
+ * Controller for the /health/wallet endpoint that
+ * returns the health of a specific wallet
+ */
 async function getWalletHealth(req, res) {
   const sendError = message => {
     res.status(400).send({
@@ -74,6 +83,10 @@ async function getWalletHealth(req, res) {
   res.status(status).send(walletHealthData);
 }
 
+/**
+ * Controller for the /health/fullnode endpoint that
+ * returns the health of the connected fullnode
+ */
 async function getFullnodeHealth(req, res) {
   const fullnodeHealthData = await healthService.getFullnodeHealth();
   const status = fullnodeHealthData.status === 'pass' ? 200 : 503;
@@ -81,6 +94,10 @@ async function getFullnodeHealth(req, res) {
   res.status(status).send(fullnodeHealthData);
 }
 
+/**
+ * Controller for the /health/tx-mining endpoint that
+ * returns the health of the connected tx-mining-service
+ */
 async function getTxMiningServiceHealth(req, res) {
   const txMiningServiceHealthData = await healthService.getTxMiningServiceHealth();
   const status = txMiningServiceHealthData.status === 'pass' ? 200 : 503;

@@ -44,6 +44,7 @@ export function buildComponentHealthCheck(componentName, status, componentType, 
 /**
  * Builds a health check object for a service.
  *
+ * @param {string} status
  * @param {string} description
  * @param {Object} checks
  * @returns {Object}
@@ -52,6 +53,11 @@ export function buildServiceHealthCheck(status, description, checks) {
   // Assert the description is a string
   if (typeof description !== 'string') {
     throw new Error('Service description must be a string');
+  }
+
+  // Assert the status is one of the allowed values
+  if (!ALLOWED_STATUSES.includes(status)) {
+    throw new Error(`Service status must be one of: ${ALLOWED_STATUSES.join(', ')}`);
   }
 
   return {
