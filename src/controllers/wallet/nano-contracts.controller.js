@@ -5,11 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+const { ncApi } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../lock');
 const { cantSendTxErrorMessage } = require('../../helpers/constants');
 const { mapTxReturn } = require('../../helpers/tx.helper');
-const { ncApi } = require('@hathor/wallet-lib');
 
 /**
  * Get state fields of a nano contract
@@ -21,10 +21,7 @@ async function getState(req, res) {
     return;
   }
 
-  const id = req.query.id;
-  const fields = req.query.fields;
-  const balances = req.query.balances;
-  const calls = req.query.calls;
+  const { id, fields, balances, calls } = req.query;
 
   try {
     const state = await ncApi.getNanoContractState(id, fields, balances, calls);
@@ -48,9 +45,7 @@ async function getHistory(req, res) {
     return;
   }
 
-  const id = req.query.id;
-  const count = req.query.count;
-  const after = req.query.after;
+  const { id, count, after } = req.query;
 
   try {
     const data = await ncApi.getNanoContractHistory(id, count, after);
