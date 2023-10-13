@@ -6,10 +6,8 @@
  */
 
 const { Router } = require('express');
-const { query, checkSchema, oneOf, body } = require('express-validator');
-const {
-  getState, getHistory, createNanoContract, executeNanoContractMethod
-} = require('../../controllers/wallet/nano-contracts.controller');
+const { query, body } = require('express-validator');
+const { getState, getHistory, createNanoContract, executeNanoContractMethod } = require('../../controllers/wallet/nano-contracts.controller');
 const { patchExpressRouter } = require('../../patch');
 
 const nanoContractRouter = patchExpressRouter(Router({ mergeParams: true }));
