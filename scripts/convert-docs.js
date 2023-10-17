@@ -6,14 +6,13 @@
  */
 
 const { writeFile } = require('fs/promises');
-const apiDocs = require('../src/api-docs');
+const { getApiDocs } = require('../src/api-docs');
+const settings = require('../src/settings');
 
 (async () => {
-  // Remove `default` export property
-  const docsObj = apiDocs.default;
-
-  // Remove obsolete properties
-  delete docsObj.components.securitySchemes;
+  // Fetch config data from this instance and generate the ApiDocs
+  await settings.setupConfig();
+  const docsObj = await getApiDocs();
 
   // Output to temporary JSON file
   await writeFile('./tmp/api-docs.json', JSON.stringify(docsObj, null, 2));
