@@ -23,7 +23,7 @@ It follows the [Swagger Specification for API Keys](https://swagger.io/docs/spec
 
 ## How to use?
 
-Check out the full documentation in the OpenAPI Documentation in `api-docs.js`.
+Check out the full documentation in the OpenAPI Documentation in `api-docs.js` or see below for how to [Evaluate API Docs](#evaluate-api-docs).
 
 ### Start a wallet
 
@@ -315,6 +315,18 @@ $ npm run generate_words
 
 work above economy captain advance bread logic paddle copper change maze tongue salon sadness cannon fish debris need make purpose usage worth vault shrug
 ```
+
+### Evaluate API Docs
+
+This script generates a fully interactive webpage containing the documentation of the API. It is useful to check if the documentation is correct and up-to-date in a human friendly interface.
+
+This feature requires NodeJS v16 or greater and the [`redocly/cli`](https://github.com/Redocly/redocly-cli) library installed globally:
+```bash
+# Validate the generated docs according to Redocly rules and visualize them
+npm run docs
+```
+
+For a machine-readable version of the API docs, start the Headless wallet and use the `[GET] /docs` endpoint.
 
 ## Multisig
 
