@@ -51,7 +51,6 @@
   "homepage": "https://github.com/HathorNetwork/hathor-wallet-headless#readme",
   "devDependencies": {
     "@babel/eslint-parser": "^7.17.0",
-    "@redocly/cli": "^1.0.0",
     "axios-mock-adapter": "^1.19.0",
     "babel-jest": "^26.6.3",
     "eslint": "^8.12.0",
