@@ -3842,7 +3842,7 @@ const defaultApiDocs = {
 /**
  * Generates the Api Docs according to the current configurations of the Headless Wallet
  */
-async function getApiDocs() {
+function getApiDocs() {
   // Obtaining base data
   const config = settings.getConfig();
   const apiDocs = cloneDeep(defaultApiDocs);

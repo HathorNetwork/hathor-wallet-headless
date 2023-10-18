@@ -22,8 +22,8 @@ function welcome(req, res) {
            + '<p>See the <a href="docs/">docs</a></p></body></html>');
 }
 
-async function docs(req, res) {
-  res.send(await getApiDocs());
+function docs(req, res) {
+  res.send(getApiDocs());
 }
 
 async function start(req, res) {

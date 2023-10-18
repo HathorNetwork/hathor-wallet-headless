@@ -12,7 +12,7 @@ const settings = require('../src/settings');
 (async () => {
   // Fetch config data from this instance and generate the ApiDocs
   await settings.setupConfig();
-  const docsObj = await getApiDocs();
+  const docsObj = getApiDocs();
 
   // Output to temporary JSON file
   await writeFile('./tmp/api-docs.json', JSON.stringify(docsObj, null, 2));
