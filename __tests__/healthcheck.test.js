@@ -3,7 +3,7 @@ import TestUtils from './test-utils';
 
 const { initializedWallets } = require('../src/services/wallets.service');
 
-const walletId = "health_wallet"
+const walletId = 'health_wallet';
 
 describe('healthcheck api', () => {
   beforeAll(async () => {
