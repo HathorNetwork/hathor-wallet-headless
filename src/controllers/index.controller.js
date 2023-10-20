@@ -6,7 +6,7 @@
  */
 
 const { walletApi, tokensUtils, walletUtils, Connection, HathorWallet, Network, helpersUtils, SendTransaction } = require('@hathor/wallet-lib');
-const apiDocs = require('../api-docs');
+const { getApiDocs } = require('../api-docs');
 const { initializedWallets } = require('../services/wallets.service');
 const { notificationBus } = require('../services/notification.service');
 const { cantSendTxErrorMessage, API_ERROR_CODES } = require('../helpers/constants');
@@ -23,7 +23,7 @@ function welcome(req, res) {
 }
 
 function docs(req, res) {
-  res.send(apiDocs);
+  res.send(getApiDocs());
 }
 
 async function start(req, res) {
