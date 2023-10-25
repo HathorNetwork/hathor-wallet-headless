@@ -12,8 +12,8 @@ const ALLOWED_STATUSES = ['fail', 'pass', 'warn'];
  */
 export function buildComponentHealthCheck(componentName, status, componentType, output) {
   // Assert the component name is a string
-  if (typeof componentName !== 'string') {
-    throw new Error('Component name must be a string');
+  if (typeof componentName !== 'string' || componentName.length === 0) {
+    throw new Error('Component name must be a non-empty string');
   }
 
   // Assert the component type is one of the allowed values
@@ -27,8 +27,8 @@ export function buildComponentHealthCheck(componentName, status, componentType, 
   }
 
   // Assert the output is a string
-  if (typeof output !== 'string') {
-    throw new Error('Component output must be a string');
+  if (typeof output !== 'string' || output.length === 0) {
+    throw new Error('Component output must be a non-empty string');
   }
 
   // Build the health check object
@@ -51,8 +51,8 @@ export function buildComponentHealthCheck(componentName, status, componentType, 
  */
 export function buildServiceHealthCheck(status, description, checks) {
   // Assert the description is a string
-  if (typeof description !== 'string') {
-    throw new Error('Service description must be a string');
+  if (typeof description !== 'string' || description.length === 0) {
+    throw new Error('Service description must be a non-emtpy string');
   }
 
   // Assert the status is one of the allowed values
