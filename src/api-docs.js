@@ -3836,14 +3836,14 @@ const defaultApiDocs = {
         },
       },
     },
-    '/health/wallet': {
+    '/health/wallets': {
       get: {
-        summary: 'Return the health of a specific wallet.',
+        summary: 'Return the health of the provided wallets.',
         parameters: [
           {
-            name: 'x-wallet-id',
+            name: 'x-wallet-ids',
             in: 'header',
-            description: 'Define the corresponding wallet id whose health to check.',
+            description: 'Define wallet ids to check, comma-separated.',
             required: true,
             schema: {
               type: 'string',
@@ -3860,10 +3860,22 @@ const defaultApiDocs = {
                     summary: 'Success',
                     value: {
                       status: 'pass',
-                      componentType: 'internal',
-                      componentName: 'Wallet <wallet-id>',
-                      output: 'Wallet is ready',
-                    },
+                      description: 'Wallet-headless health',
+                      checks: {
+                        'Wallet <wallet-id-1>': [{
+                          status: 'pass',
+                          componentType: 'internal',
+                          componentName: 'Wallet <wallet-id-1>',
+                          output: 'Wallet is ready',
+                        }],
+                        'Wallet <wallet-id-2>': [{
+                          status: 'pass',
+                          componentType: 'internal',
+                          componentName: 'Wallet <wallet-id-2>',
+                          output: 'Wallet is ready',
+                        }],
+                      }
+                    }
                   },
                 },
               },
@@ -3878,9 +3890,21 @@ const defaultApiDocs = {
                     summary: 'Unhealthy wallet',
                     value: {
                       status: 'fail',
-                      componentType: 'internal',
-                      componentName: 'Wallet <wallet-id>',
-                      output: 'Wallet is not ready. Current state: <state>',
+                      description: 'Wallet-headless health',
+                      checks: {
+                        'Wallet <wallet-id-1>': [{
+                          status: 'pass',
+                          componentType: 'internal',
+                          componentName: 'Wallet <wallet-id-1>',
+                          output: 'Wallet is ready',
+                        }],
+                        'Wallet <wallet-id-2>': [{
+                          status: 'fail',
+                          componentType: 'internal',
+                          componentName: 'Wallet <wallet-id-2>',
+                          output: 'Wallet is not ready. Current state: <state>',
+                        }],
+                      }
                     },
                   },
                 },
@@ -3997,9 +4021,20 @@ const defaultApiDocs = {
     '/health': {
       get: {
         summary: 'Return the health of the wallet headless.',
+        parameters: [
+          {
+            name: 'x-wallet-ids',
+            in: 'header',
+            description: 'Define wallet ids to check, comma-separated.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
         responses: {
           200: {
-            description: 'A JSON with the health object. It will contain info about all components that were checked.',
+            description: 'A JSON with the health object. It will contain info about all components and provided wallet ids.',
             content: {
               'application/json': {
                 examples: {
@@ -4013,6 +4048,12 @@ const defaultApiDocs = {
                           status: 'pass',
                           componentType: 'internal',
                           componentName: 'Wallet <wallet-id>',
+                          output: 'Wallet is ready',
+                        }],
+                        'Wallet <wallet-id-2>': [{
+                          status: 'pass',
+                          componentType: 'internal',
+                          componentName: 'Wallet <wallet-id-2>',
                           output: 'Wallet is ready',
                         }],
                         fullnode: [{
@@ -4049,6 +4090,12 @@ const defaultApiDocs = {
                           status: 'pass',
                           componentType: 'internal',
                           componentName: 'Wallet <wallet-id>',
+                          output: 'Wallet is ready',
+                        }],
+                        'Wallet <wallet-id-2>': [{
+                          status: 'pass',
+                          componentType: 'internal',
+                          componentName: 'Wallet <wallet-id-2>',
                           output: 'Wallet is ready',
                         }],
                         fullnode: [{

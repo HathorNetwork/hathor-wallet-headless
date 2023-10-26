@@ -17,6 +17,7 @@ describe('healthcheck api', () => {
   afterEach(async () => {
     await TestUtils.stopMocks();
     TestUtils.startMocks();
+    TestUtils.resetRequest();
   });
 
   describe('/health', () => {
@@ -27,6 +28,7 @@ describe('healthcheck api', () => {
       );
 
       const response = await TestUtils.request
+        .set({ 'x-wallet-ids': walletId })
         .get('/health');
       expect(response.status).toBe(200);
 
@@ -74,6 +76,7 @@ describe('healthcheck api', () => {
       wallet.state = HathorWallet.SYNCING;
 
       const response = await TestUtils.request
+        .set({ 'x-wallet-ids': walletId })
         .get('/health');
       expect(response.status).toBe(503);
 
@@ -119,6 +122,7 @@ describe('healthcheck api', () => {
       TestUtils.httpMock.onGet('/version').reply(503, { status: 'fail' });
 
       const response = await TestUtils.request
+        .set({ 'x-wallet-ids': walletId })
         .get('/health');
       expect(response.status).toBe(503);
       expect(response.body.status).toBe('fail');
@@ -181,6 +185,7 @@ describe('healthcheck api', () => {
       );
 
       const response = await TestUtils.request
+        .set({ 'x-wallet-ids': walletId })
         .get('/health');
       expect(response.status).toBe(503);
 
@@ -220,27 +225,27 @@ describe('healthcheck api', () => {
     });
   });
 
-  describe('/health/wallet', () => {
-    it('should return 400 when the wallet has not been started', async () => {
+  describe('/health/wallets', () => {
+    it('should return 400 when the wallet has been started, but the header was not passed', async () => {
       const response = await TestUtils.request
-        .get('/health/wallet')
-        .set({ 'x-wallet-id': 'invalid-idl' });
+        .get('/health/wallets');
       expect(response.status).toBe(400);
 
       expect(response.body).toStrictEqual({
         success: false,
-        message: 'Invalid wallet id parameter.',
+        message: 'Header \'X-Wallet-Ids\' is required.',
       });
     });
 
-    it('should return 400 when the wallet has been started, but the header was not passed', async () => {
+    it('should return 400 when the wallet has not been started', async () => {
       const response = await TestUtils.request
-        .get('/health/wallet');
+        .set({ 'x-wallet-ids': `invalid-id,${walletId}` })
+        .get('/health/wallets');
       expect(response.status).toBe(400);
 
       expect(response.body).toStrictEqual({
         success: false,
-        message: 'Header \'X-Wallet-Id\' is required.',
+        message: 'Invalid wallet id parameter: invalid-id',
       });
     });
 
@@ -252,8 +257,8 @@ describe('healthcheck api', () => {
       wallet.state = HathorWallet.SYNCING;
 
       const response = await TestUtils.request
-        .get('/health/wallet')
-        .set({ 'x-wallet-id': walletId });
+        .set({ 'x-wallet-ids': walletId })
+        .get('/health/wallets');
       expect(response.status).toBe(503);
 
       wallet.isReady = originalIsReady;

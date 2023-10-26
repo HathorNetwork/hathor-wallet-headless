@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { patchExpressRouter } = require('../../patch');
-const { getWalletHealth, getFullnodeHealth, getTxMiningServiceHealth, getGlobalHealth } = require('../../controllers/healthcheck/healthcheck.controller');
+const { getWalletsHealth, getFullnodeHealth, getTxMiningServiceHealth, getGlobalHealth } = require('../../controllers/healthcheck/healthcheck.controller');
 
 const healthcheckRouter = patchExpressRouter(Router({ mergeParams: true }));
 
@@ -14,7 +14,7 @@ healthcheckRouter.get('/', getGlobalHealth);
  * GET request to get the health of a wallet
  * For the docs, see api-docs.js
  */
-healthcheckRouter.get('/wallet', getWalletHealth);
+healthcheckRouter.get('/wallets', getWalletsHealth);
 
 /**
  * GET request to get the health of the fullnode

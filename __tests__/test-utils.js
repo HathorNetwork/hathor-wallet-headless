@@ -246,6 +246,12 @@ class TestUtils {
     });
   }
 
+  static resetRequest() {
+    // This can be used to reset the supertest agent and avoid interferences between tests,
+    // since everything is a singleton in this file
+    request = supertest.agent(server);
+  }
+
   static stopMocks() {
     httpMock.reset();
     server.close();
