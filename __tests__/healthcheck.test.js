@@ -125,23 +125,6 @@ describe('healthcheck api', () => {
         .set({ 'x-wallet-ids': walletId })
         .get('/health');
       expect(response.status).toBe(503);
-      expect(response.body.status).toBe('fail');
-      expect(response.body.description).toBe('Wallet-headless health');
-
-      expect(response.body.checks['Wallet health_wallet'][0].componentName).toBe('Wallet health_wallet');
-      expect(response.body.checks['Wallet health_wallet'][0].componentType).toBe('internal');
-      expect(response.body.checks['Wallet health_wallet'][0].output).toBe('Wallet is ready');
-      expect(response.body.checks['Wallet health_wallet'][0].status).toBe('pass');
-
-      expect(response.body.checks['Fullnode http://fakehost:8083/v1a/'][0].componentName).toBe('Fullnode http://fakehost:8083/v1a/');
-      expect(response.body.checks['Fullnode http://fakehost:8083/v1a/'][0].componentType).toBe('fullnode');
-      expect(response.body.checks['Fullnode http://fakehost:8083/v1a/'][0].status).toBe('fail');
-      expect(response.body.checks['Fullnode http://fakehost:8083/v1a/'][0].output).toBe('Fullnode reported as unhealthy: {"status":"fail"}');
-
-      expect(response.body.checks['TxMiningService http://fake.txmining:8084/'][0].componentName).toBe('TxMiningService http://fake.txmining:8084/');
-      expect(response.body.checks['TxMiningService http://fake.txmining:8084/'][0].componentType).toBe('service');
-      expect(response.body.checks['TxMiningService http://fake.txmining:8084/'][0].status).toBe('pass');
-      expect(response.body.checks['TxMiningService http://fake.txmining:8084/'][0].output).toBe('Tx Mining Service is healthy');
 
       expect(response.body).toStrictEqual({
         status: 'fail',

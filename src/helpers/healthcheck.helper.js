@@ -52,7 +52,7 @@ export function buildComponentHealthCheck(componentName, status, componentType, 
 export function buildServiceHealthCheck(status, description, checks) {
   // Assert the description is a string
   if (typeof description !== 'string' || description.length === 0) {
-    throw new Error('Service description must be a non-emtpy string');
+    throw new Error('Service description must be a non-empty string');
   }
 
   // Assert the status is one of the allowed values
