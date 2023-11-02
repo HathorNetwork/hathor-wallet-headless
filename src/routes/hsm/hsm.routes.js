@@ -74,6 +74,7 @@ hsmRouter.post('/start', async (req, res, next) => {
     });
     return;
   }
+  await hsmDisconnect();
 
   // Starts the wallet
   res.send({

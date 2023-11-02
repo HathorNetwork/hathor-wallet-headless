@@ -23,6 +23,10 @@ async function hsmConnect() {
   return connectionObj;
 }
 
+async function hsmDisconnect() {
+  return hsm.disconnect();
+}
+
 /**
  *
  * @param {Object} hsmConnection
@@ -69,5 +73,6 @@ async function isKeyValidXpriv(hsmConnection, hsmKeyName) {
 
 module.exports = {
   hsmConnect,
+  hsmDisconnect,
   isKeyValidXpriv
 };
