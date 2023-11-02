@@ -9,34 +9,65 @@ const { hsm } = require('@dinamonetworks/hsm-dinamo');
 const { getConfig } = require('../settings');
 
 /**
- * HSM connection object to be used throughout the application
- * @type {hsm}
+ * Connects to the HSM and returns the connection object
+ * @returns {Promise<Hsm>}
  */
-let globalConnectionObj = null;
-
 async function hsmConnect() {
-  if (globalConnectionObj) {
-    return globalConnectionObj;
-  }
-
   // Gets the connection data from the global config file
   const { hsmConnectionOptions } = getConfig();
 
   // Connects to HSM
-  globalConnectionObj = await hsm.connect(hsmConnectionOptions);
+  const connectionObj = await hsm.connect(hsmConnectionOptions);
   console.log('HSM connected.');
 
-  return globalConnectionObj;
+  return connectionObj;
 }
 
-async function hsmDisconnect() {
-  if (globalConnectionObj) {
-    await globalConnectionObj.disconnect();
-    globalConnectionObj = null;
+/**
+ *
+ * @param {Object} hsmConnection
+ * @param {string} hsmKeyName
+ * @returns {Promise<{reason?: string, isValidXpriv: boolean, hsmKeyName}>}
+ */
+async function isKeyValidXpriv(hsmConnection, hsmKeyName) {
+  const returnObject = {
+    hsmKeyName,
+    isValidXpriv: false,
+    reason: '',
+  };
+
+  let keyInfo;
+  try {
+    keyInfo = await hsmConnection.blockchain.getKeyInfo(hsmKeyName);
+  } catch (e) {
+    // Special treatment for a wallet not configured on the HSM
+    if (e.errorCode === 5004) {
+      returnObject.reason = `Key does not exist on HSM.`;
+      return returnObject;
+    }
+    console.error(`Unexpected getKeyInfo error: ${e.message}`);
+    throw e;
   }
+
+  console.log(keyInfo);
+  if (keyInfo.type !== hsm.enums.BLOCKCHAIN_KEYS.BIP32_XPRV) {
+    returnObject.reason = `Key is not a valid xPriv.`;
+    return returnObject;
+  }
+  if (!(keyInfo.ver in [
+    hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET,
+    hsm.enums.VERSION_OPTIONS.BIP32_HTR_TEST_NET,
+  ])) {
+    returnObject.reason = `Key is not a valid Hathor xPriv.`;
+    return returnObject;
+  }
+
+  delete returnObject.reason;
+  returnObject.isValidXpriv = true;
+  return returnObject;
 }
 
 module.exports = {
   hsmConnect,
-  hsmDisconnect,
+  isKeyValidXpriv
 };

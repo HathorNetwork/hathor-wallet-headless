@@ -13,7 +13,7 @@ const { patchExpressRouter } = require('../patch');
 
 const mainRouter = patchExpressRouter(Router({ mergeParams: true }));
 const walletRouter = require('./wallet/wallet.routes');
-const { hsmConnect } = require('../services/hsm.service');
+const hsmRouter = require('./hsm/hsm.routes');
 
 mainRouter.get('/', rootControllers.welcome);
 mainRouter.get('/docs', rootControllers.docs);
@@ -37,15 +37,7 @@ mainRouter.get(
 
 mainRouter.post('/reload-config', rootControllers.reloadConfig);
 
-mainRouter.get('/hsm', async (req, res, next) => {
-  try {
-    await hsmConnect();
-    res.send({ success: true });
-  } catch (e) {
-    res.send({ success: false, error: e.message });
-  }
-});
-
 mainRouter.use('/wallet', walletRouter);
+mainRouter.use('/hsm', hsmRouter);
 
 module.exports = mainRouter;
