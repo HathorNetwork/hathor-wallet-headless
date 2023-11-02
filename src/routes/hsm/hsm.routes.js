@@ -11,7 +11,8 @@ const { patchExpressRouter } = require('../../patch');
 const hsmRouter = patchExpressRouter(Router({ mergeParams: true }));
 const {
   hsmConnect, hsmDisconnect,
-  isKeyValidXpriv
+  isKeyValidXpriv,
+  getXPubFromKey
 } = require('../../services/hsm.service');
 const settings = require('../../settings');
 
@@ -74,11 +75,14 @@ hsmRouter.post('/start', async (req, res, next) => {
     });
     return;
   }
+
+  const xPub = await getXPubFromKey(connectionObj, hsmKeyName);
   await hsmDisconnect();
 
   // Starts the wallet
   res.send({
     success: true,
+    xPub,
     message: 'Fake starting the wallet',
   });
 });

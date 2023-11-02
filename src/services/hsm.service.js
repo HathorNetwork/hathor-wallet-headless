@@ -71,8 +71,81 @@ async function isKeyValidXpriv(hsmConnection, hsmKeyName) {
   return returnObject;
 }
 
+async function derivateHtrCkd(hsmConnection, hsmKeyName) {
+  const childKeyNames = {
+    HTR_CKD_BIP_KEYNAME: 'HTR_BIP_KEY',
+    HTR_CKD_COIN_KEYNAME: 'HTR_COIN_KEY',
+    HTR_CKD_CHANGE_KEYNAME: 'HTR_CHANGE_KEY',
+    HTR_CKD_WALLET_KEYNAME: 'HTR_WALLET_KEY',
+    HTR_CKD_ADDRESS_KEYNAME: 'HTR_ADDRESS_KEY',
+  };
+
+  /*
+   * Derivation will be made on
+   * BIP code / Coin / Change /  Wallet
+   *    m/44' / 280' /     0' /       0
+   *        1 /    2 /      3 /       4
+   */
+
+  // Derivation 1: Bip Code
+  await hsmConnection.blockchain.createBip32ChildKeyDerivation(
+    hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET, // Version
+    hsm.enums.BCHAIN_SECURE_BIP32_INDEX.BASE + 44, // Derivation index
+    false, // Not exportable
+    true, // Temporary
+    hsmKeyName, // Parent key name
+    childKeyNames.HTR_CKD_BIP_KEYNAME, // Child key name
+  );
+
+  // Derivation 2: Coin
+  await hsmConnection.blockchain.createBip32ChildKeyDerivation(
+    hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET,
+    hsm.enums.BCHAIN_SECURE_BIP32_INDEX.BASE + 280,
+    false,
+    true,
+    childKeyNames.HTR_CKD_BIP_KEYNAME,
+    childKeyNames.HTR_CKD_COIN_KEYNAME,
+  );
+
+  // Derivation 3: Change
+  await hsmConnection.blockchain.createBip32ChildKeyDerivation(
+    hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET,
+    hsm.enums.BCHAIN_SECURE_BIP32_INDEX.BASE,
+    false,
+    true,
+    childKeyNames.HTR_CKD_COIN_KEYNAME,
+    childKeyNames.HTR_CKD_CHANGE_KEYNAME,
+  );
+
+  // Derivation 4: Wallet
+  await hsmConnection.blockchain.createBip32ChildKeyDerivation(
+    hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET,
+    0,
+    false,
+    true,
+    childKeyNames.HTR_CKD_CHANGE_KEYNAME,
+    childKeyNames.HTR_CKD_WALLET_KEYNAME,
+  );
+
+  return {
+    success: true,
+    htrKeyName: childKeyNames.HTR_CKD_WALLET_KEYNAME,
+  };
+}
+
+async function getXPubFromKey(hsmConnection, hsmKeyName) {
+  const { htrKeyName } = await derivateHtrCkd(hsmConnection, hsmKeyName);
+
+  const xPub = await hsmConnection.blockchain.getPubKey(
+    hsm.enums.BLOCKCHAIN_GET_PUB_KEY_TYPE.BIP32_XPUB,
+    htrKeyName
+  );
+  return xPub.toString();
+}
+
 module.exports = {
   hsmConnect,
   hsmDisconnect,
-  isKeyValidXpriv
+  isKeyValidXpriv,
+  getXPubFromKey,
 };
