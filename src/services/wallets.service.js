@@ -11,6 +11,7 @@ const { removeAllWalletProposals } = require('./atomic-swap.service');
  * @type {Map<string, HathorWallet>}
  */
 const initializedWallets = new Map();
+const hardWalletIds = new Map();
 
 /**
  * Stop a wallet
@@ -46,6 +47,7 @@ async function stopAllWallets() {
 
 module.exports = {
   initializedWallets,
+  hardWalletIds,
   stopWallet,
   stopAllWallets,
 };

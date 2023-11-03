@@ -6,15 +6,25 @@
  */
 
 const { Router } = require('express');
+const {
+  Connection,
+  HathorWallet
+} = require('@hathor/wallet-lib');
 const { patchExpressRouter } = require('../../patch');
 
 const hsmRouter = patchExpressRouter(Router({ mergeParams: true }));
 const {
-  hsmConnect, hsmDisconnect,
+  hsmConnect,
+  hsmDisconnect,
   isKeyValidXpriv,
   getXPubFromKey
 } = require('../../services/hsm.service');
 const settings = require('../../settings');
+const {
+  initializedWallets,
+  hardWalletIds
+} = require('../../services/wallets.service');
+const { WALLET_ALREADY_STARTED } = require('../../helpers/constants');
 
 /**
  * Debug route
@@ -43,10 +53,10 @@ hsmRouter.get('/disconnect', async (req, res, next) => {
 });
 
 hsmRouter.post('/start', async (req, res, next) => {
-  const config = settings.getConfig();
   const walletId = req.body['wallet-id'];
+  const hsmKeyName = req.body['hsm-key'];
 
-  // Validates input parameters
+  // Validates input wallet-id
   if (!walletId) {
     res.send({
       success: false,
@@ -54,18 +64,29 @@ hsmRouter.post('/start', async (req, res, next) => {
     });
     return;
   }
-
-  // Validates if the requested id is configured locally
-  const hsmKeyName = config.hsmWallets && config.hsmWallets[walletId];
-  if (!hsmKeyName) {
+  if (initializedWallets.has(walletId)) {
+    // We already have a wallet for this key
+    // so we log that it won't start a new one because
+    // it must first stop the old wallet and then start the new
+    console.error('Error starting wallet because this wallet-id is already in use. You must stop the wallet first.');
     res.send({
       success: false,
-      message: `Wallet '${walletId}' is not configured.`,
+      message: `Failed to start wallet with wallet id ${walletId}`,
+      errorCode: WALLET_ALREADY_STARTED,
     });
     return;
   }
 
-  // Validates if the requested id is configured on the HSM
+  // Validates input hsm-key
+  if (!hsmKeyName) {
+    res.send({
+      success: false,
+      message: "Parameter 'hsm-key' is required.",
+    });
+    return;
+  }
+
+  // Validates if the requested key is configured on the HSM
   const connectionObj = await hsmConnect();
   const validationObj = await isKeyValidXpriv(connectionObj, hsmKeyName);
   if (!validationObj.isValidXpriv) {
@@ -79,11 +100,75 @@ hsmRouter.post('/start', async (req, res, next) => {
   const xPub = await getXPubFromKey(connectionObj, hsmKeyName);
   await hsmDisconnect();
 
+  // Creates the wallet
+  const config = settings.getConfig();
+  const walletConfig = {
+    xpub: xPub,
+    password: '123',
+    pinCode: '123',
+    multisig: null,
+    connection: null,
+  };
+  walletConfig.connection = new Connection({
+    network: config.network,
+    servers: [config.server],
+    connectionTimeout: config.connectionTimeout,
+  });
+  const wallet = new HathorWallet(walletConfig);
+
+  // TODO: Add the other validations such as gap limit and default token
+
   // Starts the wallet
+  wallet.start()
+    .then(info => {
+      initializedWallets.set(walletId, wallet);
+      hardWalletIds.set(walletId, hsmKeyName);
+      res.send({
+        success: true,
+        info,
+        message: 'Wallet started',
+      });
+    })
+    .catch(error => {
+      console.error(`Error starting HSM wallet: ${error.message}`);
+      res.status(500).send({
+        success: false,
+        message: `Error starting HSM wallet: ${error.message}`,
+      });
+    });
+});
+
+hsmRouter.get('/is-hardware-wallet/:walletId', async (req, res, next) => {
+  const { walletId } = req.params;
+
+  // Validates input wallet-id
+  if (!walletId) {
+    res.send({
+      success: false,
+      message: "Parameter 'wallet-id' is required.",
+    });
+    return;
+  }
+
+  if (!initializedWallets.has(walletId)) {
+    res.send({
+      success: false,
+      message: `Wallet id ${walletId} not found.`,
+    });
+    return;
+  }
+
+  if (!hardWalletIds.has(walletId)) {
+    res.send({
+      success: false,
+      message: `Wallet id ${walletId} is not a hardware wallet.`,
+    });
+    return;
+  }
+
   res.send({
     success: true,
-    xPub,
-    message: 'Fake starting the wallet',
+    message: `This wallet is a hardware wallet`,
   });
 });
 
