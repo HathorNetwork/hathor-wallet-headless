@@ -9,12 +9,15 @@ const anotherWalletId = 'another_health_wallet';
 describe('healthcheck api', () => {
   beforeAll(async () => {
     await TestUtils.startWallet({ walletId, preCalculatedAddresses: TestUtils.addresses });
-    await TestUtils.startWallet({ walletId: anotherWalletId, preCalculatedAddresses: TestUtils.addresses });
+    await TestUtils.startWallet({
+      walletId: anotherWalletId,
+      preCalculatedAddresses: TestUtils.addresses
+    });
   });
 
   afterAll(async () => {
     await TestUtils.stopWallet({ walletId });
-    await TestUtils.stopWallet({ walletId: anotherWalletId })
+    await TestUtils.stopWallet({ walletId: anotherWalletId });
   });
 
   afterEach(async () => {
@@ -41,7 +44,7 @@ describe('healthcheck api', () => {
       );
 
       const response = await TestUtils.request
-        .set({ 'x-wallet-ids': walletId + ',' + anotherWalletId })
+        .set({ 'x-wallet-ids': `${walletId},${anotherWalletId}` })
         .get('/health');
       expect(response.status).toBe(200);
 
@@ -233,7 +236,7 @@ describe('healthcheck api', () => {
   describe('/health/wallets', () => {
     it('should return 200 when the wallets are ready', async () => {
       const response = await TestUtils.request
-        .set({ 'x-wallet-ids': walletId + ',' + anotherWalletId })
+        .set({ 'x-wallet-ids': `${walletId},${anotherWalletId}` })
         .get('/health/wallets');
       expect(response.status).toBe(200);
 

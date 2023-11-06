@@ -2,6 +2,54 @@ import { buildServiceHealthCheck } from '../../helpers/healthcheck.helper';
 import { initializedWallets } from '../../services/wallets.service';
 import healthService from '../../services/healthcheck.service';
 
+/**
+ *
+ * @param {string[]} walletIds
+ * @param {boolean} includeFullnode
+ * @param {boolean} includeTxMiningService
+ * @returns {Promise<{checks: Object, httpStatus: number, status: string}>}
+ * @private
+ * @description Returns the health checks for the given wallet ids. The fullnode and the
+ * tx-mining-service are optionally included in the checks, depending on the parameters.
+ *
+ * Also returns the http status code and the overall status of the health check.
+ *
+ * Returned object format:
+ *     {
+ *       httpStatus: 200,
+ *       status: 'pass',
+ *       checks: {
+ *        'Wallet health_wallet': [
+ *          {
+ *            componentName: 'Wallet health_wallet',
+ *            componentType: 'internal',
+ *            status: 'fail',
+ *            output: 'Wallet is not ready. Current state: Syncing',
+ *            time: expect.any(String),
+ *          },
+ *        ],
+ *        'Fullnode http://fakehost:8083/v1a/': [
+ *          {
+ *            componentName: 'Fullnode http://fakehost:8083/v1a/',
+ *            componentType: 'fullnode',
+ *            status: 'pass',
+ *            output: 'Fullnode is responding',
+ *            time: expect.any(String),
+ *          },
+ *        ],
+ *        'TxMiningService http://fake.txmining:8084/': [
+ *          {
+ *            componentName: 'TxMiningService http://fake.txmining:8084/',
+ *            componentType: 'service',
+ *            status: 'pass',
+ *            output: 'Tx Mining Service is healthy',
+ *            time: expect.any(String),
+ *          },
+ *        ],
+ *      }
+ *    }
+ *
+ */
 async function getWalletsHealthChecks(
   walletIds,
   includeFullnode = false,
