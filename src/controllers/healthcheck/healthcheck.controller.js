@@ -103,7 +103,7 @@ async function getWalletsHealth(req, res) {
     }
   }
 
-  const { checks, httpStatus, status } = await getWalletsHealthChecks(walletIds, true, true);
+  const { checks, httpStatus, status } = await getWalletsHealthChecks(walletIds, false, false);
 
   const serviceHealth = buildServiceHealthCheck(
     status,
