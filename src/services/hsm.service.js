@@ -6,6 +6,7 @@
  */
 
 const { hsm } = require('@dinamonetworks/hsm-dinamo');
+const { PartialTxInputData, transactionUtils } = require('@hathor/wallet-lib');
 const { getConfig } = require('../settings');
 const {
   lock,
@@ -228,8 +229,73 @@ async function getXPubFromKey(hsmConnection, hsmKeyName, options) {
  * @returns {Promise<void>}
  */
 async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
-  console.log(`Fake signing proposal`);
-  proposal.setSignatures('PartialTxInputData|000197613c|0:5455bdf324');
+  // Preparing all necessary data to build the signature
+  const { partialTx } = proposal;
+  const tx = partialTx.getTx();
+  const signatureBuildingData = {
+    partialTx: partialTx.serialize(),
+    txHex: tx.toHex(),
+    dataToSign: tx.getDataToSign().toString(),
+    hashedDataToSign: tx.getDataToSignHash().toString(),
+  };
+  console.dir({ signatureBuildingData });
+
+  const signaturesObj = new PartialTxInputData(
+    tx.getDataToSign().toString('hex'),
+    tx.inputs.length
+  );
+
+  // Building the signature object instance
+  await signTransaction(tx, proposal.storage);
+
+  // sign inputs from the loaded wallet and save input data
+  for (const [index, input] of tx.inputs.entries()) {
+    if (input.data) {
+      // add all signatures we know of this tx
+      signaturesObj.addData(index, input.data);
+    }
+  }
+
+  console.dir({ signaturesObj });
+  proposal.setSignatures(signaturesObj.serialize());
+
+  async function signTransaction(_tx, _storage) {
+    const dataToSignHash = _tx.getDataToSignHash();
+
+    for await (const {
+      tx: spentTx,
+      input
+    } of _storage.getSpentTxs(_tx.inputs)) {
+      const spentOut = spentTx.outputs[input.index];
+      if (!spentOut.decoded.address) {
+        // This is not a wallet output
+        continue;
+      }
+      const addressInfo = await _storage.getAddressInfo(spentOut.decoded.address);
+      if (!addressInfo) {
+        // Not a wallet address
+        continue;
+      }
+      console.dir({ addressInfo });
+
+      // Signing with the HSM
+      const hsmSignature = await hsmConnection.blockchain.sign(
+        hsm.enums.BLOCKCHAIN_SIG_TYPE.SIG_DER_ECDSA, // Signature type
+        hsm.enums.BLOCKCHAIN_HASH_MODE.SHA256, // Hash type
+        dataToSignHash, // Data to be signed
+        hsmKeyName // Key name
+      );
+      console.dir({ signature: hsmSignature.toString() });
+
+      const inputData = transactionUtils.createInputData(
+        hsmSignature,
+        Buffer.from(addressInfo.publicKey) // XXX: Unsure this is the correct way to convert
+      );
+      input.setData(inputData);
+    }
+
+    return _tx;
+  }
 }
 
 module.exports = {

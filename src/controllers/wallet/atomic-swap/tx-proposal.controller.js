@@ -245,17 +245,21 @@ async function getMySignatures(req, res) {
     if (isHardwareWallet(walletId)) {
       // Connects to the HSM and signs the transaction
       const hsmConnection = await hsmConnect();
-      const hsmKeyName = hardWalletIds[walletId];
+      const hsmKeyName = hardWalletIds.get(walletId);
       await hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal);
       await hsmDisconnect();
     } else {
       await proposal.signData('123');
     }
+    console.dir({
+      signatures: proposal.signatures,
+    });
     res.send({
       success: true,
       signatures: proposal.signatures.serialize(),
     });
   } catch (err) {
+    console.error(err.stack);
     await hsmDisconnect(); // Ensures hsm is disconnected if a failure occurs
     res.send({ success: false, error: err.message });
   }
