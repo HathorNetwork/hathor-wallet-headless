@@ -242,6 +242,8 @@ async function getMySignatures(req, res) {
   try {
     const proposal = PartialTxProposal.fromPartialTx(partialTx, req.wallet.storage);
     const { walletId } = req;
+
+    // If this is a hard wallet, the signature process will be executed on the external hardware
     if (isHardwareWallet(walletId)) {
       // Connects to the HSM and signs the transaction
       const hsmConnection = await hsmConnect();
@@ -249,8 +251,11 @@ async function getMySignatures(req, res) {
       await hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal);
       await hsmDisconnect();
     } else {
+      // Locally sign the transaction
       await proposal.signData('123');
     }
+
+    // DEBUG: Evaluating the generated signatures
     console.dir({
       signatures: proposal.signatures,
     });

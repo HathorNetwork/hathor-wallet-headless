@@ -36,6 +36,11 @@ async function hsmConnect() {
   return connectionObj;
 }
 
+/**
+ * Disconnects the headless wallet from the HSM.
+ * The connection object is a singleton, so it must not be informed as parameter.
+ * @returns {Promise<void>}
+ */
 async function hsmDisconnect() {
   await hsm.disconnect();
   console.log(`HSM disconnected.`);
@@ -222,10 +227,57 @@ async function getXPubFromKey(hsmConnection, hsmKeyName, options) {
 }
 
 /**
- * Signs a partial tx Proposal
+ * Derives an address for the wallet at the given index
  * @param {Object} hsmConnection
- * @param {string} hsmKeyName
- * @param {PartialTxProposal} proposal
+ * @param {string} hsmKeyName Name of the xPriv key on the HSM
+ * @param {number} addressIndex Index to derive the address on
+ * @returns {Promise<{
+ * pubKey: string,
+ * success: boolean,
+ * privKey: string,
+ * addressIndex: number,
+ * addressKeyName: string
+ * }>}
+ */
+async function deriveHtrAddress(hsmConnection, hsmKeyName, addressIndex) {
+  const baseWalletKeyName = await derivateHtrCkd(hsmConnection, hsmKeyName);
+  const addressKeyName = `HTR_ADDRESS_KEY_${addressIndex}`;
+  await hsmConnection.blockchain.createBip32ChildKeyDerivation(
+    hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET,
+    addressIndex,
+    true,
+    true,
+    baseWalletKeyName.htrKeyName,
+    addressKeyName,
+  );
+
+  // DEBUG: Obtaining the private key and public key to help debugging
+  const privKey = await hsmConnection.blockchain.export(
+    hsm.enums.IMPORT_EXPORT_FORMAT.SEC1,
+    hsm.enums.BLOCKCHAIN_EXPORT_VERSION.WIF_MAIN_NET,
+    false,
+    addressKeyName
+  );
+  const pubKey = await hsmConnection.blockchain.getPubKey(
+    hsm.enums.BLOCKCHAIN_GET_PUB_KEY_TYPE.SEC1_COMP,
+    addressKeyName
+  );
+
+  return {
+    success: true,
+    addressIndex,
+    addressKeyName,
+    pubKey: pubKey.toString('hex'),
+    privKey: privKey.toString('hex'),
+  };
+}
+
+/**
+ * Signs a partial tx Proposal with the HSM.
+ * @param {Object} hsmConnection The HSM connection object
+ * @param {string} hsmKeyName The key containing the xPriv on the HSM
+ * @param {PartialTxProposal} proposal A PartialTxProposal already containing the complete proposal
+ * @see https://github.com/HathorNetwork/hathor-wallet-lib/blob/1397debc7d49028e09aae08bd86cf02b0145e06b/src/wallet/partialTxProposal.ts#L348-L377
  * @returns {Promise<void>}
  */
 async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
@@ -235,20 +287,21 @@ async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
   const signatureBuildingData = {
     partialTx: partialTx.serialize(),
     txHex: tx.toHex(),
-    dataToSign: tx.getDataToSign().toString(),
-    hashedDataToSign: tx.getDataToSignHash().toString(),
+    dataToSign: tx.getDataToSign().toString('hex'),
+    hashedDataToSign: tx.getDataToSignHash().toString('hex'),
   };
   console.dir({ signatureBuildingData });
 
+  // Adds the signatures to the tx itself
+  await signTransactionInputs(tx, proposal.storage);
+
+  // Builds a Signatures object to inject on the PartialTxProposal
   const signaturesObj = new PartialTxInputData(
     tx.getDataToSign().toString('hex'),
     tx.inputs.length
   );
 
-  // Building the signature object instance
-  await signTransaction(tx, proposal.storage);
-
-  // sign inputs from the loaded wallet and save input data
+  // Copy the input data to the Signatures object
   for (const [index, input] of tx.inputs.entries()) {
     if (input.data) {
       // add all signatures we know of this tx
@@ -256,45 +309,62 @@ async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
     }
   }
 
+  // Insert the Signatures object into the Proposal and validate its correctness
   console.dir({ signaturesObj });
   proposal.setSignatures(signaturesObj.serialize());
 
-  async function signTransaction(_tx, _storage) {
+  /**
+   * Signs each input of the tx with the HSM.
+   * Based on the TransactionUtils.signTransaction function
+   * @param {Transaction} _tx
+   * @param {Storage} _storage
+   * @returns {Promise<void>}
+   * @see https://github.com/HathorNetwork/hathor-wallet-lib/blob/d3dbe159ac121eb67986ed8561cdacead8fc9fe8/src/utils/transaction.ts#L126-L151
+   */
+  async function signTransactionInputs(_tx, _storage) {
     const dataToSignHash = _tx.getDataToSignHash();
 
     for await (const {
       tx: spentTx,
       input
     } of _storage.getSpentTxs(_tx.inputs)) {
+      // Identifying addresses that not belong to this wallet
       const spentOut = spentTx.outputs[input.index];
       if (!spentOut.decoded.address) {
-        // This is not a wallet output
+        // This output does not belong to this wallet
         continue;
       }
       const addressInfo = await _storage.getAddressInfo(spentOut.decoded.address);
       if (!addressInfo) {
-        // Not a wallet address
+        // This address does not belong to this wallet
         continue;
       }
-      console.dir({ addressInfo });
 
-      // Signing with the HSM
+      // Deriving the address private and public keys to sign the input
+      console.dir({ addressInfo });
+      const addressKeyObj = await deriveHtrAddress(
+        hsmConnection,
+        hsmKeyName,
+        addressInfo.bip32AddressIndex,
+      );
+      console.dir({ addressKeyObj });
+
+      // Signing the input with the HSM
       const hsmSignature = await hsmConnection.blockchain.sign(
-        hsm.enums.BLOCKCHAIN_SIG_TYPE.SIG_DER_ECDSA, // Signature type
+        hsm.enums.BLOCKCHAIN_SIG_TYPE.SIG_DER_RFC_6979_ECDSA, // Signature type
         hsm.enums.BLOCKCHAIN_HASH_MODE.SHA256, // Hash type
         dataToSignHash, // Data to be signed
-        hsmKeyName // Key name
+        addressKeyObj.addressKeyName // Key name
       );
-      console.dir({ signature: hsmSignature.toString() });
+      console.dir({ hexSignature: hsmSignature.toString('hex') });
 
+      // Injecting the signature data back into the tx input object
       const inputData = transactionUtils.createInputData(
         hsmSignature,
         Buffer.from(addressInfo.publicKey) // XXX: Unsure this is the correct way to convert
       );
       input.setData(inputData);
     }
-
-    return _tx;
   }
 }
 
