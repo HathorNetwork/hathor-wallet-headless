@@ -10,9 +10,8 @@ const {
   Connection,
   HathorWallet
 } = require('@hathor/wallet-lib');
+const { hsm } = require('@dinamonetworks/hsm-dinamo');
 const { patchExpressRouter } = require('../../patch');
-
-const hsmRouter = patchExpressRouter(Router({ mergeParams: true }));
 const {
   hsmConnect,
   hsmDisconnect,
@@ -25,6 +24,8 @@ const {
   hardWalletIds
 } = require('../../services/wallets.service');
 const { WALLET_ALREADY_STARTED } = require('../../helpers/constants');
+
+const hsmRouter = patchExpressRouter(Router({ mergeParams: true }));
 
 /**
  * Debug route
@@ -169,6 +170,38 @@ hsmRouter.get('/is-hardware-wallet/:walletId', async (req, res, next) => {
   res.send({
     success: true,
     message: `This wallet is a hardware wallet`,
+  });
+});
+
+/**
+ * Debug route to test generating an xPub with each available version code
+ */
+hsmRouter.post('/test-xpub', async (req, res, next) => {
+  const hsmKeyName = req.body['hsm-key'];
+
+  // Validates input hsm-key
+  if (!hsmKeyName) {
+    res.send({
+      success: false,
+      message: "Parameter 'hsm-key' is required.",
+    });
+    return;
+  }
+
+  for (const version of [
+    hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET,
+    hsm.enums.VERSION_OPTIONS.BIP32_HTR_TEST_NET,
+    hsm.enums.VERSION_OPTIONS.BIP32_MAIN_NET,
+    hsm.enums.VERSION_OPTIONS.BIP32_TEST_NET,
+  ]) {
+    const connectionObj = await hsmConnect();
+    await getXPubFromKey(connectionObj, hsmKeyName, { version, verbose: true });
+    await hsmDisconnect();
+  }
+
+  res.send({
+    success: true,
+    message: 'Check the logs',
   });
 });
 

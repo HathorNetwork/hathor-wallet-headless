@@ -53,7 +53,6 @@ async function isKeyValidXpriv(hsmConnection, hsmKeyName) {
     throw e;
   }
 
-  console.log(keyInfo);
   if (keyInfo.type !== hsm.enums.BLOCKCHAIN_KEYS.BIP32_XPRV) {
     returnObject.reason = `Key is not a valid xPriv.`;
     return returnObject;
@@ -71,7 +70,44 @@ async function isKeyValidXpriv(hsmConnection, hsmKeyName) {
   return returnObject;
 }
 
-async function derivateHtrCkd(hsmConnection, hsmKeyName) {
+/**
+ * Debugging function that prints the xPriv and xPub for a given key name
+ * @param hsmConnection
+ * @param keyName
+ * @returns {Promise<void>}
+ */
+async function consoleXPrivAndXPubForKey(hsmConnection, keyName) {
+  const xPriv = await hsmConnection.blockchain.export(
+    hsm.enums.IMPORT_EXPORT_FORMAT.XPRIV,
+    hsm.enums.BLOCKCHAIN_EXPORT_VERSION.WIF_MAIN_NET,
+    true,
+    keyName
+  );
+  const xPub = await hsmConnection.blockchain.getPubKey(
+    hsm.enums.BLOCKCHAIN_GET_PUB_KEY_TYPE.BIP32_XPUB,
+    keyName
+  );
+  console.dir({
+    keyName,
+    xPrv: xPriv.toString(),
+    xPub: xPub.toString(),
+  });
+}
+
+/**
+ * Derivates an HTR xPriv key from a given xPriv key
+ * @param {Object} hsmConnection
+ * @param {string} hsmKeyName
+ * @param {Object} [options]
+ * @param {boolean} [options.verbose] Prints each step of the derivation, for debugging purposes
+ * @param {number} [options.version] Optional, advanced. Version to calculate the exported xPriv
+ * @returns {Promise<{success: boolean, htrKeyName: string}>}
+ */
+async function derivateHtrCkd(
+  hsmConnection,
+  hsmKeyName,
+  options,
+) {
   const childKeyNames = {
     HTR_CKD_BIP_KEYNAME: 'HTR_BIP_KEY',
     HTR_CKD_COIN_KEYNAME: 'HTR_COIN_KEY',
@@ -79,6 +115,10 @@ async function derivateHtrCkd(hsmConnection, hsmKeyName) {
     HTR_CKD_WALLET_KEYNAME: 'HTR_WALLET_KEY',
     HTR_CKD_ADDRESS_KEYNAME: 'HTR_ADDRESS_KEY',
   };
+  const verboseKeys = !!options?.verbose;
+  if (verboseKeys) {
+    await consoleXPrivAndXPubForKey(hsmConnection, hsmKeyName);
+  }
 
   /*
    * Derivation will be made on
@@ -88,44 +128,60 @@ async function derivateHtrCkd(hsmConnection, hsmKeyName) {
    */
 
   // Derivation 1: Bip Code
+  const derivationVersion = options?.version
+    ? options.version
+    : hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET;
+
   await hsmConnection.blockchain.createBip32ChildKeyDerivation(
-    hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET, // Version
+    derivationVersion, // Version
     hsm.enums.BCHAIN_SECURE_BIP32_INDEX.BASE + 44, // Derivation index
-    false, // Not exportable
+    verboseKeys, // Exportable
     true, // Temporary
     hsmKeyName, // Parent key name
     childKeyNames.HTR_CKD_BIP_KEYNAME, // Child key name
   );
+  if (verboseKeys) {
+    await consoleXPrivAndXPubForKey(hsmConnection, childKeyNames.HTR_CKD_BIP_KEYNAME);
+  }
 
   // Derivation 2: Coin
   await hsmConnection.blockchain.createBip32ChildKeyDerivation(
-    hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET,
+    derivationVersion,
     hsm.enums.BCHAIN_SECURE_BIP32_INDEX.BASE + 280,
-    false,
+    verboseKeys,
     true,
     childKeyNames.HTR_CKD_BIP_KEYNAME,
     childKeyNames.HTR_CKD_COIN_KEYNAME,
   );
+  if (verboseKeys) {
+    await consoleXPrivAndXPubForKey(hsmConnection, childKeyNames.HTR_CKD_COIN_KEYNAME);
+  }
 
   // Derivation 3: Change
   await hsmConnection.blockchain.createBip32ChildKeyDerivation(
-    hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET,
+    derivationVersion,
     hsm.enums.BCHAIN_SECURE_BIP32_INDEX.BASE,
-    false,
+    verboseKeys,
     true,
     childKeyNames.HTR_CKD_COIN_KEYNAME,
     childKeyNames.HTR_CKD_CHANGE_KEYNAME,
   );
+  if (verboseKeys) {
+    await consoleXPrivAndXPubForKey(hsmConnection, childKeyNames.HTR_CKD_CHANGE_KEYNAME);
+  }
 
   // Derivation 4: Wallet
   await hsmConnection.blockchain.createBip32ChildKeyDerivation(
-    hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET,
+    derivationVersion,
     0,
-    false,
+    verboseKeys,
     true,
     childKeyNames.HTR_CKD_CHANGE_KEYNAME,
     childKeyNames.HTR_CKD_WALLET_KEYNAME,
   );
+  if (verboseKeys) {
+    await consoleXPrivAndXPubForKey(hsmConnection, childKeyNames.HTR_CKD_WALLET_KEYNAME);
+  }
 
   return {
     success: true,
@@ -133,8 +189,15 @@ async function derivateHtrCkd(hsmConnection, hsmKeyName) {
   };
 }
 
-async function getXPubFromKey(hsmConnection, hsmKeyName) {
-  const { htrKeyName } = await derivateHtrCkd(hsmConnection, hsmKeyName);
+/**
+ * Derivates an HTR wallet xPub string from a given HSM xPriv key
+ * @param {Object} hsmConnection
+ * @param {string} hsmKeyName
+ * @param {Object} [options]
+ * @returns {Promise<string>}
+ */
+async function getXPubFromKey(hsmConnection, hsmKeyName, options) {
+  const { htrKeyName } = await derivateHtrCkd(hsmConnection, hsmKeyName, options);
 
   const xPub = await hsmConnection.blockchain.getPubKey(
     hsm.enums.BLOCKCHAIN_GET_PUB_KEY_TYPE.BIP32_XPUB,
