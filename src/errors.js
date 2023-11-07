@@ -15,7 +15,7 @@ class SwapServiceError extends Error {}
 /**
  * Represents errors related to invalid or incorrect data stored on the HSM
  */
-class HsmDataError extends Error {}
+class HsmError extends Error {}
 
 /**
  * Represents errors related to a Wallet initialization
@@ -35,7 +35,7 @@ class UnavailableConfigError extends Error {}
 
 module.exports = {
   SwapServiceError,
-  HsmDataError,
+  HsmError,
   WalletStartError,
   NonRecoverableConfigChangeError,
   UnavailableConfigError,

@@ -7,12 +7,24 @@
 
 const { hsm } = require('@dinamonetworks/hsm-dinamo');
 const { getConfig } = require('../settings');
+const {
+  lock,
+  lockTypes
+} = require('../lock');
+const { hsmBusyErrorMessage } = require('../helpers/constants');
+const { HsmError } = require('../errors');
 
 /**
  * Connects to the HSM and returns the connection object
  * @returns {Promise<Hsm>}
  */
 async function hsmConnect() {
+  // Ensures that only one connection will be open at any given moment
+  const canStart = lock.lock(lockTypes.HSM);
+  if (!canStart) {
+    throw new HsmError(hsmBusyErrorMessage);
+  }
+
   // Gets the connection data from the global config file
   const { hsmConnectionOptions } = getConfig();
 
@@ -24,7 +36,9 @@ async function hsmConnect() {
 }
 
 async function hsmDisconnect() {
-  return hsm.disconnect();
+  await hsm.disconnect();
+  console.log(`HSM disconnected.`);
+  lock.unlock(lockTypes.HSM);
 }
 
 /**

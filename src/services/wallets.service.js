@@ -11,6 +11,10 @@ const { removeAllWalletProposals } = require('./atomic-swap.service');
  * @type {Map<string, HathorWallet>}
  */
 const initializedWallets = new Map();
+
+/**
+ * @type {Map<string, String>}
+ */
 const hardWalletIds = new Map();
 
 /**
@@ -45,9 +49,23 @@ async function stopAllWallets() {
   }
 }
 
+/**
+ * Returns true if a wallet id represents a hardware wallet
+ * @param {string} walletId
+ * @returns {boolean} True if this is a hardware wallet
+ */
+function isHardwareWallet(walletId) {
+  if (!initializedWallets.has(walletId)) {
+    return false;
+  }
+
+  return hardWalletIds.has(walletId);
+}
+
 module.exports = {
   initializedWallets,
   hardWalletIds,
+  isHardwareWallet,
   stopWallet,
   stopAllWallets,
 };

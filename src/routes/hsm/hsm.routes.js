@@ -24,6 +24,7 @@ const {
   hardWalletIds
 } = require('../../services/wallets.service');
 const { WALLET_ALREADY_STARTED } = require('../../helpers/constants');
+const { HsmError } = require('../../errors');
 
 const hsmRouter = patchExpressRouter(Router({ mergeParams: true }));
 
@@ -87,8 +88,24 @@ hsmRouter.post('/start', async (req, res, next) => {
     return;
   }
 
+  // Connects to the HSM
+  let connectionObj;
+  try {
+    connectionObj = await hsmConnect();
+  } catch (e) {
+    // Respond with a helpful message for a HsmError
+    if (e instanceof HsmError) {
+      res.send({
+        success: false,
+        message: e.message,
+      });
+      return;
+    }
+    // Let the global handler deal with this unexpected error
+    throw e;
+  }
+
   // Validates if the requested key is configured on the HSM
-  const connectionObj = await hsmConnect();
   const validationObj = await isKeyValidXpriv(connectionObj, hsmKeyName);
   if (!validationObj.isValidXpriv) {
     res.send({
