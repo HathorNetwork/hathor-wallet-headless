@@ -21,6 +21,8 @@ const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 const { mapTxReturn } = require('../../../helpers/tx.helper');
 const constants = require('../../../constants');
 const { removeListenedProposal } = require('../../../services/atomic-swap.service');
+const { isHardwareWallet, hardWalletIds } = require('../../../services/wallets.service');
+const { hsmConnect, hsmSignPartialTxProposal, hsmDisconnect } = require('../../../services/hsm.service');
 
 /**
  * Build or update a partial transaction proposal.
@@ -239,7 +241,16 @@ async function getMySignatures(req, res) {
 
   try {
     const proposal = PartialTxProposal.fromPartialTx(partialTx, req.wallet.storage);
-    await proposal.signData('123');
+    const { walletId } = req;
+    if (isHardwareWallet(walletId)) {
+      // Connects to the HSM and signs the transaction
+      const hsmConnection = await hsmConnect();
+      const hsmKeyName = hardWalletIds[walletId];
+      await hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal);
+      await hsmDisconnect();
+    } else {
+      await proposal.signData('123');
+    }
     res.send({
       success: true,
       signatures: proposal.signatures.serialize(),

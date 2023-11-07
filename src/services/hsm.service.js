@@ -220,9 +220,22 @@ async function getXPubFromKey(hsmConnection, hsmKeyName, options) {
   return xPub.toString();
 }
 
+/**
+ * Signs a partial tx Proposal
+ * @param {Object} hsmConnection
+ * @param {string} hsmKeyName
+ * @param {PartialTxProposal} proposal
+ * @returns {Promise<void>}
+ */
+async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
+  console.log(`Fake signing proposal`);
+  proposal.setSignatures('PartialTxInputData|000197613c|0:5455bdf324');
+}
+
 module.exports = {
   hsmConnect,
   hsmDisconnect,
   isKeyValidXpriv,
   getXPubFromKey,
+  hsmSignPartialTxProposal,
 };
