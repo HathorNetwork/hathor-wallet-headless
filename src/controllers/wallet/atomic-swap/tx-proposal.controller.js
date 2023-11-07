@@ -256,6 +256,7 @@ async function getMySignatures(req, res) {
       signatures: proposal.signatures.serialize(),
     });
   } catch (err) {
+    await hsmDisconnect(); // Ensures hsm is disconnected if a failure occurs
     res.send({ success: false, error: err.message });
   }
 }
