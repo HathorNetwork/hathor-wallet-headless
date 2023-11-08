@@ -7,6 +7,9 @@
 
 const { hsm } = require('@dinamonetworks/hsm-dinamo');
 const { PartialTxInputData, transactionUtils } = require('@hathor/wallet-lib');
+// eslint-disable-next-line import/no-extraneous-dependencies
+const { HDPrivateKey } = require('bitcore-lib'); // DEBUG
+
 const { getConfig } = require('../settings');
 const {
   lock,
@@ -90,13 +93,7 @@ async function isKeyValidXpriv(hsmConnection, hsmKeyName) {
   return returnObject;
 }
 
-/**
- * Debugging function that prints the xPriv and xPub for a given key name
- * @param hsmConnection
- * @param keyName
- * @returns {Promise<void>}
- */
-async function consoleXPrivAndXPubForKey(hsmConnection, keyName) {
+async function getXPrivAndXPubForKey(hsmConnection, keyName) {
   const xPriv = await hsmConnection.blockchain.export(
     hsm.enums.IMPORT_EXPORT_FORMAT.XPRIV,
     hsm.enums.BLOCKCHAIN_EXPORT_VERSION.WIF_MAIN_NET,
@@ -107,11 +104,22 @@ async function consoleXPrivAndXPubForKey(hsmConnection, keyName) {
     hsm.enums.BLOCKCHAIN_GET_PUB_KEY_TYPE.BIP32_XPUB,
     keyName
   );
-  console.dir({
+  return {
     keyName,
     xPrv: xPriv.toString(),
     xPub: xPub.toString(),
-  });
+  };
+}
+
+/**
+ * Debugging function that prints the xPriv and xPub for a given key name
+ * @param hsmConnection
+ * @param keyName
+ * @returns {Promise<void>}
+ */
+async function consoleXPrivAndXPubForKey(hsmConnection, keyName) {
+  const data = await getXPrivAndXPubForKey(hsmConnection, keyName);
+  console.dir(data);
 }
 
 /**
@@ -229,7 +237,7 @@ async function getXPubFromKey(hsmConnection, hsmKeyName, options) {
 /**
  * Derives an address for the wallet at the given index
  * @param {Object} hsmConnection
- * @param {string} hsmKeyName Name of the xPriv key on the HSM
+ * @param {string} htrKeyName Name of the derived key name already at m/44' / 280' / 0' / 0
  * @param {number} addressIndex Index to derive the address on
  * @returns {Promise<{
  * pubKey: string,
@@ -239,19 +247,14 @@ async function getXPubFromKey(hsmConnection, hsmKeyName, options) {
  * addressKeyName: string
  * }>}
  */
-async function deriveHtrAddress(hsmConnection, hsmKeyName, addressIndex) {
-  const baseWalletKeyName = await derivateHtrCkd(
-    hsmConnection,
-    hsmKeyName,
-    { verbose: true }
-  );
+async function deriveHtrAddress(hsmConnection, htrKeyName, addressIndex) {
   const addressKeyName = `HTR_ADDRESS_KEY_${addressIndex}`;
   await hsmConnection.blockchain.createBip32ChildKeyDerivation(
     hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET,
     addressIndex,
     true,
     true,
-    baseWalletKeyName.htrKeyName,
+    htrKeyName,
     addressKeyName,
   );
 
@@ -353,26 +356,58 @@ async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
 
       // Deriving the address private and public keys to sign the input
       console.dir({ addressInfo });
-      const addressKeyObj = await deriveHtrAddress(
+      const derivedWallet = await derivateHtrCkd(
         hsmConnection,
         hsmKeyName,
+        { verbose: true }
+      );
+      const addressKeyObj = await deriveHtrAddress(
+        hsmConnection,
+        derivedWallet.htrKeyName,
         addressInfo.bip32AddressIndex,
       );
       const isSamePubKey = addressKeyObj.pubKey === addressInfo.publicKey;
-      console.dir({ isSamePubKey, addressKeyObj });
+      const hsmKeyData = await getXPrivAndXPubForKey(hsmConnection, derivedWallet.htrKeyName);
+      console.dir({
+        isSamePubKey,
+        addressKeyObj,
+        hsmKeyData,
+      });
 
       // Signing the input with the HSM
       const hsmSignature = await hsmConnection.blockchain.sign(
-        hsm.enums.BLOCKCHAIN_SIG_TYPE.SIG_DER_RFC_6979_ECDSA, // Signature type
+        hsm.enums.BLOCKCHAIN_SIG_TYPE.SIG_DER_ECDSA, // Signature type
         hsm.enums.BLOCKCHAIN_HASH_MODE.SHA256, // Hash type
         dataToSignHash, // Data to be signed
         addressKeyObj.addressKeyName // Key name
       );
-      console.dir({ hexSignature: hsmSignature.toString('hex') });
+      const hexSignature = hsmSignature.toString('hex');
+      const cutHexSig = hexSignature.slice(2);
+      console.dir({ hexSignature, cutHexSig });
+
+      // Signing the input locally
+      const localXPrivObj = HDPrivateKey.fromString(hsmKeyData.xPrv);
+      const xPrivAtIndex = localXPrivObj.deriveNonCompliantChild(addressInfo.bip32AddressIndex);
+      const { privateKey, publicKey } = xPrivAtIndex;
+
+      const localSignature = transactionUtils.getSignature(
+        dataToSignHash,
+        privateKey
+      );
+
+      // Comparing the results
+      console.dir({
+        sigsEqual: localSignature.toString('hex') === hexSignature,
+        lclSignature: localSignature.toString('hex'),
+        hsmSignature: cutHexSig,
+        pKeyEqual: addressKeyObj.pubKey === publicKey.toString('hex'),
+        lclPubKey: publicKey.toString('hex'),
+        hsmPubKey: addressKeyObj.pubKey,
+      });
 
       // Injecting the signature data back into the tx input object
       const inputData = transactionUtils.createInputData(
-        hsmSignature,
+        localSignature, // Buffer.from(cutHexSig, 'hex'), // FIXME: Both signatures don't work!
         Buffer.from(addressInfo.publicKey) // XXX: Unsure this is the correct way to convert
       );
       input.setData(inputData);
