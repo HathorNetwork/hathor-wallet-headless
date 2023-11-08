@@ -132,6 +132,7 @@ hsmRouter.post('/start', async (req, res, next) => {
     servers: [config.server],
     connectionTimeout: config.connectionTimeout,
   });
+  console.dir({ hsmXpub: xPub });
   const wallet = new HathorWallet(walletConfig);
 
   // TODO: Add the other validations such as gap limit and default token

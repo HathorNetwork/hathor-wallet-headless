@@ -240,7 +240,11 @@ async function getXPubFromKey(hsmConnection, hsmKeyName, options) {
  * }>}
  */
 async function deriveHtrAddress(hsmConnection, hsmKeyName, addressIndex) {
-  const baseWalletKeyName = await derivateHtrCkd(hsmConnection, hsmKeyName);
+  const baseWalletKeyName = await derivateHtrCkd(
+    hsmConnection,
+    hsmKeyName,
+    { verbose: true }
+  );
   const addressKeyName = `HTR_ADDRESS_KEY_${addressIndex}`;
   await hsmConnection.blockchain.createBip32ChildKeyDerivation(
     hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET,
@@ -262,10 +266,17 @@ async function deriveHtrAddress(hsmConnection, hsmKeyName, addressIndex) {
     hsm.enums.BLOCKCHAIN_GET_PUB_KEY_TYPE.SEC1_COMP,
     addressKeyName
   );
+  const hsmAddress = await hsmConnection.blockchain.getAddress(
+    hsm.enums.ADDRESS_TYPE.BTC_P2PKH, // Address type
+    hsm.enums.ADDRESS_VERSION.HTR_TEST_NET, // Version
+    hsm.enums.ADDRESS_HRP.UNUSED, // Human Readable Part
+    addressKeyName, // Key name
+  );
 
   return {
     success: true,
     addressIndex,
+    address: hsmAddress.toString(),
     addressKeyName,
     pubKey: pubKey.toString('hex'),
     privKey: privKey.toString('hex'),
@@ -347,7 +358,8 @@ async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
         hsmKeyName,
         addressInfo.bip32AddressIndex,
       );
-      console.dir({ addressKeyObj });
+      const isSamePubKey = addressKeyObj.pubKey === addressInfo.publicKey;
+      console.dir({ isSamePubKey, addressKeyObj });
 
       // Signing the input with the HSM
       const hsmSignature = await hsmConnection.blockchain.sign(
