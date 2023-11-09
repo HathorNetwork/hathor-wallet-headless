@@ -89,7 +89,10 @@ hsmRouter.post('/start', async (req, res, next) => {
     return;
   }
 
-  const xPub = await getXPubFromKey(connectionObj, hsmKeyName);
+  const xPub = await getXPubFromKey(connectionObj, hsmKeyName, {
+    verbose: true,
+    isReadOnlyWallet: true,
+  });
   await hsmDisconnect();
 
   // Creates the wallet

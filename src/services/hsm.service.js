@@ -198,6 +198,13 @@ async function derivateHtrCkd(
     await consoleXPrivAndXPubForKey(hsmConnection, childKeyNames.HTR_CKD_ACCOUNT_KEYNAME);
   }
 
+  if (options.isReadOnlyWallet) {
+    return {
+      success: true,
+      htrKeyName: childKeyNames.HTR_CKD_ACCOUNT_KEYNAME,
+    };
+  }
+
   // Derivation 4: Change
   await hsmConnection.blockchain.createBip32ChildKeyDerivation(
     derivationVersion,
@@ -368,7 +375,7 @@ async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
       const hsmDerivedWallet = await derivateHtrCkd(
         hsmConnection,
         hsmKeyName,
-        { verbose: true }
+        { verbose: true, isReadOnlyWallet: true }
       );
       const hsmAddressKeyObj = await deriveHtrAddress(
         hsmConnection,
