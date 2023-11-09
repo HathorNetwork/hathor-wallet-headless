@@ -96,8 +96,8 @@ async function isKeyValidXpriv(hsmConnection, hsmKeyName) {
 async function getXPrivAndXPubForKey(hsmConnection, keyName) {
   const xPriv = await hsmConnection.blockchain.export(
     hsm.enums.IMPORT_EXPORT_FORMAT.XPRIV,
-    hsm.enums.BLOCKCHAIN_EXPORT_VERSION.WIF_MAIN_NET,
-    true,
+    hsm.enums.BLOCKCHAIN_EXPORT_VERSION.WIF_TEST_NET,
+    false,
     keyName
   );
   const xPub = await hsmConnection.blockchain.getPubKey(
@@ -306,25 +306,37 @@ async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
   };
   console.dir({ signatureBuildingData });
 
-  // Adds the signatures to the tx itself
-  await signTransactionInputs(tx, proposal.storage);
-
   // Builds a Signatures object to inject on the PartialTxProposal
   const signaturesObj = new PartialTxInputData(
     tx.getDataToSign().toString('hex'),
     tx.inputs.length
   );
 
+  // The validation method populates the addresses
+  const valid = await partialTx.validate();
+  if (!valid) {
+    throw new Error('Transaction data inconsistent with fullnode ( on HSM method )');
+  }
+
+  // Adds the signatures to the tx itself
+  await signTransactionInputs(tx, proposal.storage);
+
   // Copy the input data to the Signatures object
   for (const [index, input] of tx.inputs.entries()) {
     if (input.data) {
+      console.log(`Adding input data: ${input.data.toString('hex')}`);
       // add all signatures we know of this tx
       signaturesObj.addData(index, input.data);
+    } else {
+      console.log(`NOT adding input data`);
     }
   }
 
   // Insert the Signatures object into the Proposal and validate its correctness
-  console.dir({ signaturesObj });
+  console.dir({
+    signaturesObj,
+    serializedSigs: signaturesObj.serialize(),
+  });
   proposal.setSignatures(signaturesObj.serialize());
 
   /**
@@ -338,10 +350,7 @@ async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
   async function signTransactionInputs(_tx, _storage) {
     const dataToSignHash = _tx.getDataToSignHash();
 
-    for await (const {
-      tx: spentTx,
-      input
-    } of _storage.getSpentTxs(_tx.inputs)) {
+    for await (const { tx: spentTx, input } of _storage.getSpentTxs(_tx.inputs)) {
       // Identifying addresses that not belong to this wallet
       const spentOut = spentTx.outputs[input.index];
       if (!spentOut.decoded.address) {
@@ -353,24 +362,24 @@ async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
         // This address does not belong to this wallet
         continue;
       }
-
-      // Deriving the address private and public keys to sign the input
       console.dir({ addressInfo });
-      const derivedWallet = await derivateHtrCkd(
+
+      // Deriving on the HSM: address, [private] and public keys to sign the input
+      const hsmDerivedWallet = await derivateHtrCkd(
         hsmConnection,
         hsmKeyName,
         { verbose: true }
       );
-      const addressKeyObj = await deriveHtrAddress(
+      const hsmAddressKeyObj = await deriveHtrAddress(
         hsmConnection,
-        derivedWallet.htrKeyName,
+        hsmDerivedWallet.htrKeyName,
         addressInfo.bip32AddressIndex,
       );
-      const isSamePubKey = addressKeyObj.pubKey === addressInfo.publicKey;
-      const hsmKeyData = await getXPrivAndXPubForKey(hsmConnection, derivedWallet.htrKeyName);
+      const isSamePubKey = hsmAddressKeyObj.pubKey === addressInfo.publicKey;
+      const hsmKeyData = await getXPrivAndXPubForKey(hsmConnection, hsmDerivedWallet.htrKeyName);
       console.dir({
         isSamePubKey,
-        addressKeyObj,
+        hsmAddressKeyObj,
         hsmKeyData,
       });
 
@@ -379,11 +388,11 @@ async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
         hsm.enums.BLOCKCHAIN_SIG_TYPE.SIG_DER_ECDSA, // Signature type
         hsm.enums.BLOCKCHAIN_HASH_MODE.SHA256, // Hash type
         dataToSignHash, // Data to be signed
-        addressKeyObj.addressKeyName // Key name
+        hsmAddressKeyObj.addressKeyName // Key name
       );
-      const hexSignature = hsmSignature.toString('hex');
-      const cutHexSig = hexSignature.slice(2);
-      console.dir({ hexSignature, cutHexSig });
+      const hsmHexSignature = hsmSignature.toString('hex');
+      const hsmCutHexSig = hsmHexSignature.slice(2);
+      console.dir({ hsmHexSignature, hsmCutHexSig });
 
       // Signing the input locally
       const localXPrivObj = HDPrivateKey.fromString(hsmKeyData.xPrv);
@@ -397,20 +406,30 @@ async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
 
       // Comparing the results
       console.dir({
-        sigsEqual: localSignature.toString('hex') === hexSignature,
+        sigsEqual: localSignature.toString('hex') === hsmHexSignature,
         lclSignature: localSignature.toString('hex'),
-        hsmSignature: cutHexSig,
-        pKeyEqual: addressKeyObj.pubKey === publicKey.toString('hex'),
+        hsmSignature: hsmCutHexSig,
+        pKeyEqual: hsmAddressKeyObj.pubKey === publicKey.toString('hex'),
         lclPubKey: publicKey.toString('hex'),
-        hsmPubKey: addressKeyObj.pubKey,
+        hsmPubKey: hsmAddressKeyObj.pubKey,
+        lclPrivateKey: privateKey.toString('hex'),
       });
 
       // Injecting the signature data back into the tx input object
-      const inputData = transactionUtils.createInputData(
-        localSignature, // Buffer.from(cutHexSig, 'hex'), // FIXME: Both signatures don't work!
+      const localInputData = transactionUtils.createInputData(
+        localSignature, // Buffer.from(hsmCutHexSig, 'hex'), // FIXME: Both signatures don't work!
+        publicKey.toBuffer() // XXX: Unsure this is the correct way to convert
+      );
+      const hsmInputData = transactionUtils.createInputData(
+        Buffer.from(hsmCutHexSig, 'hex'), // FIXME: Both signatures don't work!
         Buffer.from(addressInfo.publicKey) // XXX: Unsure this is the correct way to convert
       );
-      input.setData(inputData);
+      console.dir({
+        localInputData: localInputData.toString('hex'),
+        hsmInputData: hsmInputData.toString('hex'),
+      });
+      // input.setData(hsmInputData);
+      input.setData(localInputData);
     }
   }
 }
