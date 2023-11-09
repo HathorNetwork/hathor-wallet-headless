@@ -823,7 +823,6 @@ export class TestUtils {
       await delay(1000);
     }
 
-
     // Clear timeout handler
     clearTimeout(timeoutHandler);
 
