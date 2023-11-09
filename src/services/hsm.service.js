@@ -139,8 +139,8 @@ async function derivateHtrCkd(
   const childKeyNames = {
     HTR_CKD_BIP_KEYNAME: 'HTR_BIP_KEY',
     HTR_CKD_COIN_KEYNAME: 'HTR_COIN_KEY',
+    HTR_CKD_ACCOUNT_KEYNAME: 'HTR_ACCOUNT_KEY',
     HTR_CKD_CHANGE_KEYNAME: 'HTR_CHANGE_KEY',
-    HTR_CKD_WALLET_KEYNAME: 'HTR_WALLET_KEY',
     HTR_CKD_ADDRESS_KEYNAME: 'HTR_ADDRESS_KEY',
   };
   const verboseKeys = !!options?.verbose;
@@ -150,9 +150,9 @@ async function derivateHtrCkd(
 
   /*
    * Derivation will be made on
-   * BIP code / Coin / Change /  Wallet
-   *    m/44' / 280' /     0' /       0
-   *        1 /    2 /      3 /       4
+   * BIP code / Coin / Account /  Change
+   *    m/44' / 280' /      0' /       0
+   *        1 /    2 /      3  /       4
    */
 
   // Derivation 1: Bip Code
@@ -185,35 +185,35 @@ async function derivateHtrCkd(
     await consoleXPrivAndXPubForKey(hsmConnection, childKeyNames.HTR_CKD_COIN_KEYNAME);
   }
 
-  // Derivation 3: Change
+  // Derivation 3: Account
   await hsmConnection.blockchain.createBip32ChildKeyDerivation(
     derivationVersion,
     hsm.enums.BCHAIN_SECURE_BIP32_INDEX.BASE,
     verboseKeys,
     true,
     childKeyNames.HTR_CKD_COIN_KEYNAME,
+    childKeyNames.HTR_CKD_ACCOUNT_KEYNAME,
+  );
+  if (verboseKeys) {
+    await consoleXPrivAndXPubForKey(hsmConnection, childKeyNames.HTR_CKD_ACCOUNT_KEYNAME);
+  }
+
+  // Derivation 4: Change
+  await hsmConnection.blockchain.createBip32ChildKeyDerivation(
+    derivationVersion,
+    0,
+    verboseKeys,
+    true,
+    childKeyNames.HTR_CKD_ACCOUNT_KEYNAME,
     childKeyNames.HTR_CKD_CHANGE_KEYNAME,
   );
   if (verboseKeys) {
     await consoleXPrivAndXPubForKey(hsmConnection, childKeyNames.HTR_CKD_CHANGE_KEYNAME);
   }
 
-  // Derivation 4: Wallet
-  await hsmConnection.blockchain.createBip32ChildKeyDerivation(
-    derivationVersion,
-    0,
-    verboseKeys,
-    true,
-    childKeyNames.HTR_CKD_CHANGE_KEYNAME,
-    childKeyNames.HTR_CKD_WALLET_KEYNAME,
-  );
-  if (verboseKeys) {
-    await consoleXPrivAndXPubForKey(hsmConnection, childKeyNames.HTR_CKD_WALLET_KEYNAME);
-  }
-
   return {
     success: true,
-    htrKeyName: childKeyNames.HTR_CKD_WALLET_KEYNAME,
+    htrKeyName: childKeyNames.HTR_CKD_CHANGE_KEYNAME,
   };
 }
 

@@ -28,32 +28,6 @@ const { HsmError } = require('../../errors');
 
 const hsmRouter = patchExpressRouter(Router({ mergeParams: true }));
 
-/**
- * Debug route
- * @deprecated
- */
-hsmRouter.get('/connect', async (req, res, next) => {
-  try {
-    await hsmConnect();
-    res.send({ success: true });
-  } catch (e) {
-    res.send({ success: false, error: e.message });
-  }
-});
-
-/**
- * Debug route
- * @deprecated
- */
-hsmRouter.get('/disconnect', async (req, res, next) => {
-  try {
-    await hsmDisconnect();
-    res.send({ success: true });
-  } catch (e) {
-    res.send({ success: false, error: e.message });
-  }
-});
-
 hsmRouter.post('/start', async (req, res, next) => {
   const walletId = req.body['wallet-id'];
   const hsmKeyName = req.body['hsm-key'];
