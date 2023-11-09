@@ -823,6 +823,10 @@ export class TestUtils {
       await delay(1000);
     }
 
+
+    // Clear timeout handler
+    clearTimeout(timeoutHandler);
+
     if (timeoutReached) {
       throw new Error('Timeout reached when waiting for the next block.');
     }
