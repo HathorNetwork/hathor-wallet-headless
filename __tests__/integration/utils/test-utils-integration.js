@@ -794,6 +794,19 @@ export class TestUtils {
   static async waitNewBlock(currentHeight = null) {
     let baseHeight = currentHeight;
 
+    // This timeout is a protection, so the integration tests
+    // don't keep running in case of a problem
+    // After using the timeout as 120s, we had some timeouts
+    // because the CI runs in a free github runner
+    // so we decided to increase this timeout to 600s, so
+    // we don't have this error anymore
+    const timeout = 600000;
+    let timeoutReached = false;
+    // Timeout handler
+    const timeoutHandler = setTimeout(() => {
+      timeoutReached = true;
+    }, timeout);
+
     if (!baseHeight) {
       baseHeight = await TestUtils.getFullNodeNetworkHeight();
     }
@@ -801,9 +814,17 @@ export class TestUtils {
     let networkHeight = baseHeight;
 
     while (networkHeight === baseHeight) {
+      if (timeoutReached) {
+        break;
+      }
+
       networkHeight = await TestUtils.getFullNodeNetworkHeight();
 
       await delay(1000);
+    }
+
+    if (timeoutReached) {
+      throw new Error('Timeout reached when waiting for the next block.');
     }
 
     return networkHeight;
