@@ -3836,205 +3836,41 @@ const defaultApiDocs = {
         },
       },
     },
-    '/health/wallets': {
-      get: {
-        summary: 'Return the health of the provided wallets.',
-        parameters: [
-          {
-            name: 'x-wallet-ids',
-            in: 'header',
-            description: 'Define wallet ids to check, comma-separated.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
-        ],
-        responses: {
-          200: {
-            description: 'A JSON with the health object.',
-            content: {
-              'application/json': {
-                examples: {
-                  success: {
-                    summary: 'Success',
-                    value: {
-                      status: 'pass',
-                      description: 'Wallet-headless health',
-                      checks: {
-                        'Wallet <wallet-id-1>': [{
-                          status: 'pass',
-                          componentType: 'internal',
-                          componentName: 'Wallet <wallet-id-1>',
-                          output: 'Wallet is ready',
-                        }],
-                        'Wallet <wallet-id-2>': [{
-                          status: 'pass',
-                          componentType: 'internal',
-                          componentName: 'Wallet <wallet-id-2>',
-                          output: 'Wallet is ready',
-                        }],
-                      }
-                    }
-                  },
-                },
-              },
-            },
-          },
-          503: {
-            description: 'A JSON with the health object.',
-            content: {
-              'application/json': {
-                examples: {
-                  unhealthy: {
-                    summary: 'Unhealthy wallet',
-                    value: {
-                      status: 'fail',
-                      description: 'Wallet-headless health',
-                      checks: {
-                        'Wallet <wallet-id-1>': [{
-                          status: 'pass',
-                          componentType: 'internal',
-                          componentName: 'Wallet <wallet-id-1>',
-                          output: 'Wallet is ready',
-                        }],
-                        'Wallet <wallet-id-2>': [{
-                          status: 'fail',
-                          componentType: 'internal',
-                          componentName: 'Wallet <wallet-id-2>',
-                          output: 'Wallet is not ready. Current state: <state>',
-                        }],
-                      }
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-    '/health/fullnode': {
-      get: {
-        summary: 'Return the health of the fullnode.',
-        responses: {
-          200: {
-            description: 'A JSON with the health object.',
-            content: {
-              'application/json': {
-                examples: {
-                  success: {
-                    summary: 'Success',
-                    value: {
-                      status: 'pass',
-                      componentType: 'fullnode',
-                      componentName: 'Fullnode <fullnode_url>',
-                      output: 'Fullnode is responding',
-                    },
-                  },
-                },
-              },
-            },
-          },
-          503: {
-            description: 'A JSON with the health object.',
-            content: {
-              'application/json': {
-                examples: {
-                  unhealthy: {
-                    summary: 'Unhealthy fullnode',
-                    value: {
-                      status: 'fail',
-                      componentType: 'internal',
-                      componentName: 'Fullnode',
-                      output: 'Fullnode reported as unhealthy: <fullnode response>',
-                    },
-                  },
-                  unreachable: {
-                    summary: 'Unreachable fullnode',
-                    value: {
-                      status: 'fail',
-                      componentType: 'internal',
-                      componentName: 'Fullnode',
-                      output: 'Error getting fullnode health: <error>',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-    '/health/tx-mining': {
-      get: {
-        summary: 'Return the health of the tx mining service.',
-        responses: {
-          200: {
-            description: 'A JSON with the health object.',
-            content: {
-              'application/json': {
-                examples: {
-                  success: {
-                    summary: 'Success',
-                    value: {
-                      status: 'pass',
-                      componentType: 'service',
-                      componentName: 'TxMiningService <tx_mining_url>',
-                      output: 'Tx Mining Service is healthy',
-                    },
-                  },
-                },
-              },
-            },
-          },
-          503: {
-            description: 'A JSON with the health object.',
-            content: {
-              'application/json': {
-                examples: {
-                  unhealthy: {
-                    summary: 'Unhealthy tx mining',
-                    value: {
-                      status: 'fail',
-                      componentType: 'service',
-                      componentName: 'TxMiningService <tx_mining_url>',
-                      output: 'Tx Mining Service reported as unhealthy: <tx mining response>',
-                    },
-                  },
-                  unreachable: {
-                    summary: 'Unreachable tx mining',
-                    value: {
-                      status: 'fail',
-                      componentType: 'service',
-                      componentName: 'TxMiningService <tx_mining_url>',
-                      output: 'Error getting tx-mining-service health: <error>',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
     '/health': {
       get: {
         summary: 'Return the health of the wallet headless.',
         parameters: [
           {
             name: 'x-wallet-ids',
-            in: 'header',
-            description: 'Define wallet ids to check, comma-separated.',
-            required: true,
+            in: 'query',
+            description: 'Define wallet ids to check, comma-separated. If not provided, will not check any wallet.',
+            required: false,
             schema: {
               type: 'string',
             },
           },
+          {
+            name: 'include-fullnode',
+            in: 'query',
+            description: 'Define if fullnode health should be checked.',
+            required: false,
+            schema: {
+              type: 'boolean',
+            },
+          },
+          {
+            name: 'include-tx-mining',
+            in: 'query',
+            description: 'Define if tx mining service health should be checked.',
+            required: false,
+            schema: {
+              type: 'boolean',
+            },
+          }
         ],
         responses: {
           200: {
-            description: 'A JSON with the health object. It will contain info about all components and provided wallet ids.',
+            description: 'A JSON with the health object. It will contain info about all components that were enabled and provided wallet ids.',
             content: {
               'application/json': {
                 examples: {
@@ -4070,6 +3906,23 @@ const defaultApiDocs = {
                         }]
                       }
                     },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'A JSON object with the reason for the error.',
+            content: {
+              'application/json': {
+                examples: {
+                  'invalid-wallet-ids': {
+                    summary: 'Invalid wallet id',
+                    value: { success: false, message: 'Invalid wallet id parameter.' }
+                  },
+                  'no-component-included': {
+                    summary: 'No component was included in the request',
+                    value: { success: false, message: 'At least one component must be included in the health check' }
                   },
                 },
               },

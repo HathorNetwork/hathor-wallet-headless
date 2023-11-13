@@ -100,12 +100,11 @@ async function getGlobalHealth(req, res) {
     });
   };
 
-  if (!('x-wallet-ids' in req.headers)) {
-    sendError('Header \'X-Wallet-Ids\' is required.');
-    return;
-  }
+  let walletIds = [];
 
-  const walletIds = req.headers['x-wallet-ids'].split(',');
+  if ('x-wallet-ids' in req.query) {
+    walletIds = req.query['x-wallet-ids'].split(',');
+  }
 
   for (const walletId of walletIds) {
     if (!initializedWallets.has(walletId)) {
@@ -114,44 +113,18 @@ async function getGlobalHealth(req, res) {
     }
   }
 
-  const { checks, httpStatus, status } = await getWalletsHealthChecks(walletIds, true, true);
+  const includeFullnode = req.query['include-fullnode'] === 'true';
+  const includeTxMiningService = req.query['include-tx-mining'] === 'true';
 
-  const serviceHealth = buildServiceHealthCheck(
-    status,
-    'Wallet-headless health',
-    checks,
-  );
-
-  res.status(httpStatus).send(serviceHealth);
-}
-
-/**
- * Controller for the /health/wallet endpoint that
- * returns the health of a specific wallet
- */
-async function getWalletsHealth(req, res) {
-  const sendError = message => {
-    res.status(400).send({
-      success: false,
-      message,
-    });
-  };
-
-  if (!('x-wallet-ids' in req.headers)) {
-    sendError('Header \'X-Wallet-Ids\' is required.');
+  // Check whether at least one component is included
+  if (!includeFullnode && !includeTxMiningService && walletIds.length === 0) {
+    sendError('At least one component must be included in the health check');
     return;
   }
 
-  const walletIds = req.headers['x-wallet-ids'].split(',');
+  const response = await getWalletsHealthChecks(walletIds, includeFullnode, includeTxMiningService);
 
-  for (const walletId of walletIds) {
-    if (!initializedWallets.has(walletId)) {
-      sendError(`Invalid wallet id parameter: ${walletId}`);
-      return;
-    }
-  }
-
-  const { checks, httpStatus, status } = await getWalletsHealthChecks(walletIds, false, false);
+  const { checks, httpStatus, status } = response;
 
   const serviceHealth = buildServiceHealthCheck(
     status,
@@ -160,33 +133,8 @@ async function getWalletsHealth(req, res) {
   );
 
   res.status(httpStatus).send(serviceHealth);
-}
-
-/**
- * Controller for the /health/fullnode endpoint that
- * returns the health of the connected fullnode
- */
-async function getFullnodeHealth(req, res) {
-  const fullnodeHealthData = await healthService.getFullnodeHealth();
-  const status = fullnodeHealthData.status === 'pass' ? 200 : 503;
-
-  res.status(status).send(fullnodeHealthData);
-}
-
-/**
- * Controller for the /health/tx-mining endpoint that
- * returns the health of the connected tx-mining-service
- */
-async function getTxMiningServiceHealth(req, res) {
-  const txMiningServiceHealthData = await healthService.getTxMiningServiceHealth();
-  const status = txMiningServiceHealthData.status === 'pass' ? 200 : 503;
-
-  res.status(status).send(txMiningServiceHealthData);
 }
 
 export {
   getGlobalHealth,
-  getWalletsHealth,
-  getFullnodeHealth,
-  getTxMiningServiceHealth
 };
