@@ -267,8 +267,8 @@ async function deriveHtrAddress(hsmConnection, htrKeyName, addressIndex) {
 
   // DEBUG: Obtaining the private key and public key to help debugging
   const privKey = await hsmConnection.blockchain.export(
-    hsm.enums.IMPORT_EXPORT_FORMAT.SEC1,
-    hsm.enums.BLOCKCHAIN_EXPORT_VERSION.WIF_MAIN_NET,
+    hsm.enums.IMPORT_EXPORT_FORMAT.WIF,
+    hsm.enums.BLOCKCHAIN_EXPORT_VERSION.UNUSED,
     false,
     addressKeyName
   );
@@ -396,7 +396,7 @@ async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
 
       // Signing the input with the HSM
       const hsmSignature = await hsmConnection.blockchain.sign(
-        hsm.enums.BLOCKCHAIN_SIG_TYPE.SIG_DER_ECDSA, // Signature type
+        hsm.enums.BLOCKCHAIN_SIG_TYPE.SIG_DER_RFC_6979_ECDSA, // Signature type
         hsm.enums.BLOCKCHAIN_HASH_MODE.SHA256, // Hash type
         dataToSignHash, // Data to be signed
         hsmAddressKeyObj.addressKeyName // Key name
@@ -426,7 +426,7 @@ async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
         pKeyEqual: hsmAddressKeyObj.pubKey === publicKey.toString('hex'),
         lclPubKey: publicKey.toString('hex'),
         hsmPubKey: hsmAddressKeyObj.pubKey,
-        lclPrivateKey: privateKey.toString('hex'),
+        lclPrivateKey: privateKey.toWIF(),
         hsmSigSize: hsmCutHexSig.length,
         lclSigSize: localSignature.toString('hex').length,
       });
