@@ -189,7 +189,7 @@ async function derivateHtrCkd(
   await hsmConnection.blockchain.createBip32ChildKeyDerivation(
     derivationVersion,
     hsm.enums.BCHAIN_SECURE_BIP32_INDEX.BASE,
-    verboseKeys,
+    true,
     true,
     childKeyNames.HTR_CKD_COIN_KEYNAME,
     childKeyNames.HTR_CKD_ACCOUNT_KEYNAME,
@@ -209,7 +209,7 @@ async function derivateHtrCkd(
   await hsmConnection.blockchain.createBip32ChildKeyDerivation(
     derivationVersion,
     0,
-    verboseKeys,
+    true,
     true,
     childKeyNames.HTR_CKD_ACCOUNT_KEYNAME,
     childKeyNames.HTR_CKD_CHANGE_KEYNAME,
@@ -344,7 +344,8 @@ async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
     signaturesObj,
     serializedSigs: signaturesObj.serialize(),
   });
-  proposal.setSignatures(signaturesObj.serialize());
+  // eslint-disable-next-line no-param-reassign
+  proposal.signatures = signaturesObj;
 
   /**
    * Signs each input of the tx with the HSM.
@@ -375,7 +376,7 @@ async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
       const hsmDerivedWallet = await derivateHtrCkd(
         hsmConnection,
         hsmKeyName,
-        { verbose: true, isReadOnlyWallet: true }
+        { verbose: false, isReadOnlyWallet: false }
       );
       const hsmAddressKeyObj = await deriveHtrAddress(
         hsmConnection,
@@ -383,11 +384,14 @@ async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
         addressInfo.bip32AddressIndex,
       );
       const isSamePubKey = hsmAddressKeyObj.pubKey === addressInfo.publicKey;
-      const hsmKeyData = await getXPrivAndXPubForKey(hsmConnection, hsmDerivedWallet.htrKeyName);
+      const hsmChangeKeyData = await getXPrivAndXPubForKey(
+        hsmConnection,
+        hsmDerivedWallet.htrKeyName
+      );
       console.dir({
         isSamePubKey,
         hsmAddressKeyObj,
-        hsmKeyData,
+        hsmChangeKeyData,
       });
 
       // Signing the input with the HSM
@@ -399,10 +403,13 @@ async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
       );
       const hsmHexSignature = hsmSignature.toString('hex');
       const hsmCutHexSig = hsmHexSignature.slice(2);
-      console.dir({ hsmHexSignature, hsmCutHexSig });
+      console.dir({
+        hsmHexSignature,
+        hsmCutHexSig
+      });
 
       // Signing the input locally
-      const localXPrivObj = HDPrivateKey.fromString(hsmKeyData.xPrv);
+      const localXPrivObj = HDPrivateKey.fromString(hsmChangeKeyData.xPrv);
       const xPrivAtIndex = localXPrivObj.deriveNonCompliantChild(addressInfo.bip32AddressIndex);
       const { privateKey, publicKey } = xPrivAtIndex;
 
@@ -420,23 +427,25 @@ async function hsmSignPartialTxProposal(hsmConnection, hsmKeyName, proposal) {
         lclPubKey: publicKey.toString('hex'),
         hsmPubKey: hsmAddressKeyObj.pubKey,
         lclPrivateKey: privateKey.toString('hex'),
+        hsmSigSize: hsmCutHexSig.length,
+        lclSigSize: localSignature.toString('hex').length,
       });
 
       // Injecting the signature data back into the tx input object
       const localInputData = transactionUtils.createInputData(
-        localSignature, // Buffer.from(hsmCutHexSig, 'hex'), // FIXME: Both signatures don't work!
-        publicKey.toBuffer() // XXX: Unsure this is the correct way to convert
+        localSignature,
+        publicKey.toBuffer()
       );
       const hsmInputData = transactionUtils.createInputData(
         Buffer.from(hsmCutHexSig, 'hex'), // FIXME: Both signatures don't work!
         Buffer.from(addressInfo.publicKey) // XXX: Unsure this is the correct way to convert
       );
       console.dir({
-        localInputData: localInputData.toString('hex'),
+        lclInputData: localInputData.toString('hex'),
         hsmInputData: hsmInputData.toString('hex'),
       });
-      // input.setData(hsmInputData);
-      input.setData(localInputData);
+      input.setData(hsmInputData);
+      // input.setData(localInputData);
     }
   }
 }
