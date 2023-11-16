@@ -269,7 +269,7 @@ async function deriveHtrAddress(hsmConnection, htrKeyName, addressIndex) {
   const privKey = await hsmConnection.blockchain.export(
     hsm.enums.IMPORT_EXPORT_FORMAT.WIF,
     hsm.enums.BLOCKCHAIN_EXPORT_VERSION.UNUSED,
-    false,
+    true,
     addressKeyName
   );
   const pubKey = await hsmConnection.blockchain.getPubKey(

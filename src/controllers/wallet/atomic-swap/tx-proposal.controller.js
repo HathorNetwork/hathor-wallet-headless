@@ -347,6 +347,7 @@ async function signAndPush(req, res) {
     const response = await sendTransaction.runFromMining();
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
+    console.error(err.stack);
     res.send({ success: false, error: err.message });
   } finally {
     lock.unlock(lockTypes.SEND_TX);
