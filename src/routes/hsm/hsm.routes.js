@@ -8,9 +8,14 @@
 const { Router } = require('express');
 const {
   Connection,
-  HathorWallet
+  HathorWallet,
+  transactionUtils
 } = require('@hathor/wallet-lib');
 const { hsm } = require('@dinamonetworks/hsm-dinamo');
+// eslint-disable-next-line import/no-extraneous-dependencies
+const bitcoreLib = require('bitcore-lib');
+
+const { PrivateKey, PublicKey } = bitcoreLib;
 const { patchExpressRouter } = require('../../patch');
 const {
   hsmConnect,
@@ -198,6 +203,82 @@ hsmRouter.post('/test-xpub', async (req, res, next) => {
     success: true,
     message: 'Check the logs',
   });
+});
+
+hsmRouter.post('/test-sign', async (req, res, next) => {
+  const hsmKeyName = 'myImportedKey';
+  const privateKeyWif = '5J5PZqvCe1uThJ3FZeUUFLCh2FuK9pZhtEK4MzhNmugqTmxCdwE';
+  const strDataToSign = '46070d4bf934fb0d4b06d9e2c46e346944e322444900a435d7d9a95e6d7435f5';
+
+  const hsmConnection = await hsmConnect();
+
+  const importedStatus = await hsmConnection.blockchain.import(
+    hsm.enums.IMPORT_EXPORT_FORMAT.WIF,
+    true, // Exportable
+    true, // Temorary
+    hsmKeyName, // Key name
+    privateKeyWif // Key contents
+  );
+
+  // Obtaining the private key and public key from HSM
+  const privKey = await hsmConnection.blockchain.export(
+    hsm.enums.IMPORT_EXPORT_FORMAT.WIF, // Format
+    hsm.enums.BLOCKCHAIN_EXPORT_VERSION.WIF_MAIN_NET, // Version
+    true, // Compressed
+    hsmKeyName // Key name
+  );
+
+  const pubKey = await hsmConnection.blockchain.getPubKey(
+    hsm.enums.BLOCKCHAIN_GET_PUB_KEY_TYPE.SEC1_COMP, // Type
+    hsmKeyName // Key name
+  );
+
+  // Signing the input with the HSM
+  const hsmSignature = await hsmConnection.blockchain.sign(
+    hsm.enums.BLOCKCHAIN_SIG_TYPE.SIG_DER_RFC_6979_ECDSA, // Signature type
+    hsm.enums.BLOCKCHAIN_HASH_MODE.SHA256, // Hash type
+    strDataToSign, // Data to be signed
+    hsmKeyName // Key name
+  );
+  await hsmDisconnect();
+
+  // Removing the first byte from the DER signature
+  const hsmHexSignature = hsmSignature.toString('hex');
+  const hsmCutHexSig = hsmHexSignature.slice(2);
+
+  const hsmData = {
+    prvKeyHex: privKey.toString('hex'),
+    prvKeyStr: privKey.toString(),
+    pubKeyHex: pubKey.toString('hex'),
+    hsmCutHexSig,
+  };
+  console.dir(hsmData);
+
+  // Signing locally with bitcore-lib
+  const lclPrivateKey = PrivateKey.fromWIF(privateKeyWif);
+  const reWiffed = lclPrivateKey.toWIF();
+  const lclPublicKey = new PublicKey(lclPrivateKey);
+
+  // @see https://github.com/bitpay/bitcore/blob/5abaeebca98945769b40a23ec9fa3e3cd36452b0/packages/bitcore-lib/lib/crypto/ecdsa.js#L279
+  const ecdsaSignSimple = bitcoreLib.crypto.ECDSA
+    .sign(
+      Buffer.from(strDataToSign, 'hex'),
+      lclPrivateKey,
+      'little'
+    );
+  const lclSignature = ecdsaSignSimple
+    .set({ nhashtype: bitcoreLib.crypto.Signature.SIGHASH_ALL })
+    .toDER();
+
+  const lclData = {
+    privKey: reWiffed.toString(),
+    pubKey: lclPublicKey.toString(),
+    lclSign1: ecdsaSignSimple.toDER().toString('hex'),
+    lclSignature: lclSignature.toString('hex'),
+  };
+  console.dir(lclData);
+
+  res.json({ success: true });
 });
 
 module.exports = hsmRouter;
