@@ -8,7 +8,10 @@
 const { hsm } = require('@dinamonetworks/hsm-dinamo');
 const { PartialTxInputData, transactionUtils } = require('@hathor/wallet-lib');
 // eslint-disable-next-line import/no-extraneous-dependencies
-const { HDPrivateKey } = require('bitcore-lib'); // DEBUG
+const bitcoreLib = require('bitcore-lib');
+// DEBUG
+const { HDPrivateKey } = bitcoreLib;
+// const { Base58 } = bitcoreLib.encoding;
 
 const { getConfig } = require('../settings');
 const {
@@ -268,10 +271,12 @@ async function deriveHtrAddress(hsmConnection, htrKeyName, addressIndex) {
   // DEBUG: Obtaining the private key and public key to help debugging
   const privKey = await hsmConnection.blockchain.export(
     hsm.enums.IMPORT_EXPORT_FORMAT.WIF,
-    hsm.enums.BLOCKCHAIN_EXPORT_VERSION.UNUSED,
+    hsm.enums.BLOCKCHAIN_EXPORT_VERSION.WIF_MAIN_NET,
     true,
     addressKeyName
   );
+  // const b58PrivKey = Base58(privKey);
+
   const pubKey = await hsmConnection.blockchain.getPubKey(
     hsm.enums.BLOCKCHAIN_GET_PUB_KEY_TYPE.SEC1_COMP,
     addressKeyName
@@ -290,6 +295,7 @@ async function deriveHtrAddress(hsmConnection, htrKeyName, addressIndex) {
     addressKeyName,
     pubKey: pubKey.toString('hex'),
     privKey: privKey.toString('hex'),
+    // b58PrivKey: b58PrivKey.toString(),
   };
 }
 
