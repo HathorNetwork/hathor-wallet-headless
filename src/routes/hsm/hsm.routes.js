@@ -260,23 +260,36 @@ hsmRouter.post('/test-sign', async (req, res, next) => {
   const lclPublicKey = new PublicKey(lclPrivateKey);
 
   // @see https://github.com/bitpay/bitcore/blob/5abaeebca98945769b40a23ec9fa3e3cd36452b0/packages/bitcore-lib/lib/crypto/ecdsa.js#L279
-  const ecdsaSignSimple = bitcoreLib.crypto.ECDSA
-    .sign(
-      Buffer.from(strDataToSign, 'hex'),
-      lclPrivateKey,
-      'little'
-    );
-  const lclSignature = ecdsaSignSimple
-    .set({ nhashtype: bitcoreLib.crypto.Signature.SIGHASH_ALL })
-    .toDER();
+  const ECDSAobj = new bitcoreLib.crypto.ECDSA().set({
+    hashbuf: Buffer.from(strDataToSign, 'hex'),
+    endian: 'little',
+    privkey: lclPrivateKey
+  });
+  const sigObj = ECDSAobj.sign();
+  const lclSignature = sigObj.sig.toDER();
+
+  const ECDSAobjSigHash = new bitcoreLib.crypto.ECDSA().set({
+    hashbuf: Buffer.from(strDataToSign, 'hex'),
+    endian: 'little',
+    privkey: lclPrivateKey,
+    nhashtype: bitcoreLib.crypto.Signature.SIGHASH_ALL
+  }).sign().sig.toDER();
+
+  const ECDSAobjClean = new bitcoreLib.crypto.ECDSA().set({
+    hashbuf: Buffer.from(strDataToSign, 'hex'),
+    privkey: lclPrivateKey,
+  }).sign().sig.toDER();
 
   const lclData = {
     privKey: reWiffed.toString(),
     pubKey: lclPublicKey.toString(),
-    lclSign1: ecdsaSignSimple.toDER().toString('hex'),
+    // lclSign1: ecdsaSignSimple.toDER().toString('hex'),
     lclSignature: lclSignature.toString('hex'),
+    lclSigHashSg: ECDSAobjSigHash.toString('hex'),
+    lclCleanSign: ECDSAobjClean.toString('hex'),
+    sigReference: '3044022078e931e97ab5e801f10772525426dd71b8b435b00c3b88f62c9928bf63176a990220255252aec626a60fda624fa2442b210c171a9ed9a91e3244b7a438751df19707'
   };
-  console.dir(lclData);
+  console.dir(lclData, { depth: 3 });
 
   res.json({ success: true });
 });
