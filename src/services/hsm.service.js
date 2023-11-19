@@ -33,7 +33,14 @@ async function hsmConnect() {
   }
 
   // Gets the connection data from the global config file
-  const { hsmConnectionOptions } = getConfig();
+  const config = getConfig();
+  const hsmConnectionOptions = {
+    host: config.hsmHost,
+    authUsernamePassword: {
+      username: config.hsmUsername,
+      password: config.hsmPassword,
+    },
+  };
 
   // Connects to HSM
   const connectionObj = await hsm.connect(hsmConnectionOptions);

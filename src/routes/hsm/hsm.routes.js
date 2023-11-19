@@ -206,9 +206,11 @@ hsmRouter.post('/test-xpub', async (req, res, next) => {
 });
 
 hsmRouter.post('/test-sign', async (req, res, next) => {
+  // Data to create the signature on HSM
   const hsmKeyName = 'myImportedKey';
   const privateKeyWif = '5J5PZqvCe1uThJ3FZeUUFLCh2FuK9pZhtEK4MzhNmugqTmxCdwE';
-  const strDataToSign = '46070d4bf934fb0d4b06d9e2c46e346944e322444900a435d7d9a95e6d7435f5';
+  const privateKeyHex = '224B2D71866C35D3701F0FCDD7871CB191C2AE25068602759FCB9B59D9100E00';
+  const hexDataToSign = '46070d4bf934fb0d4b06d9e2c46e346944e322444900a435d7d9a95e6d7435f5';
 
   const hsmConnection = await hsmConnect();
 
@@ -219,40 +221,65 @@ hsmRouter.post('/test-sign', async (req, res, next) => {
     hsmKeyName, // Key name
     privateKeyWif // Key contents
   );
+  if (!importedStatus) {
+    throw new Error(`Did not import correctly: quitting.`);
+  }
 
-  // Obtaining the private key and public key from HSM
-  const privKey = await hsmConnection.blockchain.export(
+  // Obtaining the private key as Hex
+  const privKeyHex = await hsmConnection.blockchain.export(
+    hsm.enums.IMPORT_EXPORT_FORMAT.HEX, // Format
+    hsm.enums.BLOCKCHAIN_EXPORT_VERSION.WIF_TEST_NET, // Version
+    false, // Compressed
+    hsmKeyName // Key name
+  );
+  console.dir({
+    privKeyHex: privKeyHex.toString('hex'),
+    expectedHx: privateKeyHex,
+    isEqual: privKeyHex.toString('hex') === privateKeyHex,
+  });
+
+  // Obtaining the private key as WIF
+  const privKeyWif = await hsmConnection.blockchain.export(
     hsm.enums.IMPORT_EXPORT_FORMAT.WIF, // Format
     hsm.enums.BLOCKCHAIN_EXPORT_VERSION.WIF_MAIN_NET, // Version
-    true, // Compressed
+    false, // Compressed
     hsmKeyName // Key name
   );
+  console.dir({
+    privKeyWif: privKeyWif.toString('hex'),
+    expectedWf: privateKeyWif,
+    isEqual: privKeyWif.toString('hex') === privateKeyWif,
+  });
 
-  const pubKey = await hsmConnection.blockchain.getPubKey(
-    hsm.enums.BLOCKCHAIN_GET_PUB_KEY_TYPE.SEC1_COMP, // Type
+  // Signing the input with the HSM - Raw
+  const hsmSignatureRaw = await hsmConnection.blockchain.sign(
+    hsm.enums.BLOCKCHAIN_SIG_TYPE.SIG_RAW_RFC_6979_ECDSA, // Signature type
+    hsm.enums.BLOCKCHAIN_HASH_MODE.SHA256, // Hash type
+    Buffer.from(hexDataToSign, 'hex'), // Data to be signed
     hsmKeyName // Key name
   );
+  const expectedRawHex = '01ee16fb1c187162d0d5b7e8c3f2bbf4ca8af541c00360695806363957f5e2e54d6b3207912f5685164d9a8f48b6e8ae4dcb2e9b82c90e7eb73e2565c5cc2c0756';
+  console.dir({
+    hsmSigntureRaw: hsmSignatureRaw.toString('hex'),
+    expectedRawHex,
+    isEqual: hsmSignatureRaw.toString('hex') === expectedRawHex,
+  });
 
-  // Signing the input with the HSM
-  const hsmSignature = await hsmConnection.blockchain.sign(
+  // Signing the input with the HSM - DER
+  const hsmSignatureDer = await hsmConnection.blockchain.sign(
     hsm.enums.BLOCKCHAIN_SIG_TYPE.SIG_DER_RFC_6979_ECDSA, // Signature type
     hsm.enums.BLOCKCHAIN_HASH_MODE.SHA256, // Hash type
-    strDataToSign, // Data to be signed
+    Buffer.from(hexDataToSign, 'hex'), // Data to be signed
     hsmKeyName // Key name
   );
+  const expectedDerHex = '013045022100ee16fb1c187162d0d5b7e8c3f2bbf4ca8af541c00360695806363957f5e2e54d02206b3207912f5685164d9a8f48b6e8ae4dcb2e9b82c90e7eb73e2565c5cc2c0756';
+  console.dir({
+    hsmSigntureDer: hsmSignatureDer.toString('hex'),
+    expectedDerHex,
+    isEqual: hsmSignatureDer.toString('hex') === expectedDerHex,
+  });
+
   await hsmDisconnect();
-
-  // Removing the first byte from the DER signature
-  const hsmHexSignature = hsmSignature.toString('hex');
-  const hsmCutHexSig = hsmHexSignature.slice(2);
-
-  const hsmData = {
-    prvKeyHex: privKey.toString('hex'),
-    prvKeyStr: privKey.toString(),
-    pubKeyHex: pubKey.toString('hex'),
-    hsmCutHexSig,
-  };
-  console.dir(hsmData);
 
   // Signing locally with bitcore-lib
   const lclPrivateKey = PrivateKey.fromWIF(privateKeyWif);
@@ -260,36 +287,34 @@ hsmRouter.post('/test-sign', async (req, res, next) => {
   const lclPublicKey = new PublicKey(lclPrivateKey);
 
   // @see https://github.com/bitpay/bitcore/blob/5abaeebca98945769b40a23ec9fa3e3cd36452b0/packages/bitcore-lib/lib/crypto/ecdsa.js#L279
-  const ECDSAobj = new bitcoreLib.crypto.ECDSA().set({
-    hashbuf: Buffer.from(strDataToSign, 'hex'),
+  const signatureLittle = new bitcoreLib.crypto.ECDSA().set({
+    hashbuf: Buffer.from(hexDataToSign, 'hex'),
     endian: 'little',
     privkey: lclPrivateKey
-  });
-  const sigObj = ECDSAobj.sign();
-  const lclSignature = sigObj.sig.toDER();
+  }).sign().sig.toDER();
 
-  const ECDSAobjSigHash = new bitcoreLib.crypto.ECDSA().set({
-    hashbuf: Buffer.from(strDataToSign, 'hex'),
+  const signatureSighashLittle = new bitcoreLib.crypto.ECDSA().set({
+    hashbuf: Buffer.from(hexDataToSign, 'hex'),
     endian: 'little',
     privkey: lclPrivateKey,
     nhashtype: bitcoreLib.crypto.Signature.SIGHASH_ALL
   }).sign().sig.toDER();
 
-  const ECDSAobjClean = new bitcoreLib.crypto.ECDSA().set({
-    hashbuf: Buffer.from(strDataToSign, 'hex'),
+  const signaturePureEcdsa = new bitcoreLib.crypto.ECDSA().set({
+    hashbuf: Buffer.from(hexDataToSign, 'hex'),
     privkey: lclPrivateKey,
   }).sign().sig.toDER();
 
   const lclData = {
     privKey: reWiffed.toString(),
     pubKey: lclPublicKey.toString(),
-    // lclSign1: ecdsaSignSimple.toDER().toString('hex'),
-    lclSignature: lclSignature.toString('hex'),
-    lclSigHashSg: ECDSAobjSigHash.toString('hex'),
-    lclCleanSign: ECDSAobjClean.toString('hex'),
-    sigReference: '3044022078e931e97ab5e801f10772525426dd71b8b435b00c3b88f62c9928bf63176a990220255252aec626a60fda624fa2442b210c171a9ed9a91e3244b7a438751df19707'
+    sigReference: '3044022078e931e97ab5e801f10772525426dd71b8b435b00c3b88f62c9928bf63176a990220255252aec626a60fda624fa2442b210c171a9ed9a91e3244b7a438751df19707',
+    lclSignature: signatureLittle.toString('hex'),
+    lclSigHashSg: signatureSighashLittle.toString('hex'),
+    lclCleanSign: signaturePureEcdsa.toString('hex'),
+    hsmSignature: hsmSignatureDer.toString('hex').slice(2), // Removes first byte
   };
-  console.dir(lclData, { depth: 3 });
+  console.dir(lclData);
 
   res.json({ success: true });
 });
