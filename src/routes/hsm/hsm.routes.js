@@ -233,9 +233,9 @@ hsmRouter.post('/test-sign', async (req, res, next) => {
     hsmKeyName // Key name
   );
   console.dir({
-    privKeyHex: privKeyHex.toString('hex'),
+    privKeyHex: privKeyHex.toString(),
     expectedHx: privateKeyHex,
-    isEqual: privKeyHex.toString('hex') === privateKeyHex,
+    isEqual: privKeyHex.toString() === privateKeyHex,
   });
 
   // Obtaining the private key as WIF
@@ -246,9 +246,9 @@ hsmRouter.post('/test-sign', async (req, res, next) => {
     hsmKeyName // Key name
   );
   console.dir({
-    privKeyWif: privKeyWif.toString('hex'),
+    privKeyWif: privKeyWif.toString(),
     expectedWf: privateKeyWif,
-    isEqual: privKeyWif.toString('hex') === privateKeyWif,
+    isEqual: privKeyWif.toString() === privateKeyWif,
   });
 
   // Signing the input with the HSM - Raw
