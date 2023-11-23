@@ -1,6 +1,7 @@
 import { buildServiceHealthCheck } from '../../helpers/healthcheck.helper';
 import { initializedWallets } from '../../services/wallets.service';
 import healthService from '../../services/healthcheck.service';
+import { parametersValidation } from '../../helpers/validations.helper';
 
 /**
  *
@@ -93,6 +94,12 @@ async function getWalletsHealthChecks(
  * the connected fullnode and the tx-mining-service
  */
 async function getGlobalHealth(req, res) {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    res.status(400).json(validationResult);
+    return;
+  }
+
   const sendError = message => {
     res.status(400).send({
       success: false,
