@@ -50,11 +50,6 @@ describe('healthcheck api', () => {
     });
 
     it('should return 200 when all components are healthy', async () => {
-      TestUtils.httpMock.onGet('http://fake.txmining:8084/health').reply(
-        200,
-        { status: 'pass' }
-      );
-
       const response = await TestUtils.request
         .query({
           include_tx_mining: true,
