@@ -102,8 +102,8 @@ async function getGlobalHealth(req, res) {
 
   let walletIds = [];
 
-  if ('x-wallet-ids' in req.query) {
-    walletIds = req.query['x-wallet-ids'].split(',');
+  if ('wallet_ids' in req.query) {
+    walletIds = req.query.wallet_ids.split(',');
   }
 
   for (const walletId of walletIds) {
@@ -113,8 +113,8 @@ async function getGlobalHealth(req, res) {
     }
   }
 
-  const includeFullnode = req.query['include-fullnode'] === 'true';
-  const includeTxMiningService = req.query['include-tx-mining'] === 'true';
+  const includeFullnode = req.query.include_fullnode === 'true';
+  const includeTxMiningService = req.query.include_tx_mining === 'true';
 
   // Check whether at least one component is included
   if (!includeFullnode && !includeTxMiningService && walletIds.length === 0) {

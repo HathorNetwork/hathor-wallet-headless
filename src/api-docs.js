@@ -3841,7 +3841,7 @@ const defaultApiDocs = {
         summary: 'Return the health of the wallet headless.',
         parameters: [
           {
-            name: 'x-wallet-ids',
+            name: 'wallet-ids',
             in: 'query',
             description: 'Define wallet ids to check, comma-separated. If not provided, will not check any wallet.',
             required: false,
@@ -3859,7 +3859,7 @@ const defaultApiDocs = {
             },
           },
           {
-            name: 'include-tx-mining',
+            name: 'include_tx_mining',
             in: 'query',
             description: 'Define if tx mining service health should be checked.',
             required: false,
