@@ -156,7 +156,6 @@ export class WalletHelper {
     for (const wallet of walletsArr) {
       await TestUtils.startWallet(wallet.walletData, { waitWalletReady: true });
       walletsPendingReady[wallet.walletId] = wallet;
-      await TestUtils.pauseForWsUpdate();
     }
 
     // Benchmark summary and finishing log
@@ -283,11 +282,12 @@ export class WalletHelper {
       .send(tokenCreationBody);
     txTimeHelper.informResponse(newTokenResponse.body.hash);
 
-    const transaction = TestUtils.handleTransactionResponse({
+    const transaction = await TestUtils.handleTransactionResponse({
       methodName: 'createToken',
       requestBody: tokenCreationBody,
       txResponse: newTokenResponse,
-      dontLogErrors: params.dontLogErrors
+      dontLogErrors: params.dontLogErrors,
+      walletIdsToWait: [this.#walletId],
     });
 
     TestUtils.log('Token Creation', {
@@ -295,8 +295,6 @@ export class WalletHelper {
       walletId: this.#walletId,
       ...tokenCreationBody
     });
-
-    await TestUtils.pauseForWsUpdate();
 
     return transaction;
   }
@@ -383,13 +381,13 @@ export class WalletHelper {
       .post('/wallet/p2sh/tx-proposal/sign-and-push')
       .send(tokenCreationBody)
       .set({ 'x-wallet-id': this.#walletId });
-    await TestUtils.pauseForWsUpdate();
 
-    const transaction = TestUtils.handleTransactionResponse({
+    const transaction = await TestUtils.handleTransactionResponse({
       methodName: 'createToken',
       requestBody: tokenCreationBody,
       txResponse: newTokenResponse,
-      dontLogErrors: params.dontLogErrors
+      dontLogErrors: params.dontLogErrors,
+      walletIdsToWait: [this.#walletId],
     });
 
     TestUtils.log('Sign and push transaction', { transaction });
@@ -474,11 +472,17 @@ export class WalletHelper {
       .set(TestUtils.generateHeader(this.#walletId));
     txTimeHelper.informResponse(response.body.hash);
 
-    const transaction = TestUtils.handleTransactionResponse({
+    const walletIdsToWait = [this.#walletId];
+    if (options.destinationWallet) {
+      walletIdsToWait.push(options.destinationWallet);
+    }
+
+    const transaction = await TestUtils.handleTransactionResponse({
       methodName: 'sendTx',
       requestBody: sendOptions,
       txResponse: response,
-      dontLogErrors: options.dontLogErrors
+      dontLogErrors: options.dontLogErrors,
+      walletIdsToWait,
     });
 
     // Logs the results
@@ -494,8 +498,6 @@ export class WalletHelper {
       metadata.destinationWallet = options.destinationWallet;
     }
     await TestUtils.log('send-tx', metadata);
-
-    await TestUtils.pauseForWsUpdate();
 
     return transaction;
   }

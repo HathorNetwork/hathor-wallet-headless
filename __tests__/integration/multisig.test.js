@@ -91,9 +91,6 @@ describe('send tx (HTR)', () => {
       fundTx1.txId = fundTxObj1.hash;
       fundTx1.index = TestUtils.getOutputIndexFromTx(fundTxObj1, 1000);
 
-      // Awaiting for updated balances to be received by the websocket
-      await TestUtils.pauseForWsUpdate();
-
       // Set wallets
       wallets = [wallet1, wallet2, wallet3, wallet4, wallet5];
 
@@ -355,7 +352,6 @@ describe('send tx (HTR)', () => {
     const txCreateToken = response.body;
     const tokenUid = txCreateToken.hash;
 
-    await TestUtils.pauseForWsUpdate();
     await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     expect(response.status).toBe(200);
@@ -385,7 +381,6 @@ describe('send tx (HTR)', () => {
       .set({ 'x-wallet-id': wallet1.walletId });
     expect(response.body.success).toBe(true);
 
-    await TestUtils.pauseForWsUpdate();
     await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     // # Melt
@@ -412,7 +407,6 @@ describe('send tx (HTR)', () => {
       .set({ 'x-wallet-id': wallet1.walletId });
     expect(response.body.success).toBe(true);
 
-    await TestUtils.pauseForWsUpdate();
     await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     const mctBalance = await wallet1.getBalance(tokenUid);
@@ -439,7 +433,7 @@ describe('send tx (HTR)', () => {
               timelock: null,
             },
             txId: expect.any(String),
-            index: 0,
+            index: expect.any(Number), // the previous tx has a change output, so they will be shuffled, and we can't know the index
             token: '00',
             value: expect.any(Number), // we have little control over input value
             tokenData: 0,
@@ -672,39 +666,10 @@ describe('send tx (HTR)', () => {
             tokenData: 1,
             token_data: 1,
             txId: expect.any(String),
-            value: 1,
-          },
-          {
-            decoded: {
-              address: expect.any(String),
-              timelock: null,
-              type: 'MultiSig',
-            },
-            index: 1,
-            mine: true,
-            script: expect.any(String),
-            signed: false,
-            token: tokenUid,
-            tokenData: 1,
-            token_data: 1,
-            txId: expect.any(String),
             value: 100,
           },
         ],
         outputs: [
-          {
-            decoded: {
-              address: expect.any(String),
-              timelock: null,
-            },
-            script: expect.any(String),
-            token: tokenUid,
-            tokenData: 1,
-            token_data: 1,
-            type: 'p2sh',
-            value: 1,
-            mine: true,
-          },
           {
             decoded: {
               address: expect.any(String),
@@ -777,8 +742,6 @@ describe('send tx (HTR)', () => {
       .send({ txHex, signatures })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    await TestUtils.pauseForWsUpdate();
-
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toBeDefined();
@@ -812,8 +775,6 @@ describe('send tx (HTR)', () => {
       .send({ txHex, signatures })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    await TestUtils.pauseForWsUpdate();
-
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toBeDefined();
@@ -844,8 +805,6 @@ describe('send tx (HTR)', () => {
       .send({ txHex, signatures })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    await TestUtils.pauseForWsUpdate();
-
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toBeDefined();
@@ -875,8 +834,6 @@ describe('send tx (HTR)', () => {
       .post('/wallet/p2sh/tx-proposal/sign-and-push')
       .send({ txHex, signatures })
       .set({ 'x-wallet-id': wallet1.walletId });
-
-    await TestUtils.pauseForWsUpdate();
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
@@ -910,8 +867,6 @@ describe('send tx (HTR)', () => {
       .send({ txHex, signatures })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    await TestUtils.pauseForWsUpdate();
-
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toBeDefined();
@@ -940,8 +895,6 @@ describe('send tx (HTR)', () => {
       .post('/wallet/p2sh/tx-proposal/sign-and-push')
       .send({ txHex, signatures })
       .set({ 'x-wallet-id': wallet1.walletId });
-
-    await TestUtils.pauseForWsUpdate();
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
@@ -972,8 +925,6 @@ describe('send tx (HTR)', () => {
       .post('/wallet/p2sh/tx-proposal/sign-and-push')
       .send({ txHex, signatures })
       .set({ 'x-wallet-id': wallet1.walletId });
-
-    await TestUtils.pauseForWsUpdate();
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
@@ -1007,8 +958,6 @@ describe('send tx (HTR)', () => {
       .send({ txHex, signatures })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    await TestUtils.pauseForWsUpdate();
-
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toBeDefined();
@@ -1037,8 +986,6 @@ describe('send tx (HTR)', () => {
       .post('/wallet/p2sh/tx-proposal/sign-and-push')
       .send({ txHex, signatures })
       .set({ 'x-wallet-id': wallet1.walletId });
-
-    await TestUtils.pauseForWsUpdate();
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
