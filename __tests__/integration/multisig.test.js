@@ -433,7 +433,9 @@ describe('send tx (HTR)', () => {
               timelock: null,
             },
             txId: expect.any(String),
-            index: expect.any(Number), // the previous tx has a change output, so they will be shuffled, and we can't know the index
+            // the previous tx has a change output, so they will be shuffled,
+            // and we can't know the index
+            index: expect.any(Number),
             token: '00',
             value: expect.any(Number), // we have little control over input value
             tokenData: 0,

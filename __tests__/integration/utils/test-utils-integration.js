@@ -4,7 +4,6 @@ import supertest from 'supertest';
 import { txApi, walletApi, HathorWallet, walletUtils } from '@hathor/wallet-lib';
 import createApp from '../../../src/app';
 import { loggers } from './logger.util';
-import testConfig from '../configuration/test.config';
 import { WALLET_EVENTS, WalletBenchmarkUtil } from './benchmark/wallet-benchmark.util';
 import { delay } from './core.util';
 import { TxTimeHelper } from './benchmark/tx-time.helper';
@@ -119,7 +118,7 @@ export class TestUtils {
    * @param {unknown} params.txResponse The HTTP response from Wallet Headless
    * @param {unknown} params.requestBody The body or query object used on the HTTP request
    * @param {boolean} [params.dontLogErrors] Skip logging errors, if an exception is expected
-   * @param {string[]} [params.walletIdsToWait] List of wallet ids to wait for this tx to be received
+   * @param {string[]} [params.walletIdsToWait] List of wallet ids to wait for the tx to be received
    * @returns {{success}|unknown}
    * @throws {TransactionErrorObject} Treated error object
    */

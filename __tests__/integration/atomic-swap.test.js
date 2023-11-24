@@ -3,7 +3,6 @@ import { TestUtils } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
 import { singleMultisigWalletData } from '../../scripts/helpers/wallet-precalculation.helper';
 import { loggers } from './utils/logger.util';
-import { delay } from './utils/core.util';
 import settings from '../../src/settings';
 
 describe('send tx (HTR)', () => {

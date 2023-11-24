@@ -60,7 +60,7 @@ describe('utxo-consolidation routes', () => {
     const balance = await wallet1.getBalance(token);
 
     // The wallet helper methods already await for the tx in its own wallet
-    const transaction = await wallet1.sendTx({
+    await wallet1.sendTx({
       outputs: [{ address: await wallet2.getAddressAt(0), value: balance.available, token }],
       destinationWallet: wallet2.walletId,
       title: 'Cleaning up wallet1 after test'

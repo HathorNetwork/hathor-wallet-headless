@@ -2,7 +2,6 @@ import { transactionUtils, constants, network, scriptsUtils } from '@hathor/wall
 import { TestUtils } from './utils/test-utils-integration';
 import { WALLET_CONSTANTS } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
-import { delay } from './utils/core.util';
 
 describe('mint token', () => {
   let wallet1;
