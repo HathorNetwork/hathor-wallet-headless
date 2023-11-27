@@ -21,10 +21,6 @@ async function createXprivKey(keyName) {
       password: config.hsmPassword,
     },
   };
-  /**
-   * Connection object
-   * @type {Hsm}
-   */
   const hsmConnection = await hsm.connect(hsmConnectionOptions);
 
   // Creates a key
