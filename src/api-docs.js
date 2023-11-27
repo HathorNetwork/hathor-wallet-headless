@@ -3841,18 +3841,18 @@ const defaultApiDocs = {
         summary: 'Return the health of the wallet headless.',
         parameters: [
           {
-            name: 'wallet-ids',
+            name: 'wallet_ids',
             in: 'query',
-            description: 'Define wallet ids to check, comma-separated. If not provided, will not check any wallet.',
+            description: 'Wallet ids to check, comma-separated. If not provided, will not check any wallet.',
             required: false,
             schema: {
               type: 'string',
             },
           },
           {
-            name: 'include-fullnode',
+            name: 'include_fullnode',
             in: 'query',
-            description: 'Define if fullnode health should be checked.',
+            description: 'Whether fullnode health should be checked and included in the response.',
             required: false,
             schema: {
               type: 'boolean',
@@ -3861,7 +3861,7 @@ const defaultApiDocs = {
           {
             name: 'include_tx_mining',
             in: 'query',
-            description: 'Define if tx mining service health should be checked.',
+            description: 'Whether tx mining service health should be checked and included in the response.',
             required: false,
             schema: {
               type: 'boolean',
