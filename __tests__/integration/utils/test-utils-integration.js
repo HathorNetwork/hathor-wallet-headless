@@ -802,7 +802,6 @@ export class TestUtils {
     // we don't have this error anymore
     const timeout = 600000;
     let timeoutReached = false;
-    // Timeout handler
     const timeoutHandler = setTimeout(() => {
       timeoutReached = true;
     }, timeout);
@@ -823,7 +822,6 @@ export class TestUtils {
       await delay(1000);
     }
 
-    // Clear timeout handler
     clearTimeout(timeoutHandler);
 
     if (timeoutReached) {
