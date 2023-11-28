@@ -1,15 +1,17 @@
-name: tests
+name: unit-tests
 on:
   push:
     branches:
       - master
-      - dev
+      - release-candidate
+      - release
     tags:
       - v*
   pull_request:
     branches:
-      - dev
       - master
+      - release-candidate
+      - release
 jobs:
   test:
     runs-on: "ubuntu-latest"
