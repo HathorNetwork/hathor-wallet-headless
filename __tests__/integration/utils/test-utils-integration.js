@@ -794,13 +794,10 @@ export class TestUtils {
   static async waitNewBlock(currentHeight = null) {
     let baseHeight = currentHeight;
 
-    // This timeout is a protection, so the integration tests
-    // don't keep running in case of a problem
-    // After using the timeout as 120s, we had some timeouts
-    // because the CI runs in a free github runner
-    // so we decided to increase this timeout to 600s, so
-    // we don't have this error anymore
-    const timeout = 600000;
+    console.log('WAIT NEW BLOCK');
+    console.log(testConfig.waitNewBlockTimeout);
+    console.log('------');
+    const timeout = testConfig.waitNewBlockTimeout;
     let timeoutReached = false;
     const timeoutHandler = setTimeout(() => {
       timeoutReached = true;
