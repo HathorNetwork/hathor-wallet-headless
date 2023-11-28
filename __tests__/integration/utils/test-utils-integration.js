@@ -794,6 +794,12 @@ export class TestUtils {
   static async waitNewBlock(currentHeight = null) {
     let baseHeight = currentHeight;
 
+    const timeout = testConfig.waitNewBlockTimeout;
+    let timeoutReached = false;
+    const timeoutHandler = setTimeout(() => {
+      timeoutReached = true;
+    }, timeout);
+
     if (!baseHeight) {
       baseHeight = await TestUtils.getFullNodeNetworkHeight();
     }
@@ -801,9 +807,19 @@ export class TestUtils {
     let networkHeight = baseHeight;
 
     while (networkHeight === baseHeight) {
+      if (timeoutReached) {
+        break;
+      }
+
       networkHeight = await TestUtils.getFullNodeNetworkHeight();
 
       await delay(1000);
+    }
+
+    clearTimeout(timeoutHandler);
+
+    if (timeoutReached) {
+      throw new Error('Timeout reached when waiting for the next block.');
     }
 
     return networkHeight;
