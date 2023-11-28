@@ -794,9 +794,6 @@ export class TestUtils {
   static async waitNewBlock(currentHeight = null) {
     let baseHeight = currentHeight;
 
-    console.log('WAIT NEW BLOCK');
-    console.log(testConfig.waitNewBlockTimeout);
-    console.log('------');
     const timeout = testConfig.waitNewBlockTimeout;
     let timeoutReached = false;
     const timeoutHandler = setTimeout(() => {
