@@ -23,5 +23,5 @@ module.exports = {
   // because the CI runs in a free github runner
   // so we decided to increase this timeout to 600s, so
   // we don't have this error anymore
-  waitNewBlockTimeout: process.env.TEST_WAIT_NEW_BLOCK_TIMEOUT || 600000;
+  waitNewBlockTimeout: process.env.TEST_WAIT_NEW_BLOCK_TIMEOUT || 600000,
 };
