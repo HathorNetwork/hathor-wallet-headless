@@ -4,6 +4,7 @@ import supertest from 'supertest';
 import { txApi, walletApi, HathorWallet, walletUtils } from '@hathor/wallet-lib';
 import createApp from '../../../src/app';
 import { loggers } from './logger.util';
+import testConfig from '../configuration/test.config';
 import { WALLET_EVENTS, WalletBenchmarkUtil } from './benchmark/wallet-benchmark.util';
 import { delay } from './core.util';
 import { TxTimeHelper } from './benchmark/tx-time.helper';
