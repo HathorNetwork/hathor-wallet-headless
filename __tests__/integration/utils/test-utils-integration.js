@@ -3,6 +3,7 @@
 import supertest from 'supertest';
 import { txApi, walletApi, HathorWallet, walletUtils } from '@hathor/wallet-lib';
 import createApp from '../../../src/app';
+import { initializedWallets } from '../../../src/services/wallets.service';
 import { loggers } from './logger.util';
 import testConfig from '../configuration/test.config';
 import { WALLET_EVENTS, WalletBenchmarkUtil } from './benchmark/wallet-benchmark.util';
@@ -895,7 +896,49 @@ export class TestUtils {
       throw new Error(`Timeout of ${timeout}ms without receiving the tx with id ${txId}`);
     }
 
+    if (result.is_voided === false) {
+      const wallet = initializedWallets.get(walletId);
+      const storageTx = await wallet.getTx(txId);
+      // We can't consider the metadata only of the transaction, it affects
+      // also the metadata of the transactions that were spent on it
+      // We could await for the update-tx event of the transactions of the inputs to arrive
+      // before considering the transaction metadata fully updated, however it's complicated
+      // to handle these events, since they might arrive even before we call this method
+      // To simplify everything, here we manually set the utxos as spent and process the history
+      // so after the transaction arrives, all the metadata involved on it is updated and we can
+      // continue running the tests to correctly check balances, addresses, and everyting else
+      await TestUtils.updateInputsSpentBy(wallet, storageTx);
+      await wallet.storage.processHistory();
+    }
+
     return result;
+  }
+
+  /**
+   * Loop through all inputs of a tx, get the corresponding transaction in the storage and
+   * update the spent_by attribute
+   *
+   * @param {HathorWallet} wallet
+   * @param {IHistoryTx} tx
+   * @returns {Promise<void>}
+   */
+  static async updateInputsSpentBy(wallet, tx) {
+    for (const input of tx.inputs) {
+      const inputTx = await wallet.getTx(input.tx_id);
+      if (!inputTx) {
+        // This input is not spending an output from this wallet
+        continue;
+      }
+
+      if (input.index > inputTx.outputs.length - 1) {
+        // Invalid output index
+        throw new Error('Try to get output in an index that doesn\'t exist.');
+      }
+
+      const output = inputTx.outputs[input.index];
+      output.spent_by = tx.tx_id;
+      await wallet.storage.addTx(inputTx);
+    }
   }
 
   /**
