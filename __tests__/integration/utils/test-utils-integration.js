@@ -911,6 +911,8 @@ export class TestUtils {
       await wallet.storage.processHistory();
     }
 
+    await TestUtils.waitUntilNextTimestamp(result);
+
     return result;
   }
 
@@ -939,6 +941,33 @@ export class TestUtils {
       output.spent_by = tx.tx_id;
       await wallet.storage.addTx(inputTx);
     }
+  }
+
+  /**
+   * This method helps a tester to ensure the current timestamp of the next transaction will be at
+   * least one unit greater than the specified transaction.
+   *
+   * Hathor's timestamp has a granularity of seconds, and it does not allow one transaction to have a
+   * parent with a timestamp equal to its own.
+   *
+   * It does not return any content, only delivers the code processing back to the caller at the
+   * desired time.
+   *
+   * @param {IHistoryTx} tx
+   * @returns {Promise<void>}
+   */
+   static async waitUntilNextTimestamp(tx) {
+    const nowMilliseconds = Date.now().valueOf();
+    const nextValidMilliseconds = (tx.timestamp + 1) * 1000;
+
+    // We are already past the last valid milissecond
+    if (nowMilliseconds > nextValidMilliseconds) {
+      return;
+    }
+
+    // We are still within an invalid time to generate a new timestamp. Waiting for some time...
+    const timeToWait = nextValidMilliseconds - nowMilliseconds + 10;
+    await delay(timeToWait);
   }
 
   /**
