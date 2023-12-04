@@ -88,6 +88,8 @@ beforeAll(async () => {
   precalculationHelpers.test = new WalletPrecalculationHelper('./tmp/wallets.json');
   await precalculationHelpers.test.initWithWalletsFile();
 
+  await TestUtils.startServer();
+
   // Await first block to be mined to release genesis reward lock
   try {
     await TestUtils.waitNewBlock();
@@ -115,4 +117,6 @@ afterAll(async () => {
 
   // Storing data about used precalculated wallets for the next test suites
   await precalculationHelpers.test.storeDbIntoWalletsFile();
+
+  TestUtils.stopServer();
 });

@@ -80,6 +80,8 @@ describe('create-nft routes', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
+
     expect(response.body.success).toBe(true);
     const nftTx = response.body;
     expect(nftTx.hash).toBeDefined();
@@ -97,8 +99,6 @@ describe('create-nft routes', () => {
     // Validating that the NFT fee is the first output
     expect(nftTx.outputs[0].value).toBe(1);
     expect(nftTx.outputs[0].token_data).toBe(0);
-
-    await TestUtils.pauseForWsUpdate();
 
     // The fees (1) and deposits (1) should be deducted
     const htrBalanceAfter = await wallet1.getBalance();
@@ -123,6 +123,8 @@ describe('create-nft routes', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
+
     expect(response.body.success).toBe(true);
     const nftTx = response.body;
     expect(nftTx.hash).toBeDefined();
@@ -140,8 +142,6 @@ describe('create-nft routes', () => {
         changeAmount = output.value;
       }
     }
-
-    await TestUtils.pauseForWsUpdate();
 
     // Validating balances for target addresses
     const destInfo = await TestUtils.getAddressInfo(destAddr, wallet1.walletId, nftTx.hash);
@@ -163,6 +163,8 @@ describe('create-nft routes', () => {
     expect(response.body.success).toBe(true);
     const nftTx = response.body;
 
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
+
     expect(nftTx.hash).toBeDefined();
 
     // Validating authority tokens
@@ -172,9 +174,6 @@ describe('create-nft routes', () => {
   });
 
   it('should create nft with melt authority', async () => {
-    // Since no pause was necessary on the last test, we will add one here to improve stability
-    await TestUtils.pauseForWsUpdate();
-
     const response = await TestUtils.request
       .post('/wallet/create-nft')
       .send({
@@ -189,6 +188,8 @@ describe('create-nft routes', () => {
 
     expect(nftTx.hash).toBeDefined();
 
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
+
     // Validating authority tokens
     const authorityOutputs = nftTx.outputs.filter(o => TOKEN_DATA.isAuthorityToken(o.token_data));
     expect(authorityOutputs.length).toBe(1);
@@ -196,7 +197,6 @@ describe('create-nft routes', () => {
   });
 
   it('should create nft with mint and melt authorities', async () => {
-    await TestUtils.pauseForWsUpdate();
     const response = await TestUtils.request
       .post('/wallet/create-nft')
       .send({
@@ -212,6 +212,8 @@ describe('create-nft routes', () => {
 
     expect(nftTx.hash).toBeDefined();
 
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
+
     // Validating authority tokens
     const authorityOutputs = nftTx.outputs.filter(o => TOKEN_DATA.isAuthorityToken(o.token_data));
     expect(authorityOutputs.length).toBe(2);
@@ -220,7 +222,6 @@ describe('create-nft routes', () => {
   });
 
   it('should create the NFT and send authority outputs to the correct address', async done => {
-    await TestUtils.pauseForWsUpdate();
     // By default, will mint tokens into the next unused address
     const address0 = await wallet1.getAddressAt(0);
     const address1 = await wallet1.getAddressAt(1);
@@ -238,6 +239,8 @@ describe('create-nft routes', () => {
 
     const transaction = response.body;
     expect(transaction.success).toBe(true);
+
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     // Validating a new mint authority was created
     const authorityOutputs = transaction.outputs.filter(
@@ -262,7 +265,6 @@ describe('create-nft routes', () => {
   });
 
   it('Create nft using external mint/melt address', async done => {
-    await TestUtils.pauseForWsUpdate();
     const address2idx0 = await wallet2.getAddressAt(0);
     const address2idx1 = await wallet2.getAddressAt(1);
 
@@ -308,6 +310,9 @@ describe('create-nft routes', () => {
       .set({ 'x-wallet-id': wallet1.walletId });
 
     expect(response3.body.success).toBe(true);
+
+    await TestUtils.waitForTxReceived(wallet1.walletId, response3.body.hash);
+    await TestUtils.waitForTxReceived(wallet2.walletId, response3.body.hash);
 
     const transaction = response3.body;
 

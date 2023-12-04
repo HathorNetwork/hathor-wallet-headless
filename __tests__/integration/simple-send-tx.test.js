@@ -143,7 +143,8 @@ describe('simple-send-tx (HTR)', () => {
     expect(response.body.success).toBe(true);
     expect(response.body.outputs).toHaveLength(2);
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
+    await TestUtils.waitForTxReceived(wallet2.walletId, response.body.hash);
 
     const addr0 = await wallet2.getAddressInfo(0);
     expect(addr0.total_amount_available).toBe(200);
@@ -170,8 +171,10 @@ describe('simple-send-tx (HTR)', () => {
     expect(response.body.success).toBe(true);
     expect(response.body.outputs).toHaveLength(2);
 
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
+    await TestUtils.waitForTxReceived(wallet2.walletId, response.body.hash);
+
     // Check if the transaction arrived at the correct address
-    await TestUtils.pauseForWsUpdate();
 
     // The wallet1 started with 1000, transferred 400 to wallet2. Change should be 600
     const addr5 = await wallet1.getAddressInfo(5);
@@ -337,7 +340,8 @@ describe('simple-send-tx (custom token)', () => {
     expect(response.body.success).toBe(true);
     expect(response.body.outputs).toHaveLength(2);
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet3.walletId, response.body.hash);
+    await TestUtils.waitForTxReceived(wallet4.walletId, response.body.hash);
 
     const addr0 = await wallet4.getAddressInfo(0, tokenData.uid);
     expect(addr0.total_amount_available).toBe(300);
@@ -365,8 +369,10 @@ describe('simple-send-tx (custom token)', () => {
     expect(response.body.success).toBe(true);
     expect(response.body.outputs).toHaveLength(2);
 
+    await TestUtils.waitForTxReceived(wallet3.walletId, response.body.hash);
+    await TestUtils.waitForTxReceived(wallet4.walletId, response.body.hash);
+
     // Check if the transaction arrived at the correct address
-    await TestUtils.pauseForWsUpdate();
 
     // The wallet1 started with 1000, transferred 600 to wallet2. Change should be 400
     const addr5 = await wallet3.getAddressInfo(5, tokenData.uid);

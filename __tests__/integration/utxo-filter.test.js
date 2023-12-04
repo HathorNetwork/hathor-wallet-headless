@@ -31,7 +31,6 @@ describe('utxo-filter routes', () => {
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
 
       await wallet2.injectFunds(20, 0);
-      await TestUtils.pauseForWsUpdate();
 
       const tkaTx = await wallet2.createToken({
         name: tokenA.name,
@@ -41,7 +40,6 @@ describe('utxo-filter routes', () => {
         address: await wallet2.getAddressAt(1)
       });
       tokenA.uid = tkaTx.hash;
-      await TestUtils.pauseForWsUpdate();
 
       /*
        * Wallet1: empty
@@ -243,7 +241,6 @@ describe('utxo-filter routes', () => {
       });
       transactions.tx50.hash = tx50.hash;
       transactions.tx50.index = TestUtils.getOutputIndexFromTx(tx50, 50);
-      await TestUtils.pauseForWsUpdate();
     } catch (err) {
       await TestUtils.dumpUtxos({
         walletId: wallet2.walletId,

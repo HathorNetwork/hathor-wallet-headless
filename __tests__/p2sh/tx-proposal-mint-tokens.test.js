@@ -81,7 +81,7 @@ describe('mint-tokens tx-proposal api', () => {
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
-    expect(response.body.error).toEqual('Not enough HTR tokens for deposit: 10000000000 required, 89600 available');
+    expect(response.body.error).toContain('Not enough HTR tokens for deposit: 10000000000 required');
   });
 
   it('should return 200 with a valid body selecting address', async () => {

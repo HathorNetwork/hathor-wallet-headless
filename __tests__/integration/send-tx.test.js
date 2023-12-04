@@ -372,7 +372,8 @@ describe('send tx (HTR)', () => {
           address: await wallet2.getAddressAt(0),
           value: 10
         }],
-      }
+      },
+      destinationWallet: wallet2.walletId
     });
 
     expect(tx.hash).toBeDefined();
@@ -392,7 +393,8 @@ describe('send tx (HTR)', () => {
           value: 10
         }],
         change_address: await wallet1.getAddressAt(0)
-      }
+      },
+      destinationWallet: wallet2.walletId
     });
 
     expect(tx.hash).toBeDefined();
@@ -424,7 +426,8 @@ describe('send tx (HTR)', () => {
           address: await wallet1.getAddressAt(0),
           value: 20
         }],
-      }
+      },
+      destinationWallet: wallet1.walletId
     });
 
     expect(tx.hash).toBeDefined();
@@ -454,7 +457,8 @@ describe('send tx (HTR)', () => {
             value: 30
           },
         ],
-      }
+      },
+      destinationWallet: wallet2.walletId
     });
 
     expect(tx.success).toBe(true);
@@ -483,7 +487,8 @@ describe('send tx (HTR)', () => {
           },
         ],
         change_address: await wallet3.getAddressAt(2)
-      }
+      },
+      destinationWallet: wallet2.walletId
     });
 
     expect(tx.hash).toBeDefined();
@@ -517,7 +522,8 @@ describe('send tx (HTR)', () => {
           address: await wallet1.getAddressAt(4),
           value: 1100
         }],
-      }
+      },
+      destinationWallet: wallet1.walletId
     });
 
     expect(tx.success).toBe(true);
@@ -545,7 +551,8 @@ describe('send tx (HTR)', () => {
           value: 900
         }],
         change_address: await wallet2.getAddressAt(5)
-      }
+      },
+      destinationWallet: wallet1.walletId
     });
 
     expect(tx.success).toBe(true);
@@ -574,7 +581,8 @@ describe('send tx (HTR)', () => {
             value: 740
           },
         ],
-      }
+      },
+      destinationWallet: wallet2.walletId
     });
 
     expect(tx.success).toBe(true);
@@ -597,8 +605,10 @@ describe('send tx (HTR)', () => {
         fullObject: {
           inputs: [{ type: 'query', address: await wallet1.getAddressAt(4) }],
           outputs: [{ address: await wallet2.getAddressAt(5), value: 100 }]
-        }
+        },
+        destinationWallet: wallet2.walletId
       });
+
       const txSummary = TestUtils.getOutputSummaryHtr(tx, 100);
 
       const destination = await wallet2.getAddressInfo(5);
@@ -944,7 +954,8 @@ describe('send tx (custom tokens)', () => {
       change_address: await wallet1.getAddressAt(0)
     };
     const tx = await wallet1.sendTx({
-      fullObject: sendOptions
+      fullObject: sendOptions,
+      destinationWallet: wallet2.walletId
     });
 
     expect(tx.success).toBe(true);
@@ -991,7 +1002,9 @@ describe('send tx (custom tokens)', () => {
       change_address: await wallet4.getAddressAt(0)
     };
     const tx = await wallet4.sendTx({
-      fullObject: sendOptions
+      fullObject: sendOptions,
+      destinationWallet: wallet5.walletId
+
     });
 
     expect(tx.success).toBe(true);
@@ -1027,7 +1040,8 @@ describe('send tx (custom tokens)', () => {
       token: tokenA,
     };
     const tx = await wallet1.sendTx({
-      fullObject: sendOptions
+      fullObject: sendOptions,
+      destinationWallet: wallet2.walletId
     });
 
     expect(tx.success).toBe(true);
@@ -1055,7 +1069,8 @@ describe('send tx (custom tokens)', () => {
     };
 
     const tx = await wallet2.sendTx({
-      fullObject: sendOptions
+      fullObject: sendOptions,
+      destinationWallet: wallet1.walletId
     });
 
     expect(tx.success).toBe(true);
@@ -1081,7 +1096,8 @@ describe('send tx (custom tokens)', () => {
     };
 
     const tx = await wallet5.sendTx({
-      fullObject: sendOptions
+      fullObject: sendOptions,
+      destinationWallet: wallet4.walletId
     });
 
     expect(tx.success).toBe(true);
@@ -1116,7 +1132,8 @@ describe('send tx (custom tokens)', () => {
       token: tokenA,
     };
     const spreadTx = await wallet1.sendTx({
-      fullObject: spreadTxOptions
+      fullObject: spreadTxOptions,
+      destinationWallet: wallet2.walletId
     });
 
     // Consolidating these funds back into wallet1 in two addresses
@@ -1148,7 +1165,8 @@ describe('send tx (custom tokens)', () => {
       token: tokenA
     };
     const consolidateTx = await wallet2.sendTx({
-      fullObject: consolidateTxOptions
+      fullObject: consolidateTxOptions,
+      destinationWallet: wallet1.walletId
     });
 
     expect(consolidateTx.success).toBe(true);
@@ -1229,7 +1247,6 @@ describe('send tx (custom tokens)', () => {
     // next empty address
     await wallet3.getNextAddress();
 
-    await TestUtils.pauseForWsUpdate();
     // One manual UXTO with 1000 TKB, and automatic UTXO's for HTR
     const tx = await wallet3.sendTx({
       fullObject: {
@@ -1464,7 +1481,6 @@ describe('filter query + custom tokens', () => {
       change_address: await wallet1.getAddressAt(0),
       title: 'Filling address 3 with 1000 HTR and BUG'
     });
-    await TestUtils.pauseForWsUpdate();
     // Address 3 now has 1000 HTR and 1000 BUG, change of 10 HTR went to address 0
 
     /*
@@ -1664,6 +1680,7 @@ describe('transaction with data script output', () => {
         address: await wallet2.getAddressAt(3),
         value: 100,
       }],
+      destinationWallet: wallet2.walletId
     });
 
     expect(tx.success).toBe(true);
