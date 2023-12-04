@@ -2,7 +2,6 @@ import { transactionUtils, constants, network, scriptsUtils } from '@hathor/wall
 import { TestUtils } from './utils/test-utils-integration';
 import { WALLET_CONSTANTS } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
-import { delay } from './utils/core.util';
 
 describe('mint token', () => {
   let wallet1;
@@ -147,7 +146,7 @@ describe('mint token', () => {
 
     expect(response.body.success).toBe(true);
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     const addr1 = await wallet1.getAddressInfo(1, tokenA.uid);
     expect(addr1.total_amount_available).toBe(50);
@@ -164,14 +163,13 @@ describe('mint token', () => {
         amount: 60
       })
       .set({ 'x-wallet-id': wallet1.walletId });
-    await delay(1000);
 
     const transaction = response.body;
     expect(transaction.success).toBe(true);
     const htrOutputIndex = transaction.outputs.findIndex(o => o.token_data === 0);
     const htrChange = transaction.outputs[htrOutputIndex].value;
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     const addr10 = await wallet1.getAddressInfo(10);
     expect(addr10.total_amount_received).toBe(htrChange);
@@ -195,7 +193,7 @@ describe('mint token', () => {
 
     expect(response.body.success).toBe(true);
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     const addrNew = await TestUtils.getAddressInfo(
       destinationAddress,
@@ -226,7 +224,7 @@ describe('mint token', () => {
     const htrOutputIndex = transaction.outputs.findIndex(o => o.token_data === 0);
     const htrChange = transaction.outputs[htrOutputIndex].value;
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     const addr15 = await wallet1.getAddressInfo(15, tokenA.uid);
     expect(addr15.total_amount_available).toBe(80);
@@ -251,7 +249,7 @@ describe('mint token', () => {
 
     const transaction = response.body;
     expect(transaction.success).toBe(true);
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     const addr16 = await wallet1.getAddressInfo(16, tokenA.uid);
     expect(addr16.total_amount_available).toBe(100);
@@ -296,7 +294,7 @@ describe('mint token', () => {
 
     const transaction = response2.body;
     expect(transaction.success).toBe(true);
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, response2.body.hash);
 
     const addr17 = await wallet1.getAddressInfo(17, tokenA.uid);
     expect(addr17.total_amount_available).toBe(100);

@@ -6,6 +6,7 @@ import { TxBenchmarkUtil } from './__tests__/integration/utils/benchmark/tx-benc
 import {
   precalculationHelpers, WalletPrecalculationHelper,
 } from './scripts/helpers/wallet-precalculation.helper';
+import { TestUtils } from './__tests__/integration/utils/test-utils-integration';
 
 expect.extend({
   toBeInArray(received, expected) {
@@ -86,6 +87,23 @@ beforeAll(async () => {
   // Loading pre-calculated wallets
   precalculationHelpers.test = new WalletPrecalculationHelper('./tmp/wallets.json');
   await precalculationHelpers.test.initWithWalletsFile();
+
+  await TestUtils.startServer();
+
+  // Await first block to be mined to release genesis reward lock
+  try {
+    await TestUtils.waitNewBlock();
+  } catch (err) {
+    // When running jest with jasmine there's a bug (or behavior)
+    // that any error thrown inside beforeAll methods don't stop the tests
+    // https://github.com/jestjs/jest/issues/2713
+    // The solution for that is to capture the error and call process.exit
+    // https://github.com/jestjs/jest/issues/2713#issuecomment-319822476
+    // The downside of that is that we don't get logs, however is the only
+    // way for now. We should stop using jasmine soon (and change for jest-circus)
+    // when we do some package upgrades
+    process.exit(1);
+  }
 });
 
 afterAll(async () => {
@@ -99,4 +117,6 @@ afterAll(async () => {
 
   // Storing data about used precalculated wallets for the next test suites
   await precalculationHelpers.test.storeDbIntoWalletsFile();
+
+  TestUtils.stopServer();
 });

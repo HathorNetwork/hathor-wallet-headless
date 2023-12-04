@@ -183,7 +183,7 @@ describe('melt tokens', () => {
 
     expect(response.body.success).toBe(true);
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     const addr3htr = await wallet1.getAddressInfo(3);
     const addr3tka = await wallet1.getAddressInfo(3, tokenA.uid);
@@ -219,7 +219,7 @@ describe('melt tokens', () => {
 
     expect(response.body.success).toBe(true);
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     const addr6htr = await wallet1.getAddressInfo(6);
     const addr6tka = await wallet1.getAddressInfo(6, tokenA.uid);
@@ -246,7 +246,7 @@ describe('melt tokens', () => {
 
     expect(response.body.success).toBe(true);
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     const addr8htr = await wallet1.getAddressInfo(8);
     const addr8tka = await wallet1.getAddressInfo(8, tokenA.uid);
@@ -272,7 +272,7 @@ describe('melt tokens', () => {
 
     expect(response.body.success).toBe(true);
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     const balance1htr = await wallet1.getBalance();
     const balance1tka = await wallet1.getBalance(tokenA.uid);
@@ -293,7 +293,7 @@ describe('melt tokens', () => {
 
     expect(response.body.success).toBe(true);
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     const balance1htr = await wallet1.getBalance();
     const balance1tka = await wallet1.getBalance(tokenA.uid);
@@ -315,7 +315,7 @@ describe('melt tokens', () => {
 
     expect(response.body.success).toBe(true);
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     const balance1htr = await wallet1.getBalance();
     const balance1tka = await wallet1.getBalance(tokenA.uid);
@@ -339,7 +339,7 @@ describe('melt tokens', () => {
 
     const transaction = response.body;
     expect(transaction.success).toBe(true);
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     const balance1htr = await wallet1.getBalance();
     const balance1tka = await wallet1.getBalance(tokenA.uid);
@@ -386,7 +386,7 @@ describe('melt tokens', () => {
 
     const transaction = response2.body;
     expect(transaction.success).toBe(true);
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, response2.body.hash);
 
     const balance1htr = await wallet1.getBalance();
     const balance1tka = await wallet1.getBalance(tokenA.uid);

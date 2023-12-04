@@ -5,11 +5,11 @@ const walletId = 'stub_melt_tokens';
 
 // TODO: Add a fixture to melt token 01
 describe('melt-tokens api', () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
     await TestUtils.startWallet({ walletId, preCalculatedAddresses: TestUtils.addresses });
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await TestUtils.stopWallet({ walletId });
   });
 

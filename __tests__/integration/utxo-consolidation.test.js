@@ -59,12 +59,12 @@ describe('utxo-consolidation routes', () => {
   async function cleanWallet1(token) {
     const balance = await wallet1.getBalance(token);
 
+    // The wallet helper methods already await for the tx in its own wallet
     await wallet1.sendTx({
       outputs: [{ address: await wallet2.getAddressAt(0), value: balance.available, token }],
       destinationWallet: wallet2.walletId,
       title: 'Cleaning up wallet1 after test'
     });
-    await TestUtils.pauseForWsUpdate();
   }
 
   it('should reject for missing destination address', async () => {
@@ -157,7 +157,7 @@ describe('utxo-consolidation routes', () => {
     const sourceUtxo20 = consolidateTx.utxos.find(u => u.amount === 20);
     expect(sourceUtxo20.tx_id).toBe(fundTx.hash);
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, consolidateTx.txId);
 
     // Evaluating destination address balance and utxos
     const destinationUtxos = await wallet1.getUtxos({
@@ -202,7 +202,7 @@ describe('utxo-consolidation routes', () => {
     const sourceTka20 = consolidateTx.utxos.find(u => u.amount === 20);
     expect(sourceTka20.tx_id).toBe(fundTx.hash);
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, consolidateTx.txId);
 
     // Evaluating destination address balance and utxos
     const destinationUtxos = await wallet1.getUtxos({
@@ -251,7 +251,7 @@ describe('utxo-consolidation routes', () => {
       expect(utxo.address).toBe(addr2); // Only utxos from the correct address were used
     }
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, consolidateTx.txId);
 
     // Evaluating destination address balance and utxos
     const destinationUtxos = await wallet1.getUtxos({
@@ -293,7 +293,7 @@ describe('utxo-consolidation routes', () => {
     expect(consolidateTx.total_amount).toBe(60);
     expect(consolidateTx.total_utxos_consolidated).toBe(3);
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, consolidateTx.txId);
 
     // Evaluating destination address balance and utxos
     const destinationUtxos = await wallet1.getUtxos({
@@ -336,7 +336,7 @@ describe('utxo-consolidation routes', () => {
     expect(consolidateTx.total_amount).toBe(120);
     expect(consolidateTx.total_utxos_consolidated).toBe(3);
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, consolidateTx.txId);
 
     // Evaluating destination address balance and utxos
     const destinationUtxos = await wallet1.getUtxos({
@@ -364,7 +364,6 @@ describe('utxo-consolidation routes', () => {
       ],
       destinationWallet: wallet1.walletId
     });
-    await TestUtils.pauseForWsUpdate();
 
     const destinationAddress = await wallet1.getAddressAt(2);
     const utxoResponse = await TestUtils.request
@@ -385,7 +384,8 @@ describe('utxo-consolidation routes', () => {
       expect.objectContaining({ amount: 40 }),
       expect.objectContaining({ amount: 50 }),
     ]));
-    await TestUtils.pauseForWsUpdate();
+
+    await TestUtils.waitForTxReceived(wallet1.walletId, consolidateTx.txId);
 
     // Evaluating destination address balance and utxos
     const destinationUtxos = await wallet1.getUtxos({

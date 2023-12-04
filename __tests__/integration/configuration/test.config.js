@@ -15,4 +15,12 @@ module.exports = {
 
   // Defines for how long the startMultipleWalletsForTest can run
   walletStartTimeout: process.env.TEST_WALLET_START_TIMEOUT || 300000,
+
+  // This timeout is a protection, so the integration tests
+  // don't keep running in case of a problem
+  // After using the timeout as 120s, we had some timeouts
+  // because the CI runs in a free github runner
+  // so we decided to increase this timeout to 600s, so
+  // we don't have this error anymore
+  waitNewBlockTimeout: process.env.TEST_WAIT_NEW_BLOCK_TIMEOUT || 600000,
 };

@@ -1,4 +1,8 @@
-const apiDoc = {
+const { cloneDeep } = require('lodash');
+const settings = require('./settings');
+
+// Default values for the API Docs
+const defaultApiDocs = {
   openapi: '3.0.0',
   servers: [
     { url: 'http://localhost:8000' }
@@ -9,15 +13,7 @@ const apiDoc = {
     version: '0.23.0',
   },
   produces: ['application/json'],
-  components: {
-    securitySchemes: {
-      ApiKeyAuth: {
-        type: 'apiKey',
-        in: 'header',
-        name: 'X-API-KEY',
-      },
-    },
-  },
+  components: {},
   security: [
     {
       ApiKeyAuth: [],
@@ -3843,4 +3839,31 @@ const apiDoc = {
   },
 };
 
-export default apiDoc;
+/**
+ * Generates the Api Docs according to the current configurations of the Headless Wallet
+ */
+function getApiDocs() {
+  // Obtaining base data
+  const config = settings.getConfig();
+  const apiDocs = cloneDeep(defaultApiDocs);
+
+  // Adding optional API Key docs
+  if (config.http_api_key) {
+    apiDocs.components = {
+      securitySchemes: {
+        ApiKeyAuth: {
+          type: 'apiKey',
+          in: 'header',
+          name: 'X-API-KEY',
+        },
+      },
+    };
+  }
+
+  // Data ready to serve
+  return apiDocs;
+}
+
+module.exports = {
+  getApiDocs
+};

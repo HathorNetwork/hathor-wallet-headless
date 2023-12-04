@@ -2,7 +2,7 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [ "master", "dev" ]
+    branches: [ "master", "release-candidate", "release" ]
   pull_request:
   schedule:
     - cron: "10 7 * * 2"
@@ -23,18 +23,22 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        # https://github.com/actions/checkout/releases/tag/v3.5.0
+        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        # https://github.com/github/codeql-action/releases/tag/codeql-bundle-v2.15.0
+        uses: github/codeql-action/init@517782a2a0dd93543ea4f12f41006cf70ddca135
         with:
           languages: ${{ matrix.language }}
           queries: +security-and-quality
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v2
+        # https://github.com/github/codeql-action/releases/tag/codeql-bundle-v2.15.0
+        uses: github/codeql-action/autobuild@517782a2a0dd93543ea4f12f41006cf70ddca135
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        # https://github.com/github/codeql-action/releases/tag/codeql-bundle-v2.15.0
+        uses: github/codeql-action/analyze@517782a2a0dd93543ea4f12f41006cf70ddca135
         with:
           category: "/language:${{ matrix.language }}"

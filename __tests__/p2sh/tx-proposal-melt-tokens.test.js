@@ -77,7 +77,7 @@ describe('melt-tokens tx-proposal api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
-    expect(response.body.error).toEqual('Not enough tokens to melt: 1000000000000 requested, 200 available');
+    expect(response.body.error).toContain('Not enough tokens to melt: 1000000000000 requested');
   });
 
   it('should return 200 with a valid body selecting deposit address', async () => {

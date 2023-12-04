@@ -197,7 +197,7 @@ describe('create token', () => {
     expect(response.body.success).toBe(true);
     expect(response.body.configurationString).toBe(configStringResponse.configurationString);
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     const htrBalance = await wallet1.getBalance();
     const tkaBalance = await wallet1.getBalance(response.body.hash);
@@ -221,7 +221,7 @@ describe('create token', () => {
     const transaction = response.body;
     expect(transaction.success).toBe(true);
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     const addr9 = await wallet1.getAddressInfo(9, transaction.hash);
     expect(addr9.total_amount_received).toBe(amountTokens);
@@ -246,7 +246,7 @@ describe('create token', () => {
     const htrOutputIndex = transaction.outputs.findIndex(o => o.token_data === 0);
     const htrChange = transaction.outputs[htrOutputIndex].value;
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet2.walletId, response.body.hash);
 
     const addr5 = await wallet2.getAddressInfo(5);
     expect(addr5.total_amount_received).toBe(htrChange);
@@ -272,7 +272,7 @@ describe('create token', () => {
     const htrOutputIndex = transaction.outputs.findIndex(o => o.token_data === 0);
     const htrChange = transaction.outputs[htrOutputIndex].value;
 
-    await TestUtils.pauseForWsUpdate();
+    await TestUtils.waitForTxReceived(wallet2.walletId, response.body.hash);
 
     const addr4 = await wallet2.getAddressInfo(4);
     expect(addr4.total_amount_received).toBe(htrChange);
@@ -296,6 +296,8 @@ describe('create token', () => {
     expect(response.body.success).toBe(true);
     const tx = response.body;
 
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
+
     expect(tx.hash).toBeDefined();
 
     // Validating authority tokens
@@ -307,9 +309,6 @@ describe('create token', () => {
   });
 
   it('should create token with only melt authority', async () => {
-    // Since no pause was necessary on the last test, we will add one here to improve stability
-    await TestUtils.pauseForWsUpdate();
-
     const response = await TestUtils.request
       .post('/wallet/create-token')
       .send({
@@ -326,6 +325,8 @@ describe('create token', () => {
 
     expect(tx.hash).toBeDefined();
 
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
+
     // Validating authority tokens
     const authorityOutputs = tx.outputs.filter(
       o => transactionUtils.isAuthorityOutput({ token_data: o.tokenData })
@@ -335,7 +336,6 @@ describe('create token', () => {
   });
 
   it('should create token with mint and melt authorities', async () => {
-    await TestUtils.pauseForWsUpdate();
     const response = await TestUtils.request
       .post('/wallet/create-token')
       .send({
@@ -352,6 +352,8 @@ describe('create token', () => {
 
     expect(tx.hash).toBeDefined();
 
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
+
     // Validating authority tokens
     const authorityOutputs = tx.outputs.filter(
       o => transactionUtils.isAuthorityOutput({ token_data: o.tokenData })
@@ -362,8 +364,6 @@ describe('create token', () => {
   });
 
   it('should create the token and send authority outputs to the correct address', async done => {
-    // Since no pause was necessary on the last test, we will add one here to improve stability
-    await TestUtils.pauseForWsUpdate();
     // By default, will mint tokens into the next unused address
     const address0 = await wallet1.getAddressAt(0);
     const address1 = await wallet1.getAddressAt(1);
@@ -382,6 +382,8 @@ describe('create token', () => {
 
     const transaction = response.body;
     expect(transaction.success).toBe(true);
+
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
     // Validating a new mint authority was created
     const authorityOutputs = transaction.outputs.filter(
@@ -406,8 +408,6 @@ describe('create token', () => {
   });
 
   it('Create token using external mint/melt address', async done => {
-    // Since no pause was necessary on the last test, we will add one here to improve stability
-    await TestUtils.pauseForWsUpdate();
     const address2idx0 = await wallet2.getAddressAt(0);
     const address2idx1 = await wallet2.getAddressAt(1);
 
@@ -456,6 +456,9 @@ describe('create token', () => {
       .set({ 'x-wallet-id': wallet1.walletId });
 
     expect(response3.body.success).toBe(true);
+
+    await TestUtils.waitForTxReceived(wallet1.walletId, response3.body.hash);
+    await TestUtils.waitForTxReceived(wallet2.walletId, response3.body.hash);
 
     const transaction = response3.body;
     expect(transaction.success).toBe(true);
