@@ -4222,6 +4222,12 @@ function getApiDocs() {
     ];
   }
 
+  // Binding server address and port, if informed
+  if (config.http_bind_address) {
+    const portStr = config.http_port ? `:${config.http_port}` : '';
+    apiDocs.servers[0].url = `https://${config.http_bind_address}${portStr}`;
+  }
+
   // Data ready to serve
   return apiDocs;
 }
