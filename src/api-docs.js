@@ -2149,7 +2149,7 @@ const defaultApiDocs = {
         },
       },
     },
-    '/wallet/atomic-swap/tx-proposal/fetch': {
+    '/wallet/atomic-swap/tx-proposal/fetch/{proposalId}': {
       get: {
         summary: 'Fetches a proposal data from the Atomic Swap Service',
         parameters: [
@@ -2258,7 +2258,7 @@ const defaultApiDocs = {
         },
       },
     },
-    '/wallet/atomic-swap/tx-proposal/delete': {
+    '/wallet/atomic-swap/tx-proposal/delete/{proposalId}': {
       delete: {
         summary: 'Removes a proposal from the registered listened proposals',
         parameters: [
