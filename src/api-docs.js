@@ -1087,13 +1087,13 @@ const defaultApiDocs = {
                 examples: {
                   success: {
                     summary: 'Success',
-                    inputs: [
-                      {
+                    value: {
+                      inputs: [{
                         inputIndex: 0,
                         addressIndex: 1,
                         addressPath: 'm/44\'/280\'/0\'/0/1',
-                      },
-                    ],
+                      }],
+                    },
                   },
                   'wallet-not-ready': {
                     summary: 'Wallet is not ready yet',
@@ -1135,7 +1135,7 @@ const defaultApiDocs = {
             'application/json': {
               schema: {
                 type: 'object',
-                required: ['txHex'],
+                required: ['index'],
                 properties: {
                   index: {
                     type: 'number',
@@ -1143,12 +1143,10 @@ const defaultApiDocs = {
                   },
                   signature: {
                     type: 'string',
-                    optional: true,
                     description: '[P2PKH] The ECDSA signature in little endian, DER encoded in hex format.',
                   },
                   signatures: {
                     type: 'object',
-                    optional: true,
                     description: '[P2SH] Each key will be the signer xpubkey as used on the multisig configuration, the value will be the signature (ECDSA little endian, DER encoded in hex format).',
                   },
                 }
@@ -2468,6 +2466,7 @@ const defaultApiDocs = {
         },
         responses: {
           200: {
+            description: 'Add signatures to a proposal.',
             content: {
               'application/json': {
                 examples: {
@@ -3597,8 +3596,7 @@ const defaultApiDocs = {
           {
             name: 'only_available_utxos',
             in: 'query',
-            description: 'Get only available utxos, ignoring locked ones.',
-            default: false,
+            description: 'Get only available utxos, ignoring locked ones. Defaults to false.',
             required: false,
             schema: {
               type: 'boolean',
