@@ -17,11 +17,7 @@ const defaultApiDocs = {
     },
   },
   components: {},
-  security: [
-    {
-      ApiKeyAuth: [],
-    }
-  ],
+  security: [],
   paths: {
     '/start': {
       post: {
@@ -4219,6 +4215,11 @@ function getApiDocs() {
         },
       },
     };
+    apiDocs.security = [
+      {
+        ApiKeyAuth: [],
+      }
+    ];
   }
 
   // Data ready to serve
