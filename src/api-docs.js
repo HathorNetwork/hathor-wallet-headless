@@ -21,6 +21,7 @@ const defaultApiDocs = {
   paths: {
     '/start': {
       post: {
+        operationId: 'startWallet',
         summary: 'Create and start a wallet and add to store.',
         requestBody: {
           description: 'Data to start the wallet',
@@ -128,6 +129,7 @@ const defaultApiDocs = {
     },
     '/multisig-pubkey': {
       post: {
+        operationId: 'getMultisigPubkey',
         summary: 'Get MultiSig xpub for a seed.',
         requestBody: {
           description: '',
@@ -183,6 +185,7 @@ const defaultApiDocs = {
     },
     '/wallet/status': {
       get: {
+        operationId: 'getWalletStatus',
         summary: 'Return the wallet status',
         parameters: [
           {
@@ -238,6 +241,7 @@ const defaultApiDocs = {
     },
     '/wallet/balance': {
       get: {
+        operationId: 'getWalletBalance',
         summary: 'Return the balance of HTR',
         parameters: [
           {
@@ -290,6 +294,7 @@ const defaultApiDocs = {
     },
     '/wallet/address': {
       get: {
+        operationId: 'getCurrentAddress',
         summary: 'Return the current address',
         parameters: [
           {
@@ -351,6 +356,7 @@ const defaultApiDocs = {
     },
     '/wallet/address-index': {
       get: {
+        operationId: 'getAddressIndex',
         summary: 'Get the index of an address',
         parameters: [
           {
@@ -407,6 +413,7 @@ const defaultApiDocs = {
     },
     '/wallet/addresses': {
       get: {
+        operationId: 'getAddresses',
         summary: 'Return all generated addresses of the wallet.',
         parameters: [
           {
@@ -450,6 +457,7 @@ const defaultApiDocs = {
     },
     '/wallet/simple-send-tx': {
       post: {
+        operationId: 'simpleSendTx',
         summary: 'Send a transaction to exactly one output.',
         parameters: [
           {
@@ -556,6 +564,7 @@ const defaultApiDocs = {
     },
     '/wallet/decode': {
       post: {
+        operationId: 'decodeTx',
         summary: 'Decode tx hex or serialized partial tx into human readable inputs and outputs with metadata to assist informed decision-making. To obtain input metadata, this method retrieves a transaction per input from the wallet\'s transaction history. If the required transaction is not located, the method queries the fullnode for the transaction details.',
         requestBody: {
           description: 'Transaction hex representation or a partial transaction serialization.',
@@ -645,6 +654,7 @@ const defaultApiDocs = {
     },
     '/wallet/tx-proposal': {
       post: {
+        operationId: 'createTxProposal',
         summary: 'Build a transaction with many outputs without sending. Will not include signatures.',
         parameters: [
           {
@@ -832,6 +842,7 @@ const defaultApiDocs = {
     },
     '/wallet/tx-proposal/melt-tokens': {
       post: {
+        operationId: 'proposalMeltTokens',
         summary: 'Get the hex representation of a melt tokens transaction without input data.',
         parameters: [
           {
@@ -926,6 +937,7 @@ const defaultApiDocs = {
     },
     '/wallet/tx-proposal/add-signatures': {
       post: {
+        operationId: 'proposalAddSignatures',
         summary: 'Add signatures to the transaction and return the txHex with the signatures.',
         parameters: [
           {
@@ -1001,6 +1013,7 @@ const defaultApiDocs = {
     },
     '/push-tx': {
       post: {
+        operationId: 'pushTxFromHex',
         summary: 'Push a transaction from the txHex.',
         parameters: [
           {
@@ -1058,6 +1071,7 @@ const defaultApiDocs = {
     },
     '/wallet/tx-proposal/get-wallet-inputs': {
       get: {
+        operationId: 'proposalGetWalletInputs',
         summary: 'Identify which inputs on the transaction are from the loaded wallet.',
         parameters: [
           {
@@ -1116,6 +1130,7 @@ const defaultApiDocs = {
     },
     '/wallet/tx-proposal/input-data': {
       post: {
+        operationId: 'proposalBuildInputData',
         summary: 'Build an input data from the ECDSA signature(s).',
         parameters: [
           {
@@ -1189,6 +1204,7 @@ const defaultApiDocs = {
     },
     '/wallet/p2sh/tx-proposal': {
       post: {
+        operationId: 'createP2shTxProposal',
         summary: 'Get the hex representation of a transaction without input data.',
         parameters: [
           {
@@ -1313,6 +1329,7 @@ const defaultApiDocs = {
     },
     '/wallet/p2sh/tx-proposal/create-token': {
       post: {
+        operationId: 'createTokenP2shProposal',
         summary: 'Get the hex representation of a create a token transaction without input data.',
         parameters: [
           {
@@ -1428,6 +1445,7 @@ const defaultApiDocs = {
     },
     '/wallet/p2sh/tx-proposal/mint-tokens': {
       post: {
+        operationId: 'mintTokensP2shProposal',
         summary: 'Get the hex representation of a mint tokens transaction without input data.',
         parameters: [
           {
@@ -1526,6 +1544,7 @@ const defaultApiDocs = {
     },
     '/wallet/p2sh/tx-proposal/get-my-signatures': {
       post: {
+        operationId: 'proposalP2shGetMySignatures',
         summary: 'Get the signatures for all inputs from the wallet',
         parameters: [
           {
@@ -1583,6 +1602,7 @@ const defaultApiDocs = {
     },
     '/wallet/p2sh/tx-proposal/sign': {
       post: {
+        operationId: 'signP2shProposal',
         summary: 'Returns a transaction hex with input data calculated from the arguments',
         parameters: [
           {
@@ -1644,6 +1664,7 @@ const defaultApiDocs = {
     },
     '/wallet/p2sh/tx-proposal/sign-and-push': {
       post: {
+        operationId: 'signAndPushP2shProposal',
         summary: 'Send a transaction from the transaction hex and collected signatures',
         parameters: [
           {
@@ -1705,6 +1726,7 @@ const defaultApiDocs = {
     },
     '/wallet/atomic-swap/tx-proposal': {
       post: {
+        operationId: 'createAtomicSwapProposal',
         summary: 'Create or update an atomic-swap proposal.',
         parameters: [
           {
@@ -1991,6 +2013,7 @@ const defaultApiDocs = {
     },
     '/wallet/atomic-swap/tx-proposal/get-my-signatures': {
       post: {
+        operationId: 'getMySwapSignatures',
         summary: 'Get this wallet signatures for a proposal.',
         parameters: [
           {
@@ -2060,6 +2083,7 @@ const defaultApiDocs = {
     },
     '/wallet/atomic-swap/tx-proposal/register/{proposalId}': {
       post: {
+        operationId: 'registerSwapServiceProposal',
         summary: 'Registers a proposal for the Headless Wallet to listen to and interact with the Atomic Swap Service',
         parameters: [
           {
@@ -2145,6 +2169,7 @@ const defaultApiDocs = {
     },
     '/wallet/atomic-swap/tx-proposal/fetch/{proposalId}': {
       get: {
+        operationId: 'fetchSwapServiceProposal',
         summary: 'Fetches a proposal data from the Atomic Swap Service',
         parameters: [
           {
@@ -2212,6 +2237,7 @@ const defaultApiDocs = {
     },
     '/wallet/atomic-swap/tx-proposal/list': {
       get: {
+        operationId: 'listSwapServiceProposals',
         summary: 'Fetches the list of listened proposals for this wallet',
         parameters: [
           {
@@ -2254,6 +2280,7 @@ const defaultApiDocs = {
     },
     '/wallet/atomic-swap/tx-proposal/delete/{proposalId}': {
       delete: {
+        operationId: 'deleteSwapServiceProposal',
         summary: 'Removes a proposal from the registered listened proposals',
         parameters: [
           {
@@ -2313,6 +2340,7 @@ const defaultApiDocs = {
     },
     '/wallet/atomic-swap/tx-proposal/sign': {
       post: {
+        operationId: 'signSwapProposal',
         summary: 'Add signatures to a proposal and return the signed transaction in hex format.',
         parameters: [
           {
@@ -2417,6 +2445,7 @@ const defaultApiDocs = {
     },
     '/wallet/atomic-swap/tx-proposal/sign-and-push': {
       post: {
+        operationId: 'signAndPushSwapProposal',
         summary: 'Add signatures to a proposal and push the signed transaction.',
         parameters: [
           {
@@ -2495,6 +2524,7 @@ const defaultApiDocs = {
     },
     '/wallet/atomic-swap/tx-proposal/unlock': {
       post: {
+        operationId: 'unlockSwapProposalInputs',
         summary: 'Unlock all inputs if they are marked as selected on the wallet storage.',
         parameters: [
           {
@@ -2564,6 +2594,7 @@ const defaultApiDocs = {
     },
     '/wallet/atomic-swap/tx-proposal/get-locked-utxos': {
       get: {
+        operationId: 'getSwapLockedUtxos',
         summary: 'Get all utxos marked selected as input on a transaction to be sent.',
         parameters: [
           {
@@ -2615,6 +2646,7 @@ const defaultApiDocs = {
     },
     '/wallet/atomic-swap/tx-proposal/get-input-data': {
       post: {
+        operationId: 'getSwapInputData',
         summary: 'Extract input data from a txHex in an atomic-swap compliant format.',
         parameters: [
           {
@@ -2684,6 +2716,7 @@ const defaultApiDocs = {
     },
     '/wallet/send-tx': {
       post: {
+        operationId: 'sendTx',
         summary: 'Send a transaction with many outputs.',
         parameters: [
           {
@@ -2901,6 +2934,7 @@ const defaultApiDocs = {
     },
     '/wallet/create-token': {
       post: {
+        operationId: 'createToken',
         summary: 'Create a token.',
         parameters: [
           {
@@ -3016,6 +3050,7 @@ const defaultApiDocs = {
     },
     '/wallet/mint-tokens': {
       post: {
+        operationId: 'mintTokens',
         summary: 'Mint tokens.',
         parameters: [
           {
@@ -3111,6 +3146,7 @@ const defaultApiDocs = {
     },
     '/wallet/melt-tokens': {
       post: {
+        operationId: 'meltTokens',
         summary: 'Melt tokens.',
         parameters: [
           {
@@ -3205,6 +3241,7 @@ const defaultApiDocs = {
     },
     '/wallet/create-nft': {
       post: {
+        operationId: 'createNFT',
         summary: 'Create an NFT.',
         parameters: [
           {
@@ -3325,6 +3362,7 @@ const defaultApiDocs = {
     },
     '/wallet/transaction': {
       get: {
+        operationId: 'getTransaction',
         summary: 'Return the data of a transaction, if it exists in the wallet',
         parameters: [
           {
@@ -3377,6 +3415,7 @@ const defaultApiDocs = {
     },
     '/wallet/tx-confirmation-blocks': {
       get: {
+        operationId: 'getTxConfirmationBlocks',
         summary: 'Return the number of blocks confirming the transaction, if it exists in the wallet',
         parameters: [
           {
@@ -3433,6 +3472,7 @@ const defaultApiDocs = {
     },
     '/wallet/tx-history': {
       get: {
+        operationId: 'getTxHistory',
         summary: 'Return the transaction history',
         parameters: [
           {
@@ -3485,6 +3525,7 @@ const defaultApiDocs = {
     },
     '/wallet/stop': {
       post: {
+        operationId: 'stopWallet',
         summary: 'Stop a running wallet and remove from store.',
         parameters: [
           {
@@ -3528,6 +3569,7 @@ const defaultApiDocs = {
     },
     '/wallet/utxo-filter': {
       get: {
+        operationId: 'getUtxosFiltered',
         summary: 'Return utxos and some helpful information regarding it.',
         parameters: [
           {
@@ -3638,6 +3680,7 @@ const defaultApiDocs = {
     },
     '/wallet/utxo-consolidation': {
       post: {
+        operationId: 'consolidateUtxos',
         summary: 'Consolidates utxos to a given address.',
         parameters: [
           {
@@ -3739,6 +3782,7 @@ const defaultApiDocs = {
     },
     '/wallet/address-info': {
       get: {
+        operationId: 'getAddressInfo',
         summary: 'Get information of a given address.',
         parameters: [
           {
@@ -3804,6 +3848,7 @@ const defaultApiDocs = {
     },
     '/configuration-string': {
       get: {
+        operationId: 'getTokenConfigurationString',
         summary: 'Get configuration string of a token.',
         parameters: [
           {
@@ -3839,6 +3884,7 @@ const defaultApiDocs = {
     },
     '/reload-config': {
       post: {
+        operationId: 'reloadConfig',
         summary: 'Reload configuration of the wallet.',
         responses: {
           200: {
@@ -3863,6 +3909,7 @@ const defaultApiDocs = {
     },
     '/health': {
       get: {
+        operationId: 'healthCheck',
         summary: 'Return the health of the wallet headless.',
         parameters: [
           {
