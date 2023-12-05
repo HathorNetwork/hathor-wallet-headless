@@ -19,6 +19,7 @@ module.exports = {
     [HathorWallet.SYNCING]: 'Syncing',
     [HathorWallet.READY]: 'Ready',
     [HathorWallet.ERROR]: 'Error',
+    [HathorWallet.PROCESSING]: 'Processing',
   },
 
   // Error message when the user tries to send a transaction while the lock is active

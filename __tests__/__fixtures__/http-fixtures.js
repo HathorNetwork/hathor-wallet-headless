@@ -1,4 +1,7 @@
 export default {
+  'http://fake.txmining:8084/health': {
+    status: 'pass'
+  },
   '/v1a/version': {
     version: '0.38.4',
     network: 'testnet-foxtrot',

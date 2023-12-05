@@ -13,6 +13,7 @@ const { patchExpressRouter } = require('../patch');
 
 const mainRouter = patchExpressRouter(Router({ mergeParams: true }));
 const walletRouter = require('./wallet/wallet.routes');
+const healthcheckRouter = require('./healthcheck/healthcheck.routes');
 
 mainRouter.get('/', rootControllers.welcome);
 mainRouter.get('/docs', rootControllers.docs);
@@ -37,5 +38,7 @@ mainRouter.get(
 mainRouter.post('/reload-config', rootControllers.reloadConfig);
 
 mainRouter.use('/wallet', walletRouter);
+
+mainRouter.use('/health', healthcheckRouter);
 
 module.exports = mainRouter;
