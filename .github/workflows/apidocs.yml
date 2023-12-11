@@ -1,0 +1,31 @@
+name: integration-test
+on:
+  pull_request:
+    branches:
+      - master
+      - release-candidate
+      - release
+jobs:
+  apidocs:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      # https://github.com/actions/checkout/releases/tag/v4.0.0
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac
+      - name: Use Node.js ${{ matrix.node-version }}
+        # https://github.com/actions/setup-node/releases/tag/v3.8.1
+        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: npm install
+
+      - name: Create the apidocs json
+        run: npm run docs_convert
+      - name: Lint the apidocs json
+        run: npm run docs_convert
