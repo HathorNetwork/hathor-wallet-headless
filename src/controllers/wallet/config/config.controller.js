@@ -19,7 +19,7 @@ export async function indexLimitSetEndIndex(req, res) {
   /**
    * @type {HathorWallet} wallet - Wallet object
    */
-  const { wallet, query: { index } } = req;
+  const { wallet, body: { index } } = req;
   await wallet.indexLimitSetEndIndex(index);
   res.send({ success: true });
 }
@@ -34,7 +34,7 @@ export async function indexLimitLoadMoreAddresses(req, res) {
   /**
    * @type {HathorWallet} wallet - Wallet object
    */
-  const { wallet, query: { count } } = req;
+  const { wallet, body: { count } } = req;
   await wallet.indexLimitLoadMore(count);
   res.send({ success: true });
 }
