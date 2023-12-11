@@ -1,0 +1,54 @@
+# This file instructs Redocly's linter to ignore the rules contained for specific parts of your API.
+# See https://redoc.ly/docs/cli/ for more information.
+tmp/api-docs.json:
+  operation-4xx-response:
+    - '#/paths/~1start/post/responses'
+    - '#/paths/~1multisig-pubkey/post/responses'
+    - '#/paths/~1wallet~1status/get/responses'
+    - '#/paths/~1wallet~1balance/get/responses'
+    - '#/paths/~1wallet~1address/get/responses'
+    - '#/paths/~1wallet~1address-index/get/responses'
+    - '#/paths/~1wallet~1addresses/get/responses'
+    - '#/paths/~1wallet~1simple-send-tx/post/responses'
+    - '#/paths/~1wallet~1decode/post/responses'
+    - '#/paths/~1wallet~1tx-proposal/post/responses'
+    - '#/paths/~1wallet~1tx-proposal~1melt-tokens/post/responses'
+    - '#/paths/~1wallet~1tx-proposal~1add-signatures/post/responses'
+    - '#/paths/~1push-tx/post/responses'
+    - '#/paths/~1wallet~1tx-proposal~1get-wallet-inputs/get/responses'
+    - '#/paths/~1wallet~1tx-proposal~1input-data/post/responses'
+    - '#/paths/~1wallet~1p2sh~1tx-proposal/post/responses'
+    - '#/paths/~1wallet~1p2sh~1tx-proposal~1create-token/post/responses'
+    - '#/paths/~1wallet~1p2sh~1tx-proposal~1mint-tokens/post/responses'
+    - '#/paths/~1wallet~1p2sh~1tx-proposal~1get-my-signatures/post/responses'
+    - '#/paths/~1wallet~1p2sh~1tx-proposal~1sign/post/responses'
+    - '#/paths/~1wallet~1p2sh~1tx-proposal~1sign-and-push/post/responses'
+    - '#/paths/~1wallet~1atomic-swap~1tx-proposal/post/responses'
+    - >-
+      #/paths/~1wallet~1atomic-swap~1tx-proposal~1get-my-signatures/post/responses
+    - >-
+      #/paths/~1wallet~1atomic-swap~1tx-proposal~1register~1{proposalId}/post/responses
+    - >-
+      #/paths/~1wallet~1atomic-swap~1tx-proposal~1fetch~1{proposalId}/get/responses
+    - '#/paths/~1wallet~1atomic-swap~1tx-proposal~1list/get/responses'
+    - >-
+      #/paths/~1wallet~1atomic-swap~1tx-proposal~1delete~1{proposalId}/delete/responses
+    - '#/paths/~1wallet~1atomic-swap~1tx-proposal~1sign/post/responses'
+    - '#/paths/~1wallet~1atomic-swap~1tx-proposal~1sign-and-push/post/responses'
+    - '#/paths/~1wallet~1atomic-swap~1tx-proposal~1unlock/post/responses'
+    - '#/paths/~1wallet~1atomic-swap~1tx-proposal~1get-locked-utxos/get/responses'
+    - '#/paths/~1wallet~1atomic-swap~1tx-proposal~1get-input-data/post/responses'
+    - '#/paths/~1wallet~1send-tx/post/responses'
+    - '#/paths/~1wallet~1create-token/post/responses'
+    - '#/paths/~1wallet~1mint-tokens/post/responses'
+    - '#/paths/~1wallet~1melt-tokens/post/responses'
+    - '#/paths/~1wallet~1create-nft/post/responses'
+    - '#/paths/~1wallet~1transaction/get/responses'
+    - '#/paths/~1wallet~1tx-confirmation-blocks/get/responses'
+    - '#/paths/~1wallet~1tx-history/get/responses'
+    - '#/paths/~1wallet~1stop/post/responses'
+    - '#/paths/~1wallet~1utxo-filter/get/responses'
+    - '#/paths/~1wallet~1utxo-consolidation/post/responses'
+    - '#/paths/~1wallet~1address-info/get/responses'
+    - '#/paths/~1configuration-string/get/responses'
+    - '#/paths/~1reload-config/post/responses'
