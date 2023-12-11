@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # We mock the config module when testing the settings module, so it needs to exist
+      # We use the config module to configure the apidocs generation
       - name: Create config module
         run: cp ./config.js.template ./src/config.js
 
