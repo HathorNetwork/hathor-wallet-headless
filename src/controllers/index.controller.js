@@ -118,21 +118,23 @@ async function start(req, res) {
   let scanPolicyData;
   if ('scanPolicy' in req.body) {
     const policy = req.body.scanPolicy;
+    const policyData = {};
     switch (policy) {
       case 'index-limit':
-        // We require policyStartIndex to be set
-        // policyEndIndex is optional and will default to the policyStartIndex given
-        if (!('policyStartIndex' in req.body)) {
-          res.send({
-            success: false,
-            message: 'Parameter \'policyStartIndex\' is required to configure index-limit address scanning.',
-          });
-          return;
-        }
+        /**
+         * The policy configuration is composed by:
+         * - policyStartIndex
+         *   - optional, defaults to 0
+         * - policyEndIndex
+         *   - optional, defaults to policyStartIndex
+         *
+         * If no configuration is passed, only the first address will be loaded.
+         */
+        policyData.startIndex = req.body.policyStartIndex || 0;
         scanPolicyData = {
           policy,
-          startIndex: req.body.policyStartIndex,
-          endIndex: req.body.policyEndIndex || req.body.policyStartIndex,
+          startIndex: policyData.startIndex,
+          endIndex: req.body.policyEndIndex || policyData.startIndex,
         };
         break;
       case 'gap-limit':

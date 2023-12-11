@@ -73,10 +73,11 @@ const defaultApiDocs = {
                   policyStartIndex: {
                     type: 'number',
                     description: 'Load addresses starting from this index. Only used when scanPolicy is set to \'index-limit\'.',
+                    default: 0,
                   },
                   policyEndIndex: {
                     type: 'number',
-                    description: 'Stop loading addresses at this index. Only used when scanPolicy is set to \'index-limit\'.',
+                    description: 'Stop loading addresses at this index. Only used when scanPolicy is set to \'index-limit\'. Defaults to policyStartIndex',
                   },
                 }
               },
