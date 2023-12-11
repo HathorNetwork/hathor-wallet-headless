@@ -1,4 +1,4 @@
-name: integration-test
+name: apidocs
 on:
   pull_request:
     branches:
@@ -6,7 +6,7 @@ on:
       - release-candidate
       - release
 jobs:
-  apidocs:
+  lint:
     runs-on: ubuntu-20.04
     timeout-minutes: 10
 
@@ -25,7 +25,15 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # We mock the config module when testing the settings module, so it needs to exist
+      - name: Create config module
+        run: cp ./config.js.template ./src/config.js
+
+      - name: Create the tmp folder
+        run: mkdir tmp
+
+      # Generating the apidocs json and linting
       - name: Create the apidocs json
         run: npm run docs_convert
       - name: Lint the apidocs json
-        run: npm run docs_convert
+        run: npm run docs_lint
