@@ -619,6 +619,30 @@ describe('send tx (HTR)', () => {
       done();
     }
   );
+
+  it('should send with timelock', async done => {
+    const addr0Info1 = await wallet1.getAddressInfo(0);
+    expect(addr0Info1.total_amount_locked).toBe(0);
+
+    const timelock = parseInt(Date.now().valueOf() / 1000, 10) + 1000; // timelock of 1,000 seconds
+    const tx = await wallet1.sendTx({
+      fullObject: {
+        outputs: [{
+          address: await wallet1.getAddressAt(0),
+          value: 100,
+          timelock
+        }],
+      },
+    });
+
+    expect(tx.success).toBe(true);
+    expect(tx.hash).toBeDefined();
+
+    const addr0Info2 = await wallet1.getAddressInfo(0);
+    expect(addr0Info2.total_amount_locked).toBe(100);
+
+    done();
+  });
 });
 
 describe('send tx (custom tokens)', () => {

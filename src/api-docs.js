@@ -2709,6 +2709,10 @@ const defaultApiDocs = {
                           type: 'string',
                           description: 'Data string of the data script output. Required if it\'s a data script output.'
                         },
+                        timelock: {
+                          type: 'integer',
+                          description: 'Timelock value for the output. Used only for P2PKH or P2SH.'
+                        },
                       }
                     },
                     description: 'Outputs to create the transaction.'
