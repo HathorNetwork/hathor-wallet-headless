@@ -624,7 +624,7 @@ describe('send tx (HTR)', () => {
     const addr0Info1 = await wallet1.getAddressInfo(0);
     expect(addr0Info1.total_amount_locked).toBe(0);
 
-    const timelock = parseInt(Date.now().valueOf() / 1000) + 1000; // timelock of 1,000 seconds
+    const timelock = parseInt(Date.now().valueOf() / 1000, 10) + 1000; // timelock of 1,000 seconds
     const tx = await wallet1.sendTx({
       fullObject: {
         outputs: [{
