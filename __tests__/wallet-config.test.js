@@ -21,6 +21,7 @@ describe('index-limit config api', () => {
       .send(walletHttpInput);
 
     expect(response.body).toHaveProperty('success', true);
+    await TestUtils.waitReady({ walletId });
 
     // Check that the wallet actually used the given gap-limit
     const wallet = initializedWallets.get(walletId);
@@ -55,6 +56,7 @@ describe('index-limit config api', () => {
       .send(walletHttpInput);
 
     expect(response.body).toHaveProperty('success', true);
+    await TestUtils.waitReady({ walletId });
 
     // Check that the wallet actually used the given gap-limit
     const wallet = initializedWallets.get(walletId);

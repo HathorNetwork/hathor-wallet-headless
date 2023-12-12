@@ -115,10 +115,9 @@ async function start(req, res) {
   }
 
   // Validate address scanning policy
-  let scanPolicyData;
+  let scanPolicyData = null;
   if ('scanPolicy' in req.body) {
     const policy = req.body.scanPolicy;
-    const policyData = {};
     switch (policy) {
       case 'index-limit':
         /**
@@ -129,19 +128,23 @@ async function start(req, res) {
          *   - optional, defaults to policyStartIndex
          *
          * If no configuration is passed, only the first address will be loaded.
+         *
+         * Obs: The route does not use validation or parser, so we need to parse the integers
          */
-        policyData.startIndex = req.body.policyStartIndex || 0;
+
+        // parseInt returns NaN (falsy) for null, undefined or malformed number strings
         scanPolicyData = {
           policy,
-          startIndex: policyData.startIndex,
-          endIndex: req.body.policyEndIndex || policyData.startIndex,
+          startIndex: parseInt(req.body.policyStartIndex, 10) || 0,
         };
+        scanPolicyData.endIndex = parseInt(req.body.policyEndIndex, 10)
+          || scanPolicyData.startIndex;
         break;
       case 'gap-limit':
         // The gapLimit is optional and will default to 20
         scanPolicyData = {
           policy,
-          gapLimit: req.body.gapLimit || GAP_LIMIT,
+          gapLimit: parseInt(req.body.gapLimit, 10) || GAP_LIMIT,
         };
         break;
       default:

@@ -64,7 +64,7 @@ export function getWalletConfigFromSeed({
   multisigData = null,
   passphrase = null,
   allowPassphrase = false,
-  scanPolicy,
+  scanPolicy = null,
 } = {}) {
   let words;
   // Seed validation
