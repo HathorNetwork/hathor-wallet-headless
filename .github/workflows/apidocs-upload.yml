@@ -81,5 +81,5 @@ jobs:
       # Copy the document to S3
       - name: Upload apidocs.json to S3
         run: |
-          aws s3 cp ./tmp/apidocs.json ${{ secrets.AWS_APIDOCS_BUCKET_NAME }}
+          aws s3 cp ./tmp/api-docs.json ${{ secrets.AWS_APIDOCS_BUCKET_NAME }}
       
