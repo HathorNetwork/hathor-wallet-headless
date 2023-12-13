@@ -17,6 +17,17 @@ const defaultApiDocs = {
     },
   },
   components: {
+    parameters: {
+      XWalletIdParameter: {
+        name: 'x-wallet-id',
+        in: 'header',
+        description: 'Defines the key of the wallet on which the request will be executed.',
+        required: true,
+        schema: {
+          type: 'string',
+        },
+      },
+    },
     responses: {
       MissingWalletIdError: {
         description: 'x-wallet-id parameter is missing',
@@ -54,7 +65,7 @@ const defaultApiDocs = {
                 properties: {
                   'wallet-id': {
                     type: 'string',
-                    description: 'Define the key of the corresponding wallet it will be executed the request.'
+                    description: 'Defines the key of wallet that future requests will need to use as a reference.'
                   },
                   passphrase: {
                     type: 'string',
@@ -208,15 +219,7 @@ const defaultApiDocs = {
         operationId: 'getWalletStatus',
         summary: 'Return the wallet status',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         responses: {
           200: {
@@ -257,15 +260,7 @@ const defaultApiDocs = {
         operationId: 'getWalletBalance',
         summary: 'Return the balance of HTR',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
           {
             name: 'token',
             in: 'query',
@@ -303,15 +298,7 @@ const defaultApiDocs = {
         operationId: 'getCurrentAddress',
         summary: 'Return the current address',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
           {
             name: 'mark_as_used',
             in: 'query',
@@ -358,15 +345,7 @@ const defaultApiDocs = {
         operationId: 'getAddressIndex',
         summary: 'Get the index of an address',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
           {
             name: 'address',
             in: 'query',
@@ -408,15 +387,7 @@ const defaultApiDocs = {
         operationId: 'getAddresses',
         summary: 'Return all generated addresses of the wallet.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          }
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         responses: {
           200: {
@@ -445,15 +416,7 @@ const defaultApiDocs = {
         operationId: 'simpleSendTx',
         summary: 'Send a transaction to exactly one output.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Data to create the transaction',
@@ -635,15 +598,7 @@ const defaultApiDocs = {
         operationId: 'createTxProposal',
         summary: 'Build a transaction with many outputs without sending. Will not include signatures.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          }
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Data to create the transaction',
@@ -816,15 +771,7 @@ const defaultApiDocs = {
         operationId: 'proposalMeltTokens',
         summary: 'Get the hex representation of a melt tokens transaction without input data.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Data to melt tokens.',
@@ -904,15 +851,7 @@ const defaultApiDocs = {
         operationId: 'proposalAddSignatures',
         summary: 'Add signatures to the transaction and return the txHex with the signatures.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Transaction hex and signatures',
@@ -973,15 +912,7 @@ const defaultApiDocs = {
         operationId: 'pushTxFromHex',
         summary: 'Push a transaction from the txHex.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Signed transaction hex',
@@ -1024,15 +955,7 @@ const defaultApiDocs = {
         operationId: 'proposalGetWalletInputs',
         summary: 'Identify which inputs on the transaction are from the loaded wallet.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
           {
             name: 'txHex',
             in: 'query',
@@ -1076,15 +999,7 @@ const defaultApiDocs = {
         operationId: 'proposalBuildInputData',
         summary: 'Build an input data from the ECDSA signature(s).',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Data required to build the input data',
@@ -1143,15 +1058,7 @@ const defaultApiDocs = {
         operationId: 'createP2shTxProposal',
         summary: 'Get the hex representation of a transaction without input data.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          }
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Data to create the transaction',
@@ -1261,15 +1168,7 @@ const defaultApiDocs = {
         operationId: 'createTokenP2shProposal',
         summary: 'Get the hex representation of a create a token transaction without input data.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          }
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Data to create the token.',
@@ -1370,15 +1269,7 @@ const defaultApiDocs = {
         operationId: 'mintTokensP2shProposal',
         summary: 'Get the hex representation of a mint tokens transaction without input data.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          }
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Data to mint tokens.',
@@ -1462,15 +1353,7 @@ const defaultApiDocs = {
         operationId: 'proposalP2shGetMySignatures',
         summary: 'Get the signatures for all inputs from the wallet',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Transaction hex representation',
@@ -1513,15 +1396,7 @@ const defaultApiDocs = {
         operationId: 'signP2shProposal',
         summary: 'Returns a transaction hex with input data calculated from the arguments',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Transaction hex and signatures',
@@ -1568,15 +1443,7 @@ const defaultApiDocs = {
         operationId: 'signAndPushP2shProposal',
         summary: 'Send a transaction from the transaction hex and collected signatures',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Transaction hex and signatures',
@@ -1623,15 +1490,7 @@ const defaultApiDocs = {
         operationId: 'createAtomicSwapProposal',
         summary: 'Create or update an atomic-swap proposal.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          }
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Data to create the proposal',
@@ -1903,15 +1762,7 @@ const defaultApiDocs = {
         operationId: 'getMySwapSignatures',
         summary: 'Get this wallet signatures for a proposal.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          }
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Get the requested wallet\'s signatures for an atomic-swap.',
@@ -1966,15 +1817,7 @@ const defaultApiDocs = {
         operationId: 'registerSwapServiceProposal',
         summary: 'Registers a proposal for the Headless Wallet to listen to and interact with the Atomic Swap Service',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
           {
             name: 'proposalId',
             in: 'path',
@@ -2053,15 +1896,7 @@ const defaultApiDocs = {
         operationId: 'fetchSwapServiceProposal',
         summary: 'Fetches a proposal data from the Atomic Swap Service',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
           {
             name: 'proposalId',
             in: 'path',
@@ -2122,15 +1957,7 @@ const defaultApiDocs = {
         operationId: 'listSwapServiceProposals',
         summary: 'Fetches the list of listened proposals for this wallet',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         responses: {
           200: {
@@ -2166,15 +1993,7 @@ const defaultApiDocs = {
         operationId: 'deleteSwapServiceProposal',
         summary: 'Removes a proposal from the registered listened proposals',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
           {
             name: 'proposalId',
             in: 'path',
@@ -2227,15 +2046,7 @@ const defaultApiDocs = {
         operationId: 'signSwapProposal',
         summary: 'Add signatures to a proposal and return the signed transaction in hex format.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          }
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Add signatures and return the txHex of the resulting transaction.',
@@ -2325,15 +2136,7 @@ const defaultApiDocs = {
         operationId: 'signAndPushSwapProposal',
         summary: 'Add signatures to a proposal and push the signed transaction.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          }
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Add signatures and push the resulting transaction.',
@@ -2397,15 +2200,7 @@ const defaultApiDocs = {
         operationId: 'unlockSwapProposalInputs',
         summary: 'Unlock all inputs if they are marked as selected on the wallet storage.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          }
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Unlock the inputs on the proposal.',
@@ -2460,15 +2255,7 @@ const defaultApiDocs = {
         operationId: 'getSwapLockedUtxos',
         summary: 'Get all utxos marked selected as input on a transaction to be sent.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          }
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         responses: {
           200: {
@@ -2505,15 +2292,7 @@ const defaultApiDocs = {
         operationId: 'getSwapInputData',
         summary: 'Extract input data from a txHex in an atomic-swap compliant format.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          }
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Extract the input data on the given txHex as an atomic-swap signature.',
@@ -2568,15 +2347,7 @@ const defaultApiDocs = {
         operationId: 'sendTx',
         summary: 'Send a transaction with many outputs.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          }
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Data to create the transaction',
@@ -2779,15 +2550,7 @@ const defaultApiDocs = {
         operationId: 'createToken',
         summary: 'Create a token.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          }
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Data to create the token.',
@@ -2888,15 +2651,7 @@ const defaultApiDocs = {
         operationId: 'mintTokens',
         summary: 'Mint tokens.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          }
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Data to mint tokens.',
@@ -2977,15 +2732,7 @@ const defaultApiDocs = {
         operationId: 'meltTokens',
         summary: 'Melt tokens.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Data to melt tokens.',
@@ -3065,15 +2812,7 @@ const defaultApiDocs = {
         operationId: 'createNFT',
         summary: 'Create an NFT.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          }
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Data to create the token.',
@@ -3179,15 +2918,7 @@ const defaultApiDocs = {
         operationId: 'getTransaction',
         summary: 'Return the data of a transaction, if it exists in the wallet',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
           {
             name: 'id',
             in: 'query',
@@ -3225,15 +2956,7 @@ const defaultApiDocs = {
         operationId: 'getTxConfirmationBlocks',
         summary: 'Return the number of blocks confirming the transaction, if it exists in the wallet',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
           {
             name: 'id',
             in: 'query',
@@ -3275,15 +2998,7 @@ const defaultApiDocs = {
         operationId: 'getTxHistory',
         summary: 'Return the transaction history',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
           {
             name: 'limit',
             in: 'query',
@@ -3321,15 +3036,7 @@ const defaultApiDocs = {
         operationId: 'stopWallet',
         summary: 'Stop a running wallet and remove from store.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         responses: {
           200: {
@@ -3358,15 +3065,7 @@ const defaultApiDocs = {
         operationId: 'getUtxosFiltered',
         summary: 'Return utxos and some helpful information regarding it.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
           {
             name: 'max_utxos',
             in: 'query',
@@ -3462,15 +3161,7 @@ const defaultApiDocs = {
         operationId: 'consolidateUtxos',
         summary: 'Consolidates utxos to a given address.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Data to consolidate utxos.',
@@ -3557,15 +3248,7 @@ const defaultApiDocs = {
         operationId: 'getAddressInfo',
         summary: 'Get information of a given address.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
           {
             name: 'address',
             in: 'query',
