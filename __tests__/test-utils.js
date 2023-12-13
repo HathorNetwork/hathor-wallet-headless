@@ -208,6 +208,7 @@ class TestUtils {
     httpMock.onGet('/thin_wallet/token').reply(200, httpFixtures['/thin_wallet/token']);
     httpMock.onGet('/transaction').reply(200, httpFixtures['/transaction']);
     httpMock.onGet('/getmininginfo').reply(200, httpFixtures['/getmininginfo']);
+    httpMock.onGet('http://fake.txmining:8084/health').reply(200, httpFixtures['http://fake.txmining:8084/health']);
 
     // websocket mocks
     wsMock.on('connection', socket => {
@@ -243,6 +244,12 @@ class TestUtils {
         return resolve();
       });
     });
+  }
+
+  static resetRequest() {
+    // This can be used to reset the supertest agent and avoid interferences between tests,
+    // since everything is a singleton in this file
+    request = supertest.agent(server);
   }
 
   static stopMocks() {
