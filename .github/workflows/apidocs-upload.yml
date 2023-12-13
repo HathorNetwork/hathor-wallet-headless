@@ -1,0 +1,85 @@
+name: apidocs
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+
+  # First check if this version is a valid public release
+  check-version:
+    runs-on: ubuntu-20.04
+    outputs:
+      release_status_output: ${{ steps.release_version.outputs.version_status_output }}
+
+    steps:
+      - name: Check release version
+        id: release_version
+        shell: bash
+        run: |
+  
+          if [[ "${{ github.ref }}" = refs/tags/* ]]; then
+            version="${ref#refs/tags/}"
+            # This patterns accepts "v1.0.0" , "v2.4.6". Rejects "v1.0.0-rc1".
+            if [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              result=isRelease
+            else
+              result=isNotRelease
+            fi
+          else
+            result=isNotTag
+          fi
+  
+          echo $result
+          echo "version_status_output=$result" >> $GITHUB_OUTPUT
+
+  # Initiate upload only if the version is valid
+  upload-apidocs:
+    runs-on: ubuntu-20.04
+    needs: check-version
+    if: ${{ needs.test_version.outputs.release_status_output == 'isRelease' }}
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      # https://github.com/actions/checkout/releases/tag/v4.0.0
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac
+      - name: Use Node.js ${{ matrix.node-version }}
+        # https://github.com/actions/setup-node/releases/tag/v3.8.1
+        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: npm install
+
+      # We use the config module to configure the apidocs generation
+      - name: Create config module
+        run: cp ./config.js.template ./src/config.js
+
+      - name: Create the tmp folder
+        run: mkdir tmp
+
+      # Generating the apidocs json and linting to ensure it's a valid document
+      - name: Create the apidocs json
+        run: npm run docs_convert
+      - name: Lint the apidocs json
+        run: npm run docs_lint
+
+      # Configure AWS credentials
+      - name: Set up AWS CLI
+        # https://github.com/aws-actions/configure-aws-credentials/releases/tag/v4.0.1
+        uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      # Copy the document to S3
+      - name: Upload apidocs.json to S3
+        run: |
+          aws s3 cp ./tmp/apidocs.json ${{ secrets.AWS_APIDOCS_BUCKET_NAME }}
+      
