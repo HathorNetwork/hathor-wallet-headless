@@ -68,6 +68,8 @@ jobs:
         run: npm run docs_convert
       - name: Lint the apidocs json
         run: npm run docs_lint
+      - name: Build the apidocs HTML
+        run: npm run docs_build
 
       # Configure AWS credentials
       - name: Set up AWS CLI
@@ -81,5 +83,5 @@ jobs:
       # Copy the document to S3
       - name: Upload apidocs.json to S3
         run: |
-          aws s3 cp ./tmp/api-docs.json ${{ secrets.AWS_APIDOCS_BUCKET_NAME }}
+          aws s3 cp index.html ${{ secrets.AWS_APIDOCS_BUCKET_NAME }}
       
