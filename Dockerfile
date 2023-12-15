@@ -10,5 +10,7 @@ COPY ./src/ ./src/
 COPY ./scripts/ ./scripts/
 COPY config.js.docker ./src/config.js
 
+RUN npm run build
+
 EXPOSE 8000
-ENTRYPOINT ["npm", "start", "--"]
+ENTRYPOINT ["node", "dist/index.js"]

@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const version = process.env.npm_package_version || 'unknown';
+const packageJson = require('../package.json');
+
+const version = packageJson.version || 'unknown';
 
 export default version;
