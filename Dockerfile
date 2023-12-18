@@ -3,12 +3,15 @@ WORKDIR /usr/src/app/
 
 COPY .babelrc package.json package-lock.json ./
 RUN apk add --no-cache --virtual .gyp python3 make g++ &&\
-    npm install &&\
+    apk add dumb-init &&\
+    npm ci --only=production &&\
     apk del .gyp
 
 COPY ./src/ ./src/
 COPY ./scripts/ ./scripts/
 COPY config.js.docker ./src/config.js
 
+RUN npm run build
+
 EXPOSE 8000
-ENTRYPOINT ["npm", "start", "--"]
+ENTRYPOINT ["dumb-init", "node", "dist/index.js"]

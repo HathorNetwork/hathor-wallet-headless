@@ -11,3 +11,5 @@ coverage-integration
 .DS_Store
 
 tmp/
+
+dist/
