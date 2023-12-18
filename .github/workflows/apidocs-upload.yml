@@ -21,9 +21,13 @@ jobs:
   
           if [[ "${{ github.ref }}" = refs/tags/* ]]; then
             version="${ref#refs/tags/}"
-            # This patterns accepts "v1.0.0" , "v2.4.6". Rejects "v1.0.0-rc1".
+
+            # Pattern that accepts "v1.0.0" , "v2.4.6". 
             if [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
               result=isRelease
+            # Pattern that accepts "v1.0.0-rc1".
+            elif [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$ ]]; then
+              result=isReleaseCandidate
             else
               result=isNotRelease
             fi
@@ -38,7 +42,9 @@ jobs:
   upload-apidocs:
     runs-on: ubuntu-22.04
     needs: check-version
-    if: ${{ needs.test_version.outputs.release_status_output == 'isRelease' }}
+    env:
+      release_status: ${{ needs.test_version.outputs.release_status_output }}
+    if: ${{ env.release_status == 'isRelease' || env.release_status == 'isReleaseCandidate' }}
     timeout-minutes: 10
 
     strategy:
@@ -83,5 +89,9 @@ jobs:
       # Copy the document to S3
       - name: Upload apidocs.json to S3
         run: |
-          aws s3 cp index.html ${{ secrets.AWS_APIDOCS_BUCKET_NAME }}
+          if [[ "${{ env.release_status }}" == "isReleaseCandidate" ]]; then
+            aws s3 cp index.html ${{ secrets.AWS_APIDOCS_BUCKET_NAME_DEV }}
+          else
+            aws s3 cp index.html ${{ secrets.AWS_APIDOCS_BUCKET_NAME_PROD }}
+          fi
       
