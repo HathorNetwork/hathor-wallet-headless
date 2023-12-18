@@ -60,6 +60,25 @@ const defaultApiDocs = {
                     type: 'string',
                     description: 'Key of the multisig wallet data in the config. This allow wallets to be started without a seedKey, e.g. with the seed on the parameters or from an xpubkey.',
                   },
+                  scanPolicy: {
+                    type: 'string',
+                    enum: ['gap-limit', 'index-limit'],
+                    description: 'Address scanning policy to use.',
+                    default: 'gap-limit',
+                  },
+                  gapLimit: {
+                    type: 'number',
+                    description: 'Gap limit to use when scanning addresses. Only used when scanPolicy is set to \'gap-limit\'. If not given the configured default will apply.',
+                  },
+                  policyStartIndex: {
+                    type: 'number',
+                    description: 'Load addresses starting from this index. Only used when scanPolicy is set to \'index-limit\'.',
+                    default: 0,
+                  },
+                  policyEndIndex: {
+                    type: 'number',
+                    description: 'Stop loading addresses at this index. Only used when scanPolicy is set to \'index-limit\'. Defaults to policyStartIndex',
+                  },
                 }
               },
               examples: {
@@ -3970,6 +3989,199 @@ const defaultApiDocs = {
                       }
                     },
                   },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/config/last-loaded-address-index': {
+      get: {
+        summary: 'Get the last loaded address index of a wallet.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Last address index loaded or handled error',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, index: 74 },
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                  'invalid-parameter': {
+                    summary: 'Invalid parameter',
+                    value: { success: false, error: [{ value: '"1"', msg: 'Invalid value', param: 'address', location: 'query' }] }
+                  }
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/config/index-limit/load-more-addresses': {
+      post: {
+        summary: 'Load more addresses by pushing the end index of a wallet configured to index-limit scanning policy.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        requestBody: {
+          description: 'Count of addresses to load.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['count'],
+                properties: {
+                  count: {
+                    type: 'integer',
+                    description: 'Count of addresses to load.',
+                  },
+                }
+              },
+              examples: {
+                data: {
+                  summary: 'Load 10 more addresses.',
+                  value: {
+                    count: 10,
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Success confirmation or handled error',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true },
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                  'invalid-parameter': {
+                    summary: 'Invalid parameter',
+                    value: { success: false, error: [{ value: '"1"', msg: 'Invalid value', param: 'address', location: 'query' }] }
+                  }
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/config/index-limit/last-index': {
+      post: {
+        summary: 'Set the last address index of a wallet configured to index-limit scanning policy.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        requestBody: {
+          description: 'Set the last loaded index on a wallet configured to index-limit scanning policy.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['count'],
+                properties: {
+                  index: {
+                    type: 'integer',
+                    description: 'Last address index to set.',
+                  },
+                }
+              },
+              examples: {
+                data: {
+                  summary: 'Load all addresses up to 150.',
+                  value: {
+                    index: 150,
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Success confirmation or handled error',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true },
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                  'invalid-parameter': {
+                    summary: 'Invalid parameter',
+                    value: { success: false, error: [{ value: '"1"', msg: 'Invalid value', param: 'address', location: 'query' }] }
+                  }
                 },
               },
             },
