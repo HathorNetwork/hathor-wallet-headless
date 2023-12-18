@@ -2,7 +2,9 @@ name: docker
 on:
   push:
     tags:
-    - v*
+      - v*
+    branches:
+      - master
 jobs:
   build:
     runs-on: ubuntu-latest
