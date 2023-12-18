@@ -1,6 +1,6 @@
 {
   "name": "hathor-wallet-headless",
-  "version": "0.23.0",
+  "version": "0.23.1-rc1",
   "description": "Hathor Wallet Headless, i.e., without graphical user interface",
   "main": "index.js",
   "engines": {
@@ -21,13 +21,14 @@
     "yargs": "^16.2.0"
   },
   "scripts": {
+    "build": "babel src -d dist --source-maps",
+    "dev": "nodemon --exec babel-node src/index.js",
+    "start": "npm run build && node dist/index.js",
     "test": "jest --forceExit  --runInBand",
     "test_integration": "npm run test_network_up && npm run test_network_integration && npm run test_network_down",
     "test_network_up": "docker-compose -f ./__tests__/integration/docker-compose.yml up -d && mkdir -p tmp && cp ./__tests__/integration/configuration/precalculated-wallets.json ./tmp/wallets.json",
     "test_network_integration": "jest --config jest-integration.config.js --runInBand --forceExit",
     "test_network_down": "docker-compose -f ./__tests__/integration/docker-compose.yml down && rm ./tmp/wallets.json",
-    "dev": "nodemon --exec babel-node index.js",
-    "start": "babel-node src/index.js",
     "lint": "eslint .",
     "lint_fix": "eslint . --fix",
     "generate_words": "babel-node scripts/generate_words.js",

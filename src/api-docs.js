@@ -10,7 +10,7 @@ const defaultApiDocs = {
   info: {
     title: 'Headless Hathor Wallet API',
     description: 'This wallet is fully controlled through an HTTP API.',
-    version: '0.23.0',
+    version: '0.23.1-rc1',
   },
   produces: ['application/json'],
   components: {},
@@ -2727,6 +2727,10 @@ const defaultApiDocs = {
                         data: {
                           type: 'string',
                           description: 'Data string of the data script output. Required if it\'s a data script output.'
+                        },
+                        timelock: {
+                          type: 'integer',
+                          description: 'Timelock value for the output. Used only for P2PKH or P2SH.'
                         },
                       }
                     },

@@ -233,6 +233,16 @@ walletRouter.post(
       },
       optional: true
     },
+    'outputs.*.timelock': {
+      in: ['body'],
+      isInt: {
+        options: {
+          min: 1
+        }
+      },
+      toInt: true,
+      optional: true
+    },
     'outputs.*': {
       in: ['body'],
       isObject: true,
