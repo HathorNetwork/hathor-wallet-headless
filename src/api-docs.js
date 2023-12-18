@@ -3495,17 +3495,10 @@ const defaultApiDocs = {
     },
     '/wallet/config/last-loaded-address-index': {
       get: {
+        operationId: 'getLastLoadedAddressIndex',
         summary: 'Get the last loaded address index of a wallet.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         responses: {
           200: {
@@ -3521,14 +3514,6 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
-                  'no-wallet-id': {
-                    summary: 'No wallet id parameter',
-                    value: { success: false, message: "Parameter 'wallet-id' is required." }
-                  },
-                  'invalid-wallet-id': {
-                    summary: 'Wallet id parameter is invalid',
-                    value: { success: false, message: 'Invalid wallet-id parameter.' }
-                  },
                   'invalid-parameter': {
                     summary: 'Invalid parameter',
                     value: { success: false, error: [{ value: '"1"', msg: 'Invalid value', param: 'address', location: 'query' }] }
@@ -3537,22 +3522,16 @@ const defaultApiDocs = {
               },
             },
           },
+          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
     '/wallet/config/index-limit/load-more-addresses': {
       post: {
+        operationId: 'indexLimitloadMoreAddresses',
         summary: 'Load more addresses by pushing the end index of a wallet configured to index-limit scanning policy.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Count of addresses to load.',
@@ -3594,14 +3573,6 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
-                  'no-wallet-id': {
-                    summary: 'No wallet id parameter',
-                    value: { success: false, message: "Parameter 'wallet-id' is required." }
-                  },
-                  'invalid-wallet-id': {
-                    summary: 'Wallet id parameter is invalid',
-                    value: { success: false, message: 'Invalid wallet-id parameter.' }
-                  },
                   'invalid-parameter': {
                     summary: 'Invalid parameter',
                     value: { success: false, error: [{ value: '"1"', msg: 'Invalid value', param: 'address', location: 'query' }] }
@@ -3610,22 +3581,16 @@ const defaultApiDocs = {
               },
             },
           },
+          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
     '/wallet/config/index-limit/last-index': {
       post: {
+        operationId: 'indexLimitSetLastIndex',
         summary: 'Set the last address index of a wallet configured to index-limit scanning policy.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Set the last loaded index on a wallet configured to index-limit scanning policy.',
@@ -3634,7 +3599,7 @@ const defaultApiDocs = {
             'application/json': {
               schema: {
                 type: 'object',
-                required: ['count'],
+                required: ['index'],
                 properties: {
                   index: {
                     type: 'integer',
@@ -3667,14 +3632,6 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
-                  'no-wallet-id': {
-                    summary: 'No wallet id parameter',
-                    value: { success: false, message: "Parameter 'wallet-id' is required." }
-                  },
-                  'invalid-wallet-id': {
-                    summary: 'Wallet id parameter is invalid',
-                    value: { success: false, message: 'Invalid wallet-id parameter.' }
-                  },
                   'invalid-parameter': {
                     summary: 'Invalid parameter',
                     value: { success: false, error: [{ value: '"1"', msg: 'Invalid value', param: 'address', location: 'query' }] }
@@ -3683,6 +3640,7 @@ const defaultApiDocs = {
               },
             },
           },
+          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
