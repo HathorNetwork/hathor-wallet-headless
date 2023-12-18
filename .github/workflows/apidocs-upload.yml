@@ -10,6 +10,8 @@ jobs:
   # First check if this version is a valid public release
   check-version:
     runs-on: ubuntu-22.04
+    permissions:
+      id-token: write # This is required for requesting the JWT
     outputs:
       release_status_output: ${{ steps.release_version.outputs.version_status_output }}
 
@@ -89,8 +91,8 @@ jobs:
       - name: Upload apidocs.json to S3
         run: |
           if [[ "${{ env.release_status }}" == "isReleaseCandidate" ]]; then
-            aws s3 cp index.html ${{ secrets.AWS_APIDOCS_BUCKET_NAME_DEV }}
+            aws s3 cp index.html s3://${{ secrets.AWS_APIDOCS_BUCKET_NAME_DEV }}
           else
-            aws s3 cp index.html ${{ secrets.AWS_APIDOCS_BUCKET_NAME_PROD }}
+            aws s3 cp index.html s3://${{ secrets.AWS_APIDOCS_BUCKET_NAME_PROD }}
           fi
       
