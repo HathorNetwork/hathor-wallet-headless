@@ -515,7 +515,9 @@ describe('create token', () => {
     const outputBeforeLast = transaction.outputs[transaction.outputs.length - 2];
     expect(outputBeforeLast.value).toBe(1);
     expect(outputBeforeLast.tokenData).toBe(0);
-    const outputBeforeLastScript = scriptsUtils.parseScriptData(Buffer.from(outputBeforeLast.script.data));
+    const outputBeforeLastScript = scriptsUtils.parseScriptData(
+      Buffer.from(outputBeforeLast.script.data)
+    );
     expect(outputBeforeLastScript.data).toBe('test1');
 
     done();
