@@ -1,9 +1,0 @@
-# This file instructs Redocly's linter to ignore the rules contained for specific parts of your API.
-# See https://redoc.ly/docs/cli/ for more information.
-tmp/api-docs.json:
-  operation-4xx-response:
-    - '#/paths/~1start/post/responses'
-    - '#/paths/~1multisig-pubkey/post/responses'
-    - '#/paths/~1wallet~1decode/post/responses'
-    - '#/paths/~1configuration-string/get/responses'
-    - '#/paths/~1reload-config/post/responses'
