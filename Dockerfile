@@ -1,4 +1,4 @@
-ARG IMG=node:16.14-alpine3.14
+ARG IMG=node:20.10-alpine3.19
 
 FROM $IMG as builder
 

@@ -13,3 +13,4 @@ coverage-integration
 tmp/
 
 dist/
+dist-scripts/
