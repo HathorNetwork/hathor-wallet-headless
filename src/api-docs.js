@@ -1,5 +1,6 @@
 const { cloneDeep } = require('lodash');
 const settings = require('./settings');
+const packageJson = require('../package.json');
 
 const commonExamples = {
   xWalletIdErrResponseExamples: {
@@ -23,7 +24,7 @@ const defaultApiDocs = {
   info: {
     title: 'Headless Hathor Wallet API',
     description: 'This wallet is fully controlled through an HTTP API.',
-    version: '0.23.1-rc1',
+    version: packageJson.version,
     license: {
       name: 'MIT',
       url: 'https://github.com/HathorNetwork/hathor-wallet-headless/blob/master/LICENSE'
