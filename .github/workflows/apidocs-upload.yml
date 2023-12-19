@@ -62,7 +62,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       # We use the config module to configure the apidocs generation
       - name: Create config module
