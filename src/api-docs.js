@@ -1,6 +1,19 @@
 const { cloneDeep } = require('lodash');
 const settings = require('./settings');
 
+const commonExamples = {
+  xWalletIdErrResponseExamples: {
+    'no-wallet-id': {
+      summary: 'No wallet id parameter',
+      value: { success: false, message: "Parameter 'wallet-id' is required." }
+    },
+    'invalid-wallet-id': {
+      summary: 'Wallet id parameter is invalid',
+      value: { success: false, message: 'Invalid wallet-id parameter.' }
+    },
+  },
+};
+
 // Default values for the API Docs
 const defaultApiDocs = {
   openapi: '3.0.0',
@@ -28,25 +41,6 @@ const defaultApiDocs = {
         },
       },
     },
-    responses: {
-      MissingWalletIdError: {
-        description: 'x-wallet-id parameter is missing',
-        content: {
-          'application/json': {
-            examples: {
-              'no-wallet-id': {
-                summary: 'No wallet id parameter',
-                value: { success: false, message: "Parameter 'wallet-id' is required." }
-              },
-              'invalid-wallet-id': {
-                summary: 'Wallet id parameter is invalid',
-                value: { success: false, message: 'Invalid wallet-id parameter.' }
-              },
-            },
-          },
-        }
-      }
-    }
   },
   security: [],
   paths: {
@@ -247,11 +241,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -285,11 +279,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -332,11 +326,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -374,11 +368,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -403,11 +397,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -495,11 +489,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -758,11 +752,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -838,11 +832,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -899,11 +893,11 @@ const defaultApiDocs = {
                     summary: 'Success',
                     value: { success: true, txHex: '0123abc...' }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -942,11 +936,11 @@ const defaultApiDocs = {
                     summary: 'Success',
                     value: { success: true, tx: { hash: '00000000059dfb65633acacc402c881b128cc7f5c04b6cea537ea2136f1b97fb', nonce: 2455281664, timestamp: 1594955941, version: 1, weight: 18.11897634891149, parents: ['00000000556bbfee6d37cc099a17747b06f48ca3d9bf4af85c707aa95ad04b3f', '00000000e2e3e304e364edebff1c04c95cc9ef282463295f6e417b85fec361dd'], inputs: [{ tx_id: '00000000caaa37ab729805b91af2de8174e3ef24410f4effc4ffda3b610eae65', index: 1, data: 'RjBEAiAYR8jc+zqY596QyMp+K3Eag3kQB5aXdfYja19Fa17u0wIgCdhBQpjlBiAawP/9WRAqAzW85CJlBpzq+YVhUALg8IUhAueFQuEkAo+s2m7nj/hnh0nyphcUuxa2LoRBjOsEOHRQ' }, { tx_id: '00000000caaa37ab729805b91af2de8174e3ef24410f4effc4ffda3b610eae65', index: 2, data: 'RzBFAiEAofVXnCKNCEu4GRk7j+wHpQM6qmezRcfxHCe/PcUdbegCIE2nip27ZQtkpkEgNEhycqHM4CkLYMLVUgskphYsd/M9IQLHG6YJxXifQ6eMxPHbINFEJAUvrzKWe9V7AXXW4iywjg==' }], outputs: [{ value: 100, token_data: 0, script: 'dqkUqdK8VisGSJuNItIBRYFfSHfHjPeIrA==' }, { value: 200, token_data: 0, script: 'dqkUISAnpOn9Vo269QBvOfBeWJTLx82IrA==' }], tokens: [] } }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -986,11 +980,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -1045,11 +1039,11 @@ const defaultApiDocs = {
                     summary: 'There is a signature from a signer that does not belong on the loaded wallet multisig.',
                     value: { success: false, message: 'signature from unknown signer' }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -1155,11 +1149,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -1256,11 +1250,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -1340,11 +1334,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       }
     },
@@ -1383,11 +1377,11 @@ const defaultApiDocs = {
                     summary: 'Success',
                     value: { success: true, signatures: '...' },
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -1430,11 +1424,11 @@ const defaultApiDocs = {
                     summary: 'Success',
                     value: { success: true, txHex: '0123abc...' }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -1477,11 +1471,11 @@ const defaultApiDocs = {
                     summary: 'Success',
                     value: { success: true, hash: '00000000059dfb65633acacc402c881b128cc7f5c04b6cea537ea2136f1b97fb', nonce: 2455281664, timestamp: 1594955941, version: 1, weight: 18.11897634891149, parents: ['00000000556bbfee6d37cc099a17747b06f48ca3d9bf4af85c707aa95ad04b3f', '00000000e2e3e304e364edebff1c04c95cc9ef282463295f6e417b85fec361dd'], inputs: [{ tx_id: '00000000caaa37ab729805b91af2de8174e3ef24410f4effc4ffda3b610eae65', index: 1, data: 'RjBEAiAYR8jc+zqY596QyMp+K3Eag3kQB5aXdfYja19Fa17u0wIgCdhBQpjlBiAawP/9WRAqAzW85CJlBpzq+YVhUALg8IUhAueFQuEkAo+s2m7nj/hnh0nyphcUuxa2LoRBjOsEOHRQ' }, { tx_id: '00000000caaa37ab729805b91af2de8174e3ef24410f4effc4ffda3b610eae65', index: 2, data: 'RzBFAiEAofVXnCKNCEu4GRk7j+wHpQM6qmezRcfxHCe/PcUdbegCIE2nip27ZQtkpkEgNEhycqHM4CkLYMLVUgskphYsd/M9IQLHG6YJxXifQ6eMxPHbINFEJAUvrzKWe9V7AXXW4iywjg==' }], outputs: [{ value: 100, token_data: 0, script: 'dqkUqdK8VisGSJuNItIBRYFfSHfHjPeIrA==' }, { value: 200, token_data: 0, script: 'dqkUISAnpOn9Vo269QBvOfBeWJTLx82IrA==' }], tokens: [] }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -1749,11 +1743,11 @@ const defaultApiDocs = {
                       createdProposalId: 'b11948c7-48...',
                     }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -1804,11 +1798,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -1883,11 +1877,11 @@ const defaultApiDocs = {
                       },
                     }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -1944,11 +1938,11 @@ const defaultApiDocs = {
                       },
                     }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -1980,11 +1974,11 @@ const defaultApiDocs = {
                       },
                     }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -2033,11 +2027,11 @@ const defaultApiDocs = {
                       },
                     }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -2123,11 +2117,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -2187,11 +2181,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -2242,11 +2236,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -2279,11 +2273,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -2334,11 +2328,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -2537,11 +2531,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -2638,11 +2632,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -2719,11 +2713,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -2799,11 +2793,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -2905,11 +2899,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -2943,11 +2937,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -2985,11 +2979,11 @@ const defaultApiDocs = {
                     summary: 'Wallet does not have transaction requested.',
                     value: { success: false, error: 'Wallet does not contain transaction with id <TX_ID>' }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -3023,11 +3017,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -3052,11 +3046,11 @@ const defaultApiDocs = {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -3147,12 +3141,12 @@ const defaultApiDocs = {
                   'invalid-parameter': {
                     summary: 'Invalid parameter',
                     value: { success: false, error: [{ value: '"1"', msg: 'Invalid value', param: 'max_utxos', location: 'query' }] }
-                  }
+                  },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -3234,12 +3228,12 @@ const defaultApiDocs = {
                   'invalid-parameter': {
                     summary: 'Invalid parameter',
                     value: { success: false, error: [{ msg: 'Invalid value', param: 'destination_address', location: 'body' }] }
-                  }
+                  },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -3285,12 +3279,12 @@ const defaultApiDocs = {
                   'invalid-parameter': {
                     summary: 'Invalid parameter',
                     value: { success: false, error: [{ value: '"1"', msg: 'Invalid value', param: 'address', location: 'query' }] }
-                  }
+                  },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -3517,12 +3511,12 @@ const defaultApiDocs = {
                   'invalid-parameter': {
                     summary: 'Invalid parameter',
                     value: { success: false, error: [{ value: '"1"', msg: 'Invalid value', param: 'address', location: 'query' }] }
-                  }
+                  },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -3576,12 +3570,12 @@ const defaultApiDocs = {
                   'invalid-parameter': {
                     summary: 'Invalid parameter',
                     value: { success: false, error: [{ value: '"1"', msg: 'Invalid value', param: 'address', location: 'query' }] }
-                  }
+                  },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
@@ -3635,12 +3629,12 @@ const defaultApiDocs = {
                   'invalid-parameter': {
                     summary: 'Invalid parameter',
                     value: { success: false, error: [{ value: '"1"', msg: 'Invalid value', param: 'address', location: 'query' }] }
-                  }
+                  },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/MissingWalletIdError' },
         },
       },
     },
