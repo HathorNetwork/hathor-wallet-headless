@@ -484,4 +484,40 @@ describe('create token', () => {
 
     done();
   });
+
+  it('create token with data outputs', async done => {
+    const response = await TestUtils.request
+      .post('/wallet/create-token')
+      .send({
+        name: 'Token C',
+        symbol: 'TKC',
+        amount: 100,
+        data: ['test1', 'test2']
+      })
+      .set({ 'x-wallet-id': wallet2.walletId });
+
+    const transaction = response.body;
+    expect(transaction.success).toBe(true);
+
+    await TestUtils.waitForTxReceived(wallet2.walletId, response.body.hash);
+
+    // Make sure the token was minted
+    const tkBalance = await wallet2.getBalance(transaction.hash);
+    expect(tkBalance.available).toBe(100); // The newly minted tokens
+
+    // Make sure the last 2 outputs are the data outputs
+    const lastOutput = transaction.outputs[transaction.outputs.length - 1];
+    expect(lastOutput.value).toBe(1);
+    expect(lastOutput.tokenData).toBe(0);
+    const lastOutputScript = scriptsUtils.parseScriptData(Buffer.from(lastOutput.script.data));
+    expect(lastOutputScript.data).toBe('test2');
+
+    const outputBeforeLast = transaction.outputs[transaction.outputs.length - 2];
+    expect(outputBeforeLast.value).toBe(1);
+    expect(outputBeforeLast.tokenData).toBe(0);
+    const outputBeforeLastScript = scriptsUtils.parseScriptData(Buffer.from(outputBeforeLast.script.data));
+    expect(outputBeforeLastScript.data).toBe('test1');
+
+    done();
+  });
 });

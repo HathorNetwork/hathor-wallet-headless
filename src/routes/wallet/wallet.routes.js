@@ -363,6 +363,8 @@ walletRouter.post(
   body('create_melt').isBoolean().optional().toBoolean(),
   body('melt_authority_address').isString().optional(),
   body('allow_external_melt_authority_address').isBoolean().optional().toBoolean(),
+  body('data').isArray().optional(),
+  body('data.*').isString(),
   createToken
 );
 
