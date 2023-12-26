@@ -34,6 +34,7 @@
     "docs_lint": "npx @redocly/cli lint tmp/api-docs.json",
     "docs_server": "npx @redocly/cli preview-docs tmp/api-docs.json",
     "docs_clean": "rm tmp/api-docs.json",
+    "docs_build": "npx @redocly/cli build-docs tmp/api-docs.json -o index.html",
     "docs": "npm run docs_convert && npm run docs_lint && npm run docs_server && npm run docs_clean"
   },
   "repository": {
