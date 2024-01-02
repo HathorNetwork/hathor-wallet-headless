@@ -43,7 +43,7 @@ nanoContractRouter.get(
  */
 nanoContractRouter.post(
   '/create',
-  body('blueprint').isString(),
+  body('blueprint_id').isString(),
   body('address').isString(),
   body('data').isObject(),
   createNanoContract,
@@ -55,11 +55,18 @@ nanoContractRouter.post(
  */
 nanoContractRouter.post(
   '/execute',
-  body('blueprint').isString(),
+  body('nc_id').isString(),
   body('method').isString(),
   body('address').isString(),
   body('data').isObject(),
   executeNanoContractMethod,
+);
+
+nanoContractRouter.post(
+  '/oracle/get-signed-result',
+  body('oracle').isString(),
+  body('result_type').isString(),
+  body('result'),
 );
 
 module.exports = nanoContractRouter;

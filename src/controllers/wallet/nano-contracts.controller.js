@@ -81,12 +81,18 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
   }
 
   const { wallet } = req;
-  const { blueprint, address, data } = req.body;
+  const { blueprint_id, nc_id, address, data } = req.body;
   const method = isInitialize ? 'initialize' : req.body.method;
+
+  // Set blueprint id or nc id to the data execution
+  if (isInitialize) {
+    data.blueprintId = blueprint_id;
+  } else {
+    data.ncId = nc_id;
+  }
 
   try {
     const response = await wallet.createAndSendNanoContractTransaction(
-      blueprint,
       method,
       address,
       data
