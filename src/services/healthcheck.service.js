@@ -1,42 +1,96 @@
-import { config as hathorLibConfig, healthApi, txMiningApi } from '@hathor/wallet-lib';
+import { healthApi, txMiningApi } from '@hathor/wallet-lib';
+import { config as hathorLibConfig } from '@hathor/wallet-lib';
+import { Healthcheck, HealthcheckInternalComponent, HealthcheckHTTPComponent, HealthcheckCallbackResponse } from 'hathor-healthcheck-lib';
+import { initializedWallets } from './wallets.service';
 
-const { buildComponentHealthCheck } = require('../helpers/healthcheck.helper');
 const { friendlyWalletState } = require('../helpers/constants');
 
-const healthService = {
+class HealthService {
+  constructor(walletIds, includeFullnode, includeTxMiningService) {
+    this.healthcheck = new Healthcheck({
+      name: "hathor-wallet-headless",
+      warn_is_unhealthy: true
+    });
+
+    this.initializeWalletComponents(walletIds);
+
+    if (includeFullnode) {
+      this.initializeFullnodeComponent();
+    }
+
+    if (includeTxMiningService) {
+      this.initializeTxMiningServiceComponent();
+    }
+  }
+
+  initializeWalletComponents(walletIds) {
+    for (const walletId of walletIds) {
+      if (!initializedWallets.has(walletId)) {
+        throw new Error(`Invalid wallet id parameter: ${walletId}`);
+      }
+
+      const component = new HealthcheckInternalComponent({
+        name: `Wallet ${walletId}`,
+        id: walletId,
+      });
+
+      component.add_healthcheck(async () => this.getWalletHealth(initializedWallets.get(walletId)));
+      this.healthcheck.add_component(component);
+    }
+  }
+
+  initializeFullnodeComponent() {
+    const serverUrl = hathorLibConfig.getServerUrl();
+
+    const component = new HealthcheckHTTPComponent({
+      name: `Fullnode ${serverUrl}`,
+      id: serverUrl,
+    });
+
+    component.add_healthcheck(async () => this.getFullnodeHealth());
+    this.healthcheck.add_component(component);
+  }
+
+  initializeTxMiningServiceComponent() {
+    const txMiningServiceUrl = hathorLibConfig.getTxMiningUrl();
+
+    const component = new HealthcheckHTTPComponent({
+      name: `TxMiningService ${txMiningServiceUrl}`,
+      id: txMiningServiceUrl,
+    });
+
+    component.add_healthcheck(async () => this.getTxMiningServiceHealth());
+    this.healthcheck.add_component(component);
+  }
+
+  async getHealth() {
+    return this.healthcheck.run();
+  }
+
   /**
    * Returns the health object for a specific wallet
    *
    * @param {HathorWallet} wallet
-   * @param {string} walletId
-   * @returns {Object}
+   * @returns {HealthcheckCallbackResponse}
    */
-  async getWalletHealth(wallet, walletId) {
-    let healthData;
-
+  async getWalletHealth(wallet) {
     if (!wallet.isReady()) {
-      healthData = buildComponentHealthCheck(
-        `Wallet ${walletId}`,
-        'fail',
-        'internal',
-        `Wallet is not ready. Current state: ${friendlyWalletState[wallet.state]}`
-      );
+      return new HealthcheckCallbackResponse({
+        status: 'fail',
+        output: `Wallet is not ready. Current state: ${friendlyWalletState[wallet.state]}`
+      });
     } else {
-      healthData = buildComponentHealthCheck(
-        `Wallet ${walletId}`,
-        'pass',
-        'internal',
-        'Wallet is ready'
-      );
+      return new HealthcheckCallbackResponse({
+        status: 'pass',
+        output: 'Wallet is ready'
+      });
     }
-
-    return healthData;
-  },
+  }
 
   /**
    * Returns the health object for the connected fullnode
    *
-   * @returns {Object}
+   * @returns {HealthcheckCallbackResponse}
    */
   async getFullnodeHealth() {
     let output;
@@ -59,20 +113,16 @@ const healthService = {
       }
     }
 
-    const fullnodeHealthData = buildComponentHealthCheck(
-      `Fullnode ${hathorLibConfig.getServerUrl()}`,
-      healthStatus,
-      'fullnode',
+    return new HealthcheckCallbackResponse({
+      status: healthStatus,
       output
-    );
-
-    return fullnodeHealthData;
-  },
+    });
+  }
 
   /**
    * Returns the health object for the connected tx-mining-service
    *
-   * @returns {Object}
+   * @returns {HealthcheckCallbackResponse}
    */
   async getTxMiningServiceHealth() {
     let output;
@@ -98,15 +148,11 @@ const healthService = {
       }
     }
 
-    const txMiningServiceHealthData = buildComponentHealthCheck(
-      `TxMiningService ${hathorLibConfig.getTxMiningUrl()}`,
-      healthStatus,
-      'service',
+    return new HealthcheckCallbackResponse({
+      status: healthStatus,
       output
-    );
-
-    return txMiningServiceHealthData;
+    });
   }
 };
 
-export default healthService;
+export default HealthService;

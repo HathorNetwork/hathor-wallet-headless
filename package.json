@@ -13,7 +13,8 @@
     "lodash": "^4.17.11",
     "morgan": "^1.10.0",
     "winston": "^3.3.3",
-    "yargs": "^16.2.0"
+    "yargs": "^16.2.0",
+    "hathor-healthcheck-lib": "file:/./tmp/hathor-healthcheck-lib-0.0.5.tgz"
   },
   "scripts": {
     "build": "babel src -d dist --source-maps",
