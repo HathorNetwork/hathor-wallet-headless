@@ -10,7 +10,7 @@ const defaultApiDocs = {
   info: {
     title: 'Headless Hathor Wallet API',
     description: 'This wallet is fully controlled through an HTTP API.',
-    version: '0.23.0',
+    version: '0.23.1-rc2',
   },
   produces: ['application/json'],
   components: {},
@@ -2709,6 +2709,10 @@ const defaultApiDocs = {
                           type: 'string',
                           description: 'Data string of the data script output. Required if it\'s a data script output.'
                         },
+                        timelock: {
+                          type: 'integer',
+                          description: 'Timelock value for the output. Used only for P2PKH or P2SH.'
+                        },
                       }
                     },
                     description: 'Outputs to create the transaction.'
@@ -3829,6 +3833,143 @@ const defaultApiDocs = {
                     summary: 'The running app cannot successfully recover from this change.',
                     value: { success: false, error: 'A non recoverable change in the config was made, the service will shutdown.' }
                   }
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/health': {
+      get: {
+        summary: 'Return the health of the wallet headless.',
+        parameters: [
+          {
+            name: 'wallet_ids',
+            in: 'query',
+            description: 'Wallet ids to check, comma-separated. If not provided, will not check any wallet.',
+            required: false,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'include_fullnode',
+            in: 'query',
+            description: 'Whether fullnode health should be checked and included in the response.',
+            required: false,
+            schema: {
+              type: 'boolean',
+            },
+          },
+          {
+            name: 'include_tx_mining',
+            in: 'query',
+            description: 'Whether tx mining service health should be checked and included in the response.',
+            required: false,
+            schema: {
+              type: 'boolean',
+            },
+          }
+        ],
+        responses: {
+          200: {
+            description: 'A JSON with the health object. It will contain info about all components that were enabled and provided wallet ids.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      status: 'pass',
+                      description: 'Wallet-headless health',
+                      checks: {
+                        'Wallet <wallet-id>': [{
+                          status: 'pass',
+                          componentType: 'internal',
+                          componentName: 'Wallet <wallet-id>',
+                          output: 'Wallet is ready',
+                        }],
+                        'Wallet <wallet-id-2>': [{
+                          status: 'pass',
+                          componentType: 'internal',
+                          componentName: 'Wallet <wallet-id-2>',
+                          output: 'Wallet is ready',
+                        }],
+                        fullnode: [{
+                          status: 'pass',
+                          componentType: 'fullnode',
+                          componentName: 'Fullnode <fullnode_url>',
+                          output: 'Fullnode is responding',
+                        }],
+                        txMining: [{
+                          status: 'pass',
+                          componentType: 'service',
+                          componentName: 'TxMiningService <tx_mining_url>',
+                          output: 'Tx Mining Service is healthy',
+                        }]
+                      }
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'A JSON object with the reason for the error.',
+            content: {
+              'application/json': {
+                examples: {
+                  'invalid-wallet-ids': {
+                    summary: 'Invalid wallet id',
+                    value: { success: false, message: 'Invalid wallet id parameter.' }
+                  },
+                  'no-component-included': {
+                    summary: 'No component was included in the request',
+                    value: { success: false, message: 'At least one component must be included in the health check' }
+                  },
+                },
+              },
+            },
+          },
+          503: {
+            description: 'A JSON with the health object. It will contain info about all components that were checked.',
+            content: {
+              'application/json': {
+                examples: {
+                  unhealthy: {
+                    summary: 'Unhealthy wallet headless',
+                    value: {
+                      status: 'fail',
+                      description: 'Wallet-headless health',
+                      checks: {
+                        'Wallet <wallet-id>': [{
+                          status: 'pass',
+                          componentType: 'internal',
+                          componentName: 'Wallet <wallet-id>',
+                          output: 'Wallet is ready',
+                        }],
+                        'Wallet <wallet-id-2>': [{
+                          status: 'pass',
+                          componentType: 'internal',
+                          componentName: 'Wallet <wallet-id-2>',
+                          output: 'Wallet is ready',
+                        }],
+                        fullnode: [{
+                          status: 'fail',
+                          componentType: 'fullnode',
+                          componentName: 'Fullnode <fullnode_url>',
+                          output: 'Fullnode reported as unhealthy: <fullnode response>',
+                        }],
+                        txMining: [{
+                          status: 'pass',
+                          componentType: 'service',
+                          componentName: 'TxMiningService <tx_mining_url>',
+                          output: 'Tx Mining Service is healthy',
+                        }]
+                      }
+                    },
+                  },
                 },
               },
             },
