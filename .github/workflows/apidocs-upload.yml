@@ -1,0 +1,98 @@
+name: apidocs
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+
+  # First check if this version is a valid public release
+  check-version:
+    runs-on: ubuntu-22.04
+    permissions:
+      id-token: write # This is required for requesting the JWT
+    outputs:
+      release_status_output: ${{ steps.release_version.outputs.version_status_output }}
+
+    steps:
+      - name: Check release version
+        id: release_version
+        shell: bash
+        run: |
+  
+          if [[ "${{ github.ref }}" = refs/tags/* ]]; then
+            version="${ref#refs/tags/}"
+
+            # Pattern that accepts "v1.0.0" , "v2.4.6". 
+            if [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              result=isRelease
+            # Pattern that accepts "v1.0.0-rc1".
+            elif [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$ ]]; then
+              result=isReleaseCandidate
+            else
+              result=isNotRelease
+            fi
+          else
+            result=isNotTag
+          fi
+  
+          echo $result
+          echo "version_status_output=$result" >> $GITHUB_OUTPUT
+
+  # Initiate upload only if the version is valid
+  upload-apidocs:
+    runs-on: ubuntu-22.04
+    needs: check-version
+    env:
+      release_status: ${{ needs.test_version.outputs.release_status_output }}
+    if: ${{ env.release_status == 'isRelease' || env.release_status == 'isReleaseCandidate' }}
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      # https://github.com/actions/checkout/releases/tag/v4.0.0
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac
+      - name: Use Node.js ${{ matrix.node-version }}
+        # https://github.com/actions/setup-node/releases/tag/v4.0.0
+        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: npm ci
+
+      # We use the config module to configure the apidocs generation
+      - name: Create config module
+        run: cp ./config.js.template ./src/config.js
+
+      - name: Create the tmp folder
+        run: mkdir tmp
+
+      # Generating the apidocs json and linting to ensure it's a valid document
+      - name: Create the apidocs json
+        run: npm run docs_convert
+      - name: Lint the apidocs json
+        run: npm run docs_lint
+      - name: Build the apidocs HTML
+        run: npm run docs_build
+
+      # Configure AWS credentials
+      - name: Set up AWS CLI
+        # https://github.com/aws-actions/configure-aws-credentials/releases/tag/v4.0.1
+        uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a
+        with:
+          aws-assume-role: ${{ secrets.AWS_HEADLESS_UPLOAD_ROLE }}
+          aws-region: us-east-1
+
+      # Copy the document to S3
+      - name: Upload apidocs.json to S3
+        run: |
+          if [[ "${{ env.release_status }}" == "isReleaseCandidate" ]]; then
+            aws s3 cp index.html s3://${{ secrets.AWS_APIDOCS_BUCKET_NAME_DEV }}
+          else
+            aws s3 cp index.html s3://${{ secrets.AWS_APIDOCS_BUCKET_NAME_PROD }}
+          fi
+      
