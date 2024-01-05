@@ -486,6 +486,7 @@ describe('create token', () => {
   });
 
   it('create token with data outputs', async done => {
+    const htrBalance = await wallet2.getBalance(constants.HATHOR_TOKEN_CONFIG.uid);
     const response = await TestUtils.request
       .post('/wallet/create-token')
       .send({
@@ -500,6 +501,12 @@ describe('create token', () => {
     expect(transaction.success).toBe(true);
 
     await TestUtils.waitForTxReceived(wallet2.walletId, response.body.hash);
+
+    // Make sure we spent 0.03 HTR
+    // 0.01 for the mint
+    // 0.02 for the two data script outputs
+    const newHtrBalance = await wallet2.getBalance(constants.HATHOR_TOKEN_CONFIG.uid);
+    expect(newHtrBalance.available).toBe(htrBalance.available - 3);
 
     // Make sure the token was minted
     const tkBalance = await wallet2.getBalance(transaction.hash);
