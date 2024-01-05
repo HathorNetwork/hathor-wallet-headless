@@ -2605,7 +2605,7 @@ const defaultApiDocs = {
                     items: {
                       type: 'string'
                     },
-                    description: 'List of strings to create a data output for each.'
+                    description: 'List of utf-8 encoded strings to create a data output for each.'
                   }
                 }
               },
