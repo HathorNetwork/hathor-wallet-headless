@@ -2600,6 +2600,13 @@ const defaultApiDocs = {
                     type: 'boolean',
                     description: 'If the melt authority address is allowed to be from another wallet. Default is false.'
                   },
+                  data: {
+                    type: 'array',
+                    items: {
+                      type: 'string'
+                    },
+                    description: 'List of utf-8 encoded strings to create a data output for each.'
+                  }
                 }
               },
               examples: {
