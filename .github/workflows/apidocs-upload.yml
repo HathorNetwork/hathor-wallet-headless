@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v*'
+    branches:
+      - fix/apidocs-upload
 
 jobs:
 
@@ -23,6 +25,7 @@ jobs:
   
           if [[ "${{ github.ref }}" = refs/tags/* ]]; then
             version="${GITHUB_REF#refs/tags/}"
+            echo "version=$version"
 
             # Pattern that accepts "v1.0.0" , "v2.4.6". 
             if [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -49,7 +52,8 @@ jobs:
     if: >-
       ${{ 
           needs.check-version.outputs.release_status_output == 'isRelease' || 
-          needs.check-version.outputs.release_status_output == 'isReleaseCandidate' 
+          needs.check-version.outputs.release_status_output == 'isReleaseCandidate' || 
+          needs.check-version.outputs.release_status_output == 'isNotTag' 
       }}
     timeout-minutes: 10
 
