@@ -94,9 +94,9 @@ jobs:
       # Copy the document to S3
       - name: Upload apidocs.json to S3
         run: |
-          if [[ "${{ env.release_status }}" == "isReleaseCandidate" ]]; then
-            aws s3 cp index.html s3://${{ secrets.AWS_APIDOCS_BUCKET_NAME_DEV }}
-          else
+          if [[ "${{ env.release_status }}" == "isRelease" ]]; then
             aws s3 cp index.html s3://${{ secrets.AWS_APIDOCS_BUCKET_NAME_PROD }}
+          else
+            aws s3 cp index.html s3://${{ secrets.AWS_APIDOCS_BUCKET_NAME_DEV }}
           fi
       
