@@ -1,4 +1,4 @@
-name: apidocs
+name: apidocs-upload
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
         run: |
   
           if [[ "${{ github.ref }}" = refs/tags/* ]]; then
-            version="${ref#refs/tags/}"
+            version="${GITHUB_REF#refs/tags/}"
 
             # Pattern that accepts "v1.0.0" , "v2.4.6". 
             if [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -46,7 +46,11 @@ jobs:
     needs: check-version
     env:
       release_status: ${{ needs.test_version.outputs.release_status_output }}
-    if: ${{ env.release_status == 'isRelease' || env.release_status == 'isReleaseCandidate' }}
+    if: >-
+      ${{ 
+          needs.check-version.outputs.release_status_output == 'isRelease' || 
+          needs.check-version.outputs.release_status_output == 'isReleaseCandidate' 
+      }}
     timeout-minutes: 10
 
     strategy:
