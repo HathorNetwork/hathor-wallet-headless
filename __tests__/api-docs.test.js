@@ -16,7 +16,7 @@ describe('api-docs', () => {
 
   it('should return the components without any apikey by default', async () => {
     const apiDocs = getApiDocs();
-    expect(apiDocs.components).toStrictEqual({});
+    expect(apiDocs.components).not.toHaveProperty('ApiKeyAuth');
   });
 
   it('should return the components with the apikey if configured', async () => {

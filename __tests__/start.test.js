@@ -1,6 +1,7 @@
 import TestUtils from './test-utils';
 import { WALLET_CONSTANTS } from './integration/configuration/test-constants';
 import settings from '../src/settings';
+import { initializedWallets } from '../src/services/wallets.service';
 
 /*
  * Developer note:
@@ -161,5 +162,91 @@ describe('start api', () => {
 
     config.multisig = {};
     settings._setConfig(config);
+  });
+  it('should not use gap-limit policy data unless strictly configured to gap-limit', async () => {
+    const walletHttpInput = {
+      'wallet-id': walletId,
+      seed: WALLET_CONSTANTS.genesis.words,
+      gapLimit: 7,
+    };
+
+    const response = await TestUtils.request
+      .post('/start')
+      .send(walletHttpInput);
+
+    expect(response.body).toHaveProperty('success', true);
+
+    // The gapLimit is ignored and the default configuration is used
+    const wallet = initializedWallets.get(walletId);
+    await expect(wallet.storage.getScanningPolicy()).resolves.toBe('gap-limit');
+    await expect(wallet.getGapLimit()).resolves.not.toBe(7);
+  });
+  it('should start a wallet with the configured gap-limit', async () => {
+    const walletHttpInput = {
+      'wallet-id': walletId,
+      seed: WALLET_CONSTANTS.genesis.words,
+      scanPolicy: 'gap-limit',
+      gapLimit: 7,
+    };
+
+    const response = await TestUtils.request
+      .post('/start')
+      .send(walletHttpInput);
+
+    expect(response.body).toHaveProperty('success', true);
+
+    // Check that the wallet actually used the given gap-limit
+    const wallet = initializedWallets.get(walletId);
+    await expect(wallet.storage.getScanningPolicy()).resolves.toBe('gap-limit');
+    await expect(wallet.getGapLimit()).resolves.toBe(7);
+  });
+  it('should start a wallet with index-limit', async () => {
+    const walletHttpInput = {
+      'wallet-id': walletId,
+      seed: WALLET_CONSTANTS.genesis.words,
+      scanPolicy: 'index-limit',
+    };
+
+    const response = await TestUtils.request
+      .post('/start')
+      .send(walletHttpInput);
+
+    expect(response.body).toHaveProperty('success', true);
+    await TestUtils.waitReady({ walletId });
+
+    // Check that the wallet actually used the given gap-limit
+    const wallet = initializedWallets.get(walletId);
+    await expect(wallet.storage.getScanningPolicy()).resolves.toBe('index-limit');
+    await expect(wallet.storage.getIndexLimit()).resolves.toMatchObject({
+      startIndex: 0,
+      endIndex: 0,
+    });
+    await expect(wallet.storage.store.addressCount()).resolves.toBe(1);
+  });
+  it('should start a wallet with index-limit and use the configuration', async () => {
+    const walletHttpInput = {
+      'wallet-id': walletId,
+      seed: WALLET_CONSTANTS.genesis.words,
+      scanPolicy: 'index-limit',
+      policyStartIndex: 5,
+      policyEndIndex: 10,
+    };
+
+    const response = await TestUtils.request
+      .post('/start')
+      .send(walletHttpInput);
+
+    expect(response.body).toHaveProperty('success', true);
+    await TestUtils.waitReady({ walletId });
+
+    // Check that the wallet actually used the given gap-limit
+    const wallet = initializedWallets.get(walletId);
+    await expect(wallet.storage.getScanningPolicy()).resolves.toBe('index-limit');
+    await expect(wallet.storage.getIndexLimit()).resolves.toMatchObject({
+      startIndex: 5,
+      endIndex: 10,
+    });
+    // We will load 6 addresses, from 5 to 10 (inclusive)
+    await expect(wallet.storage.store.addressCount()).resolves.toBe(6);
   });
 });
