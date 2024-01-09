@@ -12,8 +12,6 @@ jobs:
   # First check if this version is a valid public release
   check-version:
     runs-on: ubuntu-22.04
-    permissions:
-      id-token: write # This is required for requesting the JWT
     outputs:
       release_status_output: ${{ steps.release_version.outputs.version_status_output }}
 
@@ -46,6 +44,8 @@ jobs:
   # Initiate upload only if the version is valid
   upload-apidocs:
     runs-on: ubuntu-22.04
+    permissions:
+      id-token: write # This is required for requesting the JWT
     needs: check-version
     env:
       release_status: ${{ needs.test_version.outputs.release_status_output }}
