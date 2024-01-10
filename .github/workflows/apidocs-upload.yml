@@ -4,8 +4,6 @@ on:
   push:
     tags:
       - 'v*'
-    branches:
-      - fix/apidocs-upload
 
 jobs:
 
@@ -52,8 +50,7 @@ jobs:
     if: >-
       ${{ 
           needs.check-version.outputs.release_status_output == 'isRelease' || 
-          needs.check-version.outputs.release_status_output == 'isReleaseCandidate' || 
-          needs.check-version.outputs.release_status_output == 'isNotTag' 
+          needs.check-version.outputs.release_status_output == 'isReleaseCandidate'
       }}
     timeout-minutes: 10
 
