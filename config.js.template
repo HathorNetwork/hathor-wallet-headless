@@ -86,4 +86,10 @@ module.exports = {
   // a `file` property which is the filename of the plugin on the plugin directory
   // Example: plugin_config: { custom: { name: 'custom', file: 'custom.js' } },
   plugin_config: {},
+
+  // Configure whether a healthcheck 'warn' status received from a component
+  // should make the service be considered unhealthy.
+  // You should consider what components you are enabling in the /health endpoint when setting this.
+  // Check the /health endpoint documentation for more info.
+  considerHealthcheckWarnAsUnhealthy: true,
 };

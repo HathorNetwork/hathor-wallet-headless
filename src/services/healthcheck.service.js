@@ -1,15 +1,17 @@
-import { healthApi, txMiningApi } from '@hathor/wallet-lib';
-import { config as hathorLibConfig } from '@hathor/wallet-lib';
-import { Healthcheck, HealthcheckInternalComponent, HealthcheckHTTPComponent, HealthcheckCallbackResponse } from 'hathor-healthcheck-lib';
+import { healthApi, txMiningApi, config as hathorLibConfig } from '@hathor/wallet-lib';
+import { Healthcheck, HealthcheckInternalComponent, HealthcheckHTTPComponent, HealthcheckCallbackResponse, HealthcheckStatus } from 'hathor-healthcheck-lib';
 import { initializedWallets } from './wallets.service';
+import { getConfig } from '../settings';
 
 const { friendlyWalletState } = require('../helpers/constants');
 
 class HealthService {
   constructor(walletIds, includeFullnode, includeTxMiningService) {
+    const config = getConfig();
+
     this.healthcheck = new Healthcheck({
-      name: "hathor-wallet-headless",
-      warn_is_unhealthy: true
+      name: 'hathor-wallet-headless',
+      warn_is_unhealthy: config.considerHealthcheckWarnAsUnhealthy,
     });
 
     this.initializeWalletComponents(walletIds);
@@ -34,7 +36,9 @@ class HealthService {
         id: walletId,
       });
 
-      component.add_healthcheck(async () => this.getWalletHealth(initializedWallets.get(walletId)));
+      component.add_healthcheck(
+        async () => HealthService.getWalletHealth(initializedWallets.get(walletId))
+      );
       this.healthcheck.add_component(component);
     }
   }
@@ -47,7 +51,7 @@ class HealthService {
       id: serverUrl,
     });
 
-    component.add_healthcheck(async () => this.getFullnodeHealth());
+    component.add_healthcheck(async () => HealthService.getFullnodeHealth());
     this.healthcheck.add_component(component);
   }
 
@@ -59,7 +63,7 @@ class HealthService {
       id: txMiningServiceUrl,
     });
 
-    component.add_healthcheck(async () => this.getTxMiningServiceHealth());
+    component.add_healthcheck(async () => HealthService.getTxMiningServiceHealth());
     this.healthcheck.add_component(component);
   }
 
@@ -73,18 +77,17 @@ class HealthService {
    * @param {HathorWallet} wallet
    * @returns {HealthcheckCallbackResponse}
    */
-  async getWalletHealth(wallet) {
+  static async getWalletHealth(wallet) {
     if (!wallet.isReady()) {
       return new HealthcheckCallbackResponse({
-        status: 'fail',
+        status: HealthcheckStatus.FAIL,
         output: `Wallet is not ready. Current state: ${friendlyWalletState[wallet.state]}`
       });
-    } else {
-      return new HealthcheckCallbackResponse({
-        status: 'pass',
-        output: 'Wallet is ready'
-      });
     }
+    return new HealthcheckCallbackResponse({
+      status: HealthcheckStatus.PASS,
+      output: 'Wallet is ready'
+    });
   }
 
   /**
@@ -92,24 +95,25 @@ class HealthService {
    *
    * @returns {HealthcheckCallbackResponse}
    */
-  async getFullnodeHealth() {
+  static async getFullnodeHealth() {
     let output;
     let healthStatus;
 
     // TODO: We will need to parse the healthData to get the status,
-    // but hathor-core hasn't this implemented yet
+    // but hathor-core hasn't this implemented yet.
+    // Make sure we treat 'warn' as 'pass' if considerHealthcheckWarnAsUnhealthy is false
     try {
       await healthApi.getHealth();
 
       output = 'Fullnode is responding';
-      healthStatus = 'pass';
+      healthStatus = HealthcheckStatus.PASS;
     } catch (e) {
       if (e.response && e.response.data) {
         output = `Fullnode reported as unhealthy: ${JSON.stringify(e.response.data)}`;
         healthStatus = e.response.data.status;
       } else {
         output = `Error getting fullnode health: ${e.message}`;
-        healthStatus = 'fail';
+        healthStatus = HealthcheckStatus.FAIL;
       }
     }
 
@@ -124,7 +128,7 @@ class HealthService {
    *
    * @returns {HealthcheckCallbackResponse}
    */
-  async getTxMiningServiceHealth() {
+  static async getTxMiningServiceHealth() {
     let output;
     let healthStatus;
 
@@ -133,7 +137,12 @@ class HealthService {
 
       healthStatus = healthData.status;
 
-      if (healthStatus === 'fail') {
+      const config = getConfig();
+
+      const isUnhealthy = healthStatus === HealthcheckStatus.FAIL
+        || (healthStatus === HealthcheckStatus.WARN && config.considerHealthcheckWarnAsUnhealthy);
+
+      if (isUnhealthy) {
         output = `Tx Mining Service reported as unhealthy: ${JSON.stringify(healthData)}`;
       } else {
         output = 'Tx Mining Service is healthy';
@@ -153,6 +162,6 @@ class HealthService {
       output
     });
   }
-};
+}
 
 export default HealthService;

@@ -46,7 +46,7 @@ async function getGlobalHealth(req, res) {
   const healthService = new HealthService(walletIds, includeFullnode, includeTxMiningService);
   const healthStatus = await healthService.getHealth();
 
-  res.status(healthStatus.getHttpStatusCode()).send(healthStatus.toJsonSerializable());
+  res.status(healthStatus.getHttpStatusCode()).send(JSON.parse(healthStatus.toJson()));
 }
 
 export {

@@ -78,6 +78,9 @@ const config = {
   // Plugin configuration
   enabled_plugins: getParam('enabled_plugins', '').split(' ').filter(x => x),
   plugin_config: {},
+
+  // Healthcheck configuration
+  considerHealthcheckWarnAsUnhealthy: getBooleanParam('consider_healthcheck_warn_as_unhealthy', true),
 };
 
 const seeds = getParam('seeds', 'default').split(' ');

@@ -14,7 +14,7 @@
     "morgan": "^1.10.0",
     "winston": "^3.3.3",
     "yargs": "^16.2.0",
-    "hathor-healthcheck-lib": "file:/./tmp/hathor-healthcheck-lib-0.0.5.tgz"
+    "hathor-healthcheck-lib": "file:/./tmp/hathor-healthcheck-lib-0.1.1.tgz"
   },
   "scripts": {
     "build": "babel src -d dist --source-maps",
