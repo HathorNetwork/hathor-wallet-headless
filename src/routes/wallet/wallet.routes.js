@@ -18,6 +18,7 @@ const { txHexSchema, partialTxSchema } = require('../../schemas');
 const p2shRouter = require('./p2sh/p2sh.routes');
 const atomicSwapRouter = require('./atomic-swap/atomic-swap.routes');
 const txProposalRouter = require('./tx-proposal/tx-proposal.routes');
+const configRouter = require('./config/config.routes');
 const { MAX_DATA_SCRIPT_LENGTH } = require('../../constants');
 const { patchExpressRouter } = require('../../patch');
 
@@ -26,6 +27,7 @@ walletRouter.use(walletMiddleware);
 walletRouter.use('/atomic-swap', atomicSwapRouter);
 walletRouter.use('/p2sh', p2shRouter);
 walletRouter.use('/tx-proposal', txProposalRouter);
+walletRouter.use('/config', configRouter);
 
 /**
  * GET request to get the status of a wallet
@@ -361,6 +363,8 @@ walletRouter.post(
   body('create_melt').isBoolean().optional().toBoolean(),
   body('melt_authority_address').isString().optional(),
   body('allow_external_melt_authority_address').isBoolean().optional().toBoolean(),
+  body('data').isArray().optional(),
+  body('data.*').isString(),
   createToken
 );
 

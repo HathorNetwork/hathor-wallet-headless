@@ -1,18 +1,13 @@
 {
   "name": "hathor-wallet-headless",
-  "version": "0.23.1",
+  "version": "0.24.0-rc1",
   "description": "Hathor Wallet Headless, i.e., without graphical user interface",
   "main": "index.js",
   "engines": {
     "node": ">=10.0.0"
   },
   "dependencies": {
-    "@babel/cli": "^7.13.0",
-    "@babel/core": "^7.13.1",
-    "@babel/node": "^7.13.0",
-    "@babel/plugin-proposal-class-properties": "^7.13.0",
-    "@babel/preset-env": "^7.13.5",
-    "@hathor/wallet-lib": "^1.0.3",
+    "@hathor/wallet-lib": "1.1.0",
     "express": "^4.17.1",
     "express-validator": "^6.10.0",
     "lodash": "^4.17.11",
@@ -22,6 +17,7 @@
   },
   "scripts": {
     "build": "babel src -d dist --source-maps",
+    "build-scripts": "babel scripts -d dist-scripts --source-maps",
     "dev": "nodemon --exec babel-node src/index.js",
     "start": "npm run build && node dist/index.js",
     "test": "jest --forceExit  --runInBand",
@@ -38,6 +34,7 @@
     "docs_lint": "npx @redocly/cli lint tmp/api-docs.json",
     "docs_server": "npx @redocly/cli preview-docs tmp/api-docs.json",
     "docs_clean": "rm tmp/api-docs.json",
+    "docs_build": "npx @redocly/cli build-docs tmp/api-docs.json -o index.html",
     "docs": "npm run docs_convert && npm run docs_lint && npm run docs_server && npm run docs_clean"
   },
   "repository": {
@@ -51,7 +48,12 @@
   },
   "homepage": "https://github.com/HathorNetwork/hathor-wallet-headless#readme",
   "devDependencies": {
+    "@babel/cli": "^7.13.0",
+    "@babel/core": "^7.13.1",
     "@babel/eslint-parser": "^7.17.0",
+    "@babel/node": "^7.13.0",
+    "@babel/plugin-proposal-class-properties": "^7.13.0",
+    "@babel/preset-env": "^7.13.5",
     "axios-mock-adapter": "^1.19.0",
     "babel-jest": "^26.6.3",
     "eslint": "^8.12.0",
