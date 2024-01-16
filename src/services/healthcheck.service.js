@@ -1,5 +1,5 @@
 import { healthApi, txMiningApi, config as hathorLibConfig } from '@hathor/wallet-lib';
-import { Healthcheck, HealthcheckInternalComponent, HealthcheckHTTPComponent, HealthcheckCallbackResponse, HealthcheckStatus } from 'hathor-healthcheck-lib';
+import { Healthcheck, HealthcheckInternalComponent, HealthcheckHTTPComponent, HealthcheckCallbackResponse, HealthcheckStatus } from '@hathor/healthcheck-lib';
 import { initializedWallets } from './wallets.service';
 import { getConfig } from '../settings';
 
