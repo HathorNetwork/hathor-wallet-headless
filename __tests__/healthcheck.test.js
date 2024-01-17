@@ -62,6 +62,7 @@ describe('healthcheck api', () => {
       expect(response.body).toStrictEqual({
         status: 'pass',
         description: 'Health status of hathor-wallet-headless',
+        httpStatusCode: 200,
         checks: {
           'Wallet health_wallet': [
             {
@@ -71,6 +72,7 @@ describe('healthcheck api', () => {
               status: 'pass',
               output: 'Wallet is ready',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'Wallet another_health_wallet': [
@@ -81,6 +83,7 @@ describe('healthcheck api', () => {
               status: 'pass',
               output: 'Wallet is ready',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'Fullnode http://fakehost:8083/v1a/': [
@@ -91,6 +94,7 @@ describe('healthcheck api', () => {
               status: 'pass',
               output: 'Fullnode is responding',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'TxMiningService http://fake.txmining:8084/': [
@@ -101,6 +105,7 @@ describe('healthcheck api', () => {
               status: 'pass',
               output: 'Tx Mining Service is healthy',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
         }
@@ -123,6 +128,7 @@ describe('healthcheck api', () => {
       expect(response.body).toStrictEqual({
         status: 'fail',
         description: 'Health status of hathor-wallet-headless',
+        httpStatusCode: 503,
         checks: {
           'Wallet health_wallet': [
             {
@@ -132,6 +138,7 @@ describe('healthcheck api', () => {
               status: 'fail',
               output: 'Wallet is not ready. Current state: Syncing',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'Fullnode http://fakehost:8083/v1a/': [
@@ -142,6 +149,7 @@ describe('healthcheck api', () => {
               status: 'pass',
               output: 'Fullnode is responding',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'TxMiningService http://fake.txmining:8084/': [
@@ -152,6 +160,7 @@ describe('healthcheck api', () => {
               status: 'pass',
               output: 'Tx Mining Service is healthy',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
         }
@@ -172,6 +181,7 @@ describe('healthcheck api', () => {
       expect(response.body).toStrictEqual({
         status: 'fail',
         description: 'Health status of hathor-wallet-headless',
+        httpStatusCode: 503,
         checks: {
           'Wallet health_wallet': [
             {
@@ -181,6 +191,7 @@ describe('healthcheck api', () => {
               status: 'pass',
               output: 'Wallet is ready',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'Fullnode http://fakehost:8083/v1a/': [
@@ -191,6 +202,7 @@ describe('healthcheck api', () => {
               status: 'fail',
               output: 'Fullnode reported as unhealthy: {"status":"fail"}',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'TxMiningService http://fake.txmining:8084/': [
@@ -201,6 +213,7 @@ describe('healthcheck api', () => {
               status: 'pass',
               output: 'Tx Mining Service is healthy',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
         }
@@ -221,6 +234,7 @@ describe('healthcheck api', () => {
       expect(response.body).toStrictEqual({
         status: 'fail',
         description: 'Health status of hathor-wallet-headless',
+        httpStatusCode: 503,
         checks: {
           'Wallet health_wallet': [
             {
@@ -230,6 +244,7 @@ describe('healthcheck api', () => {
               status: 'pass',
               output: 'Wallet is ready',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'Fullnode http://fakehost:8083/v1a/': [
@@ -240,6 +255,7 @@ describe('healthcheck api', () => {
               status: 'pass',
               output: 'Fullnode is responding',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'TxMiningService http://fake.txmining:8084/': [
@@ -250,6 +266,7 @@ describe('healthcheck api', () => {
               status: 'fail',
               output: 'Tx Mining Service reported as unhealthy: {"status":"fail"}',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
         }
@@ -265,6 +282,7 @@ describe('healthcheck api', () => {
       expect(response.body).toStrictEqual({
         status: 'pass',
         description: 'Health status of hathor-wallet-headless',
+        httpStatusCode: 200,
         checks: {
           'Wallet health_wallet': [
             {
@@ -274,6 +292,7 @@ describe('healthcheck api', () => {
               status: 'pass',
               output: 'Wallet is ready',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'TxMiningService http://fake.txmining:8084/': [
@@ -284,6 +303,7 @@ describe('healthcheck api', () => {
               status: 'pass',
               output: 'Tx Mining Service is healthy',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
         }
@@ -299,6 +319,7 @@ describe('healthcheck api', () => {
       expect(response.body).toStrictEqual({
         status: 'pass',
         description: 'Health status of hathor-wallet-headless',
+        httpStatusCode: 200,
         checks: {
           'Wallet health_wallet': [
             {
@@ -308,6 +329,7 @@ describe('healthcheck api', () => {
               status: 'pass',
               output: 'Wallet is ready',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'Fullnode http://fakehost:8083/v1a/': [
@@ -318,6 +340,7 @@ describe('healthcheck api', () => {
               status: 'pass',
               output: 'Fullnode is responding',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
         }
