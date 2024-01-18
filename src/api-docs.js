@@ -3592,6 +3592,124 @@ const defaultApiDocs = {
         },
       },
     },
+    '/wallet/nano-contracts/oracle-data': {
+      get: {
+        summary: 'Get the oracle data.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'oracle',
+            in: 'query',
+            description: 'The address in base58 that will be used as oracle or the oracle data itself in hex (in this case, it will just be returned the same).',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Success',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Get oracle data from an address.',
+                    value: {
+                      success: true,
+                      oracleData: '12345678',
+                    }
+                  },
+                  error: {
+                    summary: 'Invalid oracle string.',
+                    value: {
+                      success: false,
+                      message: 'Invalid hex value for oracle script.'
+                    }
+                  },
+                }
+              }
+            }
+          }
+        },
+      },
+    },
+    '/wallet/nano-contracts/oracle-signed-result': {
+      get: {
+        summary: 'Get the result signed by the oracle. Returns the string of the argument to be used in the method.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'oracle_data',
+            in: 'query',
+            description: 'The oracle data. If it\'s not an address, we expect the full input data.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'result',
+            in: 'query',
+            description: 'The result to be signed. If the type is bytes, then we expect it in hex.',
+            required: true,
+            schema: {
+              type: 'any',
+            },
+          },
+          {
+            name: 'type',
+            in: 'query',
+            description: 'The type of the result.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Success',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Get oracle signed result.',
+                    value: {
+                      success: true,
+                      oracleData: '12345678:1x0:str',
+                    }
+                  },
+                  error: {
+                    summary: 'Address used is from another wallet.',
+                    value: {
+                      success: false,
+                      message: 'Oracle address is not from the loaded wallet.'
+                    }
+                  },
+                }
+              }
+            }
+          }
+        },
+      },
+    },
     '/wallet/nano-contracts/create': {
       post: {
         summary: 'Create a nano contract of a blueprint.',
