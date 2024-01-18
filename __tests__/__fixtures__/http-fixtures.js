@@ -1064,4 +1064,12 @@ export default {
       'nc_pubkey': '033f5d238afaa9e2218d05dd7fa50eb6f9e55431e6359e04b861cd991ae24dc655'
     }]
   },
+  '/nano_contract/oracle-data': {
+    'success': true,
+    'oracleData': '1234'
+  },
+  '/nano_contract/oracle-signed-result': {
+    'success': true,
+    'signedResult': '123456,1x0,str'
+  },
 };
