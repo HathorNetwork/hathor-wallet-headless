@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { ncApi } = require('@hathor/wallet-lib');
+const { ncApi, nanoUtils, bufferUtils, Serializer } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../lock');
 const { cantSendTxErrorMessage } = require('../../helpers/constants');
@@ -59,14 +59,23 @@ async function getHistory(req, res) {
   }
 }
 
+/**
+ * Create a nano contract
+ */
 async function createNanoContract(req, res) {
   executeNanoContractMethodHelper(req, res, true);
 }
 
+/**
+ * Execute a method of a nano contract that already exists
+ */
 async function executeNanoContractMethod(req, res) {
   executeNanoContractMethodHelper(req, res, false);
 }
 
+/**
+ * Helper method to build nano contract transaction
+ */
 async function executeNanoContractMethodHelper(req, res, isInitialize) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
@@ -105,9 +114,73 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
   }
 }
 
+/**
+ * Method to get oracle data from a string (it might be an address or the oracle data directly in hex)
+ */
+function getOracleData(req, res) {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    res.status(400).json(validationResult);
+    return;
+  }
+
+  const { oracle } = req.query;
+  const { wallet } = req;
+
+  try {
+    const oracleData = nanoUtils.getOracleBuffer(oracle, wallet.getNetworkObject());
+
+    res.send({
+      success: true,
+      oracleData: bufferUtils.bufferToHex(oracleData),
+    });
+  } catch (err) {
+    res.send({ success: false, error: err.message });
+  }
+}
+
+/**
+ * Get the argument of a result signed by an oracle
+ */
+async function getOracleSignedResult(req, res) {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    res.status(400).json(validationResult);
+    return;
+  }
+
+  const { result, type, oracle_data } = req.query;
+  const { wallet } = req;
+
+  try {
+    let resultToSerialize = result;
+    if (type === 'bytes') {
+      // If type is bytes, then the result comes in hex
+      resultToSerialize = bufferUtils.hexToBuffer(result);
+    }
+
+    const nanoSerializer = new Serializer();
+    const resultSerialized = nanoSerializer.serializeFromType(resultToSerialize, type);
+
+    const oracleDataBuffer = bufferUtils.hexToBuffer(oracle_data);
+    const inputData = await nanoUtils.getOracleInputData(oracleDataBuffer, resultSerialized, wallet);
+
+    const signedResult = `${bufferUtils.bufferToHex(inputData)},${result},${type}`;
+
+    res.send({
+      success: true,
+      signedResult,
+    });
+  } catch (err) {
+    res.send({ success: false, error: err.message });
+  }
+}
+
 module.exports = {
   getState,
   getHistory,
   createNanoContract,
   executeNanoContractMethod,
+  getOracleData,
+  getOracleSignedResult,
 };

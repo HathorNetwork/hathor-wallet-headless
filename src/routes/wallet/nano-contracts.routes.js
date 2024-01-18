@@ -7,7 +7,14 @@
 
 const { Router } = require('express');
 const { query, body } = require('express-validator');
-const { getState, getHistory, createNanoContract, executeNanoContractMethod } = require('../../controllers/wallet/nano-contracts.controller');
+const {
+  getState,
+  getHistory,
+  createNanoContract,
+  executeNanoContractMethod,
+  getOracleData,
+  getOracleSignedResult
+} = require('../../controllers/wallet/nano-contracts.controller');
 const { patchExpressRouter } = require('../../patch');
 
 const nanoContractRouter = patchExpressRouter(Router({ mergeParams: true }));
@@ -23,6 +30,32 @@ nanoContractRouter.get(
   query('balances').isArray().optional().default([]),
   query('calls').isArray().optional().default([]),
   getState
+);
+
+/**
+ * GET request to get the oracle data
+ * oracle field might be an address in base58 or
+ * the oracle data in hex
+ * For the docs, see api-docs.js
+ */
+nanoContractRouter.get(
+  '/oracle-data',
+  query('oracle').isString(),
+  getOracleData
+);
+
+/**
+ * GET request to get the oracle data
+ * oracle field might be an address in base58 or
+ * the oracle data in hex
+ * For the docs, see api-docs.js
+ */
+nanoContractRouter.get(
+  '/oracle-signed-result',
+  query('oracle_data').isString(),
+  query('result'),
+  query('type').isString(),
+  getOracleSignedResult
 );
 
 /**
