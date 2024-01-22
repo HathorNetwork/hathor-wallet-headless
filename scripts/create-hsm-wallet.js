@@ -25,7 +25,7 @@ async function createXprivKey(keyName) {
 
   // Creates a key
   const key = await hsmConnection.blockchain.create(
-    keyName, // Nome da chave
+    keyName, // Name of the key
     hsm.enums.BLOCKCHAIN_KEYS.BIP32_XPRV,
     false, // Exportable
     false, // Temporary
@@ -44,12 +44,15 @@ async function createXprivKey(keyName) {
 }
 
 /**
- * Creates a promise to delay for a given number of milisseconds
- * @param {number} [ms=1000]
+ * Creates a promise to delay for a given number of milliseconds
+ * @param {number} ms Number of milliseconds to delay. Allows zero.
  * @returns {Promise<void>}
  */
 async function delay(ms) {
-  return new Promise(resolve => { setTimeout(resolve, ms || 1000); });
+  if (ms === null || ms === undefined || isNaN(ms)) {
+    throw new Error('Delay time must be a number');
+  }
+  return new Promise(resolve => { setTimeout(resolve, ms); });
 }
 
 /**
@@ -81,12 +84,12 @@ async function main() {
   return createXprivKey(keyName)
     .then(async results => {
       console.log('New xPriv Key Information:', JSON.stringify(results, null, 2));
-      await delay();
+      await delay(1000); // Allows enough time for the stdout to be written before exiting
       process.exit(0);
     })
     .catch(async e => {
       console.error(e.stack);
-      await delay();
+      await delay(1000); // Allows enough time for the stderr to be written before exiting
       process.exit(1);
     });
 }
