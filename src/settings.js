@@ -62,6 +62,8 @@ const { initHathorLib } = require('./helpers/wallet.helper');
  * @property {string[]} [enabled_plugins] - The plugins we should start when
  * the service starts up.
  * @property {Record<string, PluginConfig>} [plugin_config] - The custom plugin configuration.
+ * @property {boolean} [considerHealthcheckWarnAsUnhealthy] - If true, the healthcheck
+ * will consider a warn as unhealthy.
  */
 
 /**

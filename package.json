@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@hathor/wallet-lib": "1.1.0",
+    "@hathor/healthcheck-lib": "^0.1.0",
     "express": "^4.17.1",
     "express-validator": "^6.10.0",
     "lodash": "^4.17.11",
