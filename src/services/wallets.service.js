@@ -12,14 +12,16 @@ const { sanitizeLogInput } = require('../logger');
 const settings = require('../settings');
 
 /**
+ * All wallets that were initialized by the user, mapped by their identifier
  * @type {Map<string, HathorWallet>}
  */
 const initializedWallets = new Map();
 
 /**
+ * A map between Wallet IDs and HSM Key names of the initialized wallets
  * @type {Map<string, String>}
  */
-const hardWalletIds = new Map();
+const hsmWalletIds = new Map();
 
 /**
  * Stop a wallet
@@ -33,8 +35,8 @@ async function stopWallet(walletId) {
     return;
   }
   // Cleans the wallet from the hard wallets map
-  if (hardWalletIds.has(walletId)) {
-    hardWalletIds.delete(walletId);
+  if (hsmWalletIds.has(walletId)) {
+    hsmWalletIds.delete(walletId);
   }
   await wallet.stop();
   initializedWallets.delete(walletId);
@@ -115,14 +117,14 @@ Full-node info: ${JSON.stringify(info, null, 2)}`);
  * @param {string} walletId
  * @returns {boolean} True if this is a hardware wallet
  */
-function isHardwareWallet(walletId) {
-  return initializedWallets.has(walletId) && hardWalletIds.has(walletId);
+function isHsmWallet(walletId) {
+  return initializedWallets.has(walletId) && hsmWalletIds.has(walletId);
 }
 
 module.exports = {
   initializedWallets,
-  hardWalletIds,
-  isHardwareWallet,
+  hardWalletIds: hsmWalletIds,
+  isHsmWallet,
   stopWallet,
   stopAllWallets,
   startWallet,
