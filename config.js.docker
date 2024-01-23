@@ -80,7 +80,7 @@ const config = {
   plugin_config: {},
 
   // Healthcheck configuration
-  considerHealthcheckWarnAsUnhealthy: getBooleanParam('consider_healthcheck_warn_as_unhealthy', true),
+  considerHealthcheckWarnAsUnhealthy: getBooleanParam('consider_healthcheck_warn_as_unhealthy', 'true'),
 };
 
 const seeds = getParam('seeds', 'default').split(' ');
