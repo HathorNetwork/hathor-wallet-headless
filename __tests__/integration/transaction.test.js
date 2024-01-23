@@ -73,7 +73,14 @@ describe('transaction routes', () => {
 
     let firstBlockHeight = txData1.meta.first_block_height;
     if (firstBlockHeight === null) {
+      // The idea here is to wait until the first_block_height metadata is filled in the transaction
+      // When a block is mined, the miner sends it to the full node and starts mining the new block
+      // from time to time, it updates the block template requesting the full node, maybe even
+      // getting new parents for the next block but if the mining succeeds fast, it won't have the
+      // new transactions as parents. That's why I'm waiting 2 blocks to guarantee the tx will be
+      // confirmed by at least one of them
       await TestUtils.waitNewBlock(height);
+      await TestUtils.waitNewBlock(height + 1);
       const txData2 = await TestUtils.getFullNodeTransactionData(txId);
       firstBlockHeight = txData2.meta.first_block_height;
       expect(firstBlockHeight).not.toBeNull();
