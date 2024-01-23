@@ -7,6 +7,7 @@
     "node": ">=10.0.0"
   },
   "dependencies": {
+    "@dinamonetworks/hsm-dinamo": "^4.8.1",
     "@hathor/wallet-lib": "1.1.0",
     "@hathor/healthcheck-lib": "^0.1.0",
     "express": "^4.17.1",

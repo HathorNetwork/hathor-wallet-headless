@@ -17,14 +17,24 @@ const settings = require('../settings');
 const initializedWallets = new Map();
 
 /**
+ * @type {Map<string, String>}
+ */
+const hardWalletIds = new Map();
+
+/**
  * Stop a wallet
  * @param {string} walletId
  * @returns {Promise<void>}
  */
 async function stopWallet(walletId) {
+  // Cleans the wallet from the initialized wallets map
   const wallet = initializedWallets.get(walletId);
   if (!wallet) {
     return;
+  }
+  // Cleans the wallet from the hard wallets map
+  if (hardWalletIds.has(walletId)) {
+    hardWalletIds.delete(walletId);
   }
   await wallet.stop();
   initializedWallets.delete(walletId);
@@ -100,8 +110,19 @@ Full-node info: ${JSON.stringify(info, null, 2)}`);
   return info;
 }
 
+/**
+ * Returns true if a wallet id represents an initialized hardware wallet
+ * @param {string} walletId
+ * @returns {boolean} True if this is a hardware wallet
+ */
+function isHardwareWallet(walletId) {
+  return initializedWallets.has(walletId) && hardWalletIds.has(walletId);
+}
+
 module.exports = {
   initializedWallets,
+  hardWalletIds,
+  isHardwareWallet,
   stopWallet,
   stopAllWallets,
   startWallet,

@@ -153,6 +153,77 @@ const defaultApiDocs = {
         },
       },
     },
+    '/hsm/start': {
+      post: {
+        summary: 'Create and start a read-only wallet through an HSM, then add it to store.',
+        requestBody: {
+          description: 'Data to start the wallet',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['wallet-id', 'hsm-key'],
+                properties: {
+                  'wallet-id': {
+                    type: 'string',
+                    description: 'Define the key of the corresponding wallet it will be executed the request.'
+                  },
+                  'hsm-key': {
+                    type: 'string',
+                    description: 'Key name containing the BIP32 xPriv on the HSM device.'
+                  },
+                }
+              },
+              examples: {
+                data: {
+                  summary: 'Data to start the wallet',
+                  value: {
+                    'wallet-id': 'hardware-wallet-1',
+                    'hsm-key': 'hathor_wallet_1',
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Start a wallet',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true },
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'no-hsm-key': {
+                    summary: 'No HSM key parameter',
+                    value: { success: false, message: "Parameter 'hsm-key' is required." }
+                  },
+                  'hsm-key-invalid': {
+                    summary: 'HSM key informed is not valid',
+                    value: { success: false, message: `Informed 'hsm-key' is not a valid xPriv.` }
+                  },
+                  'start-failed': {
+                    summary: 'Wallet failed to start.',
+                    value: { success: false, message: 'Failed to start wallet with id X and key Y' }
+                  },
+                  'wallet-already-started': {
+                    summary: 'Wallet with same id was already started.',
+                    value: { success: false, message: 'Error starting wallet because this wallet-id is already in use. You must stop the wallet first.', errorCode: 'WALLET_ALREADY_STARTED' }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     '/multisig-pubkey': {
       post: {
         operationId: 'getMultisigPubkey',
