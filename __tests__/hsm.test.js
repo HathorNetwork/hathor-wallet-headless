@@ -23,13 +23,9 @@ const walletId = 'stub_hsm_start';
 const hsmKeyName = 'stub_hsm_key';
 
 describe('start HSM api', () => {
-  beforeEach(async () => {
+  afterEach(async () => {
     await TestUtils.stopWallet({ walletId });
     lock.unlock(lockTypes.HSM);
-  });
-
-  afterAll(async () => {
-    await TestUtils.stopWallet({ walletId });
   });
 
   it('should not start a wallet without a wallet-id', async () => {
@@ -123,6 +119,22 @@ describe('start HSM api', () => {
     expect(connectMock).toHaveBeenCalledTimes(1);
     expect(disconnectMock).toHaveBeenCalledTimes(1);
   });
+
+  it('should return a treated message on unexpected error on getXPubFromKey', async () => {
+    hsmConnectionMock.blockchain.getPubKey.mockRejectedValueOnce({ message: 'getPubKey failure' });
+
+    const response = await TestUtils.request
+      .post('/hsm/start')
+      .send({
+        'wallet-id': walletId,
+        'hsm-key': hsmKeyName
+      });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(false);
+    expect(response.body.message).toBe('Unexpected error on HSM xPub derivation: getPubKey failure');
+    expect(connectMock).toHaveBeenCalledTimes(1);
+    expect(disconnectMock).toHaveBeenCalledTimes(1);
+  })
 
   it('should handle HSM connection errors gracefully', async () => {
     connectMock.mockRejectedValueOnce({ message: 'Conn failure' });

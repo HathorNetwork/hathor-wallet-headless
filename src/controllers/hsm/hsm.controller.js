@@ -97,9 +97,19 @@ async function startHsmWallet(req, res) {
   }
 
   // Obtains this wallet's xPub from the HSM
-  const xPub = await hsmService.getXPubFromKey(connectionObj, hsmKeyName, {
-    isReadOnlyWallet: true,
-  });
+  let xPub = null;
+  try {
+    xPub = await hsmService.getXPubFromKey(connectionObj, hsmKeyName, {
+      isReadOnlyWallet: true,
+    });
+  } catch (e) {
+    res.send({
+      success: false,
+      message: `Unexpected error on HSM xPub derivation: ${e.message}`,
+    });
+    await hsmService.hsmDisconnect();
+    return;
+  }
   await hsmService.hsmDisconnect();
 
   // Builds the wallet configuration object
