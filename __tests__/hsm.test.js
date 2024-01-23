@@ -134,7 +134,7 @@ describe('start HSM api', () => {
     expect(response.body.message).toBe('Unexpected error on HSM xPub derivation: getPubKey failure');
     expect(connectMock).toHaveBeenCalledTimes(1);
     expect(disconnectMock).toHaveBeenCalledTimes(1);
-  })
+  });
 
   it('should handle HSM connection errors gracefully', async () => {
     connectMock.mockRejectedValueOnce({ message: 'Conn failure' });
@@ -182,6 +182,8 @@ describe('start HSM api', () => {
     expect(response.body.success).toBe(true);
     expect(connectMock).toHaveBeenCalledTimes(1);
     expect(disconnectMock).toHaveBeenCalledTimes(1);
+
+    await TestUtils.waitReady({ walletId });
   });
 
   it('should not start two wallets with the same wallet-id', async () => {
@@ -202,6 +204,9 @@ describe('start HSM api', () => {
     // No connection attempts should have happened
     expect(connectMock).toHaveBeenCalledTimes(1);
     expect(disconnectMock).toHaveBeenCalledTimes(1);
+
+    // Ensure the wallet is ready before finishing the test and requesting it to be stopped
+    await TestUtils.waitReady({ walletId });
   });
 
   it('should manage the hardWallet map on start and stop', async () => {
@@ -210,6 +215,9 @@ describe('start HSM api', () => {
       .send({ 'wallet-id': walletId, 'hsm-key': hsmKeyName });
     expect(response.body.success).toBe(true);
     expect(walletsService.hardWalletIds.has(walletId)).toBe(true);
+
+    // Ensure the wallet is ready before requesting it to be stopped
+    await TestUtils.waitReady({ walletId });
 
     await TestUtils.stopWallet({ walletId });
     expect(walletsService.hardWalletIds.has(walletId)).toBe(false);
