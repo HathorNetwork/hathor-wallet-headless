@@ -5,10 +5,26 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { errors, walletUtils, config as hathorLibConfig } from '@hathor/wallet-lib';
+import { config as hathorLibConfig, errors, walletUtils } from '@hathor/wallet-lib';
 import { WalletStartError } from '../errors';
 import version from '../version';
 import { SWAP_SERVICE_MAINNET_BASE_URL, SWAP_SERVICE_TESTNET_BASE_URL } from '../constants';
+
+/**
+ * @typedef {object} WalletConfig
+ * @property {string} password - The password
+ * @property {string} pinCode - the PIN code
+ * @property {string} [xpub] - The xpub key (only in getReadonlyWalletConfig)
+ * @property {{ numSignatures: number, pubkeys: string[] }} [multisig] - The multisig data
+ * @property {{
+ *  policy: string,
+ *  startIndex?: number,
+ *  endIndex?: number,
+ *  gapLimit?: number,
+ * }} [scanPolicy] - Scan policy data
+ * @property {string} [seed] - The seed (only in getWalletConfigFromSeed)
+ * @property {string} [passphrase] - The passphrase (only in getWalletConfigFromSeed)
+ */
 
 export function initHathorLib(config) {
   if (config.txMiningUrl) {

@@ -47,6 +47,18 @@ async function stopAllWallets() {
   }
 }
 
+/**
+ * Starts the wallet with the given configuration objects:
+ * one for the wallet instance and other for the application.
+ *
+ * Returns an object containing the fullnode version data.
+ *
+ * @param {string} walletId User identifier for the wallet
+ * @param {WalletConfig} walletConfig Wallet configuration
+ * @param {Configuration} config Application configuration
+ * @param {{}} [options={}] Additional options, currently unused
+ * @returns {Promise<Object>} Returns the fullnode version data
+ */
 async function startWallet(walletId, walletConfig, config, options = {}) {
   if (walletConfig.connection) {
     throw new Error('Invalid parameter for startWallet helper');
