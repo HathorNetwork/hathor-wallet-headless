@@ -154,8 +154,8 @@ const defaultApiDocs = {
       },
     },
     '/hsm/start': {
-      operationId: 'hsmWalletStart',
       post: {
+        operationId: 'hsmWalletStart',
         summary: 'Create and start a read-only wallet through an HSM, then add it to store.',
         requestBody: {
           description: 'Data to start the wallet',
