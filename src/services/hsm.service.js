@@ -120,11 +120,18 @@ async function derivateHtrCkd(
    *        1 /    2 /      3  /       4
    */
 
-  // Derivation 1: Bip Code
-  const derivationVersion = options?.version
-    ? options.version
-    : hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET;
+  // Defining derivation version
+  let derivationVersion = options?.version;
+  if (!derivationVersion) {
+    const config = getConfig();
+    if (config.network === 'mainnet') {
+      derivationVersion = hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET;
+    } else {
+      derivationVersion = hsm.enums.VERSION_OPTIONS.BIP32_HTR_TEST_NET;
+    }
+  }
 
+  // Derivation 1: Bip Code
   await hsmConnection.blockchain.createBip32ChildKeyDerivation(
     derivationVersion, // Version
     hsm.enums.BCHAIN_SECURE_BIP32_INDEX.BASE + 44, // Derivation index
