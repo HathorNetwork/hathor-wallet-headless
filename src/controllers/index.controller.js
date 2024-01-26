@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { walletApi, tokensUtils, walletUtils, Connection, HathorWallet, Network, helpersUtils, SendTransaction, constants: hathorLibConstants } = require('@hathor/wallet-lib');
+const { walletApi, tokensUtils, walletUtils, Network, helpersUtils, SendTransaction, constants: hathorLibConstants } = require('@hathor/wallet-lib');
 const { getApiDocs } = require('../api-docs');
 const { initializedWallets, startWallet } = require('../services/wallets.service');
 const { cantSendTxErrorMessage, API_ERROR_CODES } = require('../helpers/constants');
