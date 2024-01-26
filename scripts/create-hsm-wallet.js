@@ -6,6 +6,7 @@
  */
 
 const { hsm } = require('@dinamonetworks/hsm-dinamo');
+const { isNumber } = require('lodash');
 const config = require('../src/config');
 
 /**
@@ -49,8 +50,8 @@ async function createXprivKey(keyName) {
  * @returns {Promise<void>}
  */
 async function delay(ms) {
-  if (ms === null || ms === undefined || isNaN(ms)) {
-    throw new Error('Delay time must be a number');
+  if (!isNumber(ms) || ms < 0) {
+    throw new Error('Delay time must be a positive number');
   }
   return new Promise(resolve => { setTimeout(resolve, ms); });
 }
