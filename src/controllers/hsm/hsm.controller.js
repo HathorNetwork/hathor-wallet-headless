@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+const settings = require('../../settings');
 const {
   initializedWallets,
   startWallet,
@@ -110,7 +111,8 @@ async function startHsmWallet(req, res) {
   const walletConfig = getReadonlyWalletConfig({ xpub: xPub });
 
   // Create the wallet instance
-  startWallet(walletId, walletConfig, { hsmKeyName })
+  const config = settings.getConfig();
+  startWallet(walletId, walletConfig, config, { hsmKeyName })
     .then(info => {
       res.send({
         success: true,

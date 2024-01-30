@@ -9,7 +9,6 @@ const { Connection, HathorWallet } = require('@hathor/wallet-lib');
 const { removeAllWalletProposals } = require('./atomic-swap.service');
 const { notificationBus } = require('./notification.service');
 const { sanitizeLogInput } = require('../logger');
-const settings = require('../settings');
 
 /**
  * All wallets that were initialized by the user, mapped by their identifier
@@ -68,16 +67,16 @@ async function stopAllWallets() {
  *
  * @param {string} walletId User identifier for the wallet
  * @param {WalletConfig} walletConfig Wallet configuration
+ * @param {Configuration} config Application configuration
  * @param {object} [options={}] Additional options
  * @param {string} [options.hsmKeyName] HSM key name
  * @returns {Promise<Object>} Returns the fullnode version data
  */
-async function startWallet(walletId, walletConfig, options = {}) {
+async function startWallet(walletId, walletConfig, config, options = {}) {
   if (walletConfig.connection) {
     throw new Error('Invalid parameter for startWallet helper');
   }
   const hydratedWalletConfig = { ...walletConfig };
-  const config = settings.getConfig();
 
   // Builds the connection object
   hydratedWalletConfig.connection = new Connection({

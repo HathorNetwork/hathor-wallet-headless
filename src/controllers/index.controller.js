@@ -222,7 +222,7 @@ async function start(req, res) {
     walletConfig.preCalculatedAddresses = preCalculatedAddresses;
   }
 
-  startWallet(walletID, walletConfig)
+  startWallet(walletID, walletConfig, config)
     .then(info => {
       res.send({
         success: true,
