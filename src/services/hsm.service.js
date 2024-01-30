@@ -17,6 +17,12 @@ const { HsmError } = require('../errors');
  * @returns {Promise<Hsm>}
  */
 async function hsmConnect() {
+  // Ensures there is a config for the HSM integration
+  const config = getConfig();
+  if (!config.hsmHost || !config.hsmUsername || !config.hsmPassword) {
+    throw new HsmError('HSM integration is not configured');
+  }
+
   // Ensures that only one connection will be open at any given moment
   const canStart = lock.lock(lockTypes.HSM);
   if (!canStart) {
@@ -24,7 +30,6 @@ async function hsmConnect() {
   }
 
   // Gets the connection data from the global config file
-  const config = getConfig();
   const hsmConnectionOptions = {
     host: config.hsmHost,
     authUsernamePassword: {

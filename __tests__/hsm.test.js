@@ -1,6 +1,7 @@
 import TestUtils from './test-utils';
 import { lock, lockTypes } from '../src/lock';
 import * as constants from '../src/helpers/constants';
+import settingsFixture from './__fixtures__/settings-fixture';
 
 const { hsm } = require('@dinamonetworks/hsm-dinamo');
 
@@ -21,6 +22,12 @@ const disconnectMock = jest.spyOn(hsm, 'disconnect').mockImplementation(() => {}
 
 const walletId = 'stub_hsm_start';
 const hsmKeyName = 'stub_hsm_key';
+
+const config = settingsFixture._getDefaultConfig();
+jest.doMock('../src/config', () => ({
+  __esModule: true,
+  default: config,
+}));
 
 describe('start HSM api', () => {
   afterEach(async () => {
@@ -48,6 +55,67 @@ describe('start HSM api', () => {
     expect(response.body.message).toContain(`hsm-key' is required`);
     expect(connectMock).toHaveBeenCalledTimes(0);
     expect(disconnectMock).toHaveBeenCalledTimes(0);
+  });
+
+  it('should not start a wallet if hsm was not completely configured', async () => {
+    const newConfig = settingsFixture._getDefaultConfig();
+
+    // Missing host
+    newConfig.hsmHost = null;
+    newConfig.hsmUsername = 'hathor-test';
+    newConfig.hsmPassword = 'hathor-pass';
+    settingsFixture._setConfig(newConfig);
+    let response = await TestUtils.request
+      .post('/hsm/start')
+      .send({
+        'wallet-id': walletId,
+        'hsm-key': hsmKeyName,
+      });
+    ensureExpectedResults(response);
+
+    // Missing username
+    newConfig.hsmHost = '127.0.0.1';
+    newConfig.hsmUsername = null;
+    newConfig.hsmPassword = 'hathor-pass';
+    settingsFixture._setConfig(newConfig);
+
+    response = await TestUtils.request
+      .post('/hsm/start')
+      .send({
+        'wallet-id': walletId,
+        'hsm-key': hsmKeyName,
+      });
+    ensureExpectedResults(response);
+
+    // Missing password
+    newConfig.hsmHost = '127.0.0.1';
+    newConfig.hsmUsername = 'hathor-test';
+    newConfig.hsmPassword = null;
+    settingsFixture._setConfig(newConfig);
+
+    response = await TestUtils.request
+      .post('/hsm/start')
+      .send({
+        'wallet-id': walletId,
+        'hsm-key': hsmKeyName,
+      });
+    ensureExpectedResults(response);
+
+    // Return values back to default
+    settingsFixture._setConfig(settingsFixture._getDefaultConfig());
+
+    /**
+     * Validates the response object from the request and also the connect/disconnect mocks
+     * to ensure no call was made during the requests.
+     * @param _response
+     */
+    function ensureExpectedResults(_response) {
+      expect(_response.status).toBe(200);
+      expect(_response.body.success).toBe(false);
+      expect(_response.body.message).toContain(`HSM integration is not configured`);
+      expect(connectMock).toHaveBeenCalledTimes(0);
+      expect(disconnectMock).toHaveBeenCalledTimes(0);
+    }
   });
 
   it('should not start a wallet with a key that does not exist on hsm', async () => {
