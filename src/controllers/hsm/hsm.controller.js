@@ -6,18 +6,12 @@
  */
 
 const {
-  Connection,
-  HathorWallet
-} = require('@hathor/wallet-lib');
-const {
   initializedWallets,
-  hardWalletIds
+  startWallet,
 } = require('../../services/wallets.service');
 const { API_ERROR_CODES } = require('../../helpers/constants');
 const hsmService = require('../../services/hsm.service');
 const { HsmError } = require('../../errors');
-const settings = require('../../settings');
-const { notificationBus } = require('../../services/notification.service');
 const { getReadonlyWalletConfig } = require('../../helpers/wallet.helper');
 
 /**
@@ -113,38 +107,11 @@ async function startHsmWallet(req, res) {
   await hsmService.hsmDisconnect();
 
   // Builds the wallet configuration object
-  const config = settings.getConfig();
   const walletConfig = getReadonlyWalletConfig({ xpub: xPub });
-  walletConfig.connection = new Connection({
-    network: config.network,
-    servers: [config.server],
-    connectionTimeout: config.connectionTimeout,
-  });
 
-  // tokenUid is optional but if not passed as parameter the wallet will use HTR
-  if (config.tokenUid) {
-    walletConfig.tokenUid = config.tokenUid;
-  }
-
-  // Actually creats the wallet instance
-  const wallet = new HathorWallet(walletConfig);
-
-  if (config.gapLimit) {
-    // XXX: The gap limit is now a per-wallet configuration
-    // To keep the same behavior as before, we set the gap limit
-    // when creating the wallet, but we should move this to the
-    // wallet configuration in the future
-    await wallet.setGapLimit(config.gapLimit);
-  }
-
-  // Subscribe to wallet events with notificationBus
-  notificationBus.subscribeHathorWallet(walletId, wallet);
-
-  // Starts the wallet
-  wallet.start()
+  // Create the wallet instance
+  startWallet(walletId, walletConfig, { hsmKeyName })
     .then(info => {
-      initializedWallets.set(walletId, wallet);
-      hardWalletIds.set(walletId, hsmKeyName);
       res.send({
         success: true,
       });

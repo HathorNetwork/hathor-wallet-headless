@@ -209,17 +209,17 @@ describe('start HSM api', () => {
     await TestUtils.waitReady({ walletId });
   });
 
-  it('should manage the hardWallet map on start and stop', async () => {
+  it('should manage the hsmWallet map on start and stop', async () => {
     const response = await TestUtils.request
       .post('/hsm/start')
       .send({ 'wallet-id': walletId, 'hsm-key': hsmKeyName });
     expect(response.body.success).toBe(true);
-    expect(walletsService.hardWalletIds.has(walletId)).toBe(true);
+    expect(walletsService.hsmWalletIds.has(walletId)).toBe(true);
 
     // Ensure the wallet is ready before requesting it to be stopped
     await TestUtils.waitReady({ walletId });
 
     await TestUtils.stopWallet({ walletId });
-    expect(walletsService.hardWalletIds.has(walletId)).toBe(false);
+    expect(walletsService.hsmWalletIds.has(walletId)).toBe(false);
   });
 });

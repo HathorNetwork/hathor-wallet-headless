@@ -68,7 +68,8 @@ async function stopAllWallets() {
  *
  * @param {string} walletId User identifier for the wallet
  * @param {WalletConfig} walletConfig Wallet configuration
- * @param {{}} [options={}] Additional options, currently unused
+ * @param {object} [options={}] Additional options
+ * @param {string} [options.hsmKeyName] HSM key name
  * @returns {Promise<Object>} Returns the fullnode version data
  */
 async function startWallet(walletId, walletConfig, options = {}) {
@@ -109,6 +110,9 @@ async function startWallet(walletId, walletConfig, options = {}) {
 Full-node info: ${JSON.stringify(info, null, 2)}`);
 
   initializedWallets.set(walletId, wallet);
+  if (options?.hsmKeyName) {
+    hsmWalletIds.set(walletId, options.hsmKeyName);
+  }
   return info;
 }
 
@@ -123,7 +127,7 @@ function isHsmWallet(walletId) {
 
 module.exports = {
   initializedWallets,
-  hardWalletIds: hsmWalletIds,
+  hsmWalletIds,
   isHsmWallet,
   stopWallet,
   stopAllWallets,
