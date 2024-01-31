@@ -6,6 +6,9 @@ const defaultConfig = {
   network: 'testnet',
   server: 'http://fakehost:8083/v1a/',
   txMiningUrl: 'http://fake.txmining:8084/',
+  hsmHost: 'fake-hsm-host',
+  hsmUsername: 'hathor-test',
+  hsmPassword: 'hathor-pass',
   seeds: {
     stub_seed:
       'upon tennis increase embark dismiss diamond monitor face magnet jungle scout salute rural master shoulder cry juice jeans radar present close meat antenna mind',

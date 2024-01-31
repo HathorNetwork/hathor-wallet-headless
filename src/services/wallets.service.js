@@ -9,12 +9,18 @@ const { Connection, HathorWallet } = require('@hathor/wallet-lib');
 const { removeAllWalletProposals } = require('./atomic-swap.service');
 const { notificationBus } = require('./notification.service');
 const { sanitizeLogInput } = require('../logger');
-const settings = require('../settings');
 
 /**
+ * All wallets that were initialized by the user, mapped by their identifier
  * @type {Map<string, HathorWallet>}
  */
 const initializedWallets = new Map();
+
+/**
+ * A map between Wallet IDs and HSM Key names of the initialized wallets
+ * @type {Map<string, String>}
+ */
+const hsmWalletIds = new Map();
 
 /**
  * Stop a wallet
@@ -22,9 +28,14 @@ const initializedWallets = new Map();
  * @returns {Promise<void>}
  */
 async function stopWallet(walletId) {
+  // Cleans the wallet from the initialized wallets map
   const wallet = initializedWallets.get(walletId);
   if (!wallet) {
     return;
+  }
+  // Cleans the wallet from the hard wallets map
+  if (hsmWalletIds.has(walletId)) {
+    hsmWalletIds.delete(walletId);
   }
   await wallet.stop();
   initializedWallets.delete(walletId);
@@ -56,15 +67,16 @@ async function stopAllWallets() {
  *
  * @param {string} walletId User identifier for the wallet
  * @param {WalletConfig} walletConfig Wallet configuration
- * @param {{}} [options={}] Additional options, currently unused
+ * @param {Configuration} config Application configuration
+ * @param {object} [options={}] Additional options
+ * @param {string} [options.hsmKeyName] HSM key name
  * @returns {Promise<Object>} Returns the fullnode version data
  */
-async function startWallet(walletId, walletConfig, options = {}) {
+async function startWallet(walletId, walletConfig, config, options = {}) {
   if (walletConfig.connection) {
     throw new Error('Invalid parameter for startWallet helper');
   }
   const hydratedWalletConfig = { ...walletConfig };
-  const config = settings.getConfig();
 
   // Builds the connection object
   hydratedWalletConfig.connection = new Connection({
@@ -97,11 +109,25 @@ async function startWallet(walletId, walletConfig, options = {}) {
 Full-node info: ${JSON.stringify(info, null, 2)}`);
 
   initializedWallets.set(walletId, wallet);
+  if (options?.hsmKeyName) {
+    hsmWalletIds.set(walletId, options.hsmKeyName);
+  }
   return info;
+}
+
+/**
+ * Returns true if a wallet id represents an initialized hardware wallet
+ * @param {string} walletId
+ * @returns {boolean} True if this is a hardware wallet
+ */
+function isHsmWallet(walletId) {
+  return initializedWallets.has(walletId) && hsmWalletIds.has(walletId);
 }
 
 module.exports = {
   initializedWallets,
+  hsmWalletIds,
+  isHsmWallet,
   stopWallet,
   stopAllWallets,
   startWallet,
