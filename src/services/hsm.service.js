@@ -6,6 +6,7 @@
  */
 
 const { hsm } = require('@dinamonetworks/hsm-dinamo');
+const _ = require('lodash');
 
 const { getConfig } = require('../settings');
 const { lock, lockTypes } = require('../lock');
@@ -97,11 +98,15 @@ async function isKeyValidXpriv(hsmConnection, hsmKeyName) {
 }
 
 /**
- * Derivates an HTR xPriv key from a given xPriv key
+ * Derivates an HTR xPriv key from a given xPriv key up to the Account level.
+ * Optionally can derive the Change or Address levels at specific versions.
  * @param {Object} hsmConnection
  * @param {string} hsmKeyName
  * @param {Object} [options]
- * @param {boolean} [options.isReadOnlyWallet] If true, derivation will stop at the account level
+ * @param {boolean} [options.deriveChange] If true, derivation will go until the Change level
+ * @param {number} [options.deriveAddressIndex] When informed together with `deriveChange`,
+ *                                              also derives the Address level at the
+ *                                              requested index
  * @param {number} [options.version] Optional, advanced. Version to calculate the exported xPriv
  * @returns {Promise<{success: boolean, htrKeyName: string}>}
  */
@@ -120,9 +125,9 @@ async function derivateHtrCkd(
 
   /*
    * Derivation will be made on
-   * BIP code / Coin / Account /  Change
-   *    m/44' / 280' /      0' /       0
-   *        1 /    2 /      3  /       4
+   * BIP code / Coin / Account /  Change / Address
+   *    m/44' / 280' /      0' /       0 /       0
+   *        1 /    2 /      3  /       4 /       5
    */
 
   // Defining derivation version
@@ -166,7 +171,8 @@ async function derivateHtrCkd(
     childKeyNames.HTR_CKD_ACCOUNT_KEYNAME,
   );
 
-  if (options.isReadOnlyWallet) {
+  // If it was not explicitly requested to derive the Change, finish at Account level
+  if (!options?.deriveChange) {
     return {
       success: true,
       htrKeyName: childKeyNames.HTR_CKD_ACCOUNT_KEYNAME,
@@ -183,9 +189,29 @@ async function derivateHtrCkd(
     childKeyNames.HTR_CKD_CHANGE_KEYNAME,
   );
 
+  // If it was not explicitly requested to derive the Address, finish at Change level
+  if (!_.isNumber(options?.deriveAddressIndex)) {
+    return {
+      success: true,
+      htrKeyName: childKeyNames.HTR_CKD_CHANGE_KEYNAME,
+    };
+  }
+
+  // Derivation 5: Address
+  // Note: This step is an alternative implementation to `hsmConnection.blockchain.getAddress()`
+  const addressKeyName = `${childKeyNames.HTR_CKD_ADDRESS_KEYNAME}_${options.deriveAddressIndex}`;
+  await hsmConnection.blockchain.createBip32ChildKeyDerivation(
+    hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET,
+    options.deriveAddressIndex,
+    true,
+    true,
+    childKeyNames.HTR_CKD_CHANGE_KEYNAME,
+    addressKeyName,
+  );
+
   return {
     success: true,
-    htrKeyName: childKeyNames.HTR_CKD_CHANGE_KEYNAME,
+    htrKeyName: addressKeyName,
   };
 }
 
@@ -193,11 +219,10 @@ async function derivateHtrCkd(
  * Derivates an HTR wallet xPub string from a given HSM xPriv key
  * @param {Object} hsmConnection
  * @param {string} hsmKeyName
- * @param {Object} [options]
  * @returns {Promise<string>}
  */
-async function getXPubFromKey(hsmConnection, hsmKeyName, options) {
-  const { htrKeyName } = await derivateHtrCkd(hsmConnection, hsmKeyName, options);
+async function getXPubFromKey(hsmConnection, hsmKeyName) {
+  const { htrKeyName } = await derivateHtrCkd(hsmConnection, hsmKeyName);
 
   const xPub = await hsmConnection.blockchain.getPubKey(
     hsm.enums.BLOCKCHAIN_GET_PUB_KEY_TYPE.BIP32_XPUB,
