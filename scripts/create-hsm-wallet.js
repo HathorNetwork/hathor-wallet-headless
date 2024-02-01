@@ -7,13 +7,14 @@
 
 const { hsm } = require('@dinamonetworks/hsm-dinamo');
 const { isNumber } = require('lodash');
-const config = require('../src/config');
+const settings = require('../src/settings');
 
 /**
  * Creates a new xPriv key on the HSM
  * @param {string} keyName Key name to be created on the HSM
  */
 async function createXprivKey(keyName) {
+  const config = settings.getConfig();
   // Gets the connection data from the global config file
   const hsmConnectionOptions = {
     host: config.hsmHost,
@@ -81,6 +82,8 @@ async function main() {
   // Get the key name from the command line arguments
   const keyName = process.argv[2];
   validateKeyName(keyName);
+
+  await settings.setupConfig();
 
   return createXprivKey(keyName)
     .then(async results => {
