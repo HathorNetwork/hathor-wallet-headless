@@ -61,7 +61,7 @@ async function createXprivKey(keyName) {
  */
 async function delay(ms) {
   if (!isNumber(ms) || ms < 0) {
-    throw new Error('Delay time must be a positive number');
+    throw new Error('Delay time must be a non-negative integer');
   }
   return new Promise(resolve => { setTimeout(resolve, ms); });
 }
