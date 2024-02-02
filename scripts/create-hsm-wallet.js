@@ -12,6 +12,7 @@ const settings = require('../src/settings');
 /**
  * Creates a new xPriv key on the HSM
  * @param {string} keyName Key name to be created on the HSM
+ * @see https://manual.dinamonetworks.io/nodejs/pages/examples/blockchain_create_key.html
  */
 async function createXprivKey(keyName) {
   const config = settings.getConfig();
@@ -25,13 +26,21 @@ async function createXprivKey(keyName) {
   };
   const hsmConnection = await hsm.connect(hsmConnectionOptions);
 
-  // Creates a key
+  /**
+   * Defines the version of the created xPriv key. As a default, we use the BitCoin Mainnet.
+   * @type {hsm.enums.VERSION_OPTIONS}
+   * @see https://manual.dinamonetworks.io/nodejs/enums/hsm.enums.VERSION_OPTIONS.html
+   * @see https://en.bitcoin.it/wiki/List_of_address_prefixes
+   */
+  const version = hsm.enums.VERSION_OPTIONS.BIP32_MAIN_NET;
+
+  // Creates a BIP32 xPriv key
   const key = await hsmConnection.blockchain.create(
     keyName, // Name of the key
     hsm.enums.BLOCKCHAIN_KEYS.BIP32_XPRV,
     false, // Exportable
     false, // Temporary
-    hsm.enums.VERSION_OPTIONS.BIP32_MAIN_NET
+    version,
   );
 
   if (!key) {
