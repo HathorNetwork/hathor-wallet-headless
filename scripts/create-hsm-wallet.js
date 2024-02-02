@@ -85,17 +85,16 @@ async function main() {
 
   await settings.setupConfig();
 
-  return createXprivKey(keyName)
-    .then(async results => {
-      console.log('New xPriv Key Information:', JSON.stringify(results, null, 2));
-      await delay(1000); // Allows enough time for the stdout to be written before exiting
-      process.exit(0);
-    })
-    .catch(async e => {
-      console.error(e.stack);
-      await delay(1000); // Allows enough time for the stderr to be written before exiting
-      process.exit(1);
-    });
+  try {
+    const results = await createXprivKey(keyName);
+    console.log('New xPriv Key Information:', JSON.stringify(results, null, 2));
+    await delay(1000); // Allows enough time for the stdout to be written before exiting
+    process.exit(0);
+  } catch (e) {
+    console.error(e.stack);
+    await delay(1000); // Allows enough time for the stderr to be written before exiting
+    process.exit(1);
+  }
 }
 
 main();
