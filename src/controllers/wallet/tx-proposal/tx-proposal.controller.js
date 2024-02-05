@@ -14,6 +14,7 @@ const {
 const { _ } = require('lodash');
 const { prepareTxFunds } = require('../../../helpers/tx.helper');
 const { parametersValidation } = require('../../../helpers/validations.helper');
+const { DEFAULT_PIN } = require('../../../constants');
 
 async function buildTxProposal(req, res) {
   const validationResult = parametersValidation(req);
@@ -46,7 +47,7 @@ async function buildTxProposal(req, res) {
       outputs,
       inputs,
       changeAddress,
-      pin: '123',
+      pin: DEFAULT_PIN,
     });
     const fullTxData = await sendTransaction.prepareTxData();
     // Do not sign or complete the transaction yet

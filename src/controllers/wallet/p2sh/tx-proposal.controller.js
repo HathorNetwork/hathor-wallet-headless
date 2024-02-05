@@ -15,6 +15,7 @@ const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
 const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 const { mapTxReturn } = require('../../../helpers/tx.helper');
+const { DEFAULT_PIN } = require('../../../constants');
 
 async function buildTxProposal(req, res) {
   const validationResult = parametersValidation(req);
@@ -188,7 +189,7 @@ async function getMySignatures(req, res) {
 
   const { txHex } = req.body;
   try {
-    const sigs = await req.wallet.getAllSignatures(txHex, '123');
+    const sigs = await req.wallet.getAllSignatures(txHex, DEFAULT_PIN);
     res.send({ success: true, signatures: sigs });
   } catch (err) {
     res.send({ success: false, error: err.message });
