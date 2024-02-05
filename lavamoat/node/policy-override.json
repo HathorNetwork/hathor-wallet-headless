@@ -1,0 +1,21 @@
+{
+  "resources": {
+    "@hathor/wallet-lib>level>classic-level>node-gyp-build": {
+      "builtin": {
+        "@hathor/wallet-lib>level>classic-level": true
+      }
+    },
+    "@hathor/wallet-lib>bitcore-lib>bip-schnorr>js-sha256": {
+      "builtin": {
+        "crypto": true,
+        "buffer": true
+      },
+      "globals": {
+        "define": true,
+        "process": true,
+        "require": true,
+        "eval": true
+      }
+    }
+  }
+}
