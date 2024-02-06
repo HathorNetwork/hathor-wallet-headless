@@ -33,20 +33,24 @@ export const getSettings = () => {
   return { debugLong };
 };
 
+function debugLog(data) {
+  console.log(`plugin[debug]: ${data}`);
+}
+
 export function eventHandler(data) {
   const message = JSON.stringify(data);
   if (message.length < 1000) {
-    console.log(`plugin[debug]: ${message}`);
+    debugLog(message);
     return;
   }
   switch (debugLong) {
     case 'off':
       break;
     case 'all':
-      console.log(`plugin[debug]: ${message}`);
+      debugLog(message);
       break;
     default:
-      console.log(JSON.stringify({
+      debugLog(JSON.stringify({
         type: data.type,
         walletId: data.walletId,
       }));

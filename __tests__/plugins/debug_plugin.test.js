@@ -35,6 +35,10 @@ test('event handler', () => {
     bigCompleteMsg.message += 'aaaaa';
   }
 
+  function toDebugMessage(data) {
+    return `plugin[debug]: ${data}`;
+  }
+
   // debugLong: off
   process.argv = [
     'node', 'a_script_file.js', // not used but a value is required
@@ -44,7 +48,7 @@ test('event handler', () => {
   logSpy.mockReset();
   // small message: always log
   eventHandler(smallMsg);
-  expect(logSpy).toHaveBeenCalledWith(JSON.stringify(smallMsg));
+  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(JSON.stringify(smallMsg)));
   logSpy.mockReset();
   // big message: should not log
   eventHandler(bigCompleteMsg);
@@ -59,11 +63,11 @@ test('event handler', () => {
   logSpy.mockReset();
   // small message: always log
   eventHandler(smallMsg);
-  expect(logSpy).toHaveBeenCalledWith(JSON.stringify(smallMsg));
+  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(JSON.stringify(smallMsg)));
   logSpy.mockReset();
   // big message: should log the entire message
   eventHandler(bigCompleteMsg);
-  expect(logSpy).toHaveBeenCalledWith(JSON.stringify(bigCompleteMsg));
+  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(JSON.stringify(bigCompleteMsg)));
 
   // debugLong: unexpected value
   process.argv = [
@@ -74,11 +78,11 @@ test('event handler', () => {
   logSpy.mockReset();
   // small message: always log
   eventHandler(smallMsg);
-  expect(logSpy).toHaveBeenCalledWith(JSON.stringify(smallMsg));
+  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(JSON.stringify(smallMsg)));
   logSpy.mockReset();
   // big message: should log partially
   eventHandler(bigCompleteMsg);
-  expect(logSpy).toHaveBeenCalledWith(JSON.stringify(bigMsg));
+  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(JSON.stringify(bigMsg)));
 
   // debugLong: default (should be the same as unexpected)
   process.argv = [
@@ -88,11 +92,11 @@ test('event handler', () => {
   logSpy.mockReset();
   // small message: always log
   eventHandler(smallMsg);
-  expect(logSpy).toHaveBeenCalledWith(JSON.stringify(smallMsg));
+  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(JSON.stringify(smallMsg)));
   logSpy.mockReset();
   // big message: should log partially
   eventHandler(bigCompleteMsg);
-  expect(logSpy).toHaveBeenCalledWith(JSON.stringify(bigMsg));
+  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(JSON.stringify(bigMsg)));
 
   // Restore original argv state
   process.argv = oldArgs;
