@@ -36,14 +36,14 @@ export const getSettings = () => {
 export function eventHandler(data) {
   const message = JSON.stringify(data);
   if (message.length < 1000) {
-    console.log(message);
+    console.log(`plugin[debug]: ${message}`);
     return;
   }
   switch (debugLong) {
     case 'off':
       break;
     case 'all':
-      console.log(message);
+      console.log(`plugin[debug]: ${message}`);
       break;
     default:
       console.log(JSON.stringify({
