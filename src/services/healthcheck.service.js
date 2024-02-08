@@ -101,12 +101,21 @@ class HealthService {
 
     // TODO: We will need to parse the healthData to get the status,
     // but hathor-core hasn't this implemented yet.
-    // Make sure we treat 'warn' as 'pass' if considerHealthcheckWarnAsUnhealthy is false
     try {
-      await healthApi.getHealth();
+      const healthData = await healthApi.getHealth();
 
-      output = 'Fullnode is responding';
-      healthStatus = HealthcheckStatus.PASS;
+      healthStatus = healthData.status;
+
+      const config = getConfig();
+
+      const isUnhealthy = healthStatus === HealthcheckStatus.FAIL
+        || (healthStatus === HealthcheckStatus.WARN && config.considerHealthcheckWarnAsUnhealthy);
+
+      if (isUnhealthy) {
+        output = `Fullnode reported as unhealthy: ${JSON.stringify(healthData)}`;
+      } else {
+        output = 'Fullnode is healthy';
+      }
     } catch (e) {
       if (e.response && e.response.data) {
         output = `Fullnode reported as unhealthy: ${JSON.stringify(e.response.data)}`;

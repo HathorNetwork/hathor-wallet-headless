@@ -92,7 +92,7 @@ describe('healthcheck api', () => {
               componentId: 'http://fakehost:8083/v1a/',
               componentType: 'http',
               status: 'pass',
-              output: 'Fullnode is responding',
+              output: 'Fullnode is healthy',
               time: expect.any(String),
               affectsServiceHealth: true,
             },
@@ -147,7 +147,7 @@ describe('healthcheck api', () => {
               componentId: 'http://fakehost:8083/v1a/',
               componentType: 'http',
               status: 'pass',
-              output: 'Fullnode is responding',
+              output: 'Fullnode is healthy',
               time: expect.any(String),
               affectsServiceHealth: true,
             },
@@ -171,7 +171,7 @@ describe('healthcheck api', () => {
     });
 
     it('should return 503 when the fullnode is not healthy', async () => {
-      TestUtils.httpMock.onGet('/version').reply(503, { status: 'fail' });
+      TestUtils.httpMock.onGet('http://fakehost:8083/v1a/health').reply(503, { status: 'fail' });
 
       const response = await TestUtils.request
         .query({ include_tx_mining: true, include_fullnode: true, wallet_ids: walletId })
@@ -253,7 +253,7 @@ describe('healthcheck api', () => {
               componentId: 'http://fakehost:8083/v1a/',
               componentType: 'http',
               status: 'pass',
-              output: 'Fullnode is responding',
+              output: 'Fullnode is healthy',
               time: expect.any(String),
               affectsServiceHealth: true,
             },
@@ -338,7 +338,7 @@ describe('healthcheck api', () => {
               componentId: 'http://fakehost:8083/v1a/',
               componentType: 'http',
               status: 'pass',
-              output: 'Fullnode is responding',
+              output: 'Fullnode is healthy',
               time: expect.any(String),
               affectsServiceHealth: true,
             },
