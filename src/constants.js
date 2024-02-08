@@ -12,4 +12,7 @@ module.exports = {
   SWAP_SERVICE_FEATURE_TOGGLE: false,
   SWAP_SERVICE_MAINNET_BASE_URL: 'https://atomic-swap-service.hathor.network/',
   SWAP_SERVICE_TESTNET_BASE_URL: 'https://atomic-swap-service.testnet.hathor.network/',
+
+  DEFAULT_PASSWORD: '123',
+  DEFAULT_PIN: '123',
 };

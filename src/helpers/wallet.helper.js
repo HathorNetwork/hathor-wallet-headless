@@ -8,7 +8,9 @@
 import { config as hathorLibConfig, errors, walletUtils } from '@hathor/wallet-lib';
 import { WalletStartError } from '../errors';
 import version from '../version';
-import { SWAP_SERVICE_MAINNET_BASE_URL, SWAP_SERVICE_TESTNET_BASE_URL } from '../constants';
+import {
+  DEFAULT_PASSWORD, DEFAULT_PIN, SWAP_SERVICE_MAINNET_BASE_URL, SWAP_SERVICE_TESTNET_BASE_URL,
+} from '../constants';
 
 /**
  * @typedef {object} WalletConfig
@@ -66,8 +68,8 @@ export function getReadonlyWalletConfig({
   // We currently need something to be defined, otherwise we get an error when starting the wallet
   const walletConfig = {
     xpub,
-    password: '123',
-    pinCode: '123',
+    password: DEFAULT_PASSWORD,
+    pinCode: DEFAULT_PIN,
     multisig: multisigData,
     scanPolicy,
   };
@@ -99,8 +101,8 @@ export function getWalletConfigFromSeed({
   // We currently need something to be defined, otherwise we get an error when starting the wallet
   const walletConfig = {
     seed: words,
-    password: '123',
-    pinCode: '123',
+    password: DEFAULT_PASSWORD,
+    pinCode: DEFAULT_PIN,
     multisig: multisigData,
     scanPolicy,
   };
