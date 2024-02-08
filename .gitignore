@@ -8,6 +8,7 @@ __pycache__/
 coverage
 coverage-integration
 
+.vscode
 .DS_Store
 
 tmp/

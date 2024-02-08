@@ -5,10 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { walletApi, tokensUtils, walletUtils, Connection, HathorWallet, Network, helpersUtils, SendTransaction, constants: hathorLibConstants } = require('@hathor/wallet-lib');
+const { walletApi, tokensUtils, walletUtils, Network, helpersUtils, SendTransaction, constants: hathorLibConstants } = require('@hathor/wallet-lib');
 const { getApiDocs } = require('../api-docs');
-const { initializedWallets } = require('../services/wallets.service');
-const { notificationBus } = require('../services/notification.service');
+const { initializedWallets, startWallet } = require('../services/wallets.service');
 const { cantSendTxErrorMessage, API_ERROR_CODES } = require('../helpers/constants');
 const { parametersValidation } = require('../helpers/validations.helper');
 const { sanitizeLogInput } = require('../logger');
@@ -217,55 +216,25 @@ async function start(req, res) {
     }
   }
 
-  const connection = new Connection({
-    network: config.network,
-    servers: [config.server],
-    connectionTimeout: config.connectionTimeout,
-  });
-  walletConfig.connection = connection;
-
-  // tokenUid is optional but if not passed as parameter the wallet will use HTR
-  if (config.tokenUid) {
-    walletConfig.tokenUid = config.tokenUid;
-  }
-
   const preCalculatedAddresses = 'precalculatedAddresses' in req.body ? req.body.preCalculatedAddresses : [];
   if (preCalculatedAddresses && preCalculatedAddresses.length) {
     console.log(`Received pre-calculated addresses`, sanitizeLogInput(preCalculatedAddresses));
     walletConfig.preCalculatedAddresses = preCalculatedAddresses;
   }
 
-  const wallet = new HathorWallet(walletConfig);
-
-  if (config.gapLimit) {
-    // XXX: The gap limit is now a per-wallet configuration
-    // To keep the same behavior as before, we set the gap limit
-    // when creating the wallet, but we should move this to the
-    // wallet configuration in the future
-    await wallet.setGapLimit(config.gapLimit);
-  }
-
-  // subscribe to wallet events with notificationBus
-  notificationBus.subscribeHathorWallet(walletID, wallet);
-
-  wallet.start().then(info => {
-    // The replace avoids Log Injection
-    console.log(
-      `Wallet started with wallet id ${sanitizeLogInput(walletID)}. \
-Full-node info: ${JSON.stringify(info, null, 2)}`
-    );
-
-    initializedWallets.set(walletID, wallet);
-    res.send({
-      success: true,
+  startWallet(walletID, walletConfig, config)
+    .then(info => {
+      res.send({
+        success: true,
+      });
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      res.send({
+        success: false,
+        message: `Failed to start wallet with wallet id ${walletID}`,
+      });
     });
-  }, error => {
-    console.error('Error:', error);
-    res.send({
-      success: false,
-      message: `Failed to start wallet with wallet id ${walletID}`,
-    });
-  });
 }
 
 function multisigPubkey(req, res) {

@@ -38,10 +38,16 @@ async function startHeadless() {
     });
 
     // This is to unify logs from child and main process.
-    child.stdout.on('data', console.log);
+    child.stdout.on('data', data => {
+      // eslint-disable-next-line no-console
+      console.log(data.toString());
+    });
 
     // Pipe child stderr to stdout.
-    child.stderr.on('data', console.error);
+    child.stderr.on('data', data => {
+      // eslint-disable-next-line no-console
+      console.error(data.toString());
+    });
 
     child.on('error', err => {
       console.error(`child process error: ${err.message}`);

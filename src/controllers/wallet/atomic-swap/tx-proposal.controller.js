@@ -239,7 +239,7 @@ async function getMySignatures(req, res) {
 
   try {
     const proposal = PartialTxProposal.fromPartialTx(partialTx, req.wallet.storage);
-    await proposal.signData('123');
+    await proposal.signData(constants.DEFAULT_PIN);
     res.send({
       success: true,
       signatures: proposal.signatures.serialize(),

@@ -1,80 +1,134 @@
-import { config as hathorLibConfig, healthApi, txMiningApi } from '@hathor/wallet-lib';
+import { healthApi, txMiningApi, config as hathorLibConfig } from '@hathor/wallet-lib';
+import { Healthcheck, HealthcheckInternalComponent, HealthcheckHTTPComponent, HealthcheckCallbackResponse, HealthcheckStatus } from '@hathor/healthcheck-lib';
+import { initializedWallets } from './wallets.service';
+import { getConfig } from '../settings';
 
-const { buildComponentHealthCheck } = require('../helpers/healthcheck.helper');
 const { friendlyWalletState } = require('../helpers/constants');
 
-const healthService = {
+class HealthService {
+  constructor(walletIds, includeFullnode, includeTxMiningService) {
+    const config = getConfig();
+
+    this.healthcheck = new Healthcheck({
+      name: 'hathor-wallet-headless',
+      warn_is_unhealthy: config.considerHealthcheckWarnAsUnhealthy,
+    });
+
+    this.initializeWalletComponents(walletIds);
+
+    if (includeFullnode) {
+      this.initializeFullnodeComponent();
+    }
+
+    if (includeTxMiningService) {
+      this.initializeTxMiningServiceComponent();
+    }
+  }
+
+  initializeWalletComponents(walletIds) {
+    for (const walletId of walletIds) {
+      if (!initializedWallets.has(walletId)) {
+        throw new Error(`Invalid wallet id parameter: ${walletId}`);
+      }
+
+      const component = new HealthcheckInternalComponent({
+        name: `Wallet ${walletId}`,
+        id: walletId,
+      });
+
+      component.add_healthcheck(
+        async () => HealthService.getWalletHealth(initializedWallets.get(walletId))
+      );
+      this.healthcheck.add_component(component);
+    }
+  }
+
+  initializeFullnodeComponent() {
+    const serverUrl = hathorLibConfig.getServerUrl();
+
+    const component = new HealthcheckHTTPComponent({
+      name: `Fullnode ${serverUrl}`,
+      id: serverUrl,
+    });
+
+    component.add_healthcheck(async () => HealthService.getFullnodeHealth());
+    this.healthcheck.add_component(component);
+  }
+
+  initializeTxMiningServiceComponent() {
+    const txMiningServiceUrl = hathorLibConfig.getTxMiningUrl();
+
+    const component = new HealthcheckHTTPComponent({
+      name: `TxMiningService ${txMiningServiceUrl}`,
+      id: txMiningServiceUrl,
+    });
+
+    component.add_healthcheck(async () => HealthService.getTxMiningServiceHealth());
+    this.healthcheck.add_component(component);
+  }
+
+  async getHealth() {
+    return this.healthcheck.run();
+  }
+
   /**
    * Returns the health object for a specific wallet
    *
    * @param {HathorWallet} wallet
-   * @param {string} walletId
-   * @returns {Object}
+   * @returns {HealthcheckCallbackResponse}
    */
-  async getWalletHealth(wallet, walletId) {
-    let healthData;
-
+  static async getWalletHealth(wallet) {
     if (!wallet.isReady()) {
-      healthData = buildComponentHealthCheck(
-        `Wallet ${walletId}`,
-        'fail',
-        'internal',
-        `Wallet is not ready. Current state: ${friendlyWalletState[wallet.state]}`
-      );
-    } else {
-      healthData = buildComponentHealthCheck(
-        `Wallet ${walletId}`,
-        'pass',
-        'internal',
-        'Wallet is ready'
-      );
+      return new HealthcheckCallbackResponse({
+        status: HealthcheckStatus.FAIL,
+        output: `Wallet is not ready. Current state: ${friendlyWalletState[wallet.state]}`
+      });
     }
-
-    return healthData;
-  },
+    return new HealthcheckCallbackResponse({
+      status: HealthcheckStatus.PASS,
+      output: 'Wallet is ready'
+    });
+  }
 
   /**
    * Returns the health object for the connected fullnode
    *
-   * @returns {Object}
+   * @returns {HealthcheckCallbackResponse}
    */
-  async getFullnodeHealth() {
+  static async getFullnodeHealth() {
     let output;
     let healthStatus;
 
     // TODO: We will need to parse the healthData to get the status,
-    // but hathor-core hasn't this implemented yet
+    // but hathor-core hasn't this implemented yet.
+    // Make sure we treat 'warn' as 'pass' if considerHealthcheckWarnAsUnhealthy is false
     try {
       await healthApi.getHealth();
 
       output = 'Fullnode is responding';
-      healthStatus = 'pass';
+      healthStatus = HealthcheckStatus.PASS;
     } catch (e) {
       if (e.response && e.response.data) {
         output = `Fullnode reported as unhealthy: ${JSON.stringify(e.response.data)}`;
         healthStatus = e.response.data.status;
       } else {
         output = `Error getting fullnode health: ${e.message}`;
-        healthStatus = 'fail';
+        healthStatus = HealthcheckStatus.FAIL;
       }
     }
 
-    const fullnodeHealthData = buildComponentHealthCheck(
-      `Fullnode ${hathorLibConfig.getServerUrl()}`,
-      healthStatus,
-      'fullnode',
+    return new HealthcheckCallbackResponse({
+      status: healthStatus,
       output
-    );
-
-    return fullnodeHealthData;
-  },
+    });
+  }
 
   /**
    * Returns the health object for the connected tx-mining-service
    *
-   * @returns {Object}
+   * @returns {HealthcheckCallbackResponse}
    */
-  async getTxMiningServiceHealth() {
+  static async getTxMiningServiceHealth() {
     let output;
     let healthStatus;
 
@@ -83,7 +137,12 @@ const healthService = {
 
       healthStatus = healthData.status;
 
-      if (healthStatus === 'fail') {
+      const config = getConfig();
+
+      const isUnhealthy = healthStatus === HealthcheckStatus.FAIL
+        || (healthStatus === HealthcheckStatus.WARN && config.considerHealthcheckWarnAsUnhealthy);
+
+      if (isUnhealthy) {
         output = `Tx Mining Service reported as unhealthy: ${JSON.stringify(healthData)}`;
       } else {
         output = 'Tx Mining Service is healthy';
@@ -98,15 +157,11 @@ const healthService = {
       }
     }
 
-    const txMiningServiceHealthData = buildComponentHealthCheck(
-      `TxMiningService ${hathorLibConfig.getTxMiningUrl()}`,
-      healthStatus,
-      'service',
+    return new HealthcheckCallbackResponse({
+      status: healthStatus,
       output
-    );
-
-    return txMiningServiceHealthData;
+    });
   }
-};
+}
 
-export default healthService;
+export default HealthService;

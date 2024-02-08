@@ -52,7 +52,7 @@ export const hathorPlugins = {
  *
  * @returns {string} Plugin module path
  */
-export const getPluginPath = pluginFile => path.resolve(path.join('./src/plugins', pluginFile));
+export const getPluginPath = pluginFile => path.resolve(path.join(__dirname, pluginFile));
 
 /**
  * Find and import a plugin returning the exported methods.
@@ -99,6 +99,7 @@ export const loadPlugins = async (enabled, customConfig) => {
 };
 
 export const main = async () => {
+  await settings.setupConfig();
   const config = settings.getConfig();
   const plugins = await loadPlugins(config.enabled_plugins, config.plugin_config);
 
@@ -116,6 +117,7 @@ export const main = async () => {
 if (process.env.NODE_ENV !== 'test') {
   process.on('disconnect', () => {
     // If parent disconnects, we must exit to avoid running indefinetly
+    console.log('[child_process] parent disconnected');
     process.exit(127);
   });
 
