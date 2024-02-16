@@ -4,7 +4,8 @@
   "description": "Hathor Wallet Headless, i.e., without graphical user interface",
   "main": "index.js",
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
   },
   "dependencies": {
     "@dinamonetworks/hsm-dinamo": "4.9.1",
