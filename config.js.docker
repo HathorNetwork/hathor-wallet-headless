@@ -58,6 +58,11 @@ const config = {
   txMiningUrl: getParam('tx_mining_url', null),
   txMiningApiKey: getParam('tx_mining_api_key', null),
 
+  // HSM Integration
+  hsmHost: null,
+  hsmUsername: null,
+  hsmPassword: null,
+
   http_api_key: getParam('api_key'),
   httpLogFormat: getParam('http_log_format'),
 
@@ -78,6 +83,9 @@ const config = {
   // Plugin configuration
   enabled_plugins: getParam('enabled_plugins', '').split(' ').filter(x => x),
   plugin_config: {},
+
+  // Healthcheck configuration
+  considerHealthcheckWarnAsUnhealthy: getBooleanParam('consider_healthcheck_warn_as_unhealthy', 'true'),
 };
 
 const seeds = getParam('seeds', 'default').split(' ');

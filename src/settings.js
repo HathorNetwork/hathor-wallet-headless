@@ -50,6 +50,10 @@ const { initHathorLib } = require('./helpers/wallet.helper');
  * requests to the tx-mining-service.
  * @property {string|null} [atomicSwapService] - The atomic swap service url to
  * use, it not present we will use the default.
+ * @property {string|null} [hsmHost] - The HSM host to use. If not present,
+ * HSM integration will be disabled
+ * @property {string|null} [hsmUsername] - The HSM username to use.
+ * @property {string|null} [hsmPassword] - The HSM password to use.
  * @property {Record<string, MultiSigConfig>} [multisig] - The multisig config object
  * @property {string} [tokenUid] - The default token.
  * @property {number|null} [gapLimit] - a custom gap limit, if not present we
@@ -62,6 +66,8 @@ const { initHathorLib } = require('./helpers/wallet.helper');
  * @property {string[]} [enabled_plugins] - The plugins we should start when
  * the service starts up.
  * @property {Record<string, PluginConfig>} [plugin_config] - The custom plugin configuration.
+ * @property {boolean} [considerHealthcheckWarnAsUnhealthy] - If true, the healthcheck
+ * will consider a warn as unhealthy.
  */
 
 /**
@@ -146,6 +152,9 @@ async function _analizeConfig(oldConfig, newConfig) {
 
   // Checking changes in the fields:
   // http_post, http_bind_address, http_api_key, consoleLevel, httpLogFormat, enabled_plugins
+  //
+  // We also do not support changing the HSM Credentials because a connection may be open at
+  // the moment of the config change, and that would require a more complex logic to handle.
   if (
     oldConfig.http_port !== newConfig.http_port
     || oldConfig.http_bind_address !== newConfig.http_bind_address
@@ -154,6 +163,9 @@ async function _analizeConfig(oldConfig, newConfig) {
     || oldConfig.httpLogFormat !== newConfig.httpLogFormat
     || (oldConfig.enabled_plugins && oldConfig.enabled_plugins.sort().join('#'))
       !== (newConfig.enabled_plugins && newConfig.enabled_plugins.sort().join('#'))
+    || oldConfig.hsmHost !== newConfig.hsmHost
+    || oldConfig.hsmUsername !== newConfig.hsmUsername
+    || oldConfig.hsmPassword !== newConfig.hsmPassword
   ) {
     action.nonRecoverable = true;
     return action;

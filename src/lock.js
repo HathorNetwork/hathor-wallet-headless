@@ -6,11 +6,13 @@
 
 // Lock types enum
 // SENDING_TX is used to lock when a tx is being sent
+// HSM is used to lock when there is a connection already open with the HSM
 // We don't support sending multiples transactions concurrently
 // so we use this to prevent a user from sending multiples requests
 // while the first was not finished
 export const lockTypes = {
   SEND_TX: 0,
+  HSM: 1,
 };
 
 class Lock {

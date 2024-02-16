@@ -61,42 +61,51 @@ describe('healthcheck api', () => {
 
       expect(response.body).toStrictEqual({
         status: 'pass',
-        description: 'Wallet-headless health',
+        description: 'Health status of hathor-wallet-headless',
+        httpStatusCode: 200,
         checks: {
           'Wallet health_wallet': [
             {
               componentName: 'Wallet health_wallet',
+              componentId: 'health_wallet',
               componentType: 'internal',
               status: 'pass',
               output: 'Wallet is ready',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'Wallet another_health_wallet': [
             {
               componentName: 'Wallet another_health_wallet',
+              componentId: 'another_health_wallet',
               componentType: 'internal',
               status: 'pass',
               output: 'Wallet is ready',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'Fullnode http://fakehost:8083/v1a/': [
             {
               componentName: 'Fullnode http://fakehost:8083/v1a/',
-              componentType: 'fullnode',
+              componentId: 'http://fakehost:8083/v1a/',
+              componentType: 'http',
               status: 'pass',
               output: 'Fullnode is responding',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'TxMiningService http://fake.txmining:8084/': [
             {
               componentName: 'TxMiningService http://fake.txmining:8084/',
-              componentType: 'service',
+              componentId: 'http://fake.txmining:8084/',
+              componentType: 'http',
               status: 'pass',
               output: 'Tx Mining Service is healthy',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
         }
@@ -118,33 +127,40 @@ describe('healthcheck api', () => {
 
       expect(response.body).toStrictEqual({
         status: 'fail',
-        description: 'Wallet-headless health',
+        description: 'Health status of hathor-wallet-headless',
+        httpStatusCode: 503,
         checks: {
           'Wallet health_wallet': [
             {
               componentName: 'Wallet health_wallet',
+              componentId: 'health_wallet',
               componentType: 'internal',
               status: 'fail',
               output: 'Wallet is not ready. Current state: Syncing',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'Fullnode http://fakehost:8083/v1a/': [
             {
               componentName: 'Fullnode http://fakehost:8083/v1a/',
-              componentType: 'fullnode',
+              componentId: 'http://fakehost:8083/v1a/',
+              componentType: 'http',
               status: 'pass',
               output: 'Fullnode is responding',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'TxMiningService http://fake.txmining:8084/': [
             {
               componentName: 'TxMiningService http://fake.txmining:8084/',
-              componentType: 'service',
+              componentId: 'http://fake.txmining:8084/',
+              componentType: 'http',
               status: 'pass',
               output: 'Tx Mining Service is healthy',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
         }
@@ -164,33 +180,40 @@ describe('healthcheck api', () => {
 
       expect(response.body).toStrictEqual({
         status: 'fail',
-        description: 'Wallet-headless health',
+        description: 'Health status of hathor-wallet-headless',
+        httpStatusCode: 503,
         checks: {
           'Wallet health_wallet': [
             {
               componentName: 'Wallet health_wallet',
+              componentId: 'health_wallet',
               componentType: 'internal',
               status: 'pass',
               output: 'Wallet is ready',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'Fullnode http://fakehost:8083/v1a/': [
             {
               componentName: 'Fullnode http://fakehost:8083/v1a/',
-              componentType: 'fullnode',
+              componentId: 'http://fakehost:8083/v1a/',
+              componentType: 'http',
               status: 'fail',
               output: 'Fullnode reported as unhealthy: {"status":"fail"}',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'TxMiningService http://fake.txmining:8084/': [
             {
               componentName: 'TxMiningService http://fake.txmining:8084/',
-              componentType: 'service',
+              componentId: 'http://fake.txmining:8084/',
+              componentType: 'http',
               status: 'pass',
               output: 'Tx Mining Service is healthy',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
         }
@@ -210,33 +233,40 @@ describe('healthcheck api', () => {
 
       expect(response.body).toStrictEqual({
         status: 'fail',
-        description: 'Wallet-headless health',
+        description: 'Health status of hathor-wallet-headless',
+        httpStatusCode: 503,
         checks: {
           'Wallet health_wallet': [
             {
               componentName: 'Wallet health_wallet',
+              componentId: 'health_wallet',
               componentType: 'internal',
               status: 'pass',
               output: 'Wallet is ready',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'Fullnode http://fakehost:8083/v1a/': [
             {
               componentName: 'Fullnode http://fakehost:8083/v1a/',
-              componentType: 'fullnode',
+              componentId: 'http://fakehost:8083/v1a/',
+              componentType: 'http',
               status: 'pass',
               output: 'Fullnode is responding',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'TxMiningService http://fake.txmining:8084/': [
             {
               componentName: 'TxMiningService http://fake.txmining:8084/',
-              componentType: 'service',
+              componentId: 'http://fake.txmining:8084/',
+              componentType: 'http',
               status: 'fail',
               output: 'Tx Mining Service reported as unhealthy: {"status":"fail"}',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
         }
@@ -251,24 +281,29 @@ describe('healthcheck api', () => {
 
       expect(response.body).toStrictEqual({
         status: 'pass',
-        description: 'Wallet-headless health',
+        description: 'Health status of hathor-wallet-headless',
+        httpStatusCode: 200,
         checks: {
           'Wallet health_wallet': [
             {
               componentName: 'Wallet health_wallet',
+              componentId: 'health_wallet',
               componentType: 'internal',
               status: 'pass',
               output: 'Wallet is ready',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'TxMiningService http://fake.txmining:8084/': [
             {
               componentName: 'TxMiningService http://fake.txmining:8084/',
-              componentType: 'service',
+              componentId: 'http://fake.txmining:8084/',
+              componentType: 'http',
               status: 'pass',
               output: 'Tx Mining Service is healthy',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
         }
@@ -283,24 +318,29 @@ describe('healthcheck api', () => {
 
       expect(response.body).toStrictEqual({
         status: 'pass',
-        description: 'Wallet-headless health',
+        description: 'Health status of hathor-wallet-headless',
+        httpStatusCode: 200,
         checks: {
           'Wallet health_wallet': [
             {
               componentName: 'Wallet health_wallet',
+              componentId: 'health_wallet',
               componentType: 'internal',
               status: 'pass',
               output: 'Wallet is ready',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
           'Fullnode http://fakehost:8083/v1a/': [
             {
               componentName: 'Fullnode http://fakehost:8083/v1a/',
-              componentType: 'fullnode',
+              componentId: 'http://fakehost:8083/v1a/',
+              componentType: 'http',
               status: 'pass',
               output: 'Fullnode is responding',
               time: expect.any(String),
+              affectsServiceHealth: true,
             },
           ],
         }

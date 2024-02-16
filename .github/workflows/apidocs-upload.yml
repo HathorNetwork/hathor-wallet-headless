@@ -1,4 +1,4 @@
-name: apidocs
+name: apidocs-upload
 
 on:
   push:
@@ -10,8 +10,6 @@ jobs:
   # First check if this version is a valid public release
   check-version:
     runs-on: ubuntu-22.04
-    permissions:
-      id-token: write # This is required for requesting the JWT
     outputs:
       release_status_output: ${{ steps.release_version.outputs.version_status_output }}
 
@@ -22,7 +20,8 @@ jobs:
         run: |
   
           if [[ "${{ github.ref }}" = refs/tags/* ]]; then
-            version="${ref#refs/tags/}"
+            version="${GITHUB_REF#refs/tags/}"
+            echo "version=$version"
 
             # Pattern that accepts "v1.0.0" , "v2.4.6". 
             if [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -43,10 +42,16 @@ jobs:
   # Initiate upload only if the version is valid
   upload-apidocs:
     runs-on: ubuntu-22.04
+    permissions:
+      id-token: write # This is required for requesting the JWT
     needs: check-version
     env:
       release_status: ${{ needs.test_version.outputs.release_status_output }}
-    if: ${{ env.release_status == 'isRelease' || env.release_status == 'isReleaseCandidate' }}
+    if: >-
+      ${{ 
+          needs.check-version.outputs.release_status_output == 'isRelease' || 
+          needs.check-version.outputs.release_status_output == 'isReleaseCandidate'
+      }}
     timeout-minutes: 10
 
     strategy:
@@ -84,15 +89,15 @@ jobs:
         # https://github.com/aws-actions/configure-aws-credentials/releases/tag/v4.0.1
         uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a
         with:
-          aws-assume-role: ${{ secrets.AWS_HEADLESS_UPLOAD_ROLE }}
+          role-to-assume: ${{ secrets.AWS_HEADLESS_UPLOAD_ROLE }}
           aws-region: us-east-1
 
       # Copy the document to S3
       - name: Upload apidocs.json to S3
         run: |
-          if [[ "${{ env.release_status }}" == "isReleaseCandidate" ]]; then
-            aws s3 cp index.html s3://${{ secrets.AWS_APIDOCS_BUCKET_NAME_DEV }}
-          else
+          if [[ "${{ env.release_status }}" == "isRelease" ]]; then
             aws s3 cp index.html s3://${{ secrets.AWS_APIDOCS_BUCKET_NAME_PROD }}
+          else
+            aws s3 cp index.html s3://${{ secrets.AWS_APIDOCS_BUCKET_NAME_DEV }}
           fi
       
