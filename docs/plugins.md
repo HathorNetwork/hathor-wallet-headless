@@ -1,4 +1,8 @@
-# Headless Plugin system
+# Plugins
+
+## Purpose
+
+Explains plugins.
 
 Each plugin receives an `EventEmitter` with real-time events of the loaded wallets.
 
@@ -30,9 +34,9 @@ Each plugin can have it's own configuration outside the usual config module.
 To enable a plugin you need to add the plugin to `enabled_plugins` on the config module.
 When using docker you can use the cli `--enabled_plugins` or the envvar `HEADLESS_ENABLED_PLUGINS` to configure a list of enabled plugins.
 
-# Provided plugins
+## Provided plugins
 
-## Debug
+### Debug
 
 - PluginId: `debug`
 
@@ -48,7 +52,7 @@ Dependencies:
 
 `npm install yargs@^16.2.0`
 
-## WebSocket
+### WebSocket
 
 - PluginId: `ws`
 
@@ -64,7 +68,7 @@ Dependencies:
 
 `npm install ws@^8.12.0 yargs@^16.2.0`
 
-## SQS
+### SQS
 
 - PluginId: `sqs`
 
@@ -85,7 +89,7 @@ Dependencies:
 
 `npm install aws-sdk@^2.1226.0 yargs@^16.2.0`
 
-## RabbitMQ
+### RabbitMQ
 
 - PluginId: `rabbitmq`
 
@@ -104,14 +108,14 @@ Dependencies:
 
 `npm install amqplib@^0.10.3 yargs@^16.2.0`
 
-# Creating custom plugins
+## Creating custom plugins
 
 A plugin `MUST` export an `async init` method that receives the `EventEmitter`.
 The file or module should be added to `src/plugins` directory.
 
 All of Hathor provided plugins config are on the [`src/plugins/child.js`](./src/plugins/child.js#L29), when running a custom plugin you should configure the plugin using the config module so the headless startup can correctly import and run the plugin.
 
-## Dockerfile
+### Dockerfile
 
 The headless can be extended using docker:
 
@@ -125,7 +129,7 @@ COPY ./custom_plugin.js ./src/plugins/custom_plugin.js
 
 The `custom_plugin.js` file will have the plugin logic.
 
-## Custom plugin configuration
+### Custom plugin configuration
 
 To configure custom plugins you need to add the plugin id to the [enabled plugins](#configuration) and for each custom plugin there should be 2 new variables, the `--plugin_<pluginId>_file` (or `HEADLESS_PLUGIN_<pluginId>_FILE`) and `--plugin_<pluginId>_name` (or `HEADLESS_PLUGIN_<pluginId>_NAME`).
 
