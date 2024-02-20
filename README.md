@@ -16,11 +16,7 @@ To know how to operate and use Hathor headless wallet, see [Hathor headless wall
 
 If after consulting the documentation, you still need **help to operate and use Hathor headless wallet**, [send a message to the `#development` channel on Hathor Discord server for assistance from Hathor team and community members](https://discord.com/channels/566500848570466316/663785995082268713).
 
-If you observe an incorrect behavior while using Hathor headless wallet, we encourage you to [open an issue to report this failure](https://github.com/HathorNetwork/hathor-wallet-headless/issues/new).
-
-You can also [open an issue to request a new feature you wish to see](https://github.com/HathorNetwork/hathor-wallet-headless/issues/new).
-
-Please do not open an issue to report a security breach or vulnerability. Instead, follow the guidelines described at [SECURITY](SECURITY.md) for safely reporting, fixing and disclosing security issues.
+If you observe an incorrect behavior while using Hathor headless wallet, see [the "Issues" subsection in "Contributing"](#issues).
 
 ## Tests
 
@@ -29,9 +25,19 @@ Please do not open an issue to report a security breach or vulnerability. Instea
 
 ## Contributing
 
+### Issues
+
+If you observe an incorrect behavior while using Hathor headless wallet, we encourage you to [open an issue to report this failure](https://github.com/HathorNetwork/hathor-wallet-headless/issues/new).
+
+You can also [open an issue to request a new feature you wish to see](https://github.com/HathorNetwork/hathor-wallet-headless/issues/new).
+
+### Pull requests
+
 To contribute to the development of Hathor headless wallet, we encourage you to fork the `master` branch, implement your code, and then [open a pull request to merge it into `master`, selecting the "feature branch template"](https://github.com/HathorNetwork/hathor-wallet-headless/compare).
 
-Please do not open a pull request to fix a security breach or vulnerability. Instead, follow the guidelines described at [SECURITY](SECURITY.md) for safely reporting, fixing and disclosing security issues.
+### Security
+
+Please do not open an issue to report a security breach nor submit a pull request to fix it. Instead, follow the guidelines described in [SECURITY](SECURITY.md) for safely reporting, fixing, and disclosing security issues.
 
 ## Miscellaneous
 
