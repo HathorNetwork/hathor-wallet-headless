@@ -23,10 +23,15 @@ txProposalRouter.post(
   // Body and outputs validaion
   checkSchema(txBuildSchema),
   // inputs validationn
-  oneOf([
-    checkSchema(queryInputSchema),
-    checkSchema(txInputSchema),
-  ]),
+  oneOf(
+    [
+      checkSchema(queryInputSchema),
+      checkSchema(txInputSchema),
+    ],
+    {
+      errorType: 'flat',
+    }
+  ),
   buildTxProposal,
 );
 
@@ -53,7 +58,10 @@ txProposalRouter.get(
  */
 txProposalRouter.post(
   '/input-data',
-  oneOf([checkSchema(p2pkhSignature), checkSchema(p2shSignature)]),
+  oneOf(
+    [checkSchema(p2pkhSignature), checkSchema(p2shSignature)],
+    { errorType: 'flat' },
+  ),
   getInputData,
 );
 

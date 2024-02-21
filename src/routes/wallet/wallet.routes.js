@@ -175,10 +175,16 @@ walletRouter.post(
 
 walletRouter.post(
   '/decode',
-  oneOf([
-    checkSchema(txHexSchema),
-    checkSchema(partialTxSchema),
-  ], 'Required at least one of txHex or partial_tx'),
+  oneOf(
+    [
+      checkSchema(txHexSchema),
+      checkSchema(partialTxSchema),
+    ],
+    {
+      message: 'Required at least one of txHex or partial_tx',
+      errorType: 'flat',
+    }
+  ),
   decodeTx
 );
 
