@@ -99,8 +99,6 @@ class HealthService {
     let output;
     let healthStatus;
 
-    // TODO: We will need to parse the healthData to get the status,
-    // but hathor-core hasn't this implemented yet.
     try {
       const healthData = await healthApi.getHealth();
 
