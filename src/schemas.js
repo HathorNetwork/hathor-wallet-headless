@@ -50,8 +50,7 @@ export const txHexSignatureSchema = {
   signatures: {
     in: ['body'],
     errorMessage: 'Invalid signatures array',
-    isArray: true,
-    notEmpty: true,
+    isArray: { min: 1 },
   },
   'signatures.*': {
     in: ['body'],
@@ -65,8 +64,7 @@ export const partialTxSignatureSchema = {
   signatures: {
     in: ['body'],
     errorMessage: 'Invalid signatures array',
-    isArray: true,
-    notEmpty: true,
+    isArray: { min: 1 },
     optional: true,
   },
   'signatures.*': {
@@ -100,8 +98,7 @@ export const atomicSwapCreateSchema = {
   'send.utxos': {
     in: ['body'],
     errorMessage: 'Invalid utxos array',
-    isArray: true,
-    notEmpty: true,
+    isArray: { min: 1 },
     optional: true,
   },
   'send.utxos.*.txId': {
@@ -126,9 +123,13 @@ export const atomicSwapCreateSchema = {
   'send.tokens': {
     in: ['body'],
     errorMessage: 'Invalid send.tokens array',
-    isArray: true,
-    notEmpty: true,
+    isArray: { min: 1 },
     optional: true,
+  },
+  'send.tokens.*': {
+    in: ['body'],
+    errorMessage: 'Invalid send.tokens array element',
+    isObject: true,
   },
   'send.tokens.*.token': {
     in: ['body'],
@@ -149,9 +150,13 @@ export const atomicSwapCreateSchema = {
   'receive.tokens': {
     in: ['body'],
     errorMessage: 'Invalid receive.tokens array',
-    isArray: true,
-    notEmpty: true,
+    isArray: { min: 1 },
     optional: true,
+  },
+  'receive.tokens.*': {
+    in: ['body'],
+    errorMessage: 'Invalid receive.tokens array element',
+    isObject: true,
   },
   'receive.tokens.*.token': {
     in: ['body'],
@@ -239,8 +244,7 @@ export const txBuildSchema = {
   outputs: {
     in: ['body'],
     errorMessage: 'Invalid outputs array',
-    isArray: true,
-    notEmpty: true,
+    isArray: { min: 1 },
     optional: false,
   },
   'outputs.*.address': {
@@ -290,8 +294,7 @@ export const txBuildSchema = {
   inputs: {
     in: ['body'],
     errorMessage: 'Invalid inputs array',
-    isArray: true,
-    notEmpty: true,
+    isArray: { min: 1 },
     optional: true,
   },
   change_address: {
@@ -328,9 +331,7 @@ export const queryInputSchema = {
   inputs: {
     in: ['body'],
     errorMessage: 'Invalid inputs array',
-    isArray: true,
-    isLength: 1,
-    notEmpty: true,
+    isArray: { min: 1, max: 1 },
   },
   'inputs.*.type': {
     in: ['body'],
@@ -397,8 +398,7 @@ export const txHexInputDataSchema = {
   signatures: {
     in: ['body'],
     errorMessage: 'Invalid signatures',
-    isArray: true,
-    isEmpty: false,
+    isArray: { min: 1 },
   },
   'signatures.*.index': {
     in: ['body'],
