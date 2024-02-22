@@ -7,7 +7,7 @@ It may be used both by mining pools and exchanges.
 
 ## Requirements
 
-* [Node.js](https://nodejs.org/): We recommend and test with version >= 14.0.0, but version >= 10.0.0 will also probably work. Do not use versions < 10.0.0, they are known to have issues.
+* [Node.js](https://nodejs.org/): This application requires NodeJs version >= 20.0.0 to run.
 
 ## How to run?
 
