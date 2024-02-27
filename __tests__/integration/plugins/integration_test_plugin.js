@@ -21,6 +21,7 @@ export const init = async bus => {
   write('Plugin was initialized.');
 
   bus.on('message', data => {
+    console.log(`[${data.type}] Message added on ${receivedEvents.length + 1}.`);
     receivedEvents.push(data);
 
     const timestamp = Date.now();
