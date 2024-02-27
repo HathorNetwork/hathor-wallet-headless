@@ -6,6 +6,7 @@
  */
 
 const { hsm } = require('@dinamonetworks/hsm-dinamo');
+const hathorLib = require('@hathor/wallet-lib');
 const _ = require('lodash');
 
 const { getConfig } = require('../settings');
@@ -15,7 +16,7 @@ const { HsmError } = require('../errors');
 
 /**
  * Connects to the HSM and returns the connection object
- * @returns {Promise<Hsm>}
+ * @returns {Promise<hsm.interfaces.Hsm>}
  */
 async function hsmConnect() {
   // Ensures there is a config for the HSM integration
@@ -100,7 +101,7 @@ async function isKeyValidXpriv(hsmConnection, hsmKeyName) {
 /**
  * Derivates an HTR xPriv key from a given xPriv key up to the Account level.
  * Optionally can derive the Change or Address levels at specific versions.
- * @param {Object} hsmConnection
+ * @param {hsm.interfaces.Hsm} hsmConnection
  * @param {string} hsmKeyName
  * @param {Object} [options]
  * @param {boolean} [options.deriveChange] If true, derivation will go until the Change level
@@ -232,9 +233,123 @@ async function getXPubFromKey(hsmConnection, hsmKeyName) {
   return xPub.toString();
 }
 
+/**
+ * Sign the given data with the given HSM key
+ * @param {hsm.interfaces.Hsm} hsmConnection
+ * @param {Buffer} dataToSignHash
+ * @param {string} keyName
+ * @param {number} addressIndex
+ * @returns {Promise<{ pubkey: Buffer, signature: Buffer }>} DER encoded signature and pubkey
+ */
+async function getSignatureFromData(hsmConnection, dataToSignHash, keyName, addressIndex) {
+  // Derive the key to the desired address index
+  const { htrKeyName } = await derivateHtrCkd(hsmConnection, keyName, {
+    deriveChange: true,
+    deriveAddressIndex: addressIndex,
+  });
+
+  const signature = await hsmConnection.blockchain.sign(
+    hsm.enums.BLOCKCHAIN_SIG_TYPE.SIG_DER_ECDSA,
+    hsm.enums.BLOCKCHAIN_HASH_MODE.SHA256,
+    dataToSignHash,
+    htrKeyName,
+  );
+
+  // Dinamo SDK returns v + DER, where v is a parity byte
+  // https://manual.dinamonetworks.io/nodejs/enums/hsm.enums.BLOCKCHAIN_SIG_TYPE.html#SIG_DER_ECDSA
+  // We can safely ignore the parity byte
+  if (signature[0] !== 0x30) {
+    return signature.slice(1);
+  }
+  return signature;
+}
+
+/**
+ * @typedef {Object} SignatureData
+ * @property {Buffer} signature
+ * @property {Buffer} pubkey
+ * @property {string} address
+ * @property {number} index
+ */
+
+/**
+  * Sign the given transaction with the given HSM key
+  * @param {hsm.interfaces.Hsm} hsmConnection
+  * @param {hathorLib.HathorWallet} wallet
+  * @param {hathorLib.Transaction} tx
+  * @param {string} keyName
+  *
+  * @returns {Promise<SignatureData[]>}
+  */
+async function getSignatureFromTx(hsmConnection, wallet, tx, keyName) {
+  const dataToSignHash = tx.getDataToSignHash();
+  /**
+   * @type {SignatureData[]}
+   */
+  const response = [];
+
+  /**
+   * @type {{ storage: hathorLib.Storage}}
+   */
+  const { storage } = wallet;
+
+  for await (const { tx: spentTx, index, input } of storage.getSpentTxs(tx.inputs)) {
+    const spentOut = spentTx.outputs[input.index];
+
+    if (!spentOut.decoded.address) {
+      // This output is not owned
+      continue;
+    }
+    const addressInfo = await storage.getAddressInfo(spentOut.decoded.address);
+    if (!addressInfo) {
+      // Not a wallet address
+      continue;
+    }
+
+    const { pubkey, signature } = await getSignatureFromData(
+      hsmConnection,
+      dataToSignHash,
+      keyName,
+      addressInfo.bip32AddressIndex,
+    );
+
+    response.push({
+      index,
+      pubkey,
+      signature,
+      address: addressInfo.base58,
+    });
+  }
+
+  return response;
+}
+
+/**
+ * Sign the given transaction with the given HSM key
+ * @param {hsm.interfaces.Hsm} hsmConnection
+ * @param {hathorLib.HathorWallet} wallet
+ * @param {hathorLib.Transaction} tx
+ * @param {string} keyName
+ *
+ * @returns {Promise<hathorLib.Transaction>}
+ */
+async function signTxP2PKH(hsmConnection, wallet, tx, keyName) {
+  const signatureData = await getSignatureFromTx(hsmConnection, wallet, tx, keyName);
+  for (const { index, pubkey, signature } of signatureData) {
+    const inputData = hathorLib.transactionUtils.createInputData(
+      signature,
+      pubkey,
+    );
+    tx.inputs[index].setData(inputData);
+  }
+  return tx;
+}
+
 module.exports = {
   hsmConnect,
   hsmDisconnect,
   isKeyValidXpriv,
   getXPubFromKey,
+  getSignatureFromTx,
+  signTxP2PKH,
 };

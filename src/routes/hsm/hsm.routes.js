@@ -7,10 +7,15 @@
 
 const { Router } = require('express');
 const { patchExpressRouter } = require('../../patch');
-const { startHsmWallet } = require('../../controllers/hsm/hsm.controller');
+const { startHsmWallet, simpleSendTx, proposeSimpleTx } = require('../../controllers/hsm/hsm.controller');
+const { walletMiddleware } = require('../../middlewares/wallet.middleware');
 
 const hsmRouter = patchExpressRouter(Router({ mergeParams: true }));
 
 hsmRouter.post('/start', startHsmWallet);
+
+hsmRouter.use(walletMiddleware);
+hsmRouter.post('/simple-send-tx', simpleSendTx);
+hsmRouter.post('/propose-simple-tx', proposeSimpleTx);
 
 module.exports = hsmRouter;
