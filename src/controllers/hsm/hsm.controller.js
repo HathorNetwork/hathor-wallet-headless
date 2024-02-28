@@ -105,6 +105,7 @@ async function startHsmWallet(req, res) {
   // Obtains this wallet's xPub from the HSM
   let xPub = null;
   try {
+    await hsmService.deriveMainKeysFromRoot(connectionObj, hsmKeyName);
     xPub = await hsmService.getXPubFromKey(connectionObj, hsmKeyName, {
       isReadOnlyWallet: true,
     });
@@ -198,10 +199,10 @@ async function simpleSendTx(req, res) {
     console.log('Transaction model created');
     tx.validate();
     console.log('Transaction model validated');
-    // create connection
-    const conn = await hsmService.hsmConnect();
+    // start hsm session
+    const session = await hsmService.hsmStartSession(hsmKeyName);
     console.log('Connection to HSM established');
-    await hsmService.signTxP2PKH(conn, wallet, tx, hsmKeyName);
+    await session.signTxP2PKH(wallet, tx);
     console.log('Transaction signed');
     tx.prepareToSend();
     console.log('Transaction ready to send');

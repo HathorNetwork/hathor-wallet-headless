@@ -7,12 +7,183 @@
 
 const { hsm } = require('@dinamonetworks/hsm-dinamo');
 const hathorLib = require('@hathor/wallet-lib');
-const _ = require('lodash');
 
 const { getConfig } = require('../settings');
 const { lock, lockTypes } = require('../lock');
 const { hsmBusyErrorMessage } = require('../helpers/constants');
 const { HsmError } = require('../errors');
+
+function getAcctKeyname(keyname) {
+  return `htrAcct_${keyname}`;
+}
+
+function getChangeKeyname(keyname) {
+  return `htrChange0_${keyname}`;
+}
+
+/**
+ * @typedef {Object} SignatureData
+ * @property {Buffer} signature
+ * @property {Buffer} pubkey
+ * @property {string} address
+ * @property {number} index
+ */
+
+class HsmSession {
+  /**
+   * @param {hsm.interfaces.Hsm} conn
+   * @param {string} rootKeyname
+   */
+  constructor(conn, rootKeyname) {
+    this.conn = conn;
+    this.rootKey = rootKeyname;
+    /**
+     * @type {Record<number, string>}
+     */
+    this.addressKeys = {};
+  }
+
+  /**
+   * Get the adddress index keyname from the address index
+   * @param {index} index - bip32 Address index
+   * @returns {Promise<string>}
+   */
+  async getAddressKeyName(index) {
+    if (index in this.addressKeys) {
+      return this.addressKeys[index];
+    }
+
+    /**
+     * This unconventional naming is due to the 32 chars keyname restriction,
+     * we reserve 17 chars for context of which "Haddr_*_*" uses 7, leaving 10
+     * for the address index, this allows us to use all 2 billion indexes
+     * without resorting to hex conversion since 2 billion in base 10 has
+     * length 10.
+     */
+    const addressKeyName = `Haddr_${this.rootKey}_${index}`;
+    await this.conn.blockchain.createBip32ChildKeyDerivation(
+      hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET,
+      index,
+      false,
+      true,
+      getChangeKeyname(),
+      addressKeyName,
+    );
+
+    this.addressKeys[index] = addressKeyName;
+    return addressKeyName;
+  }
+
+  /**
+   * Get the public key for the given address index.
+   * Expected DER encoding of the public key (compressed).
+   * @param {number} addressIndex
+   * @returns {Promise<Buffer>}
+   */
+  async getAddressPubkey(addressIndex) {
+    const addressKeyName = await this.getAddressKeyName(addressIndex);
+    return this.conn.blockchain.getPubKey(
+      hsm.enums.BLOCKCHAIN_GET_PUB_KEY_TYPE.SEC1_COMP,
+      addressKeyName,
+    );
+  }
+
+  /**
+   * Sign the given data with the given HSM key
+   * @param {HsmSession} hsmSession
+   * @param {Buffer} dataToSignHash
+   * @param {number} addressIndex
+   * @returns {Promise<Buffer>} DER encoded signature
+   */
+  async signData(dataToSignHash, addressIndex) {
+    // Derive the key to the desired address index
+    const htrKeyName = await this.getAddressKeyName(addressIndex);
+
+    const signature = await this.conn.blockchain.sign(
+      hsm.enums.BLOCKCHAIN_SIG_TYPE.SIG_DER_ECDSA,
+      hsm.enums.BLOCKCHAIN_HASH_MODE.SHA256,
+      dataToSignHash,
+      htrKeyName,
+    );
+
+    // Dinamo SDK returns v + DER, where v is a parity byte
+    // https://manual.dinamonetworks.io/nodejs/enums/hsm.enums.BLOCKCHAIN_SIG_TYPE.html#SIG_DER_ECDSA
+    // We can safely ignore the parity byte
+    if (signature[0] !== 0x30) {
+      return signature.slice(1);
+    }
+    return signature;
+  }
+
+  /**
+   * Sign the given transaction and return the signatures.
+   * @param {hathorLib.HathorWallet} wallet
+   * @param {hathorLib.Transaction} tx
+   * @returns {Promise<SignatureData[]>}
+   */
+  async signTx(wallet, tx) {
+    const dataToSignHash = tx.getDataToSignHash();
+    /**
+   * @type {SignatureData[]}
+   */
+    const response = [];
+
+    /**
+   * @type {{ storage: hathorLib.Storage}}
+   */
+    const { storage } = wallet;
+
+    for await (const { tx: spentTx, index, input } of storage.getSpentTxs(tx.inputs)) {
+      const spentOut = spentTx.outputs[input.index];
+
+      if (!spentOut.decoded.address) {
+        // This output is not owned
+        continue;
+      }
+      const addressInfo = await storage.getAddressInfo(spentOut.decoded.address);
+      if (!addressInfo) {
+        // Not a wallet address
+        continue;
+      }
+
+      const pubkey = this.getAddressPubkey(addressInfo.bip32AddressIndex);
+      const signature = this.signData(dataToSignHash, addressInfo.bip32AddressIndex);
+
+      response.push({
+        index,
+        pubkey,
+        signature,
+        address: addressInfo.base58,
+      });
+    }
+
+    return response;
+  }
+
+  /**
+   * Sign the given transaction with the given HSM key
+   * @param {hathorLib.HathorWallet} wallet
+   * @param {hathorLib.Transaction} tx
+   *
+   * @returns {Promise<hathorLib.Transaction>}
+   */
+  async signTxP2PKH(wallet, tx) {
+    const signatureData = await this.signTx(wallet, tx);
+    for (const { index, pubkey, signature } of signatureData) {
+      const inputData = hathorLib.transactionUtils.createInputData(
+        signature,
+        pubkey,
+      );
+      tx.inputs[index].setData(inputData);
+    }
+    return tx;
+  }
+}
+
+async function hsmStartSession(rootKeyname) {
+  const hsmConnection = await hsmConnect();
+  return new HsmSession(hsmConnection, rootKeyname);
+}
 
 /**
  * Connects to the HSM and returns the connection object
@@ -99,40 +270,50 @@ async function isKeyValidXpriv(hsmConnection, hsmKeyName) {
 }
 
 /**
+ * Check that a key exists
+ * @param {hsm.interfaces.Hsm} hsmConnection
+ * @param {string} keyname
+ * @returns {Promise<boolean>}
+ */
+async function hsmKeyExists(hsmConnection, keyname) {
+  try {
+    await hsmConnection.blockchain.getKeyInfo(keyname);
+    return true;
+  } catch (e) {
+    // hsm.constants.ERR_CANNOT_OPEN_OBJ = 5004
+    if (e.errorCode === hsm.constants.ERR_CANNOT_OPEN_OBJ) {
+      return false;
+    }
+    // Some other error happened
+    throw e;
+  }
+}
+
+/**
+ * Create the account or change path keys if they don't already exist.
  * Derivates an HTR xPriv key from a given xPriv key up to the Account level.
  * Optionally can derive the Change or Address levels at specific versions.
  * @param {hsm.interfaces.Hsm} hsmConnection
  * @param {string} hsmKeyName
  * @param {Object} [options]
  * @param {boolean} [options.deriveChange] If true, derivation will go until the Change level
- * @param {number} [options.deriveAddressIndex] When informed together with `deriveChange`,
- *                                              also derives the Address level at the
- *                                              requested index
- * @param {number} [options.version] Optional, advanced. Version to calculate the exported xPriv
+ * @param {number|null} [version=null] XPriv version, will try to use the correct from the network
  * @returns {Promise<{success: boolean, htrKeyName: string}>}
  */
-async function derivateHtrCkd(
+async function deriveMainKeysFromRoot(
   hsmConnection,
   hsmKeyName,
-  options,
+  version = null,
 ) {
-  const childKeyNames = {
-    HTR_CKD_BIP_KEYNAME: 'HTR_BIP_KEY',
-    HTR_CKD_COIN_KEYNAME: 'HTR_COIN_KEY',
-    HTR_CKD_ACCOUNT_KEYNAME: 'HTR_ACCOUNT_KEY',
-    HTR_CKD_CHANGE_KEYNAME: 'HTR_CHANGE_KEY',
-    HTR_CKD_ADDRESS_KEYNAME: 'HTR_ADDRESS_KEY',
-  };
+  const acctPathKeyname = getAcctKeyname(hsmKeyName);
+  const changePathKeyname = getChangeKeyname(hsmKeyName);
 
-  /*
-   * Derivation will be made on
-   * BIP code / Coin / Account /  Change / Address
-   *    m/44' / 280' /      0' /       0 /       0
-   *        1 /    2 /      3  /       4 /       5
-   */
+  // Checks if the account path key exists on HSM
+  const acctPathExists = await hsmKeyExists(acctPathKeyname);
+  const changePathExists = await hsmKeyExists(changePathKeyname);
 
   // Defining derivation version
-  let derivationVersion = options?.version;
+  let derivationVersion = version;
   if (!derivationVersion) {
     const config = getConfig();
     if (config.network === 'mainnet') {
@@ -142,78 +323,56 @@ async function derivateHtrCkd(
     }
   }
 
-  // Derivation 1: Bip Code
-  await hsmConnection.blockchain.createBip32ChildKeyDerivation(
-    derivationVersion, // Version
-    hsm.enums.BCHAIN_SECURE_BIP32_INDEX.BASE + 44, // Derivation index
-    false, // Exportable
-    true, // Temporary
-    hsmKeyName, // Parent key name
-    childKeyNames.HTR_CKD_BIP_KEYNAME, // Child key name
-  );
-
-  // Derivation 2: Coin
-  await hsmConnection.blockchain.createBip32ChildKeyDerivation(
-    derivationVersion,
-    hsm.enums.BCHAIN_SECURE_BIP32_INDEX.BASE + 280,
-    false,
-    true,
-    childKeyNames.HTR_CKD_BIP_KEYNAME,
-    childKeyNames.HTR_CKD_COIN_KEYNAME,
-  );
-
-  // Derivation 3: Account
-  await hsmConnection.blockchain.createBip32ChildKeyDerivation(
-    derivationVersion,
-    hsm.enums.BCHAIN_SECURE_BIP32_INDEX.BASE,
-    false,
-    true,
-    childKeyNames.HTR_CKD_COIN_KEYNAME,
-    childKeyNames.HTR_CKD_ACCOUNT_KEYNAME,
-  );
-
-  // If it was not explicitly requested to derive the Change, finish at Account level
-  if (!options?.deriveChange) {
-    return {
-      success: true,
-      htrKeyName: childKeyNames.HTR_CKD_ACCOUNT_KEYNAME,
+  if (!acctPathExists) {
+    // derive from root to account path
+    const childKeyNames = {
+      HTR_CKD_BIP_KEYNAME: 'HTR_BIP_KEY',
+      HTR_CKD_COIN_KEYNAME: 'HTR_COIN_KEY',
     };
+
+    // Derivation 1: Bip Code
+    await hsmConnection.blockchain.createBip32ChildKeyDerivation(
+      derivationVersion, // Version
+      hsm.enums.BCHAIN_SECURE_BIP32_INDEX.BASE + 44, // Derivation index
+      false, // Exportable
+      true, // Temporary
+      hsmKeyName, // Parent key name
+      childKeyNames.HTR_CKD_BIP_KEYNAME, // Child key name
+    );
+
+    // Derivation 2: Coin
+    await hsmConnection.blockchain.createBip32ChildKeyDerivation(
+      derivationVersion,
+      hsm.enums.BCHAIN_SECURE_BIP32_INDEX.BASE + 280,
+      false,
+      true,
+      childKeyNames.HTR_CKD_BIP_KEYNAME,
+      childKeyNames.HTR_CKD_COIN_KEYNAME,
+    );
+
+    // Derivation 3: Account
+    await hsmConnection.blockchain.createBip32ChildKeyDerivation(
+      derivationVersion,
+      hsm.enums.BCHAIN_SECURE_BIP32_INDEX.BASE,
+      false,
+      false,
+      childKeyNames.HTR_CKD_COIN_KEYNAME,
+      acctPathKeyname,
+    );
   }
 
-  // Derivation 4: Change
-  await hsmConnection.blockchain.createBip32ChildKeyDerivation(
-    derivationVersion,
-    0,
-    false,
-    true,
-    childKeyNames.HTR_CKD_ACCOUNT_KEYNAME,
-    childKeyNames.HTR_CKD_CHANGE_KEYNAME,
-  );
-
-  // If it was not explicitly requested to derive the Address, finish at Change level
-  if (!_.isNumber(options?.deriveAddressIndex)) {
-    return {
-      success: true,
-      htrKeyName: childKeyNames.HTR_CKD_CHANGE_KEYNAME,
-    };
+  if (!changePathExists) {
+    // derive from account path to change path 0
+    // Derivation 3: Account
+    await hsmConnection.blockchain.createBip32ChildKeyDerivation(
+      derivationVersion,
+      0,
+      false,
+      false,
+      acctPathKeyname,
+      changePathKeyname,
+    );
   }
-
-  // Derivation 5: Address
-  // Note: This step is an alternative implementation to `hsmConnection.blockchain.getAddress()`
-  const addressKeyName = `${childKeyNames.HTR_CKD_ADDRESS_KEYNAME}_${options.deriveAddressIndex}`;
-  await hsmConnection.blockchain.createBip32ChildKeyDerivation(
-    hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET,
-    options.deriveAddressIndex,
-    true,
-    true,
-    childKeyNames.HTR_CKD_CHANGE_KEYNAME,
-    addressKeyName,
-  );
-
-  return {
-    success: true,
-    htrKeyName: addressKeyName,
-  };
 }
 
 /**
@@ -223,7 +382,8 @@ async function derivateHtrCkd(
  * @returns {Promise<string>}
  */
 async function getXPubFromKey(hsmConnection, hsmKeyName) {
-  const { htrKeyName } = await derivateHtrCkd(hsmConnection, hsmKeyName);
+  // account path should already be derived when this is called
+  const htrKeyName = getAcctKeyname(hsmKeyName);
 
   const xPub = await hsmConnection.blockchain.getPubKey(
     hsm.enums.BLOCKCHAIN_GET_PUB_KEY_TYPE.BIP32_XPUB,
@@ -233,123 +393,11 @@ async function getXPubFromKey(hsmConnection, hsmKeyName) {
   return xPub.toString();
 }
 
-/**
- * Sign the given data with the given HSM key
- * @param {hsm.interfaces.Hsm} hsmConnection
- * @param {Buffer} dataToSignHash
- * @param {string} keyName
- * @param {number} addressIndex
- * @returns {Promise<{ pubkey: Buffer, signature: Buffer }>} DER encoded signature and pubkey
- */
-async function getSignatureFromData(hsmConnection, dataToSignHash, keyName, addressIndex) {
-  // Derive the key to the desired address index
-  const { htrKeyName } = await derivateHtrCkd(hsmConnection, keyName, {
-    deriveChange: true,
-    deriveAddressIndex: addressIndex,
-  });
-
-  const signature = await hsmConnection.blockchain.sign(
-    hsm.enums.BLOCKCHAIN_SIG_TYPE.SIG_DER_ECDSA,
-    hsm.enums.BLOCKCHAIN_HASH_MODE.SHA256,
-    dataToSignHash,
-    htrKeyName,
-  );
-
-  // Dinamo SDK returns v + DER, where v is a parity byte
-  // https://manual.dinamonetworks.io/nodejs/enums/hsm.enums.BLOCKCHAIN_SIG_TYPE.html#SIG_DER_ECDSA
-  // We can safely ignore the parity byte
-  if (signature[0] !== 0x30) {
-    return signature.slice(1);
-  }
-  return signature;
-}
-
-/**
- * @typedef {Object} SignatureData
- * @property {Buffer} signature
- * @property {Buffer} pubkey
- * @property {string} address
- * @property {number} index
- */
-
-/**
-  * Sign the given transaction with the given HSM key
-  * @param {hsm.interfaces.Hsm} hsmConnection
-  * @param {hathorLib.HathorWallet} wallet
-  * @param {hathorLib.Transaction} tx
-  * @param {string} keyName
-  *
-  * @returns {Promise<SignatureData[]>}
-  */
-async function getSignatureFromTx(hsmConnection, wallet, tx, keyName) {
-  const dataToSignHash = tx.getDataToSignHash();
-  /**
-   * @type {SignatureData[]}
-   */
-  const response = [];
-
-  /**
-   * @type {{ storage: hathorLib.Storage}}
-   */
-  const { storage } = wallet;
-
-  for await (const { tx: spentTx, index, input } of storage.getSpentTxs(tx.inputs)) {
-    const spentOut = spentTx.outputs[input.index];
-
-    if (!spentOut.decoded.address) {
-      // This output is not owned
-      continue;
-    }
-    const addressInfo = await storage.getAddressInfo(spentOut.decoded.address);
-    if (!addressInfo) {
-      // Not a wallet address
-      continue;
-    }
-
-    const { pubkey, signature } = await getSignatureFromData(
-      hsmConnection,
-      dataToSignHash,
-      keyName,
-      addressInfo.bip32AddressIndex,
-    );
-
-    response.push({
-      index,
-      pubkey,
-      signature,
-      address: addressInfo.base58,
-    });
-  }
-
-  return response;
-}
-
-/**
- * Sign the given transaction with the given HSM key
- * @param {hsm.interfaces.Hsm} hsmConnection
- * @param {hathorLib.HathorWallet} wallet
- * @param {hathorLib.Transaction} tx
- * @param {string} keyName
- *
- * @returns {Promise<hathorLib.Transaction>}
- */
-async function signTxP2PKH(hsmConnection, wallet, tx, keyName) {
-  const signatureData = await getSignatureFromTx(hsmConnection, wallet, tx, keyName);
-  for (const { index, pubkey, signature } of signatureData) {
-    const inputData = hathorLib.transactionUtils.createInputData(
-      signature,
-      pubkey,
-    );
-    tx.inputs[index].setData(inputData);
-  }
-  return tx;
-}
-
 module.exports = {
+  hsmStartSession,
   hsmConnect,
+  deriveMainKeysFromRoot,
   hsmDisconnect,
   isKeyValidXpriv,
   getXPubFromKey,
-  getSignatureFromTx,
-  signTxP2PKH,
 };
