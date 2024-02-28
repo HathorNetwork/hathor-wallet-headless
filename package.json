@@ -16,7 +16,7 @@
     "lodash": "4.17.21",
     "morgan": "1.10.0",
     "winston": "3.3.3",
-    "yargs": "16.2.0"
+    "yargs": "17.7.2"
   },
   "scripts": {
     "build": "babel src -d dist --source-maps",
