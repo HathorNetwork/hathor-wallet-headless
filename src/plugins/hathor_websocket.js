@@ -9,7 +9,7 @@
 async function checkDeps() {
   const requiredDeps = {
     ws: '^8.12.0',
-    yargs: '^16.2.0',
+    yargs: '^17.7.2',
   };
   await Promise.all(Object.keys(requiredDeps).map(async d => {
     try {

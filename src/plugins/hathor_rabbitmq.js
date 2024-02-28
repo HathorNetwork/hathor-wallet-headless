@@ -8,7 +8,7 @@
 /* istanbul ignore next */
 async function checkDeps() {
   const requiredDeps = {
-    yargs: '^16.2.0',
+    yargs: '^17.7.2',
     amqplib: '^0.10.3',
   };
   await Promise.all(Object.keys(requiredDeps).map(async d => {
