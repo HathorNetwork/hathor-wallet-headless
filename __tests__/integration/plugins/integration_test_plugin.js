@@ -4,32 +4,46 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import fs from 'fs';
 import _ from 'lodash';
 
+/**
+ * This plugin is used for testing purposes, storing all events received and allowing their easy
+ * retrieval for content and behavior assertion.
+ *
+ * @see https://github.com/HathorNetwork/hathor-wallet-headless/blob/master/PLUGIN.md
+ * @see https://github.com/HathorNetwork/hathor-wallet-headless/blob/master/src/plugins/child.js
+ * @see https://github.com/HathorNetwork/hathor-wallet-headless/blob/master/__tests__/integration/plugins/plugin-events.test.js
+ */
+
+/** A raw list of all received events for this plugin */
 const receivedEvents = [];
+/** @type EventEmitter */
+let busObject = null;
 
-function write(message) {
-  fs.appendFile('./tmp/events.txt', `${message}\n`, 'utf8', err => {
-    if (err) throw err;
-    console.log('Message has been added!');
-  });
-}
-
-/* istanbul ignore next */
+/**
+ * Mandatory plugin method to initialize it.
+ * Receives all events and store them locally.
+ * @param {EventEmitter} bus
+ * @returns {Promise<void>}
+ */
 export const init = async bus => {
-  write('Plugin was initialized.');
+  busObject = bus;
 
-  bus.on('message', data => {
-    console.log(`[${data.type}] Message added on ${receivedEvents.length + 1}.`);
+  busObject.on('message', data => {
+    console.log(`[${receivedEvents.length}] ${data.type} message added on ${data.walletId}.`);
     receivedEvents.push(data);
-
-    const timestamp = Date.now();
-    const fileInfo = `${timestamp}: ${JSON.stringify(data)}\n`;
-    write(fileInfo);
   });
 
   console.log('plugin[test custom]: loaded');
+};
+
+/**
+ * Event listener cleanup. Necessary when running on the expected test environment.
+ */
+export const close = () => {
+  busObject.off('message');
+  busObject = null;
+  console.log('plugin[test custom]: closed');
 };
 
 /**

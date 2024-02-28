@@ -11,17 +11,23 @@ describe('test the plugin event handler', () => {
   let wallet1;
 
   beforeAll(async () => {
-    // Mimic the behavior or `src/plugins/child.js`, that is not called within the context of Jest
+    /*
+     * Mimic the behavior of `src/plugins/child.js` because it is not called within the context of
+     * Jest. However, here we initialize the plugin within the main process to allow for integration
+     * testing.
+     *
+     * @see https://github.com/HathorNetwork/hathor-wallet-headless/blob/master/src/index.js
+     * @see https://github.com/HathorNetwork/hathor-wallet-headless/blob/master/src/plugins/child.js
+     */
     childManager.hathorPlugins.integration = {
       name: 'integration',
       file: '../../__tests__/integration/plugins/integration_test_plugin',
     };
-
     [loadedPlugin] = await childManager.loadPlugins(['integration'], {});
     loadedPlugin.init(notificationBus);
 
     try {
-      // A random HTR value for the first wallet
+      // Initialize an empty wallet
       wallet1 = WalletHelper.getPrecalculatedWallet(pluginWalletId);
       await WalletHelper.startMultipleWalletsForTest([wallet1]);
     } catch (err) {
@@ -31,53 +37,55 @@ describe('test the plugin event handler', () => {
 
   afterAll(async () => {
     await wallet1.stop();
+    loadedPlugin.close();
   });
 
   it('should return the events that led to complete wallet start', async () => {
     const currentHistory = loadedPlugin
       .retrieveEventHistory();
 
-    // The event history has many elements
-    expect(currentHistory.length).toBeGreaterThanOrEqual(8);
+    // The full event history should have more elements than those of the test wallet
+    const testWalletHistory = currentHistory.filter(event => event.walletId === pluginWalletId);
+    expect(currentHistory.length).toBeGreaterThan(testWalletHistory.length);
 
-    // There must have been 5 wallet changes for this test
-    expect(currentHistory.filter(event => event.type === 'wallet:state-change' && event.walletId === pluginWalletId)).toHaveLength(5);
-  });
+    // There must have been 5 wallet changes for this test, one with each step of its initialization
+    expect(testWalletHistory.filter(event => event.type === 'wallet:state-change')).toHaveLength(5);
 
-  it('should return the events resulting from a successful transaction', async () => {
-    const fundTxObj1 = await wallet1.injectFunds(10, 0);
-
-    const currentHistory = loadedPlugin
-      .retrieveEventHistory()
-      .filter(event => event.walletId === pluginWalletId);
-    console.dir(currentHistory);
-
-    // The event history has more elements
-    expect(currentHistory.length > 8).toBeTruthy();
-
-    // There is a wallet history update
-    const walletHistoryEvents = currentHistory.filter(event => event.type === 'node:wallet-update');
-    expect(walletHistoryEvents.length).toBeGreaterThanOrEqual(1);
-    expect(walletHistoryEvents[0].data?.address).toEqual(await wallet1.getAddressAt(0));
-    console.dir({ walletHistoryEvents: walletHistoryEvents[0] });
-
-    // There is a wallet load partial update
-    const walletLoadPartialEvents = currentHistory.filter(event => event.type === 'wallet:load-partial-update');
-    expect(walletLoadPartialEvents).toHaveLength(2);
+    // There is a wallet load partial update indicating an empty wallet
+    const walletLoadPartialEvents = testWalletHistory.filter(event => event.type === 'wallet:load-partial-update');
+    expect(walletLoadPartialEvents).toHaveLength(1);
     expect(walletLoadPartialEvents[0].data).toStrictEqual({
       addressesFound: 20, historyLength: 0
     });
+  });
+
+  it('should return the events related to a successful transaction', async () => {
+    // Add funds to the address on index 0
+    const fundTxObj1 = await wallet1.injectFunds(10, 0);
+
+    const testWalletHistory = loadedPlugin
+      .retrieveEventHistory()
+      .filter(event => event.walletId === pluginWalletId);
+
+    // There is a wallet history update with the transaction specified above
+    const walletHistoryEvents = testWalletHistory.filter(event => event.type === 'node:wallet-update');
+    expect(walletHistoryEvents.length).toBeGreaterThanOrEqual(1);
+    expect(walletHistoryEvents[0].data?.address).toEqual(await wallet1.getAddressAt(0));
+
+    // There is a wallet load partial update
+    const walletLoadPartialEvents = testWalletHistory.filter(event => event.type === 'wallet:load-partial-update');
+    expect(walletLoadPartialEvents).toHaveLength(2);
     expect(walletLoadPartialEvents[1].data).toStrictEqual({
       addressesFound: 21, historyLength: 1
     });
 
     // There is a new tx event
-    const newTxEvents = currentHistory.filter(event => event.type === 'wallet:new-tx');
+    const newTxEvents = testWalletHistory.filter(event => event.type === 'wallet:new-tx');
     expect(newTxEvents).toHaveLength(1);
     expect(newTxEvents[0].data?.tx_id).toEqual(fundTxObj1.hash);
 
     // There is a new update event
-    const updateTxEvents = currentHistory.filter(event => event.type === 'wallet:update-tx');
+    const updateTxEvents = testWalletHistory.filter(event => event.type === 'wallet:update-tx');
     expect(updateTxEvents).toHaveLength(1);
     expect(updateTxEvents[0].data?.tx_id).toEqual(fundTxObj1.hash);
   });
