@@ -52,7 +52,7 @@ async function walletMiddleware(req, res, next) {
   req.wallet = wallet;
   req.walletId = walletId;
 
-  if (isHsmWallet(wallet)) {
+  if (isHsmWallet(walletId)) {
     const hsmKeyName = hsmWalletIds.get(walletId);
     if (!hsmKeyName) {
       sendError('Invalid HSM wallet.');

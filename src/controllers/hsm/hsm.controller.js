@@ -106,10 +106,9 @@ async function startHsmWallet(req, res) {
   let xPub = null;
   try {
     await hsmService.deriveMainKeysFromRoot(connectionObj, hsmKeyName);
-    xPub = await hsmService.getXPubFromKey(connectionObj, hsmKeyName, {
-      isReadOnlyWallet: true,
-    });
+    xPub = await hsmService.getXPubFromKey(connectionObj, hsmKeyName);
   } catch (e) {
+    console.error(e);
     res.send({
       success: false,
       message: `Unexpected error on HSM xPub derivation: ${e.message}`,
@@ -191,28 +190,19 @@ async function simpleSendTx(req, res) {
       changeAddress,
     });
 
-    console.log('Preparing transaction');
-
     const txData = await sendTransaction1.prepareTxData();
-    console.log(`Transaction prepared: ${JSON.stringify(txData, null, 2)}`);
     const tx = transactionUtils.createTransactionFromData(txData, wallet.getNetworkObject());
-    console.log('Transaction model created');
     tx.validate();
-    console.log('Transaction model validated');
     // start hsm session
     const session = await hsmService.hsmStartSession(hsmKeyName);
-    console.log('Connection to HSM established');
     await session.signTxP2PKH(wallet, tx);
-    console.log('Transaction signed');
     tx.prepareToSend();
-    console.log('Transaction ready to send');
 
     // Now that we have a signed transaction we can send using the SendTransaction facade again
     const sendTransaction = new hathorLib.SendTransaction({
       storage: wallet.storage,
       transaction: tx,
     });
-    console.log('Transaction ready to mine');
     // This will mine and push the transaction
     await sendTransaction.runFromMining();
 

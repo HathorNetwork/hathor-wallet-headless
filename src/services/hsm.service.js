@@ -13,12 +13,43 @@ const { lock, lockTypes } = require('../lock');
 const { hsmBusyErrorMessage } = require('../helpers/constants');
 const { HsmError } = require('../errors');
 
+async function delay(ms) {
+  // eslint-disable-next-line no-promise-executor-return
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Get the bip32 keyname
+ * @param {string} keyname
+ * @param {number} pathIndex
+ * @param {Object} [options={}]
+ * @param {number} options.index Derivation index for address level
+ */
+function getBip32Keyname(keyname, pathIndex, options = {}) {
+  const levels = [
+    () => keyname, // Root level
+    name => `T1${name}_bip44`,
+    name => `T1${name}_coinHTR`,
+    name => `T1${name}_htrAcct`,
+    name => `T1${name}_htrChange0`,
+    /**
+     * This unconventional naming is due to the 32 chars keyname restriction,
+     * we reserve 17 chars for context of which "*_HAddr_*" uses 7, leaving 10
+     * for the address index, this allows us to use all 2 billion indexes
+     * without resorting to hex conversion since 2 billion in base 10 has
+     * length 10.
+     */
+    (name, opts) => `T1${name}_HAddr_${opts.index}`,
+  ];
+
+  return levels[pathIndex](keyname, options);
+}
 function getAcctKeyname(keyname) {
-  return `htrAcct_${keyname}`;
+  return getBip32Keyname(keyname, 3);
 }
 
 function getChangeKeyname(keyname) {
-  return `htrChange0_${keyname}`;
+  return getBip32Keyname(keyname, 4);
 }
 
 /**
@@ -53,22 +84,29 @@ class HsmSession {
       return this.addressKeys[index];
     }
 
-    /**
-     * This unconventional naming is due to the 32 chars keyname restriction,
-     * we reserve 17 chars for context of which "Haddr_*_*" uses 7, leaving 10
-     * for the address index, this allows us to use all 2 billion indexes
-     * without resorting to hex conversion since 2 billion in base 10 has
-     * length 10.
-     */
-    const addressKeyName = `Haddr_${this.rootKey}_${index}`;
-    await this.conn.blockchain.createBip32ChildKeyDerivation(
-      hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET,
-      index,
-      false,
-      true,
-      getChangeKeyname(),
-      addressKeyName,
-    );
+    const addressKeyName = getBip32Keyname(this.rootKey, 5, { index });
+    const changeKeyName = getChangeKeyname(this.rootKey);
+    try {
+      await this.conn.blockchain.createBip32ChildKeyDerivation(
+        hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET,
+        index,
+        false,
+        true,
+        changeKeyName,
+        addressKeyName,
+      );
+    } catch (err) {
+      await delay(500);
+      // (CODE: 5022 | NAME: ERR_OBJ_ALREADY_EXISTS)
+      // This error code means the address key was already derived
+      if (err.errorCode === hsm.constants.ERR_OBJ_ALREADY_EXISTS) {
+        // address key already exists, just return it
+        this.addressKeys[index] = addressKeyName;
+        return addressKeyName;
+      }
+      console.error(err);
+      throw err;
+    }
 
     this.addressKeys[index] = addressKeyName;
     return addressKeyName;
@@ -146,8 +184,8 @@ class HsmSession {
         continue;
       }
 
-      const pubkey = this.getAddressPubkey(addressInfo.bip32AddressIndex);
-      const signature = this.signData(dataToSignHash, addressInfo.bip32AddressIndex);
+      const pubkey = await this.getAddressPubkey(addressInfo.bip32AddressIndex);
+      const signature = await this.signData(dataToSignHash, addressInfo.bip32AddressIndex);
 
       response.push({
         index,
@@ -282,6 +320,7 @@ async function hsmKeyExists(hsmConnection, keyname) {
   } catch (e) {
     // hsm.constants.ERR_CANNOT_OPEN_OBJ = 5004
     if (e.errorCode === hsm.constants.ERR_CANNOT_OPEN_OBJ) {
+      await delay(500);
       return false;
     }
     // Some other error happened
@@ -309,8 +348,7 @@ async function deriveMainKeysFromRoot(
   const changePathKeyname = getChangeKeyname(hsmKeyName);
 
   // Checks if the account path key exists on HSM
-  const acctPathExists = await hsmKeyExists(acctPathKeyname);
-  const changePathExists = await hsmKeyExists(changePathKeyname);
+  const acctPathExists = await hsmKeyExists(hsmConnection, acctPathKeyname);
 
   // Defining derivation version
   let derivationVersion = version;
@@ -361,6 +399,7 @@ async function deriveMainKeysFromRoot(
     );
   }
 
+  const changePathExists = await hsmKeyExists(hsmConnection, changePathKeyname);
   if (!changePathExists) {
     // derive from account path to change path 0
     // Derivation 3: Account
