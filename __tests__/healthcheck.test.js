@@ -92,7 +92,7 @@ describe('healthcheck api', () => {
               componentId: 'http://fakehost:8083/v1a/',
               componentType: 'http',
               status: 'pass',
-              output: 'Fullnode is responding',
+              output: 'Fullnode is healthy',
               time: expect.any(String),
               affectsServiceHealth: true,
             },
@@ -147,7 +147,7 @@ describe('healthcheck api', () => {
               componentId: 'http://fakehost:8083/v1a/',
               componentType: 'http',
               status: 'pass',
-              output: 'Fullnode is responding',
+              output: 'Fullnode is healthy',
               time: expect.any(String),
               affectsServiceHealth: true,
             },
@@ -170,8 +170,63 @@ describe('healthcheck api', () => {
       wallet.state = originalState;
     });
 
-    it('should return 503 when the fullnode is not healthy', async () => {
-      TestUtils.httpMock.onGet('/version').reply(503, { status: 'fail' });
+    /**
+     * This is a case where the fullnode is not healthy, but it returns 200.
+     * It's possible for it to do this, because there its health endpoint accepts a parameter
+     * to make it return 200 even if it's unhealthy.
+     */
+    it('should return 503 when the fullnode is not healthy and returns 200', async () => {
+      TestUtils.httpMock.onGet('http://fakehost:8083/v1a/health').reply(200, { status: 'fail' });
+
+      const response = await TestUtils.request
+        .query({ include_tx_mining: true, include_fullnode: true, wallet_ids: walletId })
+        .get('/health');
+      expect(response.status).toBe(503);
+
+      expect(response.body).toStrictEqual({
+        status: 'fail',
+        description: 'Health status of hathor-wallet-headless',
+        httpStatusCode: 503,
+        checks: {
+          'Wallet health_wallet': [
+            {
+              componentName: 'Wallet health_wallet',
+              componentId: 'health_wallet',
+              componentType: 'internal',
+              status: 'pass',
+              output: 'Wallet is ready',
+              time: expect.any(String),
+              affectsServiceHealth: true,
+            },
+          ],
+          'Fullnode http://fakehost:8083/v1a/': [
+            {
+              componentName: 'Fullnode http://fakehost:8083/v1a/',
+              componentId: 'http://fakehost:8083/v1a/',
+              componentType: 'http',
+              status: 'fail',
+              output: 'Fullnode reported as unhealthy: {"status":"fail"}',
+              time: expect.any(String),
+              affectsServiceHealth: true,
+            },
+          ],
+          'TxMiningService http://fake.txmining:8084/': [
+            {
+              componentName: 'TxMiningService http://fake.txmining:8084/',
+              componentId: 'http://fake.txmining:8084/',
+              componentType: 'http',
+              status: 'pass',
+              output: 'Tx Mining Service is healthy',
+              time: expect.any(String),
+              affectsServiceHealth: true,
+            },
+          ],
+        }
+      });
+    });
+
+    it('should return 503 when the fullnode is not healthy and returns 503', async () => {
+      TestUtils.httpMock.onGet('http://fakehost:8083/v1a/health').reply(503, { status: 'fail' });
 
       const response = await TestUtils.request
         .query({ include_tx_mining: true, include_fullnode: true, wallet_ids: walletId })
@@ -253,7 +308,7 @@ describe('healthcheck api', () => {
               componentId: 'http://fakehost:8083/v1a/',
               componentType: 'http',
               status: 'pass',
-              output: 'Fullnode is responding',
+              output: 'Fullnode is healthy',
               time: expect.any(String),
               affectsServiceHealth: true,
             },
@@ -338,7 +393,7 @@ describe('healthcheck api', () => {
               componentId: 'http://fakehost:8083/v1a/',
               componentType: 'http',
               status: 'pass',
-              output: 'Fullnode is responding',
+              output: 'Fullnode is healthy',
               time: expect.any(String),
               affectsServiceHealth: true,
             },
