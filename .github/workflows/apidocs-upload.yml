@@ -46,7 +46,7 @@ jobs:
       id-token: write # This is required for requesting the JWT
     needs: check-version
     env:
-      release_status: ${{ needs.test_version.outputs.release_status_output }}
+      release_status: ${{ needs.check-version.outputs.release_status_output }}
     if: >-
       ${{ 
           needs.check-version.outputs.release_status_output == 'isRelease' || 
@@ -56,7 +56,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [20.x]
 
     steps:
       # https://github.com/actions/checkout/releases/tag/v4.0.0
@@ -93,7 +93,7 @@ jobs:
           aws-region: us-east-1
 
       # Copy the document to S3
-      - name: Upload apidocs.json to S3
+      - name: Upload HTML to S3
         run: |
           if [[ "${{ env.release_status }}" == "isRelease" ]]; then
             aws s3 cp index.html s3://${{ secrets.AWS_APIDOCS_BUCKET_NAME_PROD }}

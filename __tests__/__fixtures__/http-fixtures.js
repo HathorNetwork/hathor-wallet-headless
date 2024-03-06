@@ -2,7 +2,7 @@ export default {
   'http://fake.txmining:8084/health': {
     status: 'pass'
   },
-  '/v1a/version': {
+  'http://fakehost:8083/v1a/version': {
     version: '0.38.4',
     network: 'testnet-foxtrot',
     min_weight: 8,
@@ -13,6 +13,9 @@ export default {
     reward_spend_min_blocks: 0,
     max_number_inputs: 255,
     max_number_outputs: 255,
+  },
+  'http://fakehost:8083/v1a/health': {
+    status: 'pass',
   },
   '/thin_wallet/address_history': {
     success: true,
