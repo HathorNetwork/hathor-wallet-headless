@@ -41,27 +41,25 @@ describe('balance routes', () => {
     await wallet3.stop();
   });
 
-  it('should return zero for an empty wallet', async done => {
+  it('should return zero for an empty wallet', async () => {
     const balanceResult = await TestUtils.request
       .get('/wallet/balance')
       .set({ 'x-wallet-id': wallet1.walletId });
 
     expect(balanceResult.body.available).toBe(0);
     expect(balanceResult.body.locked).toBe(0);
-    done();
   });
 
-  it('should return correct balance for a wallet with one transaction', async done => {
+  it('should return correct balance for a wallet with one transaction', async () => {
     const balanceResult = await TestUtils.request
       .get('/wallet/balance')
       .set({ 'x-wallet-id': wallet2.walletId });
 
     expect(balanceResult.body.available).toBe(wallet2Balance);
     expect(balanceResult.body.locked).toBe(0);
-    done();
   });
 
-  it('should return some locked balance for the miner wallet', async done => {
+  it('should return some locked balance for the miner wallet', async () => {
     const balanceResult = await TestUtils.request
       .get('/wallet/balance')
       .set({ 'x-wallet-id': minerWallet.walletId });
@@ -74,10 +72,9 @@ describe('balance routes', () => {
      * Should another miner reward address be included later, this assertion must be recalculated.
      */
     expect(balanceResult.body.locked).toBeGreaterThanOrEqual(6400);
-    done();
   });
 
-  it('should return correct balance for a custom token (empty)', async done => {
+  it('should return correct balance for a custom token (empty)', async () => {
     const balanceResult = await TestUtils.request
       .get('/wallet/balance')
       .query({ token: 'TST' })
@@ -85,10 +82,9 @@ describe('balance routes', () => {
 
     expect(balanceResult.body.available).toBe(0);
     expect(balanceResult.body.locked).toBe(0);
-    done();
   });
 
-  it('should return correct balance for a custom token', async done => {
+  it('should return correct balance for a custom token', async () => {
     const tokenAmount = getRandomInt(200, 100);
     const newToken = await wallet3.createToken({
       name: 'Test Token',
@@ -104,6 +100,5 @@ describe('balance routes', () => {
 
     expect(balanceResult.body.available).toBe(tokenAmount);
     expect(balanceResult.body.locked).toBe(0);
-    done();
   });
 });

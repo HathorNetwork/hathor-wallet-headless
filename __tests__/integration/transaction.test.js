@@ -18,7 +18,7 @@ describe('transaction routes', () => {
     await wallet1.stop();
   });
 
-  it('should return an error for an invalid transaction', async done => {
+  it('should return an error for an invalid transaction', async () => {
     const response = await TestUtils.request
       .get('/wallet/transaction')
       .query({
@@ -28,10 +28,9 @@ describe('transaction routes', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('success', false);
-    done();
   });
 
-  it('should return success for a valid transaction', async done => {
+  it('should return success for a valid transaction', async () => {
     // Generates a transaction
     const tx = await wallet1.injectFunds(1);
     const txId = tx.hash;
@@ -48,10 +47,9 @@ describe('transaction routes', () => {
     expect(response.body).toHaveProperty('is_voided', false);
     expect(response.body).toHaveProperty('tx_id', txId);
     expect(response.body).toHaveProperty('version', tx.version);
-    done();
   });
 
-  it('test confirmation blocks', async done => {
+  it('test confirmation blocks', async () => {
     // Generates a transaction
     const tx = await wallet1.injectFunds(1);
     const txId = tx.hash;
@@ -101,6 +99,5 @@ describe('transaction routes', () => {
     expect(response2.body.confirmationNumber).toBeGreaterThan(0);
     expect(response2.body.confirmationNumber).toBeLessThanOrEqual(newHeight - firstBlockHeight);
 
-    done();
   });
 });
