@@ -38,7 +38,6 @@ describe('simple-send-tx (HTR)', () => {
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
     // It would be good to have a error message assertion
-
   });
 
   it('should not allow a transaction with a negative value', async () => {
@@ -53,7 +52,6 @@ describe('simple-send-tx (HTR)', () => {
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
     expect(response.text).toContain('value');
-
   });
 
   it('should not allow a transaction with an invalid address', async () => {
@@ -68,7 +66,6 @@ describe('simple-send-tx (HTR)', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toContain('Invalid base58 address');
-
   });
 
   it('should not allow a transaction with an invalid change address', async () => {
@@ -84,7 +81,6 @@ describe('simple-send-tx (HTR)', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toContain('Change address');
-
   });
 
   it('should not allow a transaction with a change address outside the wallet', async () => {
@@ -104,7 +100,6 @@ describe('simple-send-tx (HTR)', () => {
     const errorElement = transaction.error[0];
     expect(errorElement).toHaveProperty('param', 'change_address');
     expect(errorElement.msg).toContain('Invalid');
-
   });
 
   it('should not allow a transaction with insufficient balance', async () => {
@@ -119,7 +114,6 @@ describe('simple-send-tx (HTR)', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toContain('Insufficient');
-
   });
 
   // Executing all successful transactions
@@ -145,7 +139,6 @@ describe('simple-send-tx (HTR)', () => {
 
     const balance1 = await wallet1.getBalance();
     expect(balance1.available).toBe(800);
-
   });
 
   it('should make a successful transaction with change address', async () => {
@@ -228,7 +221,6 @@ describe('simple-send-tx (custom token)', () => {
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
     // It would be good to have a error message assertion
-
   });
 
   it('should not allow a transaction with a negative value', async () => {
@@ -244,7 +236,6 @@ describe('simple-send-tx (custom token)', () => {
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
     expect(response.text).toContain('value');
-
   });
 
   it('should not allow a transaction with an invalid address', async () => {
@@ -260,7 +251,6 @@ describe('simple-send-tx (custom token)', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toContain('Invalid');
-
   });
 
   it('should not allow a transaction with an invalid change address', async () => {
@@ -277,7 +267,6 @@ describe('simple-send-tx (custom token)', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toContain('Change address');
-
   });
 
   it('should not allow a transaction with a change address outside the wallet', async () => {
@@ -309,7 +298,6 @@ describe('simple-send-tx (custom token)', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toContain('Insufficient');
-
   });
 
   it('should should make a successful transaction', async () => {
@@ -334,7 +322,6 @@ describe('simple-send-tx (custom token)', () => {
 
     const balance3 = await wallet3.getBalance(tokenData.uid);
     expect(balance3.available).toBe(700);
-
   });
 
   it('should should make a successful transaction with change address', async () => {
@@ -365,6 +352,5 @@ describe('simple-send-tx (custom token)', () => {
 
     const addr0 = await wallet4.getAddressInfo(0, tokenData.uid);
     expect(addr0.total_amount_available).toBe(600);
-
   });
 });

@@ -97,6 +97,5 @@ describe('tx-history routes', () => {
     expect(transactions[0].tx_id).toEqual(fundHashes.tx50);
     expect(transactions[1].tx_id).toEqual(fundHashes.tx40);
     expect(transactions[2].tx_id).toEqual(fundHashes.tx30);
-
   });
 });

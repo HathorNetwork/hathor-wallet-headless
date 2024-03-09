@@ -98,6 +98,5 @@ describe('transaction routes', () => {
     // We will have at least the first block confirming plus one (with the await above)
     expect(response2.body.confirmationNumber).toBeGreaterThan(0);
     expect(response2.body.confirmationNumber).toBeLessThanOrEqual(newHeight - firstBlockHeight);
-
   });
 });
