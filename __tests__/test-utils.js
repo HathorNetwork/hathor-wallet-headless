@@ -198,7 +198,8 @@ class TestUtils {
 
   static startMocks() {
     // http mocks
-    httpMock.onGet('/version').reply(200, httpFixtures['/v1a/version']);
+    httpMock.onGet('http://fakehost:8083/v1a/version').reply(200, httpFixtures['http://fakehost:8083/v1a/version']);
+    httpMock.onGet('http://fakehost:8083/v1a/health').reply(200, httpFixtures['http://fakehost:8083/v1a/health']);
     httpMock
       .onGet('/thin_wallet/address_history')
       .reply(200, httpFixtures['/thin_wallet/address_history']);

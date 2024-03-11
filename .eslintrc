@@ -37,7 +37,7 @@
     "guard-for-in": "off",
     "no-bitwise": "off",
   },
-  "ignorePatterns": [ "src/config.js", "src/config.*.js" ],
+  "ignorePatterns": [ "src/config.js", "src/config.*.js", "dist/*" ],
   "overrides": [
     {
       "files": [
