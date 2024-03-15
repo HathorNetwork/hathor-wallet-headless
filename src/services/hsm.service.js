@@ -13,6 +13,14 @@ const { lock, lockTypes } = require('../lock');
 const { hsmBusyErrorMessage } = require('../helpers/constants');
 const { HsmError } = require('../errors');
 
+/**
+ * After an error, the HSM lib has a runtime issue that will fail the next call
+ * To avoid this we can wait 500ms before continueing.
+ * This may be fixed in the near future.
+ * This method will return a promise that resolves after the given ms
+ * @param {number} ms
+ * @returns {Promise<void>}
+ */
 async function delay(ms) {
   // eslint-disable-next-line no-promise-executor-return
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -28,10 +36,10 @@ async function delay(ms) {
 function getBip32Keyname(keyname, pathIndex, options = {}) {
   const levels = [
     () => keyname, // Root level
-    name => `T1${name}_bip44`,
-    name => `T1${name}_coinHTR`,
-    name => `T1${name}_htrAcct`,
-    name => `T1${name}_htrChange0`,
+    name => `${name}_bip44`,
+    name => `${name}_coinHTR`,
+    name => `${name}_htrAcct`,
+    name => `${name}_htrChange0`,
     /**
      * This unconventional naming is due to the 32 chars keyname restriction,
      * we reserve 17 chars for context of which "*_HAddr_*" uses 7, leaving 10
@@ -44,6 +52,7 @@ function getBip32Keyname(keyname, pathIndex, options = {}) {
 
   return levels[pathIndex](keyname, options);
 }
+
 function getAcctKeyname(keyname) {
   return getBip32Keyname(keyname, 3);
 }
@@ -96,6 +105,9 @@ class HsmSession {
         addressKeyName,
       );
     } catch (err) {
+      // After an error, the HSM lib has a runtime issue that will fail the next call
+      // To avoid this we can wait 500ms before continuing.
+      // This may be fixed in the near future.
       await delay(500);
       // (CODE: 5022 | NAME: ERR_OBJ_ALREADY_EXISTS)
       // This error code means the address key was already derived
@@ -123,6 +135,9 @@ class HsmSession {
     // Derive the key to the desired address index
     const htrKeyName = await this.getAddressKeyName(addressIndex);
 
+    // This api receives the pre-hashed data to sign
+    // We request a non-deterministic ECDSA signature
+    // and it returns the DER encoded signature Buffer
     const signature = await this.conn.blockchain.sign(
       hsm.enums.BLOCKCHAIN_SIG_TYPE.SIG_DER_ECDSA,
       hsm.enums.BLOCKCHAIN_HASH_MODE.SHA256,
@@ -200,6 +215,11 @@ class HsmSession {
   }
 }
 
+/**
+ * Starts a new HSM session
+ * @param {string} rootKeyname
+ * @returns {Promise<HsmSession>}
+ */
 async function hsmStartSession(rootKeyname) {
   const hsmConnection = await hsmConnect();
   return new HsmSession(hsmConnection, rootKeyname);
@@ -302,6 +322,9 @@ async function hsmKeyExists(hsmConnection, keyname) {
   } catch (e) {
     // hsm.constants.ERR_CANNOT_OPEN_OBJ = 5004
     if (e.errorCode === hsm.constants.ERR_CANNOT_OPEN_OBJ) {
+      // After an error, the HSM lib has a runtime issue that will fail the next call
+      // To avoid this we can wait 500ms before continueing.
+      // This may be fixed in the near future.
       await delay(500);
       return false;
     }
@@ -414,10 +437,21 @@ async function getXPubFromKey(hsmConnection, hsmKeyName) {
   return xPub.toString();
 }
 
+/**
+ * HSM Sign transaction method builder
+ * The custom method returned by this builder will
+ * be used to sign transactions by the wallet facade.
+ *
+ * @param {string} hsmKeyName
+ * @returns {EcdsaTxSign}
+ */
 function hsmSignTxMethodBuilder(hsmKeyName) {
   return async (tx, storage, pinCode) => {
+    // Start HSM session
     const hsmSession = await hsmStartSession(hsmKeyName);
+    // Sign the transaction and get the signatures
     const signatureData = await hsmSession.signTx(tx, storage, pinCode);
+    // Close session
     await hsmDisconnect();
 
     return signatureData;

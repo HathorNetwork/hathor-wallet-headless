@@ -5,23 +5,17 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { constants: { HATHOR_TOKEN_CONFIG }, default: hathorLib, transactionUtils } = require('@hathor/wallet-lib');
-const { Request, Response } = require('express');
+const hathorLib = require('@hathor/wallet-lib');
 
 const settings = require('../../settings');
 const {
   initializedWallets,
   startWallet,
-  isHsmWallet,
 } = require('../../services/wallets.service');
-const { parametersValidation } = require('../../helpers/validations.helper');
 const { API_ERROR_CODES } = require('../../helpers/constants');
 const hsmService = require('../../services/hsm.service');
 const { HsmError } = require('../../errors');
 const { getReadonlyWalletConfig } = require('../../helpers/wallet.helper');
-const { cantSendTxErrorMessage } = require('../../helpers/constants');
-const { lock, lockTypes } = require('../../lock');
-const { mapTxReturn } = require('../../helpers/tx.helper');
 
 /**
  * Starts a read-only wallet integrated with the HSM.
