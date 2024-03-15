@@ -56,8 +56,8 @@ function getChangeKeyname(keyname) {
  * @typedef {Object} SignatureData
  * @property {Buffer} signature
  * @property {Buffer} pubkey
- * @property {string} address
- * @property {number} index
+ * @property {number} addressIndex
+ * @property {number} inputIndex
  */
 
 class HsmSession {
@@ -113,20 +113,6 @@ class HsmSession {
   }
 
   /**
-   * Get the public key for the given address index.
-   * Expected DER encoding of the public key (compressed).
-   * @param {number} addressIndex
-   * @returns {Promise<Buffer>}
-   */
-  async getAddressPubkey(addressIndex) {
-    const addressKeyName = await this.getAddressKeyName(addressIndex);
-    return this.conn.blockchain.getPubKey(
-      hsm.enums.BLOCKCHAIN_GET_PUB_KEY_TYPE.SEC1_COMP,
-      addressKeyName,
-    );
-  }
-
-  /**
    * Sign the given data with the given HSM key
    * @param {HsmSession} hsmSession
    * @param {Buffer} dataToSignHash
@@ -155,23 +141,18 @@ class HsmSession {
 
   /**
    * Sign the given transaction and return the signatures.
-   * @param {hathorLib.HathorWallet} wallet
    * @param {hathorLib.Transaction} tx
+   * @param {hathorLib.Storage} storage
    * @returns {Promise<SignatureData[]>}
    */
-  async signTx(wallet, tx) {
+  async signTx(tx, storage) {
     const dataToSignHash = tx.getDataToSignHash();
     /**
    * @type {SignatureData[]}
    */
     const response = [];
 
-    /**
-   * @type {{ storage: hathorLib.Storage}}
-   */
-    const { storage } = wallet;
-
-    for await (const { tx: spentTx, index, input } of storage.getSpentTxs(tx.inputs)) {
+    for await (const { tx: spentTx, input, index: inputIndex } of storage.getSpentTxs(tx.inputs)) {
       const spentOut = spentTx.outputs[input.index];
 
       if (!spentOut.decoded.address) {
@@ -184,14 +165,15 @@ class HsmSession {
         continue;
       }
 
-      const pubkey = await this.getAddressPubkey(addressInfo.bip32AddressIndex);
+      const pubkeyHex = await storage.getAddressPubkey(addressInfo.bip32AddressIndex);
+      const pubkey = Buffer.from(pubkeyHex, 'hex');
       const signature = await this.signData(dataToSignHash, addressInfo.bip32AddressIndex);
 
       response.push({
-        index,
-        pubkey,
+        inputIndex,
+        addressIndex: addressInfo.bip32AddressIndex,
         signature,
-        address: addressInfo.base58,
+        pubkey,
       });
     }
 
@@ -432,6 +414,16 @@ async function getXPubFromKey(hsmConnection, hsmKeyName) {
   return xPub.toString();
 }
 
+function hsmSignTxMethodBuilder(hsmKeyName) {
+  return async (tx, storage, pinCode) => {
+    const hsmSession = await hsmStartSession(hsmKeyName);
+    const signatureData = await hsmSession.signTx(tx, storage, pinCode);
+    await hsmDisconnect();
+
+    return signatureData;
+  };
+}
+
 module.exports = {
   hsmStartSession,
   hsmConnect,
@@ -439,4 +431,5 @@ module.exports = {
   hsmDisconnect,
   isKeyValidXpriv,
   getXPubFromKey,
+  hsmSignTxMethodBuilder,
 };
