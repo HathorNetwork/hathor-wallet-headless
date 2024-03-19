@@ -50,39 +50,13 @@ export default class CustomEnvironment extends NodeEnvironment {
     this.global.testName = this.testName;
   }
 
-  /**
-   * Mandatory implementation of NodeEnvironment
-   * @returns {Context}
+  /*
+   * For debugging purposes, some helper methods can be added to this class, such as:
+   * - getVmContext()
+   * - teardown()
+   * - runScript(script)
+   * - handleTestEvent(event)
+   *
+   * @see https://jestjs.io/docs/configuration#testenvironment-string
    */
-  getVmContext() {
-    return super.getVmContext();
-  }
-
-  /**
-   * Mandatory implementation of NodeEnvironment
-   * @returns {Promise<void>}
-   */
-  async teardown() {
-    await super.teardown();
-  }
-
-  /**
-   * Mandatory implementation of NodeEnvironment
-   * @param script
-   * @returns {*}
-   */
-  runScript(script) {
-    return super.runScript(script);
-  }
-
-  /**
-   * Mandatory implementation of NodeEnvironment
-   * @param event
-   */
-  handleTestEvent(event) {
-    if (event.name === 'error') {
-      console.error(`== Jest Circus Environment received an error on ${this.testName}`);
-      console.dir(event);
-    }
-  }
 }
