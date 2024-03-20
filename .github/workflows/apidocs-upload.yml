@@ -8,6 +8,8 @@ on:
 jobs:
 
   # First check if this version is a valid public release
+  # This follows semver recommendations, with release candidates having a dash and a dot
+  # @see https://semver.org/spec/v2.0.0-rc.2.html
   check-version:
     runs-on: ubuntu-22.04
     outputs:
@@ -27,7 +29,7 @@ jobs:
             if [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
               result=isRelease
             # Pattern that accepts "v1.0.0-rc1".
-            elif [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$ ]]; then
+            elif [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]]; then
               result=isReleaseCandidate
             else
               result=isNotRelease
