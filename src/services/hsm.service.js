@@ -386,7 +386,7 @@ async function deriveMainKeysFromRoot(
     // Derivation 2: Coin
     await hsmConnection.blockchain.createBip32ChildKeyDerivation(
       derivationVersion,
-      hsm.enums.BCHAIN_SECURE_BIP32_INDEX.BASE + 280,
+      hsm.enums.BCHAIN_SECURE_BIP32_INDEX.BASE + hathorLib.constants.HATHOR_BIP44_CODE,
       false,
       true,
       childKeyNames.HTR_CKD_BIP_KEYNAME,
