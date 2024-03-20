@@ -52,7 +52,7 @@ describe('address-info routes', () => {
     await wallet2.stop();
   });
 
-  it('should return results for an address (empty)', async done => {
+  it('should return results for an address (empty)', async () => {
     const response = await TestUtils.request
       .get('/wallet/address-info')
       .query({ address: await wallet1.getAddressAt(0) })
@@ -68,10 +68,9 @@ describe('address-info routes', () => {
     expect(results.total_amount_sent).toBe(0);
     expect(results.total_amount_available).toBe(0);
     expect(results.total_amount_locked).toBe(0);
-    done();
   });
 
-  it('should return results for an address with a single receiving transaction', async done => {
+  it('should return results for an address with a single receiving transaction', async () => {
     const response = await TestUtils.request
       .get('/wallet/address-info')
       .query({ address: await wallet1.getAddressAt(1) })
@@ -87,10 +86,9 @@ describe('address-info routes', () => {
     expect(results.total_amount_sent).toBe(0);
     expect(results.total_amount_available).toBe(address1balance);
     expect(results.total_amount_locked).toBe(0);
-    done();
   });
 
-  it('should return correct locked balance for an address with miner rewards', async done => {
+  it('should return correct locked balance for an address with miner rewards', async () => {
     const response = await TestUtils.request
       .get('/wallet/address-info')
       .query({ address: WALLET_CONSTANTS.miner.addresses[0] }) // Miner rewards address
@@ -112,10 +110,9 @@ describe('address-info routes', () => {
      * Should another miner reward address be included later, this assertion must be recalculated.
      */
     expect(results.total_amount_locked).toBeGreaterThanOrEqual(6400);
-    done();
   });
 
-  it('should return results for an address with send/receive transactions', async done => {
+  it('should return results for an address with send/receive transactions', async () => {
     const response = await TestUtils.request
       .get('/wallet/address-info')
       .query({ address: await wallet2.getAddressAt(0) })
@@ -131,10 +128,9 @@ describe('address-info routes', () => {
     expect(results.total_amount_sent).toBe(10); // token creation tx
     expect(results.total_amount_available).toBe(5); // change
     expect(results.total_amount_locked).toBe(0);
-    done();
   });
 
-  it('should return results for custom token for an address (empty)', async done => {
+  it('should return results for custom token for an address (empty)', async () => {
     const response = await TestUtils.request
       .get('/wallet/address-info')
       .query({
@@ -153,10 +149,9 @@ describe('address-info routes', () => {
     expect(results.total_amount_sent).toBe(0);
     expect(results.total_amount_available).toBe(0);
     expect(results.total_amount_locked).toBe(0);
-    done();
   });
 
-  it('should return results for custom token on an address with a single transaction', async done => {
+  it('should return results for custom token on an address with a single transaction', async () => {
     const response = await TestUtils.request
       .get('/wallet/address-info')
       .query({
@@ -175,6 +170,5 @@ describe('address-info routes', () => {
     expect(results.total_amount_sent).toBe(0);
     expect(results.total_amount_available).toBe(500);
     expect(results.total_amount_locked).toBe(0);
-    done();
   });
 });

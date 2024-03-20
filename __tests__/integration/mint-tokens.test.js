@@ -35,7 +35,7 @@ describe('mint token', () => {
 
   // Testing failures first, that do not cause side-effects on the blockchain
 
-  it('should not mint an invalid token', async done => {
+  it('should not mint an invalid token', async () => {
     const response = await TestUtils.request
       .post('/wallet/mint-tokens')
       .send({
@@ -49,10 +49,9 @@ describe('mint token', () => {
 
     // TODO: Even though the result is correct, the error thrown is not related.
     // expect(response.body.message).toContain('invalid');
-    done();
   });
 
-  it('should not mint with an invalid address', async done => {
+  it('should not mint with an invalid address', async () => {
     const response = await TestUtils.request
       .post('/wallet/mint-tokens')
       .send({
@@ -65,10 +64,9 @@ describe('mint token', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toContain('base58');
-    done();
   });
 
-  it('should not mint with an invalid change address', async done => {
+  it('should not mint with an invalid change address', async () => {
     const response = await TestUtils.request
       .post('/wallet/mint-tokens')
       .send({
@@ -81,10 +79,9 @@ describe('mint token', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toContain('Change address');
-    done();
   });
 
-  it('should not mint with an invalid amount', async done => {
+  it('should not mint with an invalid amount', async () => {
     const response = await TestUtils.request
       .post('/wallet/mint-tokens')
       .send({
@@ -96,10 +93,9 @@ describe('mint token', () => {
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
     expect(response.text).toContain('amount');
-    done();
   });
 
-  it('should not mint with change_address outside the wallet', async done => {
+  it('should not mint with change_address outside the wallet', async () => {
     const response = await TestUtils.request
       .post('/wallet/mint-tokens')
       .send({
@@ -112,12 +108,11 @@ describe('mint token', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toContain('Change address');
-    done();
   });
 
   // Insufficient funds
 
-  it('should not mint with insufficient funds', async done => {
+  it('should not mint with insufficient funds', async () => {
     const response = await TestUtils.request
       .post('/wallet/mint-tokens')
       .send({
@@ -129,12 +124,11 @@ describe('mint token', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toContain('Not enough HTR tokens');
-    done();
   });
 
   // Success
 
-  it('should mint with destination address', async done => {
+  it('should mint with destination address', async () => {
     const response = await TestUtils.request
       .post('/wallet/mint-tokens')
       .send({
@@ -150,11 +144,9 @@ describe('mint token', () => {
 
     const addr1 = await wallet1.getAddressInfo(1, tokenA.uid);
     expect(addr1.total_amount_available).toBe(50);
-
-    done();
   });
 
-  it('should mint with a change address', async done => {
+  it('should mint with a change address', async () => {
     const response = await TestUtils.request
       .post('/wallet/mint-tokens')
       .send({
@@ -176,10 +168,9 @@ describe('mint token', () => {
 
     const tkaBalance = await wallet1.getBalance(tokenA.uid);
     expect(tkaBalance.available).toBe(500 + 50 + 60);
-    done();
   });
 
-  it('should mint with only mandatory parameters', async done => {
+  it('should mint with only mandatory parameters', async () => {
     const destinationAddress = await wallet1.getNextAddress();
 
     // By default, will mint tokens into the next unused address
@@ -204,10 +195,9 @@ describe('mint token', () => {
 
     const tkaBalance = await wallet1.getBalance(tokenA.uid);
     expect(tkaBalance.available).toBe(500 + 50 + 60 + 70);
-    done();
   });
 
-  it('should mint with all parameters', async done => {
+  it('should mint with all parameters', async () => {
     // By default, will mint tokens into the next unused address
     const response = await TestUtils.request
       .post('/wallet/mint-tokens')
@@ -231,10 +221,9 @@ describe('mint token', () => {
 
     const addr14 = await wallet1.getAddressInfo(14);
     expect(addr14.total_amount_available).toBe(htrChange);
-    done();
   });
 
-  it('should mint and send mint output to the correct address', async done => {
+  it('should mint and send mint output to the correct address', async () => {
     // By default, will mint tokens into the next unused address
     const address0 = await wallet1.getAddressAt(0);
     const response = await TestUtils.request
@@ -264,10 +253,9 @@ describe('mint token', () => {
     const p2pkh = scriptsUtils.parseP2PKH(Buffer.from(authorityOutput.script.data), network);
     // Validate that the authority output was sent to the correct address
     expect(p2pkh.address.base58).toEqual(address0);
-    done();
   });
 
-  it('should mint allowing external authority address', async done => {
+  it('should mint allowing external authority address', async () => {
     const externalAddress = TestUtils.getBurnAddress();
     const response = await TestUtils.request
       .post('/wallet/mint-tokens')
@@ -309,6 +297,5 @@ describe('mint token', () => {
     const p2pkh = scriptsUtils.parseP2PKH(Buffer.from(authorityOutput.script.data), network);
     // Validate that the authority output was sent to the correct address
     expect(p2pkh.address.base58).toEqual(externalAddress);
-    done();
   });
 });
