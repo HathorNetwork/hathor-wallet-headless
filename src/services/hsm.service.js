@@ -13,6 +13,7 @@ const { lock, lockTypes } = require('../lock');
 const { hsmBusyErrorMessage } = require('../helpers/constants');
 const { HsmError } = require('../errors');
 
+/* istanbul ignore next */
 /**
  * After an error, the HSM lib has a runtime issue that will fail the next call
  * To avoid this we can wait 500ms before continueing.
@@ -104,7 +105,7 @@ class HsmSession {
         changeKeyName,
         addressKeyName,
       );
-    } catch (err) {
+    } catch (err) /* istanbul ignore next */ {
       // After an error, the HSM lib has a runtime issue that will fail the next call
       // To avoid this we can wait 500ms before continuing.
       // This may be fixed in the near future.
@@ -193,25 +194,6 @@ class HsmSession {
     }
 
     return response;
-  }
-
-  /**
-   * Sign the given transaction with the given HSM key
-   * @param {hathorLib.HathorWallet} wallet
-   * @param {hathorLib.Transaction} tx
-   *
-   * @returns {Promise<hathorLib.Transaction>}
-   */
-  async signTxP2PKH(wallet, tx) {
-    const signatureData = await this.signTx(wallet, tx);
-    for (const { index, pubkey, signature } of signatureData) {
-      const inputData = hathorLib.transactionUtils.createInputData(
-        signature,
-        pubkey,
-      );
-      tx.inputs[index].setData(inputData);
-    }
-    return tx;
   }
 }
 
@@ -319,7 +301,7 @@ async function hsmKeyExists(hsmConnection, keyname) {
   try {
     await hsmConnection.blockchain.getKeyInfo(keyname);
     return true;
-  } catch (e) {
+  } catch (e) /* istanbul ignore next */ {
     // hsm.constants.ERR_CANNOT_OPEN_OBJ = 5004
     if (e.errorCode === hsm.constants.ERR_CANNOT_OPEN_OBJ) {
       // After an error, the HSM lib has a runtime issue that will fail the next call
