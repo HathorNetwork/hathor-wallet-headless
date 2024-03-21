@@ -47,7 +47,7 @@ function getBip32Keyname(keyname, pathIndex, options = {}) {
      * without resorting to hex conversion since 2 billion in base 10 has
      * length 10.
      */
-    (name, opts) => `T1${name}_HAddr_${opts.index}`,
+    (name, opts) => `${name}_HAddr_${opts.index}`,
   ];
 
   return levels[pathIndex](keyname, options);
