@@ -116,7 +116,7 @@ class HsmSession {
     } catch (err) /* istanbul ignore next */ {
       // After an error, the HSM lib has a runtime issue that will fail the next call
       // To avoid this we can wait 500ms before continuing.
-      // This may be fixed in the near future.
+      // TODO: Check if this is fixed
       await delay(500);
       // (CODE: 5022 | NAME: ERR_OBJ_ALREADY_EXISTS)
       // This error code means the address key was already derived
@@ -315,7 +315,7 @@ async function hsmKeyExists(hsmConnection, keyname) {
     if (e.errorCode === hsm.constants.ERR_CANNOT_OPEN_OBJ) {
       // After an error, the HSM lib has a runtime issue that will fail the next call
       // To avoid this we can wait 500ms before continuing.
-      // This may be fixed in the near future.
+      // TODO: Check if this is fixed
       await delay(500);
       return false;
     }
