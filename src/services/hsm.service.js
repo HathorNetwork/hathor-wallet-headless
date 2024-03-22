@@ -94,11 +94,19 @@ class HsmSession {
       return this.addressKeys[index];
     }
 
+    const config = getConfig();
+    let derivationVersion;
+    if (config.network === 'mainnet') {
+      derivationVersion = hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET;
+    } else {
+      derivationVersion = hsm.enums.VERSION_OPTIONS.BIP32_HTR_TEST_NET;
+    }
+
     const addressKeyName = getBip32Keyname(this.rootKey, 5, { index });
     const changeKeyName = getChangeKeyname(this.rootKey);
     try {
       await this.conn.blockchain.createBip32ChildKeyDerivation(
-        hsm.enums.VERSION_OPTIONS.BIP32_HTR_MAIN_NET,
+        derivationVersion,
         index,
         false,
         true,
