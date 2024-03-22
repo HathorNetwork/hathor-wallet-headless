@@ -90,14 +90,14 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
   }
 
   const { wallet } = req;
-  const { blueprint_id, nc_id, address, data } = req.body;
+  const { blueprintId, ncId, address, data } = req.body;
   const method = isInitialize ? 'initialize' : req.body.method;
 
   // Set blueprint id or nc id to the data execution
   if (isInitialize) {
-    data.blueprintId = blueprint_id;
+    data.blueprintId = blueprintId;
   } else {
-    data.ncId = nc_id;
+    data.ncId = ncId;
   }
 
   try {
@@ -115,7 +115,7 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
 }
 
 /**
- * Method to get oracle data from a string (it might be an address or the oracle data directly in hex)
+ * Method to get oracle data from a string (it might be an address or the oracle data itself in hex)
  */
 function getOracleData(req, res) {
   const validationResult = parametersValidation(req);
@@ -149,7 +149,7 @@ async function getOracleSignedResult(req, res) {
     return;
   }
 
-  const { result, type, oracle_data } = req.query;
+  const { result, type, oracleData } = req.query;
   const { wallet } = req;
 
   try {
@@ -162,8 +162,12 @@ async function getOracleSignedResult(req, res) {
     const nanoSerializer = new Serializer();
     const resultSerialized = nanoSerializer.serializeFromType(resultToSerialize, type);
 
-    const oracleDataBuffer = bufferUtils.hexToBuffer(oracle_data);
-    const inputData = await nanoUtils.getOracleInputData(oracleDataBuffer, resultSerialized, wallet);
+    const oracleDataBuffer = bufferUtils.hexToBuffer(oracleData);
+    const inputData = await nanoUtils.getOracleInputData(
+      oracleDataBuffer,
+      resultSerialized,
+      wallet
+    );
 
     const signedResult = `${bufferUtils.bufferToHex(inputData)},${result},${type}`;
 

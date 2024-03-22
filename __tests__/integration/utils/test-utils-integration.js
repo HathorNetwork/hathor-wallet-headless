@@ -861,8 +861,8 @@ export class TestUtils {
    * @param {number | undefined} timeout The timeout to stop waiting for the tx to arrive
    *                             if not present, it will wait forever
    *
-   * @returns {Promise<Object>} Resolves with the tx data when the tx is found in the wallet's storage
-   *                          or rejects if timeout is reached
+   * @returns {Promise<Object>} Resolves with the tx data when the tx is found in the wallet's
+   *                            storage or rejects if timeout is reached
    */
   static async waitForTxReceived(walletId, txId, timeout) {
     let timeoutHandler;
