@@ -114,11 +114,6 @@ async function startHsmWallet(req, res) {
 
   // Builds the wallet configuration object
   const walletConfig = getReadonlyWalletConfig({ xpub: xPub });
-  const store = new hathorLib.MemoryStore();
-  const storage = new hathorLib.Storage(store);
-  // When signing transactions, the wallet will use this function
-  storage.setTxSignatureMethod(hsmService.hsmSignTxMethodBuilder(hsmKeyName));
-  walletConfig.storage = storage;
 
   // Create the wallet instance
   const config = settings.getConfig();
