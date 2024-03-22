@@ -134,13 +134,12 @@ class HsmSession {
   }
 
   /**
-   * Sign the given data with the given HSM key
-   * @param {HsmSession} hsmSession
+   * Get the signature for the given data with the given HSM key
    * @param {Buffer} dataToSignHash
    * @param {number} addressIndex
    * @returns {Promise<Buffer>} DER encoded signature
    */
-  async signData(dataToSignHash, addressIndex) {
+  async getSignature(dataToSignHash, addressIndex) {
     // Derive the key to the desired address index
     const htrKeyName = await this.getAddressKeyName(addressIndex);
 
@@ -157,6 +156,8 @@ class HsmSession {
     // Dinamo SDK returns v + DER, where v is a parity byte
     // https://manual.dinamonetworks.io/nodejs/enums/hsm.enums.BLOCKCHAIN_SIG_TYPE.html#SIG_DER_ECDSA
     // We can safely ignore the parity byte
+    // In DER encoding 0x30 is a tag for sequence and since an ECDSA signature
+    // is the [r, s] array the first byte in DER encoding should be 0x30
     if (signature[0] !== 0x30) {
       return signature.slice(1);
     }
@@ -191,7 +192,7 @@ class HsmSession {
 
       const pubkeyHex = await storage.getAddressPubkey(addressInfo.bip32AddressIndex);
       const pubkey = Buffer.from(pubkeyHex, 'hex');
-      const signature = await this.signData(dataToSignHash, addressInfo.bip32AddressIndex);
+      const signature = await this.getSignature(dataToSignHash, addressInfo.bip32AddressIndex);
 
       response.push({
         inputIndex,

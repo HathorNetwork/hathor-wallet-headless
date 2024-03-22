@@ -5,8 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const hathorLib = require('@hathor/wallet-lib');
-
 const settings = require('../../settings');
 const {
   initializedWallets,
