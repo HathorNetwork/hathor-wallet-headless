@@ -114,7 +114,6 @@ async function startHsmWallet(req, res) {
 
   // Builds the wallet configuration object
   const walletConfig = getReadonlyWalletConfig({ xpub: xPub });
-  walletConfig.isSignedExternally = true;
   const store = new hathorLib.MemoryStore();
   const storage = new hathorLib.Storage(store);
   // When signing transactions, the wallet will use this function
