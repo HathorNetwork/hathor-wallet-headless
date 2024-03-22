@@ -16,7 +16,7 @@ const { HsmError } = require('../errors');
 /* istanbul ignore next */
 /**
  * After an error, the HSM lib has a runtime issue that will fail the next call
- * To avoid this we can wait 500ms before continueing.
+ * To avoid this we can wait 500ms before continuing.
  * This may be fixed in the near future.
  * This method will return a promise that resolves after the given ms
  * @param {number} ms
@@ -305,7 +305,7 @@ async function hsmKeyExists(hsmConnection, keyname) {
     // hsm.constants.ERR_CANNOT_OPEN_OBJ = 5004
     if (e.errorCode === hsm.constants.ERR_CANNOT_OPEN_OBJ) {
       // After an error, the HSM lib has a runtime issue that will fail the next call
-      // To avoid this we can wait 500ms before continueing.
+      // To avoid this we can wait 500ms before continuing.
       // This may be fixed in the near future.
       await delay(500);
       return false;
