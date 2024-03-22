@@ -3370,6 +3370,7 @@ const defaultApiDocs = {
     },
     '/wallet/nano-contracts/state': {
       get: {
+        operationId: 'nanoState',
         summary: 'Get state of a nano contract.',
         parameters: [
           {
@@ -3494,6 +3495,7 @@ const defaultApiDocs = {
     },
     '/wallet/nano-contracts/history': {
       get: {
+        operationId: 'nanoHistory',
         summary: 'Get the history of a nano contract.',
         parameters: [
           {
@@ -3520,7 +3522,7 @@ const defaultApiDocs = {
             description: 'Maximum number of items to be returned. Default is 100.',
             required: false,
             schema: {
-              type: 'int',
+              type: 'integer',
             },
           },
           {
@@ -3594,6 +3596,7 @@ const defaultApiDocs = {
     },
     '/wallet/nano-contracts/oracle-data': {
       get: {
+        operationId: 'nanoOracleData',
         summary: 'Get the oracle data.',
         parameters: [
           {
@@ -3644,6 +3647,7 @@ const defaultApiDocs = {
     },
     '/wallet/nano-contracts/oracle-signed-result': {
       get: {
+        operationId: 'nanoSignedResult',
         summary: 'Get the result signed by the oracle. Returns the string of the argument to be used in the method.',
         parameters: [
           {
@@ -3670,7 +3674,20 @@ const defaultApiDocs = {
             description: 'The result to be signed. If the type is bytes, then we expect it in hex.',
             required: true,
             schema: {
-              type: 'any',
+              oneOf: [
+                {
+                  type: 'string',
+                },
+                {
+                  type: 'integer',
+                },
+                {
+                  type: 'number',
+                },
+                {
+                  type: 'boolean',
+                },
+              ],
             },
           },
           {
@@ -3712,6 +3729,7 @@ const defaultApiDocs = {
     },
     '/wallet/nano-contracts/create': {
       post: {
+        operationId: 'nanoCreate',
         summary: 'Create a nano contract of a blueprint.',
         parameters: [
           {
@@ -3793,7 +3811,20 @@ const defaultApiDocs = {
                               description: 'Type of the argument. byte, string, int, float.'
                             },
                             value: {
-                              type: 'any',
+                              oneOf: [
+                                {
+                                  type: 'string',
+                                },
+                                {
+                                  type: 'integer',
+                                },
+                                {
+                                  type: 'number',
+                                },
+                                {
+                                  type: 'boolean',
+                                },
+                              ],
                               description: 'Value of the argument. If argument is byte, the value must be in hex.'
                             }
                           },
@@ -3911,6 +3942,7 @@ const defaultApiDocs = {
     },
     '/wallet/nano-contracts/execute': {
       post: {
+        operationId: 'nanoExecuteMethod',
         summary: 'Execute a nano contract method.',
         parameters: [
           {
@@ -3996,7 +4028,20 @@ const defaultApiDocs = {
                               description: 'Type of the argument. byte, string, int, float.'
                             },
                             value: {
-                              type: 'any',
+                              oneOf: [
+                                {
+                                  type: 'string',
+                                },
+                                {
+                                  type: 'integer',
+                                },
+                                {
+                                  type: 'number',
+                                },
+                                {
+                                  type: 'boolean',
+                                },
+                              ],
                               description: 'Value of the argument. If argument is byte, the value must be in hex.'
                             }
                           },
