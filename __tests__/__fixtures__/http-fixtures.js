@@ -1016,60 +1016,60 @@ export default {
     blocks: 1242,
   },
   '/nano_contract/state': {
-    'success': true,
-    'nc_id': '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
-    'blueprint_name': 'Bet',
-    'fields': {
-        'token_uid': {'value': '00'},
-        'total': {'value': 300},
-        'final_result': {'value': '1x0'},
-        'oracle_script': {'value': '76a91441c431ff7ad5d6ce5565991e3dcd5d9106cfd1e288ac'},
-        'withdrawals.a\'Wi8zvxdXHjaUVAoCJf52t3WovTZYcU9aX6\'': {'value': 300},
-        'address_details.a\'Wi8zvxdXHjaUVAoCJf52t3WovTZYcU9aX6\'': {'value': {'1x0': 100}},
+    success: true,
+    nc_id: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
+    blueprint_name: 'Bet',
+    fields: {
+      token_uid: { value: '00' },
+      total: { value: 300 },
+      final_result: { value: '1x0' },
+      oracle_script: { value: '76a91441c431ff7ad5d6ce5565991e3dcd5d9106cfd1e288ac' },
+      'withdrawals.a\'Wi8zvxdXHjaUVAoCJf52t3WovTZYcU9aX6\'': { value: 300 },
+      'address_details.a\'Wi8zvxdXHjaUVAoCJf52t3WovTZYcU9aX6\'': { value: { '1x0': 100 } },
     }
   },
   '/nano_contract/history': {
-    'success': true,
-    'count': 100,
-    'history': [{
-      'hash': '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
-      'nonce': 0,
-      'timestamp': 1572636346,
-      'version': 4,
-      'weight': 1,
-      'signal_bits': 0,
-      'parents': ['1234', '5678'],
-      'inputs': [],
-      'outputs': [],
-      'metadata': {
-          'hash': '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
-          'spent_outputs': [],
-          'received_by': [],
-          'children': [],
-          'conflict_with': [],
-          'voided_by': [],
-          'twins': [],
-          'accumulated_weight': 1,
-          'score': 0,
-          'height': 0,
-          'min_height': 0,
-          'feature_activation_bit_counts': null,
-          'first_block': null,
-          'validation': 'full'
+    success: true,
+    count: 100,
+    history: [{
+      hash: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
+      nonce: 0,
+      timestamp: 1572636346,
+      version: 4,
+      weight: 1,
+      signal_bits: 0,
+      parents: ['1234', '5678'],
+      inputs: [],
+      outputs: [],
+      metadata: {
+        hash: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
+        spent_outputs: [],
+        received_by: [],
+        children: [],
+        conflict_with: [],
+        voided_by: [],
+        twins: [],
+        accumulated_weight: 1,
+        score: 0,
+        height: 0,
+        min_height: 0,
+        feature_activation_bit_counts: null,
+        first_block: null,
+        validation: 'full'
       },
-      'tokens': [],
-      'nc_id': '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
-      'nc_method': 'initialize',
-      'nc_args': '0004313233340001000004654d8749',
-      'nc_pubkey': '033f5d238afaa9e2218d05dd7fa50eb6f9e55431e6359e04b861cd991ae24dc655'
+      tokens: [],
+      nc_id: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
+      nc_method: 'initialize',
+      nc_args: '0004313233340001000004654d8749',
+      nc_pubkey: '033f5d238afaa9e2218d05dd7fa50eb6f9e55431e6359e04b861cd991ae24dc655'
     }]
   },
   '/nano_contract/oracle-data': {
-    'success': true,
-    'oracleData': '1234'
+    success: true,
+    oracleData: '1234'
   },
   '/nano_contract/oracle-signed-result': {
-    'success': true,
-    'signedResult': '123456,1x0,str'
+    success: true,
+    signedResult: '123456,1x0,str'
   },
 };

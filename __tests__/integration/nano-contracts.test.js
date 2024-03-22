@@ -1,16 +1,11 @@
+import { Address, P2PKH, bufferUtils } from '@hathor/wallet-lib';
+import { isEmpty } from 'lodash';
 import { TestUtils } from './utils/test-utils-integration';
-import { constants as libConstants, Address, P2PKH, bufferUtils } from '@hathor/wallet-lib';
 import { HATHOR_TOKEN_ID } from './configuration/test-constants';
-import { getRandomInt } from './utils/core.util';
 import { WalletHelper } from './utils/wallet-helper';
 import { initializedWallets } from '../../src/services/wallets.service';
-import { isEmpty } from 'lodash';
 
-// We have to skip this test because it needs nano contract support in the full node.
-// Until we have this support in the public docker image, the CI won't succeed if this is not skipped
-// After skipping it, we must also add `--nc-history-index` as a new parameter for the integration tests full node
-// and add the blueprints in the configuration file for the tests privnet
-describe.skip('nano contract routes', () => {
+describe('nano contract routes', () => {
   let wallet;
   let libWalletObject;
 
@@ -30,17 +25,17 @@ describe.skip('nano contract routes', () => {
     await wallet.stop();
   });
 
-  const checkTxValid = async (txId) => {
+  const checkTxValid = async txId => {
     expect(txId).toBeDefined();
     await TestUtils.waitForTxReceived(wallet.walletId, txId);
     // We need to wait for the tx to get a first block, so we guarantee it was executed
     await TestUtils.waitTxConfirmed(wallet.walletId, txId);
-    // Now we query the transaction from the full node to double check it's still valid after the nano execution
-    // and it already has a first block, so it was really executed
+    // Now we query the transaction from the full node to double check it's still valid
+    // after the nano execution and it already has a first block, so it was really executed
     const txAfterExecution = await libWalletObject.getFullTxById(txId);
     expect(isEmpty(txAfterExecution.meta.voided_by)).toBe(true);
     expect(isEmpty(txAfterExecution.meta.first_block)).not.toBeNull();
-  }
+  };
 
   it('bet methods', async done => {
     const address0 = await wallet.getAddressAt(0);
@@ -58,7 +53,7 @@ describe.skip('nano contract routes', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
     // Oracle data in hex
-    const oracleData = response.body.oracleData;
+    const { oracleData } = response.body;
 
     const responseTx1 = await TestUtils.request
       .post('/wallet/nano-contracts/create')
@@ -152,17 +147,18 @@ describe.skip('nano contract routes', () => {
     // Get NC state
     const responseState = await TestUtils.request
       .get('/wallet/nano-contracts/state')
-      .query({ id: tx1.hash, fields: [
-        'token_uid',
-        'total',
-        'final_result',
-        'oracle_script',
-        'date_last_offer',
-        `address_details.a'${address2}'`,
-        `withdrawals.a'${address2}'`,
-        `address_details.a'${address3}'`,
-        `withdrawals.a'${address3}'`
-      ]})
+      .query({ id: tx1.hash,
+        fields: [
+          'token_uid',
+          'total',
+          'final_result',
+          'oracle_script',
+          'date_last_offer',
+          `address_details.a'${address2}'`,
+          `withdrawals.a'${address2}'`,
+          `address_details.a'${address3}'`,
+          `withdrawals.a'${address3}'`
+        ] })
       .set({ 'x-wallet-id': wallet.walletId });
     const ncState = responseState.body.state;
     const addressObj1 = new Address(address1, { network });
@@ -228,17 +224,18 @@ describe.skip('nano contract routes', () => {
     // Get state again
     const responseState2 = await TestUtils.request
       .get('/wallet/nano-contracts/state')
-      .query({ id: tx1.hash, fields: [
-        'token_uid',
-        'total',
-        'final_result',
-        'oracle_script',
-        'date_last_offer',
-        `address_details.a'${address2}'`,
-        `withdrawals.a'${address2}'`,
-        `address_details.a'${address3}'`,
-        `withdrawals.a'${address3}'`
-      ]})
+      .query({ id: tx1.hash,
+        fields: [
+          'token_uid',
+          'total',
+          'final_result',
+          'oracle_script',
+          'date_last_offer',
+          `address_details.a'${address2}'`,
+          `withdrawals.a'${address2}'`,
+          `address_details.a'${address3}'`,
+          `withdrawals.a'${address3}'`
+        ] })
       .set({ 'x-wallet-id': wallet.walletId });
     const ncState2 = responseState2.body.state;
     expect(ncState2.fields.token_uid.value).toBe(HATHOR_TOKEN_ID);
