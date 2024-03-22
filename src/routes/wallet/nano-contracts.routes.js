@@ -95,11 +95,4 @@ nanoContractRouter.post(
   executeNanoContractMethod,
 );
 
-nanoContractRouter.post(
-  '/oracle/get-signed-result',
-  body('oracle').isString(),
-  body('result_type').isString(),
-  body('result'),
-);
-
 module.exports = nanoContractRouter;
