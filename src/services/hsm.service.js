@@ -106,10 +106,10 @@ class HsmSession {
     const changeKeyName = getChangeKeyname(this.rootKey);
     try {
       await this.conn.blockchain.createBip32ChildKeyDerivation(
-        derivationVersion,
-        index,
-        false,
-        true,
+        derivationVersion, // network version byte
+        index, // Derivation index
+        false, // exportable
+        true, // temporary
         changeKeyName,
         addressKeyName,
       );
