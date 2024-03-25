@@ -3751,7 +3751,7 @@ const defaultApiDocs = {
                 type: 'object',
                 required: ['blueprint_id', 'address', 'data'],
                 properties: {
-                  'blueprint_id': {
+                  blueprint_id: {
                     type: 'string',
                     description: 'Blueprint ID of the new nano contract.'
                   },
