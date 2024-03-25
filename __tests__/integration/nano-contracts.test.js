@@ -37,7 +37,7 @@ describe('nano contract routes', () => {
     expect(isEmpty(txAfterExecution.meta.first_block)).not.toBeNull();
   };
 
-  it('bet methods', async done => {
+  it('bet methods', async () => {
     const address0 = await wallet.getAddressAt(0);
     const address1 = await wallet.getAddressAt(1);
     const dateLastBet = parseInt(Date.now().valueOf() / 1000, 10) + 6000; // Now + 6000 seconds
@@ -257,7 +257,5 @@ describe('nano contract routes', () => {
     for (const tx of responseHistory2.body.history) {
       expect(txIds).toContain(tx.hash);
     }
-
-    done();
   });
 });
