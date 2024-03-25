@@ -1011,6 +1011,14 @@ export default {
       first_block_height: 1234,
     },
   },
+  '/transaction?id=5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a': {
+    success: true,
+    tx: {
+      hash: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
+      version: 4,
+      nc_blueprint_id: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
+    },
+  },
   '/getmininginfo': {
     success: true,
     blocks: 1242,
@@ -1067,10 +1075,20 @@ export default {
   '/nano_contract/blueprint': {
     id: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
     name: 'Test',
-    attributes: [
-      { type: 'int', name: 'a' },
-      { type: 'bytes', name: 'b' }
-    ],
+    public_methods: {
+      initialize: {
+        args: [
+          { type: 'int', name: 'a' },
+          { type: 'bytes', name: 'b' }
+        ]
+      },
+      bet: {
+        args: [
+          { type: 'int', name: 'a' },
+          { type: 'bytes', name: 'b' }
+        ]
+      },
+    },
   },
   '/nano_contract/oracle-data': {
     success: true,
