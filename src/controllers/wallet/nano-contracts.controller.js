@@ -90,7 +90,7 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
   }
 
   const { wallet } = req;
-  const { blueprintId, ncId, address, data } = req.body;
+  const { blueprint_id: blueprintId, nc_id: ncId, address, data } = req.body;
   const method = isInitialize ? 'initialize' : req.body.method;
 
   // Set blueprint id or nc id to the data execution

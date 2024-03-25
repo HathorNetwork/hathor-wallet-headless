@@ -15,9 +15,9 @@ describe('create api', () => {
     const response = await TestUtils.request
       .post('/wallet/nano-contracts/create')
       .send({
-        blueprint: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
+        blueprint_id: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
         address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN',
-        data: { args: [{ type: 'int', value: 1234 }, { type: 'byte', value: '1234' }] },
+        data: { args: [1234, '1234'] },
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
@@ -29,7 +29,7 @@ describe('create api', () => {
     const response = await TestUtils.request
       .post('/wallet/nano-contracts/create')
       .send({
-        blueprint: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
+        blueprint_id: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
         address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN',
       })
       .set({ 'x-wallet-id': walletId });
@@ -38,8 +38,8 @@ describe('create api', () => {
     const response2 = await TestUtils.request
       .post('/wallet/nano-contracts/create')
       .send({
-        blueprint: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
-        data: { args: [{ type: 'int', value: 1234 }, { type: 'byte', value: '1234' }] },
+        blueprint_id: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
+        data: { args: [1234, '1234'] },
       })
       .set({ 'x-wallet-id': walletId });
     expect(response2.status).toBe(400);
@@ -48,7 +48,7 @@ describe('create api', () => {
       .post('/wallet/nano-contracts/create')
       .send({
         address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN',
-        data: { args: [{ type: 'int', value: 1234 }, { type: 'byte', value: '1234' }] },
+        data: { args: [1234, '1234'] },
       })
       .set({ 'x-wallet-id': walletId });
     expect(response3.status).toBe(400);

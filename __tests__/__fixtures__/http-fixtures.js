@@ -1064,6 +1064,14 @@ export default {
       nc_pubkey: '033f5d238afaa9e2218d05dd7fa50eb6f9e55431e6359e04b861cd991ae24dc655'
     }]
   },
+  '/nano_contract/blueprint': {
+    id: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
+    name: 'Test',
+    attributes: [
+      { type: 'int', name: 'a'},
+      { type: 'bytes', name: 'b'}
+    ],
+  },
   '/nano_contract/oracle-data': {
     success: true,
     oracleData: '1234'

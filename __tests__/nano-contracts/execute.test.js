@@ -15,10 +15,10 @@ describe('execute api', () => {
     const response = await TestUtils.request
       .post('/wallet/nano-contracts/execute')
       .send({
-        blueprint: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
+        nc_id: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
         method: 'bet',
         address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN',
-        data: { ncId: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a', args: [{ type: 'int', value: 1234 }, { type: 'byte', value: '1234' }] },
+        data: { args: [1234, '1234'] },
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
@@ -30,7 +30,7 @@ describe('execute api', () => {
     const response = await TestUtils.request
       .post('/wallet/nano-contracts/execute')
       .send({
-        blueprint: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
+        nc_id: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
         method: 'bet',
         address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN',
       })
@@ -40,9 +40,9 @@ describe('execute api', () => {
     const response2 = await TestUtils.request
       .post('/wallet/nano-contracts/execute')
       .send({
-        blueprint: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
+        nc_id: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
         method: 'bet',
-        data: { args: [{ type: 'int', value: 1234 }, { type: 'byte', value: '1234' }] },
+        data: { args: [1234, '1234'] },
       })
       .set({ 'x-wallet-id': walletId });
     expect(response2.status).toBe(400);
@@ -52,7 +52,7 @@ describe('execute api', () => {
       .send({
         method: 'bet',
         address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN',
-        data: { args: [{ type: 'int', value: 1234 }, { type: 'byte', value: '1234' }] },
+        data: { args: [1234, '1234'] },
       })
       .set({ 'x-wallet-id': walletId });
     expect(response3.status).toBe(400);
@@ -60,24 +60,11 @@ describe('execute api', () => {
     const response4 = await TestUtils.request
       .post('/wallet/nano-contracts/execute')
       .send({
-        blueprint: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
+        nc_id: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
         address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN',
-        data: { args: [{ type: 'int', value: 1234 }, { type: 'byte', value: '1234' }] },
+        data: { args: [1234, '1234'] },
       })
       .set({ 'x-wallet-id': walletId });
     expect(response4.status).toBe(400);
-
-    const response5 = await TestUtils.request
-      .post('/wallet/nano-contracts/execute')
-      .send({
-        blueprint: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
-        method: 'bet',
-        address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN',
-        data: { args: [{ type: 'int', value: 1234 }, { type: 'byte', value: '1234' }] },
-      })
-      .set({ 'x-wallet-id': walletId });
-    expect(response5.status).toBe(200);
-    // This error comes from the lib, that's why we return 200 with success false
-    expect(response5.body.success).toBe(false);
   });
 });
