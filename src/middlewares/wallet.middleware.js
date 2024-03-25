@@ -52,14 +52,8 @@ async function walletMiddleware(req, res, next) {
   req.wallet = wallet;
   req.walletId = walletId;
 
-  /* istanbul ignore if  */
   if (isHsmWallet(walletId)) {
-    const hsmKeyName = hsmWalletIds.get(walletId);
-    if (!hsmKeyName) {
-      sendError('Invalid HSM wallet.');
-      return;
-    }
-    req.hsmKeyName = hsmKeyName;
+    req.hsmKeyName = hsmWalletIds.get(walletId);
   }
 
   next();

@@ -124,7 +124,9 @@ Full-node info: ${JSON.stringify(info, null, 2)}`);
  * @returns {boolean} True if this is a hardware wallet
  */
 function isHsmWallet(walletId) {
-  return initializedWallets.has(walletId) && hsmWalletIds.has(walletId);
+  return initializedWallets.has(walletId)
+    && hsmWalletIds.has(walletId)
+    && hsmWalletIds.get(walletId);
 }
 
 module.exports = {
