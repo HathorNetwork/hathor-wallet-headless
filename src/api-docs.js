@@ -3749,9 +3749,9 @@ const defaultApiDocs = {
             'application/json': {
               schema: {
                 type: 'object',
-                required: ['blueprint', 'address', 'data'],
+                required: ['blueprint_id', 'address', 'data'],
                 properties: {
-                  blueprint: {
+                  'blueprint_id': {
                     type: 'string',
                     description: 'Blueprint ID of the new nano contract.'
                   },
@@ -3767,7 +3767,7 @@ const defaultApiDocs = {
                         type: 'array',
                         items: {
                           type: 'object',
-                          required: ['type', 'token', 'data'],
+                          required: ['type', 'token', 'amount'],
                           properties: {
                             type: {
                               type: 'string',
@@ -3777,24 +3777,17 @@ const defaultApiDocs = {
                               type: 'string',
                               description: 'Token of the action.'
                             },
-                            data: {
-                              type: 'object',
-                              required: ['amount'],
-                              properties: {
-                                amount: {
-                                  type: 'integer',
-                                  description: 'Amount to deposit or withdrawal.'
-                                },
-                                address: {
-                                  type: 'string',
-                                  description: 'Required for withdrawal, and it\'s the address to send the token to. For deposit is optional and it\'s the address to get the utxo from.'
-                                },
-                                changeAddress: {
-                                  type: 'string',
-                                  description: 'Address to send the change amount. Only used for deposit and it\'s optional.'
-                                },
-                              },
-                              description: 'Data of the deposit or withdrawal.'
+                            amount: {
+                              type: 'integer',
+                              description: 'Amount to deposit or withdrawal.'
+                            },
+                            address: {
+                              type: 'string',
+                              description: 'Required for withdrawal, and it\'s the address to send the token to. For deposit is optional and it\'s the address to get the utxo from.'
+                            },
+                            changeAddress: {
+                              type: 'string',
+                              description: 'Address to send the change amount. Only used for deposit and it\'s optional.'
                             },
                           }
                         },
@@ -3803,31 +3796,20 @@ const defaultApiDocs = {
                       args: {
                         type: 'array',
                         items: {
-                          type: 'object',
-                          required: ['type', 'value'],
-                          properties: {
-                            type: {
+                          oneOf: [
+                            {
                               type: 'string',
-                              description: 'Type of the argument. byte, string, int, float.'
                             },
-                            value: {
-                              oneOf: [
-                                {
-                                  type: 'string',
-                                },
-                                {
-                                  type: 'integer',
-                                },
-                                {
-                                  type: 'number',
-                                },
-                                {
-                                  type: 'boolean',
-                                },
-                              ],
-                              description: 'Value of the argument. If argument is byte, the value must be in hex.'
-                            }
-                          },
+                            {
+                              type: 'integer',
+                            },
+                            {
+                              type: 'number',
+                            },
+                            {
+                              type: 'boolean',
+                            },
+                          ],
                         },
                         description: 'List of arguments for the initialize method.'
                       },
@@ -3839,34 +3821,21 @@ const defaultApiDocs = {
                 data: {
                   summary: 'Data to create the nano contract',
                   value: {
-                    blueprint: '1234abcd',
+                    blueprint_id: '1234abcd',
                     address: 'H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt',
                     data: {
-                      args: [
-                        {
-                          type: 'string',
-                          value: 'abc'
-                        },
-                        {
-                          type: 'byte',
-                          value: '1234abcd'
-                        }
-                      ],
+                      args: ['abc', '1234abcd'],
                       actions: [
                         {
                           type: 'deposit',
                           token: '00',
-                          data: {
-                            amount: 100,
-                          }
+                          amount: 100,
                         },
                         {
                           type: 'withdrawal',
                           token: '00',
-                          data: {
-                            amount: 100,
-                            address: 'H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt'
-                          }
+                          amount: 100,
+                          address: 'H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt'
                         }
                       ]
                     }
@@ -3962,11 +3931,11 @@ const defaultApiDocs = {
             'application/json': {
               schema: {
                 type: 'object',
-                required: ['blueprint', 'method', 'address', 'data'],
+                required: ['nc_id', 'method', 'address', 'data'],
                 properties: {
-                  blueprint: {
+                  nc_id: {
                     type: 'string',
-                    description: 'Blueprint ID of the new nano contract.'
+                    description: 'ID of the nano contract that will have the method executed.'
                   },
                   method: {
                     type: 'string',
@@ -3984,7 +3953,7 @@ const defaultApiDocs = {
                         type: 'array',
                         items: {
                           type: 'object',
-                          required: ['type', 'token', 'data'],
+                          required: ['type', 'token', 'amount'],
                           properties: {
                             type: {
                               type: 'string',
@@ -3994,57 +3963,39 @@ const defaultApiDocs = {
                               type: 'string',
                               description: 'Token of the action.'
                             },
-                            data: {
-                              type: 'object',
-                              required: ['amount'],
-                              properties: {
-                                amount: {
-                                  type: 'integer',
-                                  description: 'Amount to deposit or withdrawal.'
-                                },
-                                address: {
-                                  type: 'string',
-                                  description: 'Required for withdrawal, and it\'s the address to send the token to. For deposit is optional and it\'s the address to get the utxo from.'
-                                },
-                                changeAddress: {
-                                  type: 'string',
-                                  description: 'Address to send the change amount. Only used for deposit and it\'s optional.'
-                                },
-                              },
-                              description: 'Data of the deposit or withdrawal.'
+                            amount: {
+                              type: 'integer',
+                              description: 'Amount to deposit or withdrawal.'
+                            },
+                            address: {
+                              type: 'string',
+                              description: 'Required for withdrawal, and it\'s the address to send the token to. For deposit is optional and it\'s the address to get the utxo from.'
+                            },
+                            changeAddress: {
+                              type: 'string',
+                              description: 'Address to send the change amount. Only used for deposit and it\'s optional.'
                             },
                           }
                         },
-                        description: 'List of actions for the method.'
+                        description: 'List of actions for the initialize method.'
                       },
                       args: {
                         type: 'array',
                         items: {
-                          type: 'object',
-                          required: ['type', 'value'],
-                          properties: {
-                            type: {
+                          oneOf: [
+                            {
                               type: 'string',
-                              description: 'Type of the argument. byte, string, int, float.'
                             },
-                            value: {
-                              oneOf: [
-                                {
-                                  type: 'string',
-                                },
-                                {
-                                  type: 'integer',
-                                },
-                                {
-                                  type: 'number',
-                                },
-                                {
-                                  type: 'boolean',
-                                },
-                              ],
-                              description: 'Value of the argument. If argument is byte, the value must be in hex.'
-                            }
-                          },
+                            {
+                              type: 'integer',
+                            },
+                            {
+                              type: 'number',
+                            },
+                            {
+                              type: 'boolean',
+                            },
+                          ],
                         },
                         description: 'List of arguments for the method.'
                       },
@@ -4056,35 +4007,22 @@ const defaultApiDocs = {
                 data: {
                   summary: 'Data to execute the nano contract method',
                   value: {
-                    blueprint: '1234abcd',
+                    nc_id: '1234abcd',
                     method: 'method_name',
                     address: 'H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt',
                     data: {
-                      args: [
-                        {
-                          type: 'string',
-                          value: 'abc'
-                        },
-                        {
-                          type: 'byte',
-                          value: '1234abcd'
-                        }
-                      ],
+                      args: ['abc', '1234abcd'],
                       actions: [
                         {
                           type: 'deposit',
                           token: '00',
-                          data: {
-                            amount: 100,
-                          }
+                          amount: 100,
                         },
                         {
                           type: 'withdrawal',
                           token: '00',
-                          data: {
-                            amount: 100,
-                            address: 'H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt'
-                          }
+                          amount: 100,
+                          address: 'H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt'
                         }
                       ]
                     }
