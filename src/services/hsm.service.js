@@ -36,11 +36,14 @@ async function delay(ms) {
  */
 function getBip32Keyname(keyname, pathIndex, options = {}) {
   const levels = [
-    () => keyname, // Root level
-    name => `${name}_bip44`,
-    name => `${name}_coinHTR`,
-    name => `${name}_htrAcct`,
-    name => `${name}_htrChange0`,
+    keyname, // Root level
+    `${keyname}_bip44`,
+    `${keyname}_coinHTR`,
+    `${keyname}_htrAcct`,
+    `${keyname}_htrChange0`,
+  ];
+  if (pathIndex >= levels.length) {
+    // Address index derivation
     /**
      * This unconventional naming is due to the 32 chars keyname restriction,
      * we reserve 17 chars for context of which "*_HAddr_*" uses 7, leaving 10
@@ -48,10 +51,10 @@ function getBip32Keyname(keyname, pathIndex, options = {}) {
      * without resorting to hex conversion since 2 billion in base 10 has
      * length 10.
      */
-    (name, opts) => `${name}_HAddr_${opts.index}`,
-  ];
+    return `${keyname}_HAddr_${options.index}`;
+  }
 
-  return levels[pathIndex](keyname, options);
+  return levels[pathIndex];
 }
 
 function getAcctKeyname(keyname) {
