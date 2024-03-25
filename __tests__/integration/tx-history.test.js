@@ -44,17 +44,16 @@ describe('tx-history routes', () => {
     await wallet2.stop();
   });
 
-  it('should return an empty array of transactions for an empty wallet', async done => {
+  it('should return an empty array of transactions for an empty wallet', async () => {
     const balanceResult = await TestUtils.request
       .get('/wallet/tx-history')
       .set({ 'x-wallet-id': wallet1.walletId });
 
     expect(balanceResult.status).toBe(200);
     expect(balanceResult.body).toHaveLength(0);
-    done();
   });
 
-  it('should return transactions for a wallet', async done => {
+  it('should return transactions for a wallet', async () => {
     const balanceResult = await TestUtils.request
       .get('/wallet/tx-history')
       .set({ 'x-wallet-id': wallet2.walletId });
@@ -82,10 +81,9 @@ describe('tx-history routes', () => {
     expect(transactions[2].tx_id).toEqual(fundHashes.tx30);
     expect(transactions[1].tx_id).toEqual(fundHashes.tx40);
     expect(transactions[0].tx_id).toEqual(fundHashes.tx50);
-    done();
   });
 
-  it('should return transactions for a wallet with query limit', async done => {
+  it('should return transactions for a wallet with query limit', async () => {
     const balanceResult = await TestUtils.request
       .get('/wallet/tx-history')
       .query({ limit: 3 })
@@ -99,7 +97,5 @@ describe('tx-history routes', () => {
     expect(transactions[0].tx_id).toEqual(fundHashes.tx50);
     expect(transactions[1].tx_id).toEqual(fundHashes.tx40);
     expect(transactions[2].tx_id).toEqual(fundHashes.tx30);
-
-    done();
   });
 });
