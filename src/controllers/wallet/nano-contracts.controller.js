@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { ncApi, nanoUtils, bufferUtils, Serializer } = require('@hathor/wallet-lib');
+const { ncApi, nanoUtils, bufferUtils, NanoContractSerializer } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../lock');
 const { cantSendTxErrorMessage } = require('../../helpers/constants');
@@ -149,7 +149,7 @@ async function getOracleSignedResult(req, res) {
     return;
   }
 
-  const { result, type, oracleData } = req.query;
+  const { result, type, oracle_data: oracleData } = req.query;
   const { wallet } = req;
 
   try {
@@ -159,7 +159,7 @@ async function getOracleSignedResult(req, res) {
       resultToSerialize = bufferUtils.hexToBuffer(result);
     }
 
-    const nanoSerializer = new Serializer();
+    const nanoSerializer = new NanoContractSerializer();
     const resultSerialized = nanoSerializer.serializeFromType(resultToSerialize, type);
 
     const oracleDataBuffer = bufferUtils.hexToBuffer(oracleData);
