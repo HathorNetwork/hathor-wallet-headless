@@ -1068,8 +1068,8 @@ export default {
     id: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
     name: 'Test',
     attributes: [
-      { type: 'int', name: 'a'},
-      { type: 'bytes', name: 'b'}
+      { type: 'int', name: 'a' },
+      { type: 'bytes', name: 'b' }
     ],
   },
   '/nano_contract/oracle-data': {
