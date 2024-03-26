@@ -8,6 +8,7 @@
 const { Connection, HathorWallet } = require('@hathor/wallet-lib');
 const { removeAllWalletProposals } = require('./atomic-swap.service');
 const { notificationBus } = require('./notification.service');
+const { hsmSignTxMethodBuilder } = require('./hsm.service');
 const { sanitizeLogInput } = require('../logger');
 
 /**
@@ -18,7 +19,7 @@ const initializedWallets = new Map();
 
 /**
  * A map between Wallet IDs and HSM Key names of the initialized wallets
- * @type {Map<string, String>}
+ * @type {Map<string, string>}
  */
 const hsmWalletIds = new Map();
 
@@ -111,6 +112,8 @@ Full-node info: ${JSON.stringify(info, null, 2)}`);
   initializedWallets.set(walletId, wallet);
   if (options?.hsmKeyName) {
     hsmWalletIds.set(walletId, options.hsmKeyName);
+    // When signing transactions, the wallet will use this function
+    wallet.setExternalTxSigningMethod(hsmSignTxMethodBuilder(options.hsmKeyName));
   }
   return info;
 }
@@ -121,7 +124,9 @@ Full-node info: ${JSON.stringify(info, null, 2)}`);
  * @returns {boolean} True if this is a hardware wallet
  */
 function isHsmWallet(walletId) {
-  return initializedWallets.has(walletId) && hsmWalletIds.has(walletId);
+  return initializedWallets.has(walletId)
+    && hsmWalletIds.has(walletId)
+    && hsmWalletIds.get(walletId);
 }
 
 module.exports = {
