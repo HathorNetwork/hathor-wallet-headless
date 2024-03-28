@@ -63,6 +63,7 @@ async function startHsmWallet(req, res) {
   try {
     connectionObj = await hsmService.hsmConnect();
   } catch (e) {
+    console.error(e);
     const responseObj = {
       success: false,
       message: `Unexpected error on HSM connection: ${e.message}`,
