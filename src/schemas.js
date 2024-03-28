@@ -478,3 +478,58 @@ export const p2shSignature = {
     }
   },
 };
+
+export const nanoContractData = {
+  data: {
+    in: ['body'],
+    errorMessage: 'Invalid data',
+    isObject: true,
+  },
+  'data.args': { // the element of this array can be anything
+    in: ['body'],
+    errorMessage: 'Invalid arguments.',
+    isArray: true,
+    optional: true
+  },
+  'data.actions': {
+    in: ['body'],
+    errorMessage: 'Invalid actions.',
+    isArray: true,
+    optional: true
+  },
+  'data.actions.*.token': {
+    in: ['body'],
+    errorMessage: 'Invalid action token.',
+    isString: true,
+  },
+  'data.actions.*.type': {
+    in: ['body'],
+    errorMessage: 'Invalid action type.',
+    isString: true,
+    custom: {
+      options: value => {
+        if (value !== 'deposit' && value !== 'withdrawal') {
+          return false;
+        }
+        return true;
+      }
+    },
+  },
+  'data.actions.*.amount': {
+    in: ['body'],
+    errorMessage: 'Invalid action amount.',
+    isInt: true,
+  },
+  'data.actions.*.address': {
+    in: ['body'],
+    errorMessage: 'Invalid action address.',
+    isString: true,
+    optional: true, // required for withdrawal
+  },
+  'data.actions.*.change_address': {
+    in: ['body'],
+    errorMessage: 'Invalid action change address.',
+    isString: true,
+    optional: true,
+  },
+};

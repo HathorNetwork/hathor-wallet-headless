@@ -19,6 +19,7 @@ const p2shRouter = require('./p2sh/p2sh.routes');
 const atomicSwapRouter = require('./atomic-swap/atomic-swap.routes');
 const txProposalRouter = require('./tx-proposal/tx-proposal.routes');
 const configRouter = require('./config/config.routes');
+const nanoContractRouter = require('./nano-contracts.routes');
 const { MAX_DATA_SCRIPT_LENGTH } = require('../../constants');
 const { patchExpressRouter } = require('../../patch');
 
@@ -28,6 +29,7 @@ walletRouter.use('/atomic-swap', atomicSwapRouter);
 walletRouter.use('/p2sh', p2shRouter);
 walletRouter.use('/tx-proposal', txProposalRouter);
 walletRouter.use('/config', configRouter);
+walletRouter.use('/nano-contracts', nanoContractRouter);
 
 /**
  * GET request to get the status of a wallet

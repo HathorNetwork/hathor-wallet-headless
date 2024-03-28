@@ -153,7 +153,7 @@ describe('Readonly wallet', () => {
         txHex: expect.any(String),
       });
 
-      const tx = helpersUtils.createTxFromHex(response.body.txHex, new Network('privatenet'));
+      const tx = helpersUtils.createTxFromHex(response.body.txHex, new Network('testnet'));
       // Expect that the signature was added to the transaction
       expect(tx.inputs[0].data.toString('hex')).toEqual('c0ffecafe0');
     } finally {
