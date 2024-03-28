@@ -6,7 +6,7 @@
  */
 
 const { Router } = require('express');
-const { query, body } = require('express-validator');
+const { checkSchema, query, body } = require('express-validator');
 const {
   getState,
   getHistory,
@@ -16,6 +16,7 @@ const {
   getOracleSignedResult
 } = require('../../controllers/wallet/nano-contracts.controller');
 const { patchExpressRouter } = require('../../patch');
+const { nanoContractData } = require('../../schemas');
 
 const nanoContractRouter = patchExpressRouter(Router({ mergeParams: true }));
 
@@ -78,7 +79,7 @@ nanoContractRouter.post(
   '/create',
   body('blueprint_id').isString(),
   body('address').isString(),
-  body('data').isObject(),
+  checkSchema(nanoContractData),
   createNanoContract,
 );
 
@@ -91,7 +92,7 @@ nanoContractRouter.post(
   body('nc_id').isString(),
   body('method').isString(),
   body('address').isString(),
-  body('data').isObject(),
+  checkSchema(nanoContractData),
   executeNanoContractMethod,
 );
 
