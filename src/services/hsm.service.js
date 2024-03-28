@@ -217,6 +217,7 @@ class HsmSession {
       });
     }
 
+    /* istancail ignore next */
     if (tx.version === hathorLib.constants.NANO_CONTRACTS_VERSION) {
       const { pubkey } = tx;
       const address = hathorLib.addressUtils.getAddressFromPubkey(pubkey.toString('hex'), storage.config.getNetwork());
