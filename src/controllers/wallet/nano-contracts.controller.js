@@ -85,6 +85,8 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
 
   const canStart = lock.lock(lockTypes.SEND_TX);
   if (!canStart) {
+    // TODO: return status code 423
+    // we should do this refactor in the future for all APIs
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
