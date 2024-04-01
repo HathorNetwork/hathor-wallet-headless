@@ -15,6 +15,63 @@ const commonExamples = {
   },
 };
 
+const nanoContractsDataParameter = {
+  type: 'object',
+  description: 'Data of the method for the nano contract.',
+  properties: {
+    actions: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['type', 'token', 'amount'],
+        properties: {
+          type: {
+            type: 'string',
+            description: 'Type of action: \'deposit\' or \'withdrawal\'.'
+          },
+          token: {
+            type: 'string',
+            description: 'Token of the action.'
+          },
+          amount: {
+            type: 'integer',
+            description: 'Amount to deposit or withdrawal.'
+          },
+          address: {
+            type: 'string',
+            description: 'Required for withdrawal, and it\'s the address to send the token to. For deposit is optional and it\'s the address to get the utxo from.'
+          },
+          changeAddress: {
+            type: 'string',
+            description: 'Address to send the change amount. Only used for deposit and it\'s optional.'
+          },
+        }
+      },
+      description: 'List of actions for the initialize method.'
+    },
+    args: {
+      type: 'array',
+      items: {
+        oneOf: [
+          {
+            type: 'string',
+          },
+          {
+            type: 'integer',
+          },
+          {
+            type: 'number',
+          },
+          {
+            type: 'boolean',
+          },
+        ],
+      },
+      description: 'List of arguments for the method.'
+    },
+  }
+};
+
 // Default values for the API Docs
 const defaultApiDocs = {
   openapi: '3.0.0',
@@ -3759,63 +3816,8 @@ const defaultApiDocs = {
                     type: 'string',
                     description: 'Address caller that will sign the nano contract creation transaction.'
                   },
-                  data: {
-                    type: 'object',
-                    description: 'Data of the initialize method for the nano contract created.',
-                    properties: {
-                      actions: {
-                        type: 'array',
-                        items: {
-                          type: 'object',
-                          required: ['type', 'token', 'amount'],
-                          properties: {
-                            type: {
-                              type: 'string',
-                              description: 'Type of action: \'deposit\' or \'withdrawal\'.'
-                            },
-                            token: {
-                              type: 'string',
-                              description: 'Token of the action.'
-                            },
-                            amount: {
-                              type: 'integer',
-                              description: 'Amount to deposit or withdrawal.'
-                            },
-                            address: {
-                              type: 'string',
-                              description: 'Required for withdrawal, and it\'s the address to send the token to. For deposit is optional and it\'s the address to get the utxo from.'
-                            },
-                            changeAddress: {
-                              type: 'string',
-                              description: 'Address to send the change amount. Only used for deposit and it\'s optional.'
-                            },
-                          }
-                        },
-                        description: 'List of actions for the initialize method.'
-                      },
-                      args: {
-                        type: 'array',
-                        items: {
-                          oneOf: [
-                            {
-                              type: 'string',
-                            },
-                            {
-                              type: 'integer',
-                            },
-                            {
-                              type: 'number',
-                            },
-                            {
-                              type: 'boolean',
-                            },
-                          ],
-                        },
-                        description: 'List of arguments for the initialize method.'
-                      },
-                    }
-                  },
-                }
+                  data: nanoContractsDataParameter,
+                },
               },
               examples: {
                 data: {
@@ -3945,62 +3947,7 @@ const defaultApiDocs = {
                     type: 'string',
                     description: 'Address caller that will sign the nano contract transaction.'
                   },
-                  data: {
-                    type: 'object',
-                    description: 'Data of the method for the nano contract.',
-                    properties: {
-                      actions: {
-                        type: 'array',
-                        items: {
-                          type: 'object',
-                          required: ['type', 'token', 'amount'],
-                          properties: {
-                            type: {
-                              type: 'string',
-                              description: 'Type of action: \'deposit\' or \'withdrawal\'.'
-                            },
-                            token: {
-                              type: 'string',
-                              description: 'Token of the action.'
-                            },
-                            amount: {
-                              type: 'integer',
-                              description: 'Amount to deposit or withdrawal.'
-                            },
-                            address: {
-                              type: 'string',
-                              description: 'Required for withdrawal, and it\'s the address to send the token to. For deposit is optional and it\'s the address to get the utxo from.'
-                            },
-                            changeAddress: {
-                              type: 'string',
-                              description: 'Address to send the change amount. Only used for deposit and it\'s optional.'
-                            },
-                          }
-                        },
-                        description: 'List of actions for the initialize method.'
-                      },
-                      args: {
-                        type: 'array',
-                        items: {
-                          oneOf: [
-                            {
-                              type: 'string',
-                            },
-                            {
-                              type: 'integer',
-                            },
-                            {
-                              type: 'number',
-                            },
-                            {
-                              type: 'boolean',
-                            },
-                          ],
-                        },
-                        description: 'List of arguments for the method.'
-                      },
-                    }
-                  },
+                  data: nanoContractsDataParameter,
                 }
               },
               examples: {
