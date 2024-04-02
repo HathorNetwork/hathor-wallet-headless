@@ -15,6 +15,63 @@ const commonExamples = {
   },
 };
 
+const nanoContractsDataParameter = {
+  type: 'object',
+  description: 'Data of the method for the nano contract.',
+  properties: {
+    actions: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['type', 'token', 'amount'],
+        properties: {
+          type: {
+            type: 'string',
+            description: 'Type of action: \'deposit\' or \'withdrawal\'.'
+          },
+          token: {
+            type: 'string',
+            description: 'Token of the action.'
+          },
+          amount: {
+            type: 'integer',
+            description: 'Amount to deposit or withdrawal.'
+          },
+          address: {
+            type: 'string',
+            description: 'Required for withdrawal, and it\'s the address to send the token to. For deposit is optional and it\'s the address to get the utxo from.'
+          },
+          changeAddress: {
+            type: 'string',
+            description: 'Address to send the change amount. Only used for deposit and it\'s optional.'
+          },
+        }
+      },
+      description: 'List of actions for the initialize method.'
+    },
+    args: {
+      type: 'array',
+      items: {
+        oneOf: [
+          {
+            type: 'string',
+          },
+          {
+            type: 'integer',
+          },
+          {
+            type: 'number',
+          },
+          {
+            type: 'boolean',
+          },
+        ],
+      },
+      description: 'List of arguments for the method.'
+    },
+  }
+};
+
 // Default values for the API Docs
 const defaultApiDocs = {
   openapi: '3.0.0',
@@ -3361,6 +3418,624 @@ const defaultApiDocs = {
                     value: { success: false, error: [{ value: '"1"', msg: 'Invalid value', param: 'address', location: 'query' }] }
                   },
                   ...commonExamples.xWalletIdErrResponseExamples,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/nano-contracts/state': {
+      get: {
+        operationId: 'nanoState',
+        summary: 'Get state of a nano contract.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'id',
+            in: 'query',
+            description: 'ID of the nano contract to get the state from.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'fields[]',
+            in: 'query',
+            description: 'List of fields to retrieve the state.',
+            required: false,
+            schema: {
+              type: 'array',
+              items: {
+                type: 'string',
+              }
+            },
+            examples: {
+              'simple fields': {
+                summary: 'Only direct fields',
+                value: ['token_uid', 'total', 'final_result', 'oracle_script']
+              },
+              'With dict fields': {
+                summary: 'Simple and dict fields (dict fields where the keys are addresses). For an address you must encapsulate the b58 with a\'\'',
+                value: [
+                  'token_uid',
+                  'total',
+                  'final_result',
+                  'oracle_script',
+                  'withdrawals.a\'Wi8zvxdXHjaUVAoCJf52t3WovTZYcU9aX6\'',
+                  'address_details.a\'Wi8zvxdXHjaUVAoCJf52t3WovTZYcU9aX6\''
+                ]
+              },
+            }
+          },
+          {
+            name: 'balances[]',
+            in: 'query',
+            description: 'List of balances to retrieve from contract.',
+            required: false,
+            schema: {
+              type: 'array',
+              items: {
+                type: 'string',
+              }
+            },
+            examples: {
+              balances: {
+                summary: 'Example of balances',
+                value: ['00', '000008f2ee2059a189322ae7cb1d7e7773dcb4fdc8c4de8767f63022b3731845']
+              },
+            }
+          },
+          {
+            name: 'calls[]',
+            in: 'query',
+            description: 'List of private method calls to execute and get result in the contract.',
+            required: false,
+            schema: {
+              type: 'array',
+              items: {
+                type: 'string',
+              }
+            },
+            examples: {
+              calls: {
+                summary: 'Example of calls',
+                value: ['private_method_1()', 'private_method_2()']
+              },
+            }
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Success',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success to get state from nano',
+                    value: {
+                      success: true,
+                      nc_id: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
+                      blueprint_name: 'Bet',
+                      fields: {
+                        token_uid: { value: '00' },
+                        total: { value: 300 },
+                        final_result: { value: '1x0' },
+                        oracle_script: { value: '76a91441c431ff7ad5d6ce5565991e3dcd5d9106cfd1e288ac' },
+                        'withdrawals.a\'Wi8zvxdXHjaUVAoCJf52t3WovTZYcU9aX6\'': { value: 300 },
+                        'address_details.a\'Wi8zvxdXHjaUVAoCJf52t3WovTZYcU9aX6\'': { value: { '1x0': 100 } },
+                      }
+                    }
+                  },
+                  error: {
+                    summary: 'Invalid nano contract ID',
+                    value: {
+                      success: false,
+                      message: 'Invalid nano contract ID.'
+                    }
+                  },
+                }
+              }
+            }
+          }
+        },
+      },
+    },
+    '/wallet/nano-contracts/history': {
+      get: {
+        operationId: 'nanoHistory',
+        summary: 'Get the history of a nano contract.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'id',
+            in: 'query',
+            description: 'ID of the nano contract to get the history from.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'count',
+            in: 'query',
+            description: 'Maximum number of items to be returned. Default is 100.',
+            required: false,
+            schema: {
+              type: 'integer',
+            },
+          },
+          {
+            name: 'after',
+            in: 'query',
+            description: 'Hash of transaction to offset the result.',
+            required: false,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Success',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'History of a nano contract',
+                    value: {
+                      success: true,
+                      count: 100,
+                      history: {
+                        hash: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
+                        nonce: 0,
+                        timestamp: 1572636346,
+                        version: 4,
+                        weight: 1,
+                        signal_bits: 0,
+                        parents: ['1234', '5678'],
+                        inputs: [],
+                        outputs: [],
+                        metadata: {
+                          hash: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
+                          spent_outputs: [],
+                          received_by: [],
+                          children: [],
+                          conflict_with: [],
+                          voided_by: [],
+                          twins: [],
+                          accumulated_weight: 1,
+                          score: 0,
+                          height: 0,
+                          min_height: 0,
+                          feature_activation_bit_counts: null,
+                          first_block: null,
+                          validation: 'full'
+                        },
+                        tokens: [],
+                        nc_id: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
+                        nc_method: 'initialize',
+                        nc_args: '0004313233340001000004654d8749',
+                        nc_pubkey: '033f5d238afaa9e2218d05dd7fa50eb6f9e55431e6359e04b861cd991ae24dc655'
+                      }
+                    }
+                  },
+                  error: {
+                    summary: 'Nano contract history index not initialized.',
+                    value: {
+                      success: false,
+                      message: 'Nano contract history index not initialized.'
+                    }
+                  },
+                }
+              }
+            }
+          }
+        },
+      },
+    },
+    '/wallet/nano-contracts/oracle-data': {
+      get: {
+        operationId: 'nanoOracleData',
+        summary: 'Get the oracle data.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'oracle',
+            in: 'query',
+            description: 'The address in base58 that will be used as oracle or the oracle data itself in hex (in this case, it will just be returned the same).',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Success',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Get oracle data from an address.',
+                    value: {
+                      success: true,
+                      oracleData: '12345678',
+                    }
+                  },
+                  error: {
+                    summary: 'Invalid oracle string.',
+                    value: {
+                      success: false,
+                      message: 'Invalid hex value for oracle script.'
+                    }
+                  },
+                }
+              }
+            }
+          }
+        },
+      },
+    },
+    '/wallet/nano-contracts/oracle-signed-result': {
+      get: {
+        operationId: 'nanoSignedResult',
+        summary: 'Get the result signed by the oracle. Returns the string of the argument to be used in the method.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'oracle_data',
+            in: 'query',
+            description: 'The oracle data. If it\'s not an address, we expect the full input data.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'result',
+            in: 'query',
+            description: 'The result to be signed. If the type is bytes, then we expect it in hex.',
+            required: true,
+            schema: {
+              oneOf: [
+                {
+                  type: 'string',
+                },
+                {
+                  type: 'integer',
+                },
+                {
+                  type: 'number',
+                },
+                {
+                  type: 'boolean',
+                },
+              ],
+            },
+          },
+          {
+            name: 'type',
+            in: 'query',
+            description: 'The type of the result.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Success',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Get oracle signed result.',
+                    value: {
+                      success: true,
+                      oracleData: '12345678:1x0:str',
+                    }
+                  },
+                  error: {
+                    summary: 'Address used is from another wallet.',
+                    value: {
+                      success: false,
+                      message: 'Oracle address is not from the loaded wallet.'
+                    }
+                  },
+                }
+              }
+            }
+          }
+        },
+      },
+    },
+    '/wallet/nano-contracts/create': {
+      post: {
+        operationId: 'nanoCreate',
+        summary: 'Create a nano contract of a blueprint.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        requestBody: {
+          description: 'Data to create the nano contract.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['blueprint_id', 'address', 'data'],
+                properties: {
+                  blueprint_id: {
+                    type: 'string',
+                    description: 'Blueprint ID of the new nano contract.'
+                  },
+                  address: {
+                    type: 'string',
+                    description: 'Address caller that will sign the nano contract creation transaction.'
+                  },
+                  data: nanoContractsDataParameter,
+                },
+              },
+              examples: {
+                data: {
+                  summary: 'Data to create the nano contract',
+                  value: {
+                    blueprint_id: '1234abcd',
+                    address: 'H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt',
+                    data: {
+                      args: ['abc', '1234abcd'],
+                      actions: [
+                        {
+                          type: 'deposit',
+                          token: '00',
+                          amount: 100,
+                        },
+                        {
+                          type: 'withdrawal',
+                          token: '00',
+                          amount: 100,
+                          address: 'H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt'
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Create the nano contract',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      success: true,
+                      count: 100,
+                      history: {
+                        hash: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
+                        nonce: 0,
+                        timestamp: 1572636346,
+                        version: 4,
+                        weight: 1,
+                        signal_bits: 0,
+                        parents: ['1234', '5678'],
+                        inputs: [],
+                        outputs: [],
+                        metadata: {
+                          hash: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
+                          spent_outputs: [],
+                          received_by: [],
+                          children: [],
+                          conflict_with: [],
+                          voided_by: [],
+                          twins: [],
+                          accumulated_weight: 1,
+                          score: 0,
+                          height: 0,
+                          min_height: 0,
+                          feature_activation_bit_counts: null,
+                          first_block: null,
+                          validation: 'full'
+                        },
+                        tokens: [],
+                        nc_id: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
+                        nc_method: 'initialize',
+                        nc_args: '0004313233340001000004654d8749',
+                        nc_pubkey: '033f5d238afaa9e2218d05dd7fa50eb6f9e55431e6359e04b861cd991ae24dc655'
+                      }
+                    }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/nano-contracts/execute': {
+      post: {
+        operationId: 'nanoExecuteMethod',
+        summary: 'Execute a nano contract method.',
+        parameters: [
+          {
+            name: 'x-wallet-id',
+            in: 'header',
+            description: 'Define the key of the corresponding wallet it will be executed the request.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          }
+        ],
+        requestBody: {
+          description: 'Data to execute the nano contract method.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['nc_id', 'method', 'address', 'data'],
+                properties: {
+                  nc_id: {
+                    type: 'string',
+                    description: 'ID of the nano contract that will have the method executed.'
+                  },
+                  method: {
+                    type: 'string',
+                    description: 'Method to execute in the nano contract object.'
+                  },
+                  address: {
+                    type: 'string',
+                    description: 'Address caller that will sign the nano contract transaction.'
+                  },
+                  data: nanoContractsDataParameter,
+                }
+              },
+              examples: {
+                data: {
+                  summary: 'Data to execute the nano contract method',
+                  value: {
+                    nc_id: '1234abcd',
+                    method: 'method_name',
+                    address: 'H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt',
+                    data: {
+                      args: ['abc', '1234abcd'],
+                      actions: [
+                        {
+                          type: 'deposit',
+                          token: '00',
+                          amount: 100,
+                        },
+                        {
+                          type: 'withdrawal',
+                          token: '00',
+                          amount: 100,
+                          address: 'H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt'
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Transaction for the nano contract method.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      success: true,
+                      count: 100,
+                      history: {
+                        hash: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
+                        nonce: 0,
+                        timestamp: 1572636346,
+                        version: 4,
+                        weight: 1,
+                        signal_bits: 0,
+                        parents: ['1234', '5678'],
+                        inputs: [],
+                        outputs: [],
+                        metadata: {
+                          hash: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
+                          spent_outputs: [],
+                          received_by: [],
+                          children: [],
+                          conflict_with: [],
+                          voided_by: [],
+                          twins: [],
+                          accumulated_weight: 1,
+                          score: 0,
+                          height: 0,
+                          min_height: 0,
+                          feature_activation_bit_counts: null,
+                          first_block: null,
+                          validation: 'full'
+                        },
+                        tokens: [],
+                        nc_id: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
+                        nc_method: 'method_name',
+                        nc_args: '0004313233340001000004654d8749',
+                        nc_pubkey: '033f5d238afaa9e2218d05dd7fa50eb6f9e55431e6359e04b861cd991ae24dc655'
+                      }
+                    }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'invalid-wallet-id': {
+                    summary: 'Wallet id parameter is invalid',
+                    value: { success: false, message: 'Invalid wallet-id parameter.' }
+                  },
                 },
               },
             },
