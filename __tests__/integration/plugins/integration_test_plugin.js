@@ -19,6 +19,8 @@ import _ from 'lodash';
 const receivedEvents = [];
 /** @type EventEmitter */
 let busObject = null;
+/** @type function */
+let messageListener = null;
 
 /**
  * Mandatory plugin method to initialize it.
@@ -29,10 +31,11 @@ let busObject = null;
 export const init = async bus => {
   busObject = bus;
 
-  busObject.on('message', data => {
+  messageListener = data => {
     console.log(`[${receivedEvents.length}] ${data.type} message added on ${data.walletId}.`);
     receivedEvents.push(data);
-  });
+  };
+  busObject.on('message', messageListener);
 
   console.log('plugin[test custom]: loaded');
 };
@@ -41,7 +44,7 @@ export const init = async bus => {
  * Event listener cleanup. Necessary when running on the expected test environment.
  */
 export const close = () => {
-  busObject.off('message');
+  busObject.off('message', messageListener);
   busObject = null;
   console.log('plugin[test custom]: closed');
 };

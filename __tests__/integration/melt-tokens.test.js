@@ -40,7 +40,7 @@ describe('melt tokens', () => {
 
   // Testing failures first, that do not cause side-effects on the blockchain
 
-  it('should not melt an invalid token', async done => {
+  it('should not melt an invalid token', async () => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send({
@@ -54,10 +54,9 @@ describe('melt tokens', () => {
 
     // TODO: Even though the result is correct, the error thrown is not related.
     // expect(response.body.error).toContain('invalid');
-    done();
   });
 
-  it('should not melt with an invalid amount', async done => {
+  it('should not melt with an invalid amount', async () => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send({
@@ -69,10 +68,9 @@ describe('melt tokens', () => {
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
     expect(response.text).toContain('invalid');
-    done();
   });
 
-  it('should not melt with zero amount', async done => {
+  it('should not melt with zero amount', async () => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send({
@@ -84,10 +82,9 @@ describe('melt tokens', () => {
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
     expect(response.text).toContain('amount');
-    done();
   });
 
-  it('should not melt with a negative amount', async done => {
+  it('should not melt with a negative amount', async () => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send({
@@ -99,10 +96,9 @@ describe('melt tokens', () => {
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
     expect(response.text).toContain('amount');
-    done();
   });
 
-  it('should not melt with an invalid deposit_address', async done => {
+  it('should not melt with an invalid deposit_address', async () => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send({
@@ -115,10 +111,9 @@ describe('melt tokens', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.text).toContain('Invalid');
-    done();
   });
 
-  it('should not melt with an invalid change_address', async done => {
+  it('should not melt with an invalid change_address', async () => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send({
@@ -131,10 +126,9 @@ describe('melt tokens', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.text).toContain('Change address is not from this wallet');
-    done();
   });
 
-  it('should not melt with a change_address outside the wallet', async done => {
+  it('should not melt with a change_address outside the wallet', async () => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send({
@@ -147,12 +141,11 @@ describe('melt tokens', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.text).toContain('Change address is not from this wallet');
-    done();
   });
 
   // Insufficient funds
 
-  it('should not melt with insufficient tokens', async done => {
+  it('should not melt with insufficient tokens', async () => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send({
@@ -165,12 +158,11 @@ describe('melt tokens', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toContain('enough tokens to melt');
-    done();
   });
 
   // Success
 
-  it('should melt with address and change address', async done => {
+  it('should melt with address and change address', async () => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send({
@@ -199,11 +191,9 @@ describe('melt tokens', () => {
     const balance1tka = await wallet1.getBalance(tokenA.uid);
     expect(balance1htr.available).toBe(2 + 3);
     expect(balance1tka.available).toBe(800 - 300);
-
-    done();
   });
 
-  it('should melt with deposit address only', async done => {
+  it('should melt with deposit address only', async () => {
     // There is an issue of how change addresses are chosen on the lib
     // Since address at index 4 was used the change address for the next operation
     // will be the address at index 5, meaning that if we chose the address at 5
@@ -230,11 +220,9 @@ describe('melt tokens', () => {
     const balance1tka = await wallet1.getBalance(tokenA.uid);
     expect(balance1htr.available).toBe(2 + 3 + 1);
     expect(balance1tka.available).toBe(800 - 300 - 100);
-
-    done();
   });
 
-  it('should melt with change address only', async done => {
+  it('should melt with change address only', async () => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send({
@@ -257,11 +245,9 @@ describe('melt tokens', () => {
     const balance1tka = await wallet1.getBalance(tokenA.uid);
     expect(balance1htr.available).toBe(2 + 3 + 1 + 1);
     expect(balance1tka.available).toBe(800 - 300 - 100 - 100);
-
-    done();
   });
 
-  it('should melt with mandatory parameters', async done => {
+  it('should melt with mandatory parameters', async () => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send({
@@ -278,11 +264,9 @@ describe('melt tokens', () => {
     const balance1tka = await wallet1.getBalance(tokenA.uid);
     expect(balance1htr.available).toBe(2 + 3 + 1 + 1 + 1); // 8
     expect(balance1tka.available).toBe(800 - 300 - 100 - 100 - 100); // 200
-
-    done();
   });
 
-  it('should not retrieve funds when melting below 100 tokens', async done => {
+  it('should not retrieve funds when melting below 100 tokens', async () => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send({
@@ -299,11 +283,9 @@ describe('melt tokens', () => {
     const balance1tka = await wallet1.getBalance(tokenA.uid);
     expect(balance1htr.available).toBe(8);
     expect(balance1tka.available).toBe(150);
-
-    done();
   });
 
-  it('should retrieve funds rounded down when not melting multiples of 100', async done => {
+  it('should retrieve funds rounded down when not melting multiples of 100', async () => {
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
       .send({
@@ -321,11 +303,9 @@ describe('melt tokens', () => {
     const balance1tka = await wallet1.getBalance(tokenA.uid);
     expect(balance1htr.available).toBe(9);
     expect(balance1tka.available).toBe(50);
-
-    done();
   });
 
-  it('should melt and send melt output to the correct address', async done => {
+  it('should melt and send melt output to the correct address', async () => {
     const address0 = await wallet1.getAddressAt(0);
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
@@ -356,10 +336,9 @@ describe('melt tokens', () => {
     const p2pkh = scriptsUtils.parseP2PKH(Buffer.from(authorityOutput.script.data), network);
     // Validate that the authority output was sent to the correct address
     expect(p2pkh.address.base58).toEqual(address0);
-    done();
   });
 
-  it('should melt allowing external authority address', async done => {
+  it('should melt allowing external authority address', async () => {
     const externalAddress = TestUtils.getBurnAddress();
     const response = await TestUtils.request
       .post('/wallet/melt-tokens')
@@ -403,6 +382,5 @@ describe('melt tokens', () => {
     const p2pkh = scriptsUtils.parseP2PKH(Buffer.from(authorityOutput.script.data), network);
     // Validate that the authority output was sent to the correct address
     expect(p2pkh.address.base58).toEqual(externalAddress);
-    done();
   });
 });

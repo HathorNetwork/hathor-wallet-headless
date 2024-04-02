@@ -861,8 +861,8 @@ export class TestUtils {
    * @param {number | undefined} timeout The timeout to stop waiting for the tx to arrive
    *                             if not present, it will wait forever
    *
-   * @returns {Promise<void>} Resolves when the tx is found in the wallet's storage
-   *                          or rejects if timeout is reached
+   * @returns {Promise<Object>} Resolves with the tx data when the tx is found in the wallet's
+   *                            storage or rejects if timeout is reached
    */
   static async waitForTxReceived(walletId, txId, timeout) {
     let timeoutHandler;
@@ -914,6 +914,50 @@ export class TestUtils {
     await TestUtils.waitUntilNextTimestamp(result);
 
     return result;
+  }
+
+  /**
+   * This method awaits a tx to be confirmed by a block
+   *
+   * It does not return any content, only delivers the code processing back to the caller at the
+   * desired time.
+   *
+   * @param {string} walletId ID of the wallet to get the transaction from
+   * @param {String} txId ID of the tx to wait confirmation
+   * @param {number | null | undefined} timeout
+   * @returns {Promise<void>}
+   */
+  static async waitTxConfirmed(walletId, txId, timeout) {
+    let timeoutHandler;
+    let timeoutReached = false;
+    if (timeout) {
+      // Timeout handler
+      timeoutHandler = setTimeout(() => {
+        timeoutReached = true;
+      }, timeout);
+    }
+
+    let number = await TestUtils.getTransactionConfirmationNumber(walletId, txId);
+
+    while (number < 1) {
+      if (timeoutReached) {
+        break;
+      }
+      // Tx not confirmed, wait 1s before trying again
+      await delay(1000);
+
+      number = await TestUtils.getTransactionConfirmationNumber(walletId, txId);
+    }
+
+    if (timeoutHandler) {
+      clearTimeout(timeoutHandler);
+    }
+
+    if (timeoutReached) {
+      // We must do the timeout handling like this because if I reject the promise directly
+      // inside the setTimeout block, this while block will continue running forever.
+      throw new Error(`Timeout of ${timeout}ms without confirming the tx with id ${txId}`);
+    }
   }
 
   /**
