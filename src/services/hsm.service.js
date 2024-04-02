@@ -66,11 +66,17 @@ function getChangeKeyname(keyname) {
 }
 
 /**
- * @typedef {Object} SignatureData
+ * @typedef {Object} InputSignatureData
  * @property {Buffer} signature
  * @property {Buffer} pubkey
  * @property {number} addressIndex
  * @property {number} inputIndex
+ */
+
+/**
+ * @typedef {Object} SignatureData
+ * @property {Buffer|null} ncCallerSignature
+ * @property {InputSignatureData[]} inputSignatures
  */
 
 class HsmSession {
@@ -171,16 +177,22 @@ class HsmSession {
    * Sign the given transaction and return the signatures.
    * @param {hathorLib.Transaction} tx
    * @param {hathorLib.Storage} storage
-   * @returns {Promise<SignatureData[]>}
+   * @returns {Promise<SignatureData>}
    */
   async signTx(tx, storage) {
     const dataToSignHash = tx.getDataToSignHash();
     /**
-   * @type {SignatureData[]}
+   * @type {InputSignatureData[]}
    */
-    const response = [];
+    const inputSignatures = [];
+    let ncCallerSignature = null;
 
     for await (const { tx: spentTx, input, index: inputIndex } of storage.getSpentTxs(tx.inputs)) {
+      if (input.data) {
+        // This input is already signed
+        continue;
+      }
+
       const spentOut = spentTx.outputs[input.index];
 
       if (!spentOut.decoded.address) {
@@ -197,7 +209,7 @@ class HsmSession {
       const pubkey = Buffer.from(pubkeyHex, 'hex');
       const signature = await this.getSignature(dataToSignHash, addressInfo.bip32AddressIndex);
 
-      response.push({
+      inputSignatures.push({
         inputIndex,
         addressIndex: addressInfo.bip32AddressIndex,
         signature,
@@ -205,7 +217,20 @@ class HsmSession {
       });
     }
 
-    return response;
+    /* istanbul ignore next */
+    if (tx.version === hathorLib.constants.NANO_CONTRACTS_VERSION) {
+      const { pubkey } = tx;
+      const address = hathorLib.addressUtils.getAddressFromPubkey(pubkey.toString('hex'), storage.config.getNetwork());
+      const addressInfo = await storage.getAddressInfo(address.base58);
+      if (!addressInfo) {
+        // Not a wallet address
+        return { inputSignatures };
+      }
+      // Sign the transaction for the caller
+      ncCallerSignature = await this.getSignature(dataToSignHash, addressInfo.bip32AddressIndex);
+    }
+
+    return { inputSignatures, ncCallerSignature };
   }
 }
 
