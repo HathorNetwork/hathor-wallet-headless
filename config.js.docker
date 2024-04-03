@@ -59,9 +59,9 @@ const config = {
   txMiningApiKey: getParam('tx_mining_api_key', null),
 
   // HSM Integration
-  hsmHost: null,
-  hsmUsername: null,
-  hsmPassword: null,
+  hsmHost: getParam('hsm_host', null),
+  hsmUsername: getParam('hsm_username', null),
+  hsmPassword: getParam('hsm_password', null),
 
   http_api_key: getParam('api_key'),
   httpLogFormat: getParam('http_log_format'),
