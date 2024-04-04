@@ -18,7 +18,7 @@ const initializedWallets = new Map();
 
 /**
  * A map between Wallet IDs and HSM Key names of the initialized wallets
- * @type {Map<string, String>}
+ * @type {Map<string, string>}
  */
 const hsmWalletIds = new Map();
 
@@ -121,7 +121,9 @@ Full-node info: ${JSON.stringify(info, null, 2)}`);
  * @returns {boolean} True if this is a hardware wallet
  */
 function isHsmWallet(walletId) {
-  return initializedWallets.has(walletId) && hsmWalletIds.has(walletId);
+  return initializedWallets.has(walletId)
+    && hsmWalletIds.has(walletId)
+    && hsmWalletIds.get(walletId);
 }
 
 module.exports = {

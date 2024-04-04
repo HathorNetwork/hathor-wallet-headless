@@ -79,8 +79,9 @@ function validateKeyName(keyName) {
   if (!keyName || keyName.length < 3) {
     throw new Error('Invalid key name. Usage: node create-hsm-wallet.js <key-name>');
   }
-  if (keyName.length > 32) {
-    throw new Error('Key name is too long. It must be up to 32 characters.');
+  // Actual keyname is up to 32 chars, but we reserve 17 chars to add context to keyname
+  if (keyName.length > 15) {
+    throw new Error('Key name is too long. It must be up to 15 characters.');
   }
   if (!keyName.match(/^[a-zA-Z0-9_]+$/)) {
     throw new Error('Key name can only contain alphanumeric characters and underscores.');

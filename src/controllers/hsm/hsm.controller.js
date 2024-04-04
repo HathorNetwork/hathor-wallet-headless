@@ -56,10 +56,14 @@ async function startHsmWallet(req, res) {
   }
 
   // Connects to the HSM
+  /**
+   * @type {hsm.interfaces.Hsm}
+   */
   let connectionObj;
   try {
     connectionObj = await hsmService.hsmConnect();
   } catch (e) {
+    console.error(e);
     const responseObj = {
       success: false,
       message: `Unexpected error on HSM connection: ${e.message}`,
@@ -94,10 +98,10 @@ async function startHsmWallet(req, res) {
   // Obtains this wallet's xPub from the HSM
   let xPub = null;
   try {
-    xPub = await hsmService.getXPubFromKey(connectionObj, hsmKeyName, {
-      isReadOnlyWallet: true,
-    });
+    await hsmService.deriveMainKeysFromRoot(connectionObj, hsmKeyName);
+    xPub = await hsmService.getXPubFromKey(connectionObj, hsmKeyName);
   } catch (e) {
+    console.error(e);
     res.send({
       success: false,
       message: `Unexpected error on HSM xPub derivation: ${e.message}`,
@@ -112,20 +116,22 @@ async function startHsmWallet(req, res) {
 
   // Create the wallet instance
   const config = settings.getConfig();
-  startWallet(walletId, walletConfig, config, { hsmKeyName })
-    .then(info => {
-      res.send({
-        success: true,
-      });
-    })
-    .catch(error => {
-      console.error(`Error starting HSM wallet: ${error.message}`);
-      res.status(500)
-        .send({
-          success: false,
-          message: `Failed to start wallet with wallet id ${walletId} and key ${hsmKeyName}`,
-        });
+
+  try {
+    await startWallet(walletId, walletConfig, config, { hsmKeyName });
+
+    const wallet = initializedWallets.get(walletId);
+    // When signing transactions, the wallet will use this function
+    wallet.setExternalTxSigningMethod(hsmService.hsmSignTxMethodBuilder(hsmKeyName));
+
+    res.send({ success: true });
+  } catch (error) {
+    console.error(`Error starting HSM wallet: ${error.message}`);
+    res.status(500).send({
+      success: false,
+      message: `Failed to start wallet with wallet id ${walletId} and key ${hsmKeyName}`,
     });
+  }
 }
 
 module.exports = {

@@ -15,6 +15,7 @@ const hsmConnectionMock = {
     }),
     createBip32ChildKeyDerivation: jest.fn(),
     getPubKey: jest.fn().mockResolvedValue('xpub6Bmit3YXcjd1GE84dBCbAqUQQs2oi7jG5wGCEPLJTXiuS5JykhP4bNzz2hhP2JH7nByeVkQWFB4VBti9uQvqK7dKW5LJNNKyLbYmAd3PEjP'),
+    sign: jest.fn(),
   },
 };
 const connectMock = jest.spyOn(hsm, 'connect').mockResolvedValue(hsmConnectionMock);
@@ -289,5 +290,34 @@ describe('start HSM api', () => {
 
     await TestUtils.stopWallet({ walletId });
     expect(walletsService.hsmWalletIds.has(walletId)).toBe(false);
+  });
+
+  it('should send', async () => {
+    // This xpubkey will generate the addresses with mocked balance to send transactions
+    const xpubkey = 'xpub6C95ufyyhEr2ntyGGfeHjyvxffmNZQ7WugyChhu1Fzor1tMUc4K2MUdwkcJoTzjVkg46hurWWU9gvZoivLiDk6MdsKukz3JiX5Fib2BDa2T';
+    hsmConnectionMock.blockchain.getPubKey.mockResolvedValueOnce(xpubkey);
+    hsmConnectionMock.blockchain.sign.mockResolvedValue(Buffer.from([0x01, 0x30, 0xCA, 0xFE]));
+
+    const response = await TestUtils.request
+      .post('/hsm/start')
+      .send({
+        'wallet-id': walletId,
+        'hsm-key': hsmKeyName
+      });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+
+    await TestUtils.waitReady({ walletId });
+    const response2 = await TestUtils.request
+      .post('/wallet/simple-send-tx')
+      .send({
+        address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc',
+        value: 1,
+      })
+      .set({ 'x-wallet-id': walletId });
+
+    expect(hsmConnectionMock.blockchain.sign).toHaveBeenCalledTimes(1);
+    expect(response2.status).toBe(200);
+    expect(response2.body.success).toBe(true);
   });
 });
