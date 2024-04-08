@@ -13,6 +13,7 @@
     "@hathor/wallet-lib": "1.4.1",
     "express": "4.18.2",
     "express-validator": "6.10.0",
+    "fireblocks-sdk": "^5.24.0",
     "lodash": "4.17.21",
     "morgan": "1.10.0",
     "winston": "3.12.0",

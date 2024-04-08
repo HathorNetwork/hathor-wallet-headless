@@ -21,7 +21,7 @@ const { getReadonlyWalletConfig } = require('../../helpers/wallet.helper');
 async function startFireblocksWallet(req, res) {
   // Retrieving parameters from request body
   const walletId = req.body['wallet-id'];
-  const raw = req.body['raw'] || null;
+  const raw = req.body.raw || null;
 
   // Validates input wallet-id
   if (!walletId) {
@@ -44,7 +44,7 @@ async function startFireblocksWallet(req, res) {
     });
     return;
   }
-  
+
   if (initializedWallets.has(walletId)) {
     // We already have a wallet for this key
     // so we log that it won't start a new one because
@@ -76,7 +76,7 @@ async function startFireblocksWallet(req, res) {
 
     const wallet = initializedWallets.get(walletId);
     // When signing transactions, the wallet will use this function
-    /** 
+    /**
      * TODO
      * Create a signer method that logs in fireblocks (or uses an existing connection)
      * and signs the transaction using raw signing.
