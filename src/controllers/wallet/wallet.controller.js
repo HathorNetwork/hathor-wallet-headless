@@ -279,6 +279,7 @@ async function simpleSendTx(req, res) {
     );
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
+    console.error(err);
     res.send({ success: false, error: err.message });
   } finally {
     lock.unlock(lockTypes.SEND_TX);

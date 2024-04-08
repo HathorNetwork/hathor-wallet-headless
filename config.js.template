@@ -26,6 +26,10 @@ module.exports = {
   hsmUsername: null,
   hsmPassword: null,
 
+  fireblocksUrl: null,
+  fireblocksApiKey: null,
+  fireblocksApiSecret: null,
+
   // ApiKey to use with Tx Mining Service
   // This is optional. You should set it only if you have an api-key.
   txMiningApiKey: null,
@@ -34,6 +38,9 @@ module.exports = {
   seeds: {
       default: '',
   },
+
+  // Wallet xpubs
+  xpubs: {},
 
   // Optional wallet multisig configuration
   // Use the seedKey as key and the value should have `total` (max no. of signatures), `numSignatures` (required no. of signatures) and `pubkeys` as a list of participant pubkeys.

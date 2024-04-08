@@ -63,11 +63,18 @@ const config = {
   hsmUsername: null,
   hsmPassword: null,
 
+  fireblocksUrl: getParam('fireblocks_url'),
+  fireblocksApiKey: getParam('fireblocks_api_key'),
+  fireblocksApiSecret: getParam('fireblocks_api_secret'),
+
   http_api_key: getParam('api_key'),
   httpLogFormat: getParam('http_log_format'),
 
   // Wallet seeds
   seeds: {},
+
+  // Wallet xpubs
+  xpubs: {},
 
   // Wallet multisig configuration
   multisig: {},
