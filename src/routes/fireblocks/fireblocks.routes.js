@@ -6,11 +6,18 @@
  */
 
 const { Router } = require('express');
+const { body } = require('express-validator');
 const { patchExpressRouter } = require('../../patch');
 const { startFireblocksWallet } = require('../../controllers/fireblocks/fireblocks.controller');
 
 const fireblocksRouter = patchExpressRouter(Router({ mergeParams: true }));
 
-fireblocksRouter.post('/start', startFireblocksWallet);
+fireblocksRouter.post(
+  '/start',
+  body('wallet-id').isString(),
+  body('xpub-id').isString(),
+  body('raw').isBoolean(),
+  startFireblocksWallet,
+);
 
 module.exports = fireblocksRouter;

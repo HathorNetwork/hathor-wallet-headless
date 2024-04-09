@@ -12,6 +12,7 @@ const {
 } = require('../../services/wallets.service');
 const { API_ERROR_CODES } = require('../../helpers/constants');
 const { getReadonlyWalletConfig } = require('../../helpers/wallet.helper');
+const fireblocksService = require('../../services/fireblocks.service');
 
 /**
  * Starts a read-only wallet integrated with fireblocks.
@@ -21,6 +22,7 @@ const { getReadonlyWalletConfig } = require('../../helpers/wallet.helper');
 async function startFireblocksWallet(req, res) {
   // Retrieving parameters from request body
   const walletId = req.body['wallet-id'];
+  const xpubId = req.body['xpub-id'];
   const raw = req.body.raw || null;
 
   // Validates input wallet-id
@@ -28,6 +30,15 @@ async function startFireblocksWallet(req, res) {
     res.send({
       success: false,
       message: 'Parameter \'wallet-id\' is required.',
+    });
+    return;
+  }
+
+  // Validates input xpub-id
+  if (!xpubId) {
+    res.send({
+      success: false,
+      message: 'Parameter \'xpub-id\' is required.',
     });
     return;
   }
@@ -58,18 +69,35 @@ async function startFireblocksWallet(req, res) {
     return;
   }
 
-  // TODO: validate login data for fireblocks.
+  // Create the wallet instance
+  const config = settings.getConfig();
 
-  // Validates if the requested key is a valid BIP32 xPriv
+  // Validate login data for fireblocks.
+  if (!(config.fireblocksUrl && config.fireblocksApiKey && config.fireblocksApiSecret)) {
+    console.error('Error starting wallet because fireblocks is not configured.');
+    res.send({
+      success: false,
+      message: 'Fireblocks client is not configured.',
+    });
+    return;
+  }
 
-  // Obtains this wallet's xPub from fireblocks
-  let xPub = null;
+  const client = fireblocksService.startClient();
+
+  const xpubMap = config.xpubs || [];
+  const xPub = xpubMap[xpubId];
+
+  if (!xPub) {
+    console.error('Error starting wallet because xpub-id is referring to a wallet that is not configured.');
+    res.send({
+      success: false,
+      message: `xpub-id ${xpubId} is invalid.`,
+    });
+    return;
+  }
 
   // Builds the wallet configuration object
   const walletConfig = getReadonlyWalletConfig({ xpub: xPub });
-
-  // Create the wallet instance
-  const config = settings.getConfig();
 
   try {
     await startWallet(walletId, walletConfig, config, { });
