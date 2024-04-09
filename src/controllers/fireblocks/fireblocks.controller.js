@@ -82,8 +82,6 @@ async function startFireblocksWallet(req, res) {
     return;
   }
 
-  const client = fireblocksService.startClient();
-
   const xpubMap = config.xpubs || [];
   const xPub = xpubMap[xpubId];
 
@@ -104,16 +102,11 @@ async function startFireblocksWallet(req, res) {
 
     const wallet = initializedWallets.get(walletId);
     // When signing transactions, the wallet will use this function
-    /**
-     * TODO
-     * Create a signer method that logs in fireblocks (or uses an existing connection)
-     * and signs the transaction using raw signing.
-     */
-    const fireblocksRawSigner = async () => {};
-    wallet.setExternalTxSigningMethod(fireblocksRawSigner);
+    wallet.setExternalTxSigningMethod(fireblocksService.fireblocksSigner);
 
     res.send({ success: true });
   } catch (error) {
+    console.error(error);
     console.error(`Error starting Fireblocks wallet: ${error.message}`);
     res.status(500).send({
       success: false,
