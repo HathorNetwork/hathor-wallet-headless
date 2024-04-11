@@ -16,6 +16,8 @@ const { getConfig } = require('../settings');
 
 const HARDENED_BIT = 0x80000000;
 
+const FIREBLOCKS_VERSION = 'v1';
+
 /**
  * Get signatures of the transaction for the wallet in the storage
  * @param {hathorLib.Transaction} tx
@@ -109,9 +111,9 @@ class FireblocksClient {
 
   async sendRawTransaction(dataToSignHash, indices) {
     const rawTx = createRawTransaction(dataToSignHash, indices);
-    const token = this.signJWT('/transactions', rawTx);
+    const token = this.signJWT(`/${FIREBLOCKS_VERSION}/transactions`, rawTx);
 
-    const response = this.client.post('/transactions', rawTx, {
+    const response = this.client.post(`/${FIREBLOCKS_VERSION}/transactions`, rawTx, {
       headers: {
         'X-API-Key': this.apiKey,
         Authorization: `Bearer ${token}`,
@@ -139,8 +141,25 @@ class FireblocksClient {
   }
 
   async getTxStatus(txId) {
-    const token = this.signJWT(`/transactions/${txId}`);
-    const response = await this.client.get(`/transactions/${txId}`, {
+    const token = this.signJWT(`/${FIREBLOCKS_VERSION}/transactions/${txId}`);
+    const response = await this.client.get(`/${FIREBLOCKS_VERSION}/transactions/${txId}`, {
+      headers: {
+        'X-API-Key': this.apiKey,
+        Authorization: `Bearer ${token}`,
+      }
+    });
+    console.log(JSON.stringify(response.data));
+    return response.data;
+  }
+
+  async getXpub() {
+    const derivationPath = [44 + HARDENED_BIT, 280 + HARDENED_BIT, HARDENED_BIT];
+    let uri = `/${FIREBLOCKS_VERSION}/vault/public_key_info/?algorithm=MPC_ECDSA_SECP256K1`;
+    uri += `&derivationPath=${JSON.stringify(derivationPath)}`;
+
+    const token = this.signJWT(uri);
+
+    const response = await this.client.get(uri, {
       headers: {
         'X-API-Key': this.apiKey,
         Authorization: `Bearer ${token}`,
@@ -186,4 +205,5 @@ async function fireblocksSigner(tx, storage, _) {
 
 module.exports = {
   fireblocksSigner,
+  FireblocksClient,
 };
