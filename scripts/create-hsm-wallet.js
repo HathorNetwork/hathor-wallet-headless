@@ -7,7 +7,7 @@
 
 const { hsm } = require('@dinamonetworks/hsm-dinamo');
 const { isNumber } = require('lodash');
-const settings = require('../src/settings');
+const settings = require('../dist/settings');
 
 /**
  * Creates a new xPriv key on the HSM
