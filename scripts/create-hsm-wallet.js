@@ -7,6 +7,7 @@
 
 const { hsm } = require('@dinamonetworks/hsm-dinamo');
 const { isNumber } = require('lodash');
+// eslint-disable-next-line import/no-unresolved, import/extensions
 const settings = require('../dist/settings');
 
 /**
