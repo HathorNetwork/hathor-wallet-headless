@@ -221,7 +221,7 @@ describe('create-nft routes', () => {
     expect(authorityOutputs.find(o => o.value === AUTHORITY_VALUE.MELT)).toBeTruthy();
   });
 
-  it('should create the NFT and send authority outputs to the correct address', async done => {
+  it('should create the NFT and send authority outputs to the correct address', async () => {
     // By default, will mint tokens into the next unused address
     const address0 = await wallet1.getAddressAt(0);
     const address1 = await wallet1.getAddressAt(1);
@@ -260,11 +260,9 @@ describe('create-nft routes', () => {
     const meltP2pkh = scriptsUtils.parseP2PKH(Buffer.from(meltOutput[0].script.data), network);
     // Validate that the melt output was sent to the correct address
     expect(meltP2pkh.address.base58).toEqual(address1);
-
-    done();
   });
 
-  it('Create nft using external mint/melt address', async done => {
+  it('Create nft using external mint/melt address', async () => {
     const address2idx0 = await wallet2.getAddressAt(0);
     const address2idx1 = await wallet2.getAddressAt(1);
 
@@ -334,7 +332,5 @@ describe('create-nft routes', () => {
     const meltP2pkh = scriptsUtils.parseP2PKH(Buffer.from(meltOutput[0].script.data), network);
     // Validate that the melt output was sent to the correct address
     expect(meltP2pkh.address.base58).toEqual(address2idx1);
-
-    done();
   });
 });

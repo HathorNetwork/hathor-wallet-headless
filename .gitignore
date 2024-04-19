@@ -10,6 +10,7 @@ coverage-integration
 
 .vscode
 .DS_Store
+.idea
 
 tmp/
 

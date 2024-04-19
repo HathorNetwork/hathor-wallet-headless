@@ -8,6 +8,8 @@ on:
 jobs:
 
   # First check if this version is a valid public release
+  # This follows semver recommendations, with release candidates having a dash and a dot
+  # @see https://semver.org/spec/v2.0.0-rc.2.html
   check-version:
     runs-on: ubuntu-22.04
     outputs:
@@ -23,12 +25,16 @@ jobs:
             version="${GITHUB_REF#refs/tags/}"
             echo "version=$version"
 
-            # Pattern that accepts "v1.0.0" , "v2.4.6". 
+            # Pattern that accepts releases: "v1.0.0" , "v2.4.6". 
             if [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
               result=isRelease
-            # Pattern that accepts "v1.0.0-rc1".
-            elif [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$ ]]; then
+            # Pattern that accepts release candidates: "v1.0.0-rc.1".
+            elif [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]]; then
               result=isReleaseCandidate
+            # Pattern that accepts "v1.0.0-rc1", an invalid rc notation.
+            elif [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$ ]]; then
+              echo "release candidate version is invalid"
+              exit 1
             else
               result=isNotRelease
             fi
@@ -46,7 +52,7 @@ jobs:
       id-token: write # This is required for requesting the JWT
     needs: check-version
     env:
-      release_status: ${{ needs.test_version.outputs.release_status_output }}
+      release_status: ${{ needs.check-version.outputs.release_status_output }}
     if: >-
       ${{ 
           needs.check-version.outputs.release_status_output == 'isRelease' || 
@@ -56,7 +62,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [20.x]
 
     steps:
       # https://github.com/actions/checkout/releases/tag/v4.0.0
@@ -93,7 +99,7 @@ jobs:
           aws-region: us-east-1
 
       # Copy the document to S3
-      - name: Upload apidocs.json to S3
+      - name: Upload HTML to S3
         run: |
           if [[ "${{ env.release_status }}" == "isRelease" ]]; then
             aws s3 cp index.html s3://${{ secrets.AWS_APIDOCS_BUCKET_NAME_PROD }}

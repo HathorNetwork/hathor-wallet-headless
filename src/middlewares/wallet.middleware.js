@@ -6,7 +6,7 @@
  */
 
 const friendlyWalletState = require('../helpers/constants');
-const { initializedWallets } = require('../services/wallets.service');
+const { initializedWallets, isHsmWallet, hsmWalletIds } = require('../services/wallets.service');
 const settings = require('../settings');
 
 async function walletMiddleware(req, res, next) {
@@ -51,6 +51,11 @@ async function walletMiddleware(req, res, next) {
   // Adding to req parameter, so we don't need to get it in all requests
   req.wallet = wallet;
   req.walletId = walletId;
+
+  if (isHsmWallet(walletId)) {
+    req.hsmKeyName = hsmWalletIds.get(walletId);
+  }
+
   next();
 }
 
