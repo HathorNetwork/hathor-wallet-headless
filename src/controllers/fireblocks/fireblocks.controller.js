@@ -24,7 +24,6 @@ async function startFireblocksWallet(req, res) {
   // Retrieving parameters from request body
   const walletId = req.body['wallet-id'];
   const xpubId = req.body['xpub-id'];
-  const raw = req.body.raw || null;
 
   // Validates input wallet-id
   if (!walletId) {
@@ -40,19 +39,6 @@ async function startFireblocksWallet(req, res) {
     res.send({
       success: false,
       message: 'Parameter \'xpub-id\' is required.',
-    });
-    return;
-  }
-
-  if (!raw) {
-    /**
-     * XXX
-     * When the other signature methods are available we can add support for
-     * them without extinguishing support for raw signing.
-     */
-    res.send({
-      success: false,
-      message: 'We currently only support raw signing feature.'
     });
     return;
   }

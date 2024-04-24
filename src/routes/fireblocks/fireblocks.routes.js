@@ -16,7 +16,6 @@ fireblocksRouter.post(
   '/start',
   body('wallet-id').isString(),
   body('xpub-id').isString(),
-  body('raw').isBoolean(),
   startFireblocksWallet,
 );
 
