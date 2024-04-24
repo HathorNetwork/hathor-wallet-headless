@@ -16,6 +16,13 @@ const { getConfig } = require('../settings');
 
 const FIREBLOCKS_VERSION = 'v1';
 
+const TX_ALREADY_EXISTS_ERROR_CODE = 1438;
+
+/**
+ * Encode Fireblocks signature in DER
+ * @param {object} sig
+ * @returns {Buffer}
+ */
 function fireblocksSignatureToDER(sig) {
   const r = Buffer.from(sig.r, 'hex');
   const s = Buffer.from(sig.s, 'hex');
@@ -158,6 +165,13 @@ class FireblocksClient {
     });
   }
 
+  /**
+   * Create the JWT authz token for a request.
+   *
+   * @param {string} path URI of the request (path + querystring)
+   * @param {Object|undefined} body Body of the request
+   * @returns {string}
+   */
   signJWT(path, body) {
     const nonce = uuid4();
     const now = Math.floor(Date.now() / 1000);
@@ -176,22 +190,74 @@ class FireblocksClient {
     return jwt.sign(headers, this.secret, { algorithm: 'RS256' });
   }
 
-  async postRawTransaction(dataToSignHash, indices) {
-    const rawTx = createRawTransaction(dataToSignHash, indices);
-    const token = this.signJWT(`/${FIREBLOCKS_VERSION}/transactions`, rawTx);
-
-    const response = await this.client.post(`/${FIREBLOCKS_VERSION}/transactions`, rawTx, {
+  /**
+   * GET a request to Fireblocks.
+   *
+   * @param {string} path URI of the request (path + querystring)
+   * @returns {Promise<Object>} Fireblocks axios response
+   */
+  async getRequest(path) {
+    const token = this.signJWT(path);
+    return this.client.get(path, {
       headers: {
         'X-API-Key': this.apiKey,
         Authorization: `Bearer ${token}`,
       }
     });
+  }
+
+  /**
+   * Post a request to Fireblocks.
+   *
+   * @param {string} path URI of the request (path + querystring)
+   * @param {Object|undefined} body Body of the request
+   * @returns {Promise<Object>} Fireblocks axios response
+   */
+  async postRequest(path, body) {
+    const token = this.signJWT(path, body);
+    return this.client.post(path, body, {
+      headers: {
+        'X-API-Key': this.apiKey,
+        Authorization: `Bearer ${token}`,
+      }
+    });
+  }
+
+  /**
+   * Post a raw transaction.
+   * @param {Buffer} dataToSignHash sha256d of sighash_all of a Transaction
+   * @param {number[]} indices - bip32 Address indices
+   * @returns {Promise<Object>} Fireblocks response
+   */
+  async postRawTransaction(dataToSignHash, indices) {
+    const rawTx = createRawTransaction(dataToSignHash, indices);
+    const response = await this.postRequest(`/${FIREBLOCKS_VERSION}/transactions`, rawTx);
     return response.data;
   }
 
+  /**
+   * Send a raw transaction.
+   * Will create the RAW transaction, wait for it to be ready and return the tx info.
+   * @param {Buffer} dataToSignHash sha256d of sighash_all of a Transaction
+   * @param {number[]} indices - bip32 Address indices
+   */
   async sendRawTransaction(dataToSignHash, indices) {
-    const rawTx = await this.postRawTransaction(dataToSignHash, indices);
-    const txId = rawTx.id;
+    try {
+      await this.postRawTransaction(dataToSignHash, indices);
+    } catch (e) {
+      if (!(
+        e.response
+        && e.response.data
+        && e.response.data.code === TX_ALREADY_EXISTS_ERROR_CODE
+      )) {
+        console.error(e);
+        throw e;
+      }
+      // This transaction was already submitted.
+      // We can safely ignore the error and fetch the tx info.
+      console.log('Raw transaction already submitted, fetching tx info...');
+    }
+    const txId = dataToSignHash.toString('hex');
     let txStatus = null;
     let txInfo = null;
     let count = 0;
@@ -203,59 +269,59 @@ class FireblocksClient {
       }
       // eslint-disable-next-line no-promise-executor-return
       await new Promise(resolve => setTimeout(resolve, 1000));
-      txInfo = await this.getTxStatus(txId);
+      txInfo = await this.getTxStatusByExternalId(txId);
       txStatus = txInfo.status;
     }
 
     return txInfo;
   }
 
+  /**
+   * Get transaction status
+   * @param {string} txId - Fireblocks transaction id
+   * @returns {Promise<Object>}
+   */
   async getTxStatus(txId) {
-    const token = this.signJWT(`/${FIREBLOCKS_VERSION}/transactions/${txId}`);
-    const response = await this.client.get(`/${FIREBLOCKS_VERSION}/transactions/${txId}`, {
-      headers: {
-        'X-API-Key': this.apiKey,
-        Authorization: `Bearer ${token}`,
-      }
-    });
+    const response = await this.getRequest(`/${FIREBLOCKS_VERSION}/transactions/${txId}`);
     return response.data;
   }
 
+  /**
+   * Get transaction status by external id.
+   * @param {string} txId - External transaction id.
+   * @returns {Promise<Object>}
+   */
+  async getTxStatusByExternalId(txId) {
+    const response = await this.getRequest(`/${FIREBLOCKS_VERSION}/transactions/external_tx_id/${txId}`);
+    return response.data;
+  }
+
+  /**
+   * Get address pubkey info.
+   * @param {number} index
+   * @returns {Promise<Object>}
+   */
   async getAddressPubkeyInfo(index) {
     const derivationPath = [44, 280, 0, 0, index];
     let uri = `/${FIREBLOCKS_VERSION}/vault/public_key_info`;
     uri += `?derivationPath=${JSON.stringify(derivationPath)}`;
     uri += '&algorithm=MPC_ECDSA_SECP256K1&compressed=true';
 
-    const token = this.signJWT(uri);
-
-    const response = await this.client.get(uri, {
-      headers: {
-        'X-API-Key': this.apiKey,
-        Authorization: `Bearer ${token}`,
-      }
-    });
-    return response.data;
-  }
-
-  async test() {
-    const uri = '/v1/vault/accounts_paged?orderBy=DESC&limit=1';
-    const token = this.signJWT(uri);
-
-    const response = await this.client.get(uri, {
-      headers: {
-        'X-API-Key': this.apiKey,
-        Authorization: `Bearer ${token}`,
-      }
-    });
+    const response = await this.getRequest(uri);
     return response.data;
   }
 }
 
+/**
+ * Create a RAW transaction object to be sent to Fireblocks.
+ * @param {Buffer} dataToSignHash sha256d of sighash_all of a Transaction
+ * @param {number[]} indices - bip32 Address indices
+ * @returns {Object}
+ */
 function createRawTransaction(dataToSignHash, indices) {
   return {
     operation: 'RAW',
-    externalTxId: `${dataToSignHash.toString('hex')}-${uuid4()}`,
+    externalTxId: dataToSignHash.toString('hex'),
     note: 'Hathor tx sent from headless wallet using raw signing',
     // fee: '0',
     extraParameters: {
@@ -270,6 +336,10 @@ function createRawTransaction(dataToSignHash, indices) {
   };
 }
 
+/**
+ * Start Fireblocks client with the headless config.
+ * @returns {FireblocksClient}
+ */
 function startClient() {
   const config = getConfig();
 
@@ -280,6 +350,12 @@ function startClient() {
   );
 }
 
+/**
+ * External tx signer method to register with our wallet-lib.
+ * @param {hathorLib.Transaction} tx
+ * @param {hathorLib.Storage} storage
+ * @param {string} _ - pinCode is not used with Fireblocks
+ */
 async function fireblocksSigner(tx, storage, _) {
   const client = startClient();
   const signatures = getTxSignatures(tx, storage, client);
@@ -289,4 +365,5 @@ async function fireblocksSigner(tx, storage, _) {
 module.exports = {
   fireblocksSigner,
   FireblocksClient,
+  startClient,
 };

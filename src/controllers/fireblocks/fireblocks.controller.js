@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+const hathorlib = require('@hathor/wallet-lib');
 const settings = require('../../settings');
 const {
   initializedWallets,
@@ -90,6 +91,30 @@ async function startFireblocksWallet(req, res) {
     res.send({
       success: false,
       message: `xpub-id ${xpubId} is invalid.`,
+    });
+    return;
+  }
+
+  // Checking that the fireblocks config is valid.
+  const fireblocksClient = fireblocksService.startClient();
+  try {
+    const addressPubkeyInfo = await fireblocksClient.getAddressPubkeyInfo(0);
+    const changeXpub = hathorlib.walletUtils.xpubDeriveChild(xPub, 0);
+    const localPublicKey = hathorlib.walletUtils.getPublicKeyFromXpub(changeXpub, 0);
+
+    if (addressPubkeyInfo.publicKey !== localPublicKey.toString('hex')) {
+      console.error('Fireblocks api public key does not match local public key.');
+      res.send({
+        success: false,
+        message: 'Fireblocks api generated a public key different from local public key.',
+      });
+      return;
+    }
+  } catch (error) {
+    console.error(`Fireblocks credentials are invalid: ${error.message}`);
+    res.status(500).send({
+      success: false,
+      message: `Failed to start wallet with wallet id ${walletId}`,
     });
     return;
   }
