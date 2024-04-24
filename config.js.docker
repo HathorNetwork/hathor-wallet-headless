@@ -123,6 +123,14 @@ for (const x of seeds) {
   config.multisig[x] = multisig;
 }
 
+const xpubs = getParam('xpubs', 'default').split(' ');
+for (const x of xpubs) {
+  config.xpubs[x] = getParam(`xpub_${x}`);
+  if (!config.xpubs[x]) {
+    throw `Missing parameter --xpub_${x} or envvar HEADLESS_XPUB_${x.toUpperCase()}`;
+  }
+}
+
 // Configuration for custom plugins
 for (const pluginId of config.enabled_plugins) {
   const pluginFile = getParam(`plugin_${pluginId}_file`);
