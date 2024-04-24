@@ -26,7 +26,7 @@ module.exports = {
   hsmUsername: null,
   hsmPassword: null,
 
-  fireblocksUrl: null,
+  fireblocksUrl: 'https://api.fireblocks.io',
   fireblocksApiKey: null,
   fireblocksApiSecret: null,
 
