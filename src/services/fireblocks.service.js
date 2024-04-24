@@ -161,7 +161,7 @@ class FireblocksClient {
     this.secret = apiSecret;
 
     this.client = axios.create({
-      baseURL: this.baseUrl,
+      baseURL: baseUrl,
     });
   }
 
@@ -183,7 +183,7 @@ class FireblocksClient {
       uri: path,
       nonce,
       iat: now,
-      exp: now + 55, // Adjusted to ensure it's within the required timeframe
+      exp: now + 300, // Adjusted to ensure it's within the required timeframe
       sub: this.apiKey,
       bodyHash,
     };

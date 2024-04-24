@@ -1,5 +1,4 @@
 import supertest from 'supertest';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import axios from 'axios';
 import { get } from 'lodash';
 import winston from 'winston';
