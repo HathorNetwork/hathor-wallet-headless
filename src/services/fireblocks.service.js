@@ -183,7 +183,7 @@ class FireblocksClient {
       uri: path,
       nonce,
       iat: now,
-      exp: now + 300, // Adjusted to ensure it's within the required timeframe
+      exp: now + 60, // Adjusted to ensure it's within the required timeframe
       sub: this.apiKey,
       bodyHash,
     };
