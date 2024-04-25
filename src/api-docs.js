@@ -282,6 +282,90 @@ const defaultApiDocs = {
         },
       },
     },
+    '/fireblocks/start': {
+      post: {
+        operationId: 'fireblocksWalletStart',
+        summary: 'Start a fireblocks client wallet on Hathor network.',
+        requestBody: {
+          description: 'Data to start the wallet',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['wallet-id', 'xpub-id'],
+                properties: {
+                  'wallet-id': {
+                    type: 'string',
+                    description: 'Define the key of the corresponding wallet it will be executed the request.'
+                  },
+                  'xpub-id': {
+                    type: 'string',
+                    description: 'Key name of the desired xPub on the xpub map config.'
+                  },
+                }
+              },
+              examples: {
+                data: {
+                  summary: 'Data to start the wallet',
+                  value: {
+                    'wallet-id': 'hardware-wallet-1',
+                    'xpub-id': 'hathor_wallet_1',
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Start a wallet',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true },
+                  },
+                  'no-wallet-id': {
+                    summary: 'No wallet id parameter',
+                    value: { success: false, message: "Parameter 'wallet-id' is required." }
+                  },
+                  'no-xpub-id': {
+                    summary: 'No xPub id parameter',
+                    value: { success: false, message: "Parameter 'xpub-id' is required." }
+                  },
+                  'start-failed': {
+                    summary: 'Wallet failed to start.',
+                    value: { success: false, message: 'Failed to start wallet with id X' }
+                  },
+                  'wallet-already-started': {
+                    summary: 'Wallet with same id was already started.',
+                    value: { success: false, message: 'Failed to start wallet with id X', errorCode: 'WALLET_ALREADY_STARTED' }
+                  },
+                  'fireblocks-not-configured': {
+                    summary: 'Missing Fireblocks client config.',
+                    value: { success: false, message: 'Fireblocks client is not configured.' }
+                  },
+                  'invalid-xpub-id': {
+                    summary: 'xPub id informed not found on config.',
+                    value: { success: false, message: 'xpub-id X is invalid.' }
+                  },
+                  'fireblocks-invalid-xpub': {
+                    summary: 'Fireblocks first address and local xPub first address do not match.',
+                    value: { success: false, message: 'Fireblocks api generated a public key different from local public key.' }
+                  },
+                  'fireblocks-api-error': {
+                    summary: 'Client raised an error when trying to connect to Fireblocks API.',
+                    value: { success: false, message: 'Could not validate Fireblocks client config, received error: X' }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     '/multisig-pubkey': {
       post: {
         operationId: 'getMultisigPubkey',
