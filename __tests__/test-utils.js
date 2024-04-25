@@ -8,6 +8,7 @@ import { HathorWallet } from '@hathor/wallet-lib';
 import createApp from '../src/app';
 import settings from '../src/settings';
 import httpFixtures from './__fixtures__/http-fixtures';
+import fireblocksFixtures from './__fixtures__/fireblocks';
 import wsFixtures from './__fixtures__/ws-fixtures';
 
 const config = settings.getConfig();
@@ -220,6 +221,12 @@ class TestUtils {
     httpMock.onGet('/nano_contract/state').reply(200, httpFixtures['/nano_contract/state']);
     httpMock.onGet('/nano_contract/history').reply(200, httpFixtures['/nano_contract/history']);
     httpMock.onGet('/nano_contract/blueprint').reply(200, httpFixtures['/nano_contract/blueprint']);
+
+    // Fireblocks mock
+    httpMock.onGet(/http:\/\/fake-fireblocks-url\/v1\/transactions\/*/).reply(200, fireblocksFixtures['transaction_status']);
+    httpMock.onGet(/http:\/\/fake-fireblocks-url\/v1\/transactions\/external_id\/*/).reply(200, fireblocksFixtures['transaction_status']);
+    httpMock.onGet(/http:\/\/fake-fireblocks-url\/v1\/vault\/public_key_info*/).reply(200, fireblocksFixtures['public_key_info']);
+    httpMock.onPost('http://fake-fireblocks-url/v1/transactions').reply(200);
 
     // websocket mocks
     wsMock.on('connection', socket => {
