@@ -1,11 +1,6 @@
 import TestUtils from './test-utils';
-import { lock, lockTypes } from '../src/lock';
-import * as constants from '../src/helpers/constants';
-import settingsFixture from './__fixtures__/settings-fixture';
 
 const jwt = require('jsonwebtoken');
-
-// const walletsService = require('../src/services/wallets.service');
 
 const walletId = 'stub_fireblocks';
 
