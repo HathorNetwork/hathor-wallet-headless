@@ -223,9 +223,9 @@ class TestUtils {
     httpMock.onGet('/nano_contract/blueprint').reply(200, httpFixtures['/nano_contract/blueprint']);
 
     // Fireblocks mock
-    httpMock.onGet(/http:\/\/fake-fireblocks-url\/v1\/transactions\/*/).reply(200, fireblocksFixtures['transaction_status']);
-    httpMock.onGet(/http:\/\/fake-fireblocks-url\/v1\/transactions\/external_id\/*/).reply(200, fireblocksFixtures['transaction_status']);
-    httpMock.onGet(/http:\/\/fake-fireblocks-url\/v1\/vault\/public_key_info*/).reply(200, fireblocksFixtures['public_key_info']);
+    httpMock.onGet(/http:\/\/fake-fireblocks-url\/v1\/transactions\/*/).reply(200, fireblocksFixtures.transaction_status);
+    httpMock.onGet(/http:\/\/fake-fireblocks-url\/v1\/transactions\/external_id\/*/).reply(200, fireblocksFixtures.transaction_status);
+    httpMock.onGet(/http:\/\/fake-fireblocks-url\/v1\/vault\/public_key_info*/).reply(200, fireblocksFixtures.public_key_info);
     httpMock.onPost('http://fake-fireblocks-url/v1/transactions').reply(200);
 
     // websocket mocks
