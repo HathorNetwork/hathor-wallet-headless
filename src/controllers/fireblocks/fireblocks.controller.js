@@ -100,7 +100,7 @@ async function startFireblocksWallet(req, res) {
     console.error(`Fireblocks credentials are invalid: ${error.message}`);
     res.status(500).send({
       success: false,
-      message: `Failed to start wallet with wallet id ${walletId}`,
+      message: `Could not validate Fireblocks client config, received error: ${error.message}`,
     });
     return;
   }
