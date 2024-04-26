@@ -311,7 +311,7 @@ $ curl -X POST -H "X-Wallet-Id: {wallet-id}" http://localhost:8000/wallet/stop
 This script generates a new seed with 24 words. It is useful when you'd like to start a brand new wallet. The seed is a sensitive data that cannot be shared with anyone else. Remember to clean up your clipboard after copying & pasting.
 
 ```bash
-$ npm run generate_words
+$ make words
 
 work above economy captain advance bread logic paddle copper change maze tongue salon sadness cannon fish debris need make purpose usage worth vault shrug
 ```
