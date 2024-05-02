@@ -1,7 +1,13 @@
-# Suggested Test Sequence
+# QA (quality assurance)
+
+## Purpose
+
+To define a test sequence.
+
+## Suggested test sequence
 
 1. **Configuration**
-    1. Create a new seed running `make words`.
+    1. Create a new seed running `npm run generate_words`.
     1. Fill the fields `network: 'testnet'`, `server: 'https://node1.testnet.hathor.network/v1a/'`, `seeds[qa]: generated_words` in `src/config.js`.
     1. `npm start`.
 
