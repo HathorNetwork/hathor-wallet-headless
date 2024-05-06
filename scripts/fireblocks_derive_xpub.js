@@ -23,6 +23,7 @@ const hathorlib = require('@hathor/wallet-lib');
   .then(() => process.exit(0))
   .catch(async err => {
     console.error(err);
+    // eslint-disable-next-line no-promise-executor-return
     await new Promise(resolve => setTimeout(resolve, 50));
     process.exit(1);
   });

@@ -5,7 +5,7 @@ export default {
     derivationPath: [44, 280, 0, 0, 0],
     publicKey: '030aa8d800cd51fb5392723faeddcedf9167b820a76d6128ee83e9ae122c7d6aab',
   },
-  transaction_status: {
+  transaction_status: config => ([200, {
     id: 'af963ba1-e97e-4219-9161-5ad4f2873956',
     createdAt: 1713365600560,
     lastUpdated: 1713365606928,
@@ -35,7 +35,7 @@ export default {
     amountInfo: {},
     feeInfo: {},
     destinations: [],
-    externalTxId: '7d42de7d6840bfc3b5af8a5c4c57fb229694c97154bb5d247f0cfb1870029b2d',
+    externalTxId: config.url.split('/').pop(),
     blockInfo: {},
     signedMessages: [
       {
@@ -48,7 +48,7 @@ export default {
           s: '5189b6bfb0f0dc7943c9968d761cba0fb2ad007bbc177c745a7cd5e385c0383e',
           v: 0
         },
-        content: '822b4714a2c9d40c934e8b3a6ddf4273b2bf4452088d58b43ef50bca2f5d97fc'
+        content: config.url.split('/').pop(),
       },
       {
         derivationPath: [44, 280, 0, 0, 3],
@@ -60,7 +60,7 @@ export default {
           s: '5189b6bfb0f0dc7943c9968d761cba0fb2ad007bbc177c745a7cd5e385c0383e',
           v: 0
         },
-        content: '822b4714a2c9d40c934e8b3a6ddf4273b2bf4452088d58b43ef50bca2f5d97fc'
+        content: config.url.split('/').pop(),
       },
     ],
     extraParameters: {
@@ -68,11 +68,11 @@ export default {
         messages: [
           {
             derivationPath: [44, 280, 0, 0, 0],
-            content: '822b4714a2c9d40c934e8b3a6ddf4273b2bf4452088d58b43ef50bca2f5d97fc'
+            content: config.url.split('/').pop(),
           }
         ],
         algorithm: 'MPC_ECDSA_SECP256K1',
       }
-    }
-  }
+    },
+  }]),
 };

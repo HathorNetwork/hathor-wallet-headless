@@ -1,4 +1,5 @@
 import TestUtils from './test-utils';
+import settings from '../src/settings';
 
 const jwt = require('jsonwebtoken');
 
@@ -26,6 +27,55 @@ describe('start fireblocks api', () => {
       .send({ 'wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
+  });
+
+  it('should not start a wallet with improper fireblocks config', async () => {
+    const config = settings._getDefaultConfig();
+    config.fireblocksApiKey = undefined;
+    settings._setConfig(config);
+
+    const response = await TestUtils.request
+      .post('/fireblocks/start')
+      .send({ 'wallet-id': walletId, 'xpub-id': 'stub' });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(false);
+
+    settings._resetConfig();
+  });
+
+  it('should not start a wallet with invalid xpub-id', async () => {
+    const response = await TestUtils.request
+      .post('/fireblocks/start')
+      .send({ 'wallet-id': walletId, 'xpub-id': 'nostub' });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(false);
+
+    // Inject invalid xpub in config
+    const config = settings._getDefaultConfig();
+    config.xpubs.stub = 'xpub661MyMwAqRbcGkgsdLH1nacxkgSjZSaVdXJde5hVQASM1ajJtcHo43Fy1jz62oJcTRVPT6TMDtBr5vqfVEgQRBebS76APyiChEZmC63hu2c';
+    settings._setConfig(config);
+
+    const response2 = await TestUtils.request
+      .post('/fireblocks/start')
+      .send({ 'wallet-id': walletId, 'xpub-id': 'stub' });
+    expect(response2.status).toBe(200);
+    expect(response2.body.success).toBe(false);
+
+    settings._resetConfig();
+  });
+
+  it('should not start a wallet with invalid xpub-id', async () => {
+    const config = settings._getDefaultConfig();
+    config.fireblocksApiKey = undefined;
+    settings._setConfig(config);
+
+    const response = await TestUtils.request
+      .post('/fireblocks/start')
+      .send({ 'wallet-id': walletId, 'xpub-id': 'stub' });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(false);
+
+    settings._resetConfig();
   });
 
   it('should start a wallet successfully', async () => {

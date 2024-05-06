@@ -5,7 +5,7 @@ const walletId = 'stub_p2sh_tx_proposal_sign_and_push';
 
 describe('tx-proposal sign-and-push api', () => {
   beforeAll(async () => {
-    const config = settings.getConfig();
+    const config = settings._getDefaultConfig();
     config.multisig = TestUtils.multisigData;
     settings._setConfig(config);
     return TestUtils.startWallet({
@@ -16,9 +16,7 @@ describe('tx-proposal sign-and-push api', () => {
   });
 
   afterAll(async () => {
-    const config = settings.getConfig();
-    config.multisig = {};
-    settings._setConfig(config);
+    settings._resetConfig();
 
     await TestUtils.stopWallet({ walletId });
   });
