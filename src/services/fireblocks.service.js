@@ -107,12 +107,12 @@ async function getTxSignatures(tx, storage, client) {
   // create signature data object from the response
   const fbTxInfo = await client.sendRawTransaction(dataToSignHash, indices);
   if (!fbTxInfo.signedMessages) {
-    throw new Error('Fireblocks did not return signatures');
+    throw new Error(`Fireblocks did not return signatures for the transaction(${fbTxInfo.id}); external-id: (${dataToSignHash.toString('hex')})`);
   }
   const signedMessagesObj = {};
   for (const item of fbTxInfo.signedMessages) {
     if (item.content !== dataToSignHash.toString('hex')) {
-      throw new Error(`Fireblocks returned inconsistent signatures in transaction ${fbTxInfo.id}`);
+      throw new Error(`Fireblocks returned inconsistent signatures in transaction(${fbTxInfo.id}); external-id: (${dataToSignHash.toString('hex')})`);
     }
     if (item.derivationPath[4] in signedMessagesObj) {
       // duplicate signature due to inputs from the same address
@@ -129,10 +129,10 @@ async function getTxSignatures(tx, storage, client) {
   for (const data of signingIndices) {
     const sig = signedMessagesObj[data.addressIndex];
     if (!sig) {
-      throw new Error(`Fireblocks did not return signature for address index ${data.addressIndex}`);
+      throw new Error(`Fireblocks did not return signature for address index ${data.addressIndex} in transaction(${fbTxInfo.id}); external-id: (${dataToSignHash.toString('hex')})`);
     }
     if (sig.publicKey !== data.pubkey.toString('hex')) {
-      throw new Error(`Fireblocks signature does not match locally generated public key in transaction ${fbTxInfo.id}`);
+      throw new Error(`Fireblocks signature does not match locally generated public key in transaction(${fbTxInfo.id}); external-id: (${dataToSignHash.toString('hex')})`);
     }
     inputSignatures.push({
       ...data,
@@ -143,7 +143,7 @@ async function getTxSignatures(tx, storage, client) {
   if (ncCallerIndex) {
     const sig = signedMessagesObj[ncCallerIndex];
     if (!sig) {
-      throw new Error(`Fireblocks did not return signature for address index ${ncCallerIndex}`);
+      throw new Error(`Fireblocks did not return signature for address index ${ncCallerIndex} in transaction(${fbTxInfo.id}); external-id: (${dataToSignHash.toString('hex')})`);
     }
     ncCallerSignature = sig.signature.fullSig;
   }

@@ -21,7 +21,8 @@ const hathorlib = require('@hathor/wallet-lib');
   console.log(`Account path xPub: ${xpubkey.toString()}`);
 })()
   .then(() => process.exit(0))
-  .catch(err => {
+  .catch(async err => {
     console.error(err);
+    await new Promise(resolve => setTimeout(resolve, 50));
     process.exit(1);
   });
