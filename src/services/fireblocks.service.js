@@ -145,7 +145,7 @@ async function getTxSignatures(tx, storage, client) {
     if (!sig) {
       throw new Error(`Fireblocks did not return signature for address index ${ncCallerIndex} in transaction(${fbTxInfo.id}); external-id: (${dataToSignHash.toString('hex')})`);
     }
-    ncCallerSignature = sig.signature.fullSig;
+    ncCallerSignature = fireblocksSignatureToDER(sig.signature);
   }
 
   return {
