@@ -73,7 +73,7 @@ async function startFireblocksWallet(req, res) {
   const xPub = xpubMap[xpubId];
 
   if (!xPub) {
-    console.error('Error starting wallet because xpub-id is referring to a wallet that is not configured.');
+    console.error('Error starting wallet because xpub-id is referring to a xpub that is not configured.');
     res.send({
       success: false,
       message: `xpub-id ${xpubId} is invalid.`,
