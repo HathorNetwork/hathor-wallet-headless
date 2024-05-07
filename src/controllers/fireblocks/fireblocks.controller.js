@@ -23,7 +23,7 @@ const fireblocksService = require('../../services/fireblocks.service');
 async function startFireblocksWallet(req, res) {
   // Retrieving parameters from request body
   const walletId = req.body['wallet-id'];
-  const xpub = req.body['xpub'];
+  const { xpub } = req.body;
 
   // Validates input wallet-id
   if (!walletId) {

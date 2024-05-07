@@ -299,7 +299,7 @@ const defaultApiDocs = {
                     type: 'string',
                     description: 'Define the key of the corresponding wallet it will be executed the request.'
                   },
-                  'xpub': {
+                  xpub: {
                     type: 'string',
                     description: 'Fireblocks xPub derived to the Fireblocks account path (m/44/280/0).'
                   },
@@ -310,7 +310,7 @@ const defaultApiDocs = {
                   summary: 'Data to start the wallet',
                   value: {
                     'wallet-id': 'hardware-wallet-1',
-                    'xpub': 'xpub...',
+                    xpub: 'xpub...',
                   }
                 }
               }

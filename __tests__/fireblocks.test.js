@@ -4,7 +4,7 @@ import settings from '../src/settings';
 const jwt = require('jsonwebtoken');
 
 const walletId = 'stub_fireblocks';
-const stub_xpub = 'xpub6C95ufyyhEr2ntyGGfeHjyvxffmNZQ7WugyChhu1Fzor1tMUc4K2MUdwkcJoTzjVkg46hurWWU9gvZoivLiDk6MdsKukz3JiX5Fib2BDa2T';
+const stubXpub = 'xpub6C95ufyyhEr2ntyGGfeHjyvxffmNZQ7WugyChhu1Fzor1tMUc4K2MUdwkcJoTzjVkg46hurWWU9gvZoivLiDk6MdsKukz3JiX5Fib2BDa2T';
 
 jest.spyOn(jwt, 'sign').mockImplementation(() => 'stub_jwt_token');
 
@@ -16,7 +16,7 @@ describe('start fireblocks api', () => {
   it('should not start a wallet without a wallet-id', async () => {
     const response = await TestUtils.request
       .post('/fireblocks/start')
-      .send({ xpub: stub_xpub });
+      .send({ xpub: stubXpub });
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.body.message).toContain(`wallet-id' is required`);
@@ -37,7 +37,7 @@ describe('start fireblocks api', () => {
 
     const response = await TestUtils.request
       .post('/fireblocks/start')
-      .send({ 'wallet-id': walletId, xpub: stub_xpub });
+      .send({ 'wallet-id': walletId, xpub: stubXpub });
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
 
@@ -45,10 +45,10 @@ describe('start fireblocks api', () => {
   });
 
   it('should not start a wallet with invalid xpub', async () => {
-    const wrong_xpub = 'xpub661MyMwAqRbcGkgsdLH1nacxkgSjZSaVdXJde5hVQASM1ajJtcHo43Fy1jz62oJcTRVPT6TMDtBr5vqfVEgQRBebS76APyiChEZmC63hu2c';
+    const wrongXpub = 'xpub661MyMwAqRbcGkgsdLH1nacxkgSjZSaVdXJde5hVQASM1ajJtcHo43Fy1jz62oJcTRVPT6TMDtBr5vqfVEgQRBebS76APyiChEZmC63hu2c';
     const response = await TestUtils.request
       .post('/fireblocks/start')
-      .send({ 'wallet-id': walletId, xpub: wrong_xpub });
+      .send({ 'wallet-id': walletId, xpub: wrongXpub });
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
   });
@@ -58,7 +58,7 @@ describe('start fireblocks api', () => {
       .post('/fireblocks/start')
       .send({
         'wallet-id': walletId,
-        xpub: stub_xpub,
+        xpub: stubXpub,
       });
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
@@ -69,14 +69,14 @@ describe('start fireblocks api', () => {
   it('should not start two wallets with the same wallet-id', async () => {
     let response = await TestUtils.request
       .post('/fireblocks/start')
-      .send({ 'wallet-id': walletId, xpub: stub_xpub });
+      .send({ 'wallet-id': walletId, xpub: stubXpub });
     expect(response.status).toBe(200);
     console.log(JSON.stringify(response.body, null, 2));
     expect(response.body.success).toBe(true);
 
     response = await TestUtils.request
       .post('/fireblocks/start')
-      .send({ 'wallet-id': walletId, xpub: stub_xpub });
+      .send({ 'wallet-id': walletId, xpub: stubXpub });
     expect(response.status).toBe(200);
     console.log(JSON.stringify(response.body, null, 2));
     expect(response.body.success).toBe(false);
@@ -89,7 +89,7 @@ describe('start fireblocks api', () => {
   it('should send', async () => {
     const response = await TestUtils.request
       .post('/fireblocks/start')
-      .send({ 'wallet-id': walletId, xpub: stub_xpub });
+      .send({ 'wallet-id': walletId, xpub: stubXpub });
     expect(response.status).toBe(200);
     console.log(JSON.stringify(response.body, null, 2));
     expect(response.body.success).toBe(true);
