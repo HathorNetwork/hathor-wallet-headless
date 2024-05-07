@@ -16,9 +16,6 @@ const defaultConfig = {
     stub_seed:
       'upon tennis increase embark dismiss diamond monitor face magnet jungle scout salute rural master shoulder cry juice jeans radar present close meat antenna mind',
   },
-  xpubs: {
-    stub: 'xpub6C95ufyyhEr2ntyGGfeHjyvxffmNZQ7WugyChhu1Fzor1tMUc4K2MUdwkcJoTzjVkg46hurWWU9gvZoivLiDk6MdsKukz3JiX5Fib2BDa2T',
-  },
   multisig: {},
   tokenUid: '',
   gapLimit: null,

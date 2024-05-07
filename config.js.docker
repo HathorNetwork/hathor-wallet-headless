@@ -73,9 +73,6 @@ const config = {
   // Wallet seeds
   seeds: {},
 
-  // Wallet xpubs
-  xpubs: {},
-
   // Wallet multisig configuration
   multisig: {},
 
@@ -121,14 +118,6 @@ for (const x of seeds) {
     throw `Multisig pubkeys for seed ${x} does not match max signatures`;
   }
   config.multisig[x] = multisig;
-}
-
-const xpubs = getParam('xpubs', 'default').split(' ');
-for (const x of xpubs) {
-  config.xpubs[x] = getParam(`xpub_${x}`);
-  if (!config.xpubs[x]) {
-    throw `Missing parameter --xpub_${x} or envvar HEADLESS_XPUB_${x.toUpperCase()}`;
-  }
 }
 
 // Configuration for custom plugins

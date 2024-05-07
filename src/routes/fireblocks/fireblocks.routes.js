@@ -15,7 +15,7 @@ const fireblocksRouter = patchExpressRouter(Router({ mergeParams: true }));
 fireblocksRouter.post(
   '/start',
   body('wallet-id').isString(),
-  body('xpub-id').isString(),
+  body('xpub').isString(),
   startFireblocksWallet,
 );
 

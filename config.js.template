@@ -39,9 +39,6 @@ module.exports = {
       default: '',
   },
 
-  // Wallet xpubs
-  xpubs: {},
-
   // Optional wallet multisig configuration
   // Use the seedKey as key and the value should have `total` (max no. of signatures), `numSignatures` (required no. of signatures) and `pubkeys` as a list of participant pubkeys.
   // Ex.: { default: { total: 3, numSignatures: 2, pubkeys: [ 'xpub1...', 'xpub2...', 'xpub3...'] } }

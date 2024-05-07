@@ -293,15 +293,15 @@ const defaultApiDocs = {
             'application/json': {
               schema: {
                 type: 'object',
-                required: ['wallet-id', 'xpub-id'],
+                required: ['wallet-id', 'xpub'],
                 properties: {
                   'wallet-id': {
                     type: 'string',
                     description: 'Define the key of the corresponding wallet it will be executed the request.'
                   },
-                  'xpub-id': {
+                  'xpub': {
                     type: 'string',
-                    description: 'Key name of the desired xPub on the xpub map config.'
+                    description: 'Fireblocks xPub derived to the Fireblocks account path (m/44/280/0).'
                   },
                 }
               },
@@ -310,7 +310,7 @@ const defaultApiDocs = {
                   summary: 'Data to start the wallet',
                   value: {
                     'wallet-id': 'hardware-wallet-1',
-                    'xpub-id': 'hathor_wallet_1',
+                    'xpub': 'xpub...',
                   }
                 }
               }
@@ -331,9 +331,9 @@ const defaultApiDocs = {
                     summary: 'No wallet id parameter',
                     value: { success: false, message: "Parameter 'wallet-id' is required." }
                   },
-                  'no-xpub-id': {
-                    summary: 'No xPub id parameter',
-                    value: { success: false, message: "Parameter 'xpub-id' is required." }
+                  'no-xpub': {
+                    summary: 'No xPub parameter',
+                    value: { success: false, message: "Parameter 'xpub' is required." }
                   },
                   'start-failed': {
                     summary: 'Wallet failed to start.',
@@ -346,10 +346,6 @@ const defaultApiDocs = {
                   'fireblocks-not-configured': {
                     summary: 'Missing Fireblocks client config.',
                     value: { success: false, message: 'Fireblocks client is not configured.' }
-                  },
-                  'invalid-xpub-id': {
-                    summary: 'xPub id informed not found on config.',
-                    value: { success: false, message: 'xpub-id X is invalid.' }
                   },
                   'fireblocks-invalid-xpub': {
                     summary: 'Fireblocks first address and local xPub first address do not match.',

@@ -23,7 +23,7 @@ const fireblocksService = require('../../services/fireblocks.service');
 async function startFireblocksWallet(req, res) {
   // Retrieving parameters from request body
   const walletId = req.body['wallet-id'];
-  const xpubId = req.body['xpub-id'];
+  const xpub = req.body['xpub'];
 
   // Validates input wallet-id
   if (!walletId) {
@@ -34,11 +34,11 @@ async function startFireblocksWallet(req, res) {
     return;
   }
 
-  // Validates input xpub-id
-  if (!xpubId) {
+  // Validates input xpub
+  if (!xpub) {
     res.send({
       success: false,
-      message: 'Parameter \'xpub-id\' is required.',
+      message: 'Parameter \'xpub\' is required.',
     });
     return;
   }
@@ -69,23 +69,13 @@ async function startFireblocksWallet(req, res) {
     return;
   }
 
-  const xpubMap = config.xpubs || [];
-  const xPub = xpubMap[xpubId];
-
-  if (!xPub) {
-    console.error('Error starting wallet because xpub-id is referring to a xpub that is not configured.');
-    res.send({
-      success: false,
-      message: `xpub-id ${xpubId} is invalid.`,
-    });
-    return;
-  }
-
   // Checking that the fireblocks config is valid.
   const fireblocksClient = fireblocksService.startClient();
   try {
+    // Here we get the m/44/280/0/0/0 address pubkey from fireblocks
     const addressPubkeyInfo = await fireblocksClient.getAddressPubkeyInfo(0);
-    const changeXpub = hathorlib.walletUtils.xpubDeriveChild(xPub, 0);
+    // Here we derive the given xpub (which is expected as m/44/280/0) to get the address pubkey
+    const changeXpub = hathorlib.walletUtils.xpubDeriveChild(xpub, 0);
     const localPublicKey = hathorlib.walletUtils.getPublicKeyFromXpub(changeXpub, 0);
 
     if (addressPubkeyInfo.publicKey !== localPublicKey.toString('hex')) {
@@ -106,7 +96,7 @@ async function startFireblocksWallet(req, res) {
   }
 
   // Builds the wallet configuration object
-  const walletConfig = getReadonlyWalletConfig({ xpub: xPub });
+  const walletConfig = getReadonlyWalletConfig({ xpub });
 
   try {
     await startWallet(walletId, walletConfig, config, { });
