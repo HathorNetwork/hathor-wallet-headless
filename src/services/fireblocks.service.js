@@ -19,7 +19,9 @@ const FIREBLOCKS_VERSION = 'v1';
 const TX_ALREADY_EXISTS_ERROR_CODE = 1438;
 
 /**
- * Encode Fireblocks signature in DER
+ * Encode Fireblocks signature using DER encoding.
+ * For more information about this method, read about DER encoding ecdsa signatures.
+ *
  * @param {object} sig
  * @returns {Buffer}
  */
