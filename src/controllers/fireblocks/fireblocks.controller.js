@@ -95,6 +95,9 @@ async function startFireblocksWallet(req, res) {
     return;
   }
 
+  // XXX: Developer warning that Fireblocks uses its own derivation standard instead of BIP44
+  console.log('[WARNING] Fireblocks integration does NOT use BIP44 derivation standard.');
+
   // Builds the wallet configuration object
   const walletConfig = getReadonlyWalletConfig({ xpub });
 
