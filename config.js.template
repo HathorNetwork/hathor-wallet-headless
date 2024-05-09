@@ -26,6 +26,10 @@ module.exports = {
   hsmUsername: null,
   hsmPassword: null,
 
+  fireblocksUrl: 'https://api.fireblocks.io',
+  fireblocksApiKey: null,
+  fireblocksApiSecret: null,
+
   // ApiKey to use with Tx Mining Service
   // This is optional. You should set it only if you have an api-key.
   txMiningApiKey: null,

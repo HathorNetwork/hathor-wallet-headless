@@ -7,7 +7,8 @@
 
 const { hsm } = require('@dinamonetworks/hsm-dinamo');
 const { isNumber } = require('lodash');
-const settings = require('../src/settings');
+// eslint-disable-next-line import/no-unresolved, import/extensions
+const settings = require('../dist/settings');
 
 /**
  * Creates a new xPriv key on the HSM

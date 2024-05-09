@@ -63,6 +63,10 @@ const config = {
   hsmUsername: getParam('hsm_username', null),
   hsmPassword: getParam('hsm_password', null),
 
+  fireblocksUrl: getParam('fireblocks_url', 'https://api.fireblocks.io'),
+  fireblocksApiKey: getParam('fireblocks_api_key'),
+  fireblocksApiSecret: getParam('fireblocks_api_secret'),
+
   http_api_key: getParam('api_key'),
   httpLogFormat: getParam('http_log_format'),
 

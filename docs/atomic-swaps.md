@@ -1,4 +1,6 @@
-# Atomic Swap
+# Atomic swaps
+
+## Purpose
 
 This is a how-to of using the atomic-swap feature of the wallet.
 Both P2PKH and P2SH (MultiSig) can participate on the atomic-swap.
