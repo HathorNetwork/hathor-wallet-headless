@@ -1,6 +1,6 @@
 {
   "name": "hathor-wallet-headless",
-  "version": "0.27.0-rc.2",
+  "version": "0.27.0",
   "description": "Hathor Wallet Headless, i.e., without graphical user interface",
   "main": "index.js",
   "engines": {
@@ -11,10 +11,13 @@
     "@dinamonetworks/hsm-dinamo": "4.9.1",
     "@hathor/healthcheck-lib": "0.1.0",
     "@hathor/wallet-lib": "1.4.1",
+    "axios": "0.21.4",
     "express": "4.18.2",
     "express-validator": "6.10.0",
+    "jsonwebtoken": "9.0.2",
     "lodash": "4.17.21",
     "morgan": "1.10.0",
+    "uuid4": "2.0.3",
     "winston": "3.12.0",
     "yargs": "17.7.2"
   },
@@ -30,10 +33,7 @@
     "test_network_down": "docker-compose -f ./__tests__/integration/docker-compose.yml down && rm ./tmp/wallets.json",
     "lint": "eslint .",
     "lint_fix": "eslint . --fix",
-    "generate_words": "babel-node scripts/generate_words.js",
     "generate_wallets": "babel-node scripts/generate_wallets.js",
-    "create_hsm_wallet": "babel-node scripts/create-hsm-wallet.js",
-    "get_xpub_from_seed": "babel-node scripts/get_xpub_from_seed.js",
     "docs_convert": "babel-node scripts/convert-docs.js",
     "docs_lint": "npx @redocly/cli lint tmp/api-docs.json",
     "docs_server": "npx @redocly/cli preview-docs tmp/api-docs.json",

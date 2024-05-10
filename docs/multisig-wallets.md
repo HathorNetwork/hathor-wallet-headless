@@ -1,4 +1,6 @@
-# MultiSig Wallet
+# Multi-signature wallets
+
+## Purpose
 
 This is a how-to of using the wallet-headless as a MultiSig wallet.
 
