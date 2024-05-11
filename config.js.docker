@@ -1,3 +1,4 @@
+import 'fs';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 
@@ -65,7 +66,6 @@ const config = {
 
   fireblocksUrl: getParam('fireblocks_url', 'https://api.fireblocks.io'),
   fireblocksApiKey: getParam('fireblocks_api_key'),
-  fireblocksApiSecret: getParam('fireblocks_api_secret'),
 
   http_api_key: getParam('api_key'),
   httpLogFormat: getParam('http_log_format'),
@@ -140,6 +140,11 @@ if (debugPath) {
     filename: debugPath,
     level: 'debug',
   };
+}
+
+const fireblocksApiSecretFile = getParam('fireblocks_api_secret');
+if (fireblocksApiSecretFile) {
+  config.fireblocksApiSecret = fs.readFileSync(fireblocksApiSecretFile);
 }
 
 module.exports = config;
