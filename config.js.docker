@@ -142,7 +142,7 @@ if (debugPath) {
   };
 }
 
-const fireblocksApiSecretFile = getParam('fireblocks_api_secret');
+const fireblocksApiSecretFile = getParam('fireblocks_api_secret_file');
 if (fireblocksApiSecretFile) {
   config.fireblocksApiSecret = fs.readFileSync(fireblocksApiSecretFile);
 }
