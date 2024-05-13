@@ -1,4 +1,4 @@
-import 'fs';
+import fs from 'fs';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 
@@ -142,9 +142,15 @@ if (debugPath) {
   };
 }
 
+const fireblocksApiSecret = getParam('fireblocks_api_secret');
+if (fireblocksApiSecret) {
+  console.warn('[WARNING] fireblocks_api_secret is disabled for docker. Use fireblocks_api_secret_file instead.');
+  throw new Error('[WARNING] fireblocks_api_secret is disabled for docker. Use fireblocks_api_secret_file instead.');
+}
+
 const fireblocksApiSecretFile = getParam('fireblocks_api_secret_file');
 if (fireblocksApiSecretFile) {
-  config.fireblocksApiSecret = fs.readFileSync(fireblocksApiSecretFile);
+  config.fireblocksApiSecret = fs.readFileSync(fireblocksApiSecretFile, { encoding: 'utf8' }).trim();
 }
 
 module.exports = config;

@@ -1,4 +1,6 @@
-module.exports = {
+import fs from 'fs';
+
+const config = {
   // HTTP API Settings
   http_bind_address: 'localhost',
   http_port: 8000,
@@ -26,9 +28,13 @@ module.exports = {
   hsmUsername: null,
   hsmPassword: null,
 
+  // Only change the URL if you want to use the Sandbox API under 'https://sandbox-api.fireblocks.io'
   fireblocksUrl: 'https://api.fireblocks.io',
   fireblocksApiKey: null,
+  // This should be a string containing the secret (with line breaks)
   fireblocksApiSecret: null,
+  // This supercedes the fireblocksApiKey if both are set
+  fireblocksApiSecretFile: null,
 
   // ApiKey to use with Tx Mining Service
   // This is optional. You should set it only if you have an api-key.
@@ -103,3 +109,9 @@ module.exports = {
   // Check the /health endpoint documentation for more info.
   considerHealthcheckWarnAsUnhealthy: true,
 };
+
+if (config.fireblocksApiSecretFile && fs.existsSync(config.fireblocksApiSecretFile)) {
+  config.fireblocksApiSecret = fs.readFileSync(config.fireblocksApiSecretFile, { encoding: 'utf8' }).trim();
+}
+
+module.exports = config;
