@@ -143,4 +143,11 @@ if (debugPath) {
   };
 }
 
+const fireblocksApiSecret = getParam('fireblocks_api_secret');
+if (fireblocksApiSecret) {
+  const warnMessage = '[WARNING] fireblocks_api_secret is disabled for docker. Use fireblocks_api_secret_file instead.';
+  console.warn(warnMessage);
+  throw new Error(warnMessage);
+}
+
 module.exports = config;
