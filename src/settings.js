@@ -54,6 +54,10 @@ const { initHathorLib } = require('./helpers/wallet.helper');
  * HSM integration will be disabled
  * @property {string|null} [hsmUsername] - The HSM username to use.
  * @property {string|null} [hsmPassword] - The HSM password to use.
+ * @property {string|null} [fireblocksUrl] - The fireblocks url to use.
+ * @property {string|null} [fireblocksApiKey] - The fireblocks api key to use.
+ * @property {string|null} [fireblocksApiSecret] - The fireblocks api secret to use.
+ * @property {string|null} [fireblocksApiSecretFile] - The filepath of the fireblocks api secret.
  * @property {Record<string, MultiSigConfig>} [multisig] - The multisig config object
  * @property {string} [tokenUid] - The default token.
  * @property {number|null} [gapLimit] - a custom gap limit, if not present we
@@ -152,6 +156,7 @@ async function _analizeConfig(oldConfig, newConfig) {
 
   // Checking changes in the fields:
   // http_post, http_bind_address, http_api_key, consoleLevel, httpLogFormat, enabled_plugins
+  // fireblocksUrl, fireblocksApiKey, fireblocksApiSecret, fireblocksApiSecretFile
   //
   // We also do not support changing the HSM Credentials because a connection may be open at
   // the moment of the config change, and that would require a more complex logic to handle.
@@ -166,6 +171,10 @@ async function _analizeConfig(oldConfig, newConfig) {
     || oldConfig.hsmHost !== newConfig.hsmHost
     || oldConfig.hsmUsername !== newConfig.hsmUsername
     || oldConfig.hsmPassword !== newConfig.hsmPassword
+    || oldConfig.fireblocksUrl !== newConfig.fireblocksUrl
+    || oldConfig.fireblocksApiKey !== newConfig.fireblocksApiKey
+    || oldConfig.fireblocksApiSecret !== newConfig.fireblocksApiSecret
+    || oldConfig.fireblocksApiSecretFile !== newConfig.fireblocksApiSecretFile
   ) {
     action.nonRecoverable = true;
     return action;
