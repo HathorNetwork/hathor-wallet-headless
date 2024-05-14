@@ -60,7 +60,7 @@ async function startFireblocksWallet(req, res) {
   const config = settings.getConfig();
 
   // Validate login data for fireblocks.
-  if (!(config.fireblocksUrl && config.fireblocksApiKey && config.fireblocksApiSecret)) {
+  if (!(config.fireblocksUrl && config.fireblocksApiKey && (config.fireblocksApiSecret || config.fireblocksApiSecretFile))) {
     console.error('Error starting wallet because fireblocks is not configured.');
     res.send({
       success: false,
@@ -102,7 +102,7 @@ async function startFireblocksWallet(req, res) {
   const walletConfig = getReadonlyWalletConfig({ xpub });
 
   try {
-    await startWallet(walletId, walletConfig, config, { });
+    await startWallet(walletId, walletConfig, config);
 
     const wallet = initializedWallets.get(walletId);
     // When signing transactions, the wallet will use this function

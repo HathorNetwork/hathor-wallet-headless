@@ -1,6 +1,4 @@
-import fs from 'fs';
-
-const config = {
+module.exports = {
   // HTTP API Settings
   http_bind_address: 'localhost',
   http_port: 8000,
@@ -109,9 +107,3 @@ const config = {
   // Check the /health endpoint documentation for more info.
   considerHealthcheckWarnAsUnhealthy: true,
 };
-
-if (config.fireblocksApiSecretFile && fs.existsSync(config.fireblocksApiSecretFile)) {
-  config.fireblocksApiSecret = fs.readFileSync(config.fireblocksApiSecretFile, { encoding: 'utf8' }).trim();
-}
-
-module.exports = config;

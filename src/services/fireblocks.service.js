@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+const fs = require('fs');
 const crypto = require('crypto');
 const hathorLib = require('@hathor/wallet-lib');
 
@@ -345,10 +346,15 @@ function createRawTransaction(dataToSignHash, indices) {
 function startClient() {
   const config = getConfig();
 
+  const apiSecret = config.fireblocksApiSecret;
+  if (config.fireblocksApiSecretFile && fs.existsSync(config.fireblocksApiSecretFile)) {
+    apiSecret = fs.readFileSync(config.fireblocksApiSecretFile, { encoding: 'utf8' }).trim();
+  }
+
   return new FireblocksClient(
     config.fireblocksUrl,
     config.fireblocksApiKey,
-    config.fireblocksApiSecret,
+    apiSecret,
   );
 }
 
