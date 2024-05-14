@@ -346,7 +346,7 @@ function createRawTransaction(dataToSignHash, indices) {
 function startClient() {
   const config = getConfig();
 
-  const apiSecret = config.fireblocksApiSecret;
+  let apiSecret = config.fireblocksApiSecret;
   if (config.fireblocksApiSecretFile && fs.existsSync(config.fireblocksApiSecretFile)) {
     apiSecret = fs.readFileSync(config.fireblocksApiSecretFile, { encoding: 'utf8' }).trim();
   }
