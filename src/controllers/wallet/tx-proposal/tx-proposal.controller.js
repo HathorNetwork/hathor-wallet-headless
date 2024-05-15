@@ -50,8 +50,10 @@ async function buildTxProposal(req, res) {
       pin: DEFAULT_PIN,
     });
     const fullTxData = await sendTransaction.prepareTxData();
-    // Do not sign or complete the transaction yet
+    // Do not sign the transaction yet
     const tx = transactionUtils.createTransactionFromData(fullTxData, network);
+    // Add weight and timestamp because it's needed for the tx mining service
+    tx.prepareToSend();
 
     res.send({ success: true, txHex: tx.toHex(), dataToSignHash: tx.getDataToSignHash().toString('hex') });
   } catch (err) {
