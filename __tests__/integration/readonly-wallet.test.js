@@ -1,4 +1,4 @@
-import { helpersUtils, Network, walletUtils, transactionUtils } from '@hathor/wallet-lib';
+import { walletUtils, transactionUtils } from '@hathor/wallet-lib';
 import { precalculationHelpers, singleMultisigWalletData } from '../../scripts/helpers/wallet-precalculation.helper';
 import { TestUtils } from './utils/test-utils-integration';
 import { loggers } from './utils/logger.util';
@@ -160,7 +160,7 @@ describe('Readonly wallet', () => {
 
       // Generate input data
       const inputDatas = [];
-      for (let i=0; i < inputs.length; i++) {
+      for (let i = 0; i < inputs.length; i++) {
         response = await TestUtils.request
           .post('/wallet/tx-proposal/input-data')
           .send({
