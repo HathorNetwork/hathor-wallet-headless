@@ -15,6 +15,7 @@ const mainRouter = patchExpressRouter(Router({ mergeParams: true }));
 const walletRouter = require('./wallet/wallet.routes');
 const healthcheckRouter = require('./healthcheck/healthcheck.routes');
 const hsmRouter = require('./hsm/hsm.routes');
+const fireblocksRouter = require('./fireblocks/fireblocks.routes');
 
 mainRouter.get('/', rootControllers.welcome);
 mainRouter.get('/docs', rootControllers.docs);
@@ -40,6 +41,7 @@ mainRouter.post('/reload-config', rootControllers.reloadConfig);
 
 mainRouter.use('/wallet', walletRouter);
 mainRouter.use('/hsm', hsmRouter);
+mainRouter.use('/fireblocks', fireblocksRouter);
 
 mainRouter.use('/health', healthcheckRouter);
 

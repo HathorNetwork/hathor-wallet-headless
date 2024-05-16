@@ -1,4 +1,10 @@
-# Suggested Test Sequence
+# QA (quality assurance)
+
+## Purpose
+
+To define a test sequence.
+
+## Suggested test sequence
 
 1. **Configuration**
     1. Create a new seed running `npm run generate_words`.

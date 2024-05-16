@@ -36,15 +36,18 @@ FROM $IMG
 
 WORKDIR /usr/src/app/
 ENV NODE_ENV=production
+ENV HEADLESS_SCRIPTS_SKIP_BUILD=1
+ENV HEADLESS_SCRIPTS_SKIP_CLEAN=1
 
 # Get built source code from `builder` and dependencies from `deps`
 COPY --from=builder /usr/src/app/dist/ ./dist/
-COPY --from=builder /usr/src/app/dist-scripts/ ./scripts/
+COPY --from=builder /usr/src/app/dist-scripts/ ./dist-scripts/
 COPY --from=deps /usr/src/app/node_modules/ ./node_modules/
 COPY --from=deps /usr/src/app/package.json ./
+COPY Makefile ./
 
 # Install the process supervisor
-RUN apk add --no-cache dumb-init &&\
+RUN apk add --no-cache dumb-init make &&\
     rm -rf /tmp/* /var/cache/apk/*
 
 EXPOSE 8000

@@ -63,6 +63,11 @@ const config = {
   hsmUsername: getParam('hsm_username', null),
   hsmPassword: getParam('hsm_password', null),
 
+  fireblocksUrl: getParam('fireblocks_url', 'https://api.fireblocks.io'),
+  fireblocksApiKey: getParam('fireblocks_api_key'),
+  fireblocksApiSecret: getParam('fireblocks_api_secret'),
+  fireblocksApiSecretFile: getParam('fireblocks_api_secret_file'),
+
   http_api_key: getParam('api_key'),
   httpLogFormat: getParam('http_log_format'),
 
@@ -136,6 +141,13 @@ if (debugPath) {
     filename: debugPath,
     level: 'debug',
   };
+}
+
+const fireblocksApiSecret = getParam('fireblocks_api_secret');
+if (fireblocksApiSecret) {
+  const warnMessage = '[WARNING] fireblocks_api_secret is disabled for docker. Use fireblocks_api_secret_file instead.';
+  console.warn(warnMessage);
+  throw new Error(warnMessage);
 }
 
 module.exports = config;
