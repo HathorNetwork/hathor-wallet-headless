@@ -315,6 +315,10 @@ async function pushTxHex(req, res) {
   try {
     const network = new Network(config.network);
     const tx = helpersUtils.createTxFromHex(txHex, network);
+    if (!tx.weight) {
+      // We need to prepare this tx adding weight and timestamp
+      tx.prepareToSend();
+    }
     const sendTransaction = new SendTransaction({ transaction: tx });
     const response = await sendTransaction.runFromMining();
     res.send({ success: true, tx: mapTxReturn(response) });
