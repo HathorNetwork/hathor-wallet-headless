@@ -41,7 +41,7 @@ You will need to run a command to create the HSM key in the docker container
 The following command will create a key named `abc`.
 
 ```bash
-docker run --env-file=./.env --entrypoint make hathornetwork/hathor-wallet-headless:v0.28.0 create_hsm_key keyname=abc
+docker run --env-file=./.env --entrypoint make hathornetwork/hathor-wallet-headless create_hsm_key keyname=abc
 ```
 
 The `.env` file contains the configuration needed to connect to the HSM.
