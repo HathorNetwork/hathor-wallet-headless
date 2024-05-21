@@ -45,8 +45,8 @@ Under `Settings > General > Extended public keys` you can copy your root xPub (E
 
 Then you will need to derive it to the account level xPub using the following command:
 
-```
-docker run -it --rm --entrypoint node hathornetwork/hathor-wallet-headless:v0.28.0 dist-scripts/fireblocks_derive_xpub.js xpub00...
+```bash
+docker run -it --rm --entrypoint node hathornetwork/hathor-wallet-headless dist-scripts/fireblocks_derive_xpub.js xpub00...
 ```
 
 Copy and save your account level xPub.
