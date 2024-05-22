@@ -21,3 +21,4 @@ Documents in this directory:
 - [Feature: atomic swaps](atomic-swaps.md)
 - [Feature: plugins](plugins.md)
 - [Feature: Fireblocks](fireblocks.md)
+- [Feature: HSM](hsm.md)
