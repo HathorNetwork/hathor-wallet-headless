@@ -4,6 +4,7 @@
 
 The Fireblocks integration allows you to connect your wallet with Fireblocks using the RAW transaction signing method.
 This means that the transaction is managed by the headless wallet and not by the Fireblocks API or dashboard.
+We do not use the Fireblocks SDK and implement the client using the Fireblocks API directly.
 
 ## Configuration
 
