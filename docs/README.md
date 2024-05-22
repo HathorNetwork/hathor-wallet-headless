@@ -20,3 +20,4 @@ Documents in this directory:
 - [Feature: multi-signature wallets](multisig-wallets.md)
 - [Feature: atomic swaps](atomic-swaps.md)
 - [Feature: plugins](plugins.md)
+- [Feature: HSM](hsm.md)
