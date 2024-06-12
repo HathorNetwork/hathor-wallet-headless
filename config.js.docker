@@ -102,14 +102,21 @@ for (const x of seeds) {
 
   // Multisig configuration and validation
   const multisigPubkeys = getParam(`multisig_seed_${x}_pubkeys`);
-  const multisig = {
-    total:          getParam(`multisig_seed_${x}_max_signatures`),
-    numSignatures:  getParam(`multisig_seed_${x}_num_signatures`),
-  };
+  const multisigTotal = getParam(`multisig_seed_${x}_max_signatures`);
+  const multisigNumSigs = getParam(`multisig_seed_${x}_num_signatures`);
+  
   if (!(multisigPubkeys || multisig.total || multisig.numSignatures)) {
     // No multisig parameters means this is not a multisig.
     continue;
   }
+
+  // This parse is necessary cause some infrastructures treat all env variables as string. 
+  // As the comparision is for a equal value (===) that would make it fail. 
+  const multisig = {
+    total:          parseInt(multisigTotal),
+    numSignatures:  parseInt(multisigNumSigs),
+  };
+
   if (!(multisigPubkeys && multisig.total && multisig.numSignatures)) {
     // If this is a multisig seed, all multisig parameters should be present
     throw `Multisig improperly configured, need all of [--multisig_seed_${x}_max_signatures, --multisig_seed_${x}_num_signatures, --multisig_seed_${x}_pubkeys] or envvars [HEADLESS_MULTISIG_SEED_${x.toUpperCase()}_MAX_SIGNATURES, HEADLESS_MULTISIG_SEED_${x.toUpperCase()}_NUM_SIGNATURES, HEADLESS_MULTISIG_SEED_${x.toUpperCase()}_PUBKEYS, ]`
