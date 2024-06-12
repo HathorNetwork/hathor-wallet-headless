@@ -105,7 +105,7 @@ for (const x of seeds) {
   const multisigTotal = getParam(`multisig_seed_${x}_max_signatures`);
   const multisigNumSigs = getParam(`multisig_seed_${x}_num_signatures`);
   
-  if (!(multisigPubkeys || multisig.total || multisig.numSignatures)) {
+  if (!(multisigPubkeys || multisigTotal || multisigNumSigs)) {
     // No multisig parameters means this is not a multisig.
     continue;
   }
