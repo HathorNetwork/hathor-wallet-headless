@@ -5,11 +5,10 @@ import { WalletHelper } from './utils/wallet-helper';
 
 describe('melt tokens', () => {
   let wallet1;
-  let totalMinted = 1000;
-  let initialHTR = 10;
+  const totalMinted = 1000;
+  const initialHTR = 10;
   let meltedAmount = 0;
   let htrMelted = 0;
-
 
   const tokenA = {
     name: 'Token A',
@@ -397,7 +396,7 @@ describe('melt tokens', () => {
       .send({
         token: tokenA.uid,
         amount: 10,
-        data: [ 'foobar1', 'foobar2' ],
+        data: ['foobar1', 'foobar2'],
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
@@ -418,7 +417,6 @@ describe('melt tokens', () => {
     expect(balance1tka.available).toBe(totalMinted - meltedAmount);
 
     const transaction = response.body;
-    console.log(JSON.stringify(transaction));
     const dataOutput1 = transaction.outputs[transaction.outputs.length - 2];
     const dataOutput2 = transaction.outputs[transaction.outputs.length - 1];
     const script1 = Array.from((new ScriptData('foobar1')).createScript());
@@ -427,7 +425,6 @@ describe('melt tokens', () => {
     console.log(`Data output foobar1: ${JSON.stringify(dataOutput1)}`);
     console.log(`Data output foobar2: ${JSON.stringify(dataOutput2)}`);
 
-
     expect(dataOutput1.token_data).toBe(0);
     expect(dataOutput1.value).toBe(1);
     expect(dataOutput1.script.data).toEqual(script1);
@@ -435,7 +432,6 @@ describe('melt tokens', () => {
     expect(dataOutput2.token_data).toBe(0);
     expect(dataOutput2.value).toBe(1);
     expect(dataOutput2.script.data).toEqual(script2);
-
   });
 
   it('should melt tokens and add data outputs to the transaction at the start of the outputs', async () => {
@@ -444,7 +440,7 @@ describe('melt tokens', () => {
       .send({
         token: tokenA.uid,
         amount: 10,
-        data: [ 'foobar' ],
+        data: ['foobar'],
         unshiftData: true,
       })
       .set({ 'x-wallet-id': wallet1.walletId });

@@ -272,14 +272,13 @@ describe('mint token', () => {
       .send({
         token: tokenA.uid,
         amount: 100,
-        data: [ 'foobar1', 'foobar2' ],
+        data: ['foobar1', 'foobar2'],
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
     // Current funds: 9 HTR + 960 TKA
 
     const transaction = response.body;
-    console.log(JSON.stringify(transaction));
     expect(transaction.success).toBe(true);
     // If unshiftData is not specified, the data output will be the last output
     const dataOutput1 = transaction.outputs[transaction.outputs.length - 2];
@@ -307,7 +306,7 @@ describe('mint token', () => {
       .send({
         token: tokenA.uid,
         amount: 100,
-        data: [ 'foobar' ],
+        data: ['foobar'],
         unshiftData: true,
       })
       .set({ 'x-wallet-id': wallet1.walletId });
@@ -315,7 +314,6 @@ describe('mint token', () => {
     // Current funds: 9 HTR + 960 TKA
 
     const transaction = response.body;
-    console.log(JSON.stringify(transaction));
     expect(transaction.success).toBe(true);
     const dataOutput = transaction.outputs[0];
     const script = Array.from((new ScriptData('foobar')).createScript());
