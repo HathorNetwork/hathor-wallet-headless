@@ -280,9 +280,9 @@ describe('mint token', () => {
 
     const transaction = response.body;
     expect(transaction.success).toBe(true);
-    // If unshiftData is not specified, the data output will be the last output
-    const dataOutput1 = transaction.outputs[transaction.outputs.length - 2];
-    const dataOutput2 = transaction.outputs[transaction.outputs.length - 1];
+    // If unshift_data is not specified, the data output will be the first output
+    const dataOutput1 = transaction.outputs[1];
+    const dataOutput2 = transaction.outputs[0];
 
     await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
 
@@ -307,7 +307,7 @@ describe('mint token', () => {
         token: tokenA.uid,
         amount: 100,
         data: ['foobar'],
-        unshiftData: true,
+        unshift_data: false,
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
@@ -315,7 +315,7 @@ describe('mint token', () => {
 
     const transaction = response.body;
     expect(transaction.success).toBe(true);
-    const dataOutput = transaction.outputs[0];
+    const dataOutput = transaction.outputs[transaction.outputs.length - 1];
     const script = Array.from((new ScriptData('foobar')).createScript());
 
     await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);

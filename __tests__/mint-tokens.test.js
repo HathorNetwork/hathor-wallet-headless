@@ -81,7 +81,7 @@ describe('mint-tokens api', () => {
         token: '0000073b972162f70061f61cf0082b7a47263cc1659a05976aca5cd01b3351ee',
         amount: 1,
         data: ['foobar', 'barfoo'],
-        unshiftData: true,
+        unshift_data: true,
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);

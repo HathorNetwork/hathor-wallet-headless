@@ -159,7 +159,7 @@ describe('melt-tokens api', () => {
           '00da712d64e04866c8c9aa8fceca70e80d1693864176b6b443220cf29adab5ed',
         amount: 1,
         data: ['foobar', 'barfoo'],
-        unshiftData: true,
+        unshift_data: true,
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);

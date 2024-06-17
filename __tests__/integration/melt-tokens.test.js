@@ -417,8 +417,8 @@ describe('melt tokens', () => {
     expect(balance1tka.available).toBe(totalMinted - meltedAmount);
 
     const transaction = response.body;
-    const dataOutput1 = transaction.outputs[transaction.outputs.length - 2];
-    const dataOutput2 = transaction.outputs[transaction.outputs.length - 1];
+    const dataOutput1 = transaction.outputs[1];
+    const dataOutput2 = transaction.outputs[0];
     const script1 = Array.from((new ScriptData('foobar1')).createScript());
     const script2 = Array.from((new ScriptData('foobar2')).createScript());
 
@@ -441,7 +441,7 @@ describe('melt tokens', () => {
         token: tokenA.uid,
         amount: 10,
         data: ['foobar'],
-        unshiftData: true,
+        unshift_data: false,
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
@@ -463,7 +463,7 @@ describe('melt tokens', () => {
 
     const transaction = response.body;
     console.log(JSON.stringify(transaction));
-    const dataOutput = transaction.outputs[0];
+    const dataOutput = transaction.outputs[transaction.outputs.length - 1];
     const script = Array.from((new ScriptData('foobar')).createScript());
 
     console.log(`Data output: ${JSON.stringify(dataOutput)}`);
