@@ -150,4 +150,19 @@ describe('melt-tokens api', () => {
     expect(response2.status).toBe(200);
     expect(response2.body.success).toBe(false);
   });
+
+  it('should return 200 when sending data parameters', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/melt-tokens')
+      .send({
+        token:
+          '00da712d64e04866c8c9aa8fceca70e80d1693864176b6b443220cf29adab5ed',
+        amount: 1,
+        data: ['foobar', 'barfoo'],
+        unshiftData: true,
+      })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.hash).toBeDefined();
+  });
 });
