@@ -1512,6 +1512,17 @@ const defaultApiDocs = {
                     type: 'boolean',
                     description: 'If the mint authority address is allowed to be from another wallet. Default is false.'
                   },
+                  unshift_data: {
+                    type: 'boolean',
+                    description: 'Add data outputs at the beginning of the outputs. Default is true.'
+                  },
+                  data: {
+                    type: 'array',
+                    items: {
+                      type: 'string'
+                    },
+                    description: 'List of utf-8 encoded strings to create a data output for each.'
+                  },
                 }
               },
               examples: {
@@ -2977,6 +2988,17 @@ const defaultApiDocs = {
                   allow_external_melt_authority_address: {
                     type: 'boolean',
                     description: 'If the melt authority address is allowed to be from another wallet. Default is false.'
+                  },
+                  unshift_data: {
+                    type: 'boolean',
+                    description: 'Add data outputs at the beginning of the outputs. Default is true.'
+                  },
+                  data: {
+                    type: 'array',
+                    items: {
+                      type: 'string'
+                    },
+                    description: 'List of utf-8 encoded strings to create a data output for each.'
                   },
                 }
               },
