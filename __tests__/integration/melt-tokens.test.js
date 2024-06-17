@@ -503,6 +503,8 @@ describe('melt tokens', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
+    htrMelted += Math.floor((totalMinted - meltedAmount) / 100);
+
     const transaction = response2.body;
     expect(transaction.success).toBe(true);
     await TestUtils.waitForTxReceived(wallet1.walletId, response2.body.hash);
