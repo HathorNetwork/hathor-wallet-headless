@@ -10,8 +10,8 @@
   "dependencies": {
     "@dinamonetworks/hsm-dinamo": "4.9.1",
     "@hathor/healthcheck-lib": "0.1.0",
-    "@hathor/wallet-lib": "1.4.1",
-    "axios": "0.21.4",
+    "@hathor/wallet-lib": "1.7.0",
+    "axios": "1.6.8",
     "express": "4.18.2",
     "express-validator": "6.10.0",
     "jsonwebtoken": "9.0.2",

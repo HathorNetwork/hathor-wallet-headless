@@ -573,6 +573,8 @@ async function mintTokens(req, res) {
   const changeAddress = req.body.change_address || null;
   const mintAuthorityAddress = req.body.mint_authority_address || null;
   const allowExternalMintAuthorityAddress = req.body.allow_external_mint_authority_address || false;
+  const unshiftData = req.body.unshift_data;
+  const data = req.body.data || null;
 
   try {
     if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
@@ -585,7 +587,9 @@ async function mintTokens(req, res) {
         address,
         changeAddress,
         mintAuthorityAddress,
-        allowExternalMintAuthorityAddress
+        allowExternalMintAuthorityAddress,
+        unshiftData,
+        data,
       }
     );
     res.send({ success: true, ...mapTxReturn(response) });
@@ -615,6 +619,8 @@ async function meltTokens(req, res) {
   const depositAddress = req.body.deposit_address || null;
   const meltAuthorityAddress = req.body.melt_authority_address || null;
   const allowExternalMeltAuthorityAddress = req.body.allow_external_melt_authority_address || false;
+  const unshiftData = req.body.unshift_data;
+  const data = req.body.data || null;
 
   try {
     if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
@@ -627,7 +633,9 @@ async function meltTokens(req, res) {
         address: depositAddress,
         changeAddress,
         meltAuthorityAddress,
-        allowExternalMeltAuthorityAddress
+        allowExternalMeltAuthorityAddress,
+        unshiftData,
+        data,
       }
     );
     res.send({ success: true, ...mapTxReturn(response) });
