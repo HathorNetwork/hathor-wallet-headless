@@ -276,7 +276,7 @@ describe('mint token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    // Current funds: 9 HTR + 960 TKA
+    // Current funds: 7 HTR + 960 TKA
 
     const transaction = response.body;
     expect(transaction.success).toBe(true);
@@ -285,9 +285,7 @@ describe('mint token', () => {
     const dataOutput2 = transaction.outputs[0];
 
     await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
-
-    console.log(`Data output foobar1: ${JSON.stringify(dataOutput1)}`);
-    console.log(`Data output foobar2: ${JSON.stringify(dataOutput2)}`);
+  
     const script1 = Array.from((new ScriptData('foobar1')).createScript());
     const script2 = Array.from((new ScriptData('foobar2')).createScript());
 
@@ -298,6 +296,8 @@ describe('mint token', () => {
     expect(dataOutput2.token_data).toBe(0);
     expect(dataOutput2.value).toBe(1);
     expect(dataOutput2.script.data).toEqual(script2);
+    const tkaBalance = await wallet1.getBalance(tokenA.uid);
+    expect(tkaBalance.available).toBe(960);
   });
 
   it('should mint and create a data output at first position', async () => {
@@ -311,7 +311,7 @@ describe('mint token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    // Current funds: 9 HTR + 960 TKA
+    // Current funds: 4 HTR + 1060 TKA
 
     const transaction = response.body;
     expect(transaction.success).toBe(true);
@@ -319,11 +319,12 @@ describe('mint token', () => {
     const script = Array.from((new ScriptData('foobar')).createScript());
 
     await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
-
-    console.log(JSON.stringify(dataOutput));
+  
     expect(dataOutput.token_data).toBe(0);
     expect(dataOutput.value).toBe(1);
     expect(dataOutput.script.data).toEqual(script);
+    const tkaBalance = await wallet1.getBalance(tokenA.uid);
+    expect(tkaBalance.available).toBe(1060);
   });
 
   it('should mint allowing external authority address', async () => {
@@ -357,8 +358,8 @@ describe('mint token', () => {
     expect(transaction.success).toBe(true);
     await TestUtils.waitForTxReceived(wallet1.walletId, response2.body.hash);
 
-    const addr17 = await wallet1.getAddressInfo(20, tokenA.uid);
-    expect(addr17.total_amount_available).toBe(100);
+    const addr20 = await wallet1.getAddressInfo(20, tokenA.uid);
+    expect(addr20.total_amount_available).toBe(100);
 
     // Validating a new mint authority was created by default
     const authorityOutputs = transaction.outputs.filter(

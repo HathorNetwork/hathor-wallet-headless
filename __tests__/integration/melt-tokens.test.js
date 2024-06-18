@@ -422,9 +422,6 @@ describe('melt tokens', () => {
     const script1 = Array.from((new ScriptData('foobar1')).createScript());
     const script2 = Array.from((new ScriptData('foobar2')).createScript());
 
-    console.log(`Data output foobar1: ${JSON.stringify(dataOutput1)}`);
-    console.log(`Data output foobar2: ${JSON.stringify(dataOutput2)}`);
-
     expect(dataOutput1.token_data).toBe(0);
     expect(dataOutput1.value).toBe(1);
     expect(dataOutput1.script.data).toEqual(script1);
@@ -462,11 +459,8 @@ describe('melt tokens', () => {
     expect(balance1tka.available).toBe(totalMinted - meltedAmount);
 
     const transaction = response.body;
-    console.log(JSON.stringify(transaction));
     const dataOutput = transaction.outputs[transaction.outputs.length - 1];
     const script = Array.from((new ScriptData('foobar')).createScript());
-
-    console.log(`Data output: ${JSON.stringify(dataOutput)}`);
 
     expect(dataOutput.token_data).toBe(0);
     expect(dataOutput.value).toBe(1);
