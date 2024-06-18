@@ -285,7 +285,7 @@ describe('mint token', () => {
     const dataOutput2 = transaction.outputs[0];
 
     await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
-  
+
     const script1 = Array.from((new ScriptData('foobar1')).createScript());
     const script2 = Array.from((new ScriptData('foobar2')).createScript());
 
@@ -319,7 +319,7 @@ describe('mint token', () => {
     const script = Array.from((new ScriptData('foobar')).createScript());
 
     await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
-  
+
     expect(dataOutput.token_data).toBe(0);
     expect(dataOutput.value).toBe(1);
     expect(dataOutput.script.data).toEqual(script);
