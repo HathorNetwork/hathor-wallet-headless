@@ -1,4 +1,4 @@
-import { transactionUtils, constants, network, scriptsUtils } from '@hathor/wallet-lib';
+import { transactionUtils, constants, network, scriptsUtils, ScriptData } from '@hathor/wallet-lib';
 import { TestUtils } from './utils/test-utils-integration';
 import { WALLET_CONSTANTS } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
@@ -18,7 +18,7 @@ describe('mint token', () => {
     await WalletHelper.startMultipleWalletsForTest([wallet1]);
 
     // Creating a token for the tests
-    await wallet1.injectFunds(12, 0);
+    await wallet1.injectFunds(20, 0);
     const tkAtx = await wallet1.createToken({
       name: tokenA.name,
       symbol: tokenA.symbol,
@@ -111,13 +111,14 @@ describe('mint token', () => {
   });
 
   // Insufficient funds
+  // Current funds: 15 HTR + 500 TKA
 
   it('should not mint with insufficient funds', async () => {
     const response = await TestUtils.request
       .post('/wallet/mint-tokens')
       .send({
         token: tokenA.uid,
-        amount: 1000
+        amount: 1600
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
@@ -138,6 +139,8 @@ describe('mint token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
+    // Current funds: 14 HTR + 550 TKA
+
     expect(response.body.success).toBe(true);
 
     await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
@@ -155,6 +158,8 @@ describe('mint token', () => {
         amount: 60
       })
       .set({ 'x-wallet-id': wallet1.walletId });
+
+    // Current funds: 13 HTR + 610 TKA
 
     const transaction = response.body;
     expect(transaction.success).toBe(true);
@@ -181,6 +186,8 @@ describe('mint token', () => {
         amount: 70
       })
       .set({ 'x-wallet-id': wallet1.walletId });
+
+    // Current funds: 12 HTR + 680 TKA
 
     expect(response.body.success).toBe(true);
 
@@ -209,6 +216,8 @@ describe('mint token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
+    // Current funds: 11 HTR + 760 TKA
+
     const transaction = response.body;
     expect(transaction.success).toBe(true);
     const htrOutputIndex = transaction.outputs.findIndex(o => o.token_data === 0);
@@ -236,6 +245,8 @@ describe('mint token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
+    // Current funds: 10 HTR + 860 TKA
+
     const transaction = response.body;
     expect(transaction.success).toBe(true);
     await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
@@ -255,13 +266,75 @@ describe('mint token', () => {
     expect(p2pkh.address.base58).toEqual(address0);
   });
 
+  it('should mint and create data outputs', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/mint-tokens')
+      .send({
+        token: tokenA.uid,
+        amount: 100,
+        data: ['foobar1', 'foobar2'],
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    // Current funds: 7 HTR + 960 TKA
+
+    const transaction = response.body;
+    expect(transaction.success).toBe(true);
+    // If unshift_data is not specified, the data output will be the first output
+    const dataOutput1 = transaction.outputs[1];
+    const dataOutput2 = transaction.outputs[0];
+
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
+
+    const script1 = Array.from((new ScriptData('foobar1')).createScript());
+    const script2 = Array.from((new ScriptData('foobar2')).createScript());
+
+    expect(dataOutput1.token_data).toBe(0);
+    expect(dataOutput1.value).toBe(1);
+    expect(dataOutput1.script.data).toEqual(script1);
+
+    expect(dataOutput2.token_data).toBe(0);
+    expect(dataOutput2.value).toBe(1);
+    expect(dataOutput2.script.data).toEqual(script2);
+    const tkaBalance = await wallet1.getBalance(tokenA.uid);
+    expect(tkaBalance.available).toBe(960);
+  });
+
+  it('should mint and create a data output at first position', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/mint-tokens')
+      .send({
+        token: tokenA.uid,
+        amount: 100,
+        data: ['foobar'],
+        unshift_data: false,
+      })
+      .set({ 'x-wallet-id': wallet1.walletId });
+
+    // Current funds: 4 HTR + 1060 TKA
+
+    const transaction = response.body;
+    expect(transaction.success).toBe(true);
+    const dataOutput = transaction.outputs[transaction.outputs.length - 1];
+    const script = Array.from((new ScriptData('foobar')).createScript());
+
+    await TestUtils.waitForTxReceived(wallet1.walletId, response.body.hash);
+
+    expect(dataOutput.token_data).toBe(0);
+    expect(dataOutput.value).toBe(1);
+    expect(dataOutput.script.data).toEqual(script);
+    const tkaBalance = await wallet1.getBalance(tokenA.uid);
+    expect(tkaBalance.available).toBe(1060);
+  });
+
   it('should mint allowing external authority address', async () => {
+    // XXX: This test should be the last test since it sends the mint authority to the burn address
     const externalAddress = TestUtils.getBurnAddress();
     const response = await TestUtils.request
       .post('/wallet/mint-tokens')
       .send({
         token: tokenA.uid,
-        address: await wallet1.getAddressAt(17),
+        address: await wallet1.getAddressAt(20),
         mint_authority_address: externalAddress,
         amount: 100
       })
@@ -269,11 +342,12 @@ describe('mint token', () => {
 
     expect(response.body.success).toBe(false);
 
+    // The following request loses the mint authority
     const response2 = await TestUtils.request
       .post('/wallet/mint-tokens')
       .send({
         token: tokenA.uid,
-        address: await wallet1.getAddressAt(17),
+        address: await wallet1.getAddressAt(20),
         mint_authority_address: externalAddress,
         allow_external_mint_authority_address: true,
         amount: 100
@@ -284,8 +358,8 @@ describe('mint token', () => {
     expect(transaction.success).toBe(true);
     await TestUtils.waitForTxReceived(wallet1.walletId, response2.body.hash);
 
-    const addr17 = await wallet1.getAddressInfo(17, tokenA.uid);
-    expect(addr17.total_amount_available).toBe(100);
+    const addr20 = await wallet1.getAddressInfo(20, tokenA.uid);
+    expect(addr20.total_amount_available).toBe(100);
 
     // Validating a new mint authority was created by default
     const authorityOutputs = transaction.outputs.filter(

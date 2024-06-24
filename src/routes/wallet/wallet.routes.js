@@ -366,7 +366,7 @@ walletRouter.post(
   body('melt_authority_address').isString().optional(),
   body('allow_external_melt_authority_address').isBoolean().optional().toBoolean(),
   body('data').isArray().optional(),
-  body('data.*').isString(),
+  body('data.*').isString().isLength({ max: MAX_DATA_SCRIPT_LENGTH }),
   createToken
 );
 
@@ -382,6 +382,9 @@ walletRouter.post(
   body('change_address').isString().optional(),
   body('mint_authority_address').isString().optional(),
   body('allow_external_mint_authority_address').isBoolean().optional().toBoolean(),
+  body('unshift_data').default('true').isBoolean().toBoolean(),
+  body('data').isArray().optional(),
+  body('data.*').isString().isLength({ max: MAX_DATA_SCRIPT_LENGTH }),
   mintTokens
 );
 
@@ -397,6 +400,9 @@ walletRouter.post(
   body('deposit_address').isString().optional(),
   body('melt_authority_address').isString().optional(),
   body('allow_external_melt_authority_address').isBoolean().optional().toBoolean(),
+  body('unshift_data').default('true').isBoolean().toBoolean(),
+  body('data').isArray().optional(),
+  body('data.*').isString().isLength({ max: MAX_DATA_SCRIPT_LENGTH }),
   meltTokens
 );
 
