@@ -103,8 +103,8 @@ for (const x of seeds) {
   // Multisig configuration and validation
   const multisigPubkeys = getParam(`multisig_seed_${x}_pubkeys`);
   const multisig = {
-    total:          getParam(`multisig_seed_${x}_max_signatures`),
-    numSignatures:  getParam(`multisig_seed_${x}_num_signatures`),
+    total:          getIntParam(`multisig_seed_${x}_max_signatures`),
+    numSignatures:  getIntParam(`multisig_seed_${x}_num_signatures`),
   };
   if (!(multisigPubkeys || multisig.total || multisig.numSignatures)) {
     // No multisig parameters means this is not a multisig.
