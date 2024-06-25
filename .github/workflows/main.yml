@@ -27,13 +27,16 @@ jobs:
         uses: actions/setup-node@f1f314fca9dfce2769ece7d933488f076716723e
         with:
           node-version: ${{ matrix.node-version }}
+
       - name: Install dependencies
         run: npm install
+
       # We mock the config module when testing the settings module, so it needs to exist
       - name: Create config module
         run: cp ./config.js.template ./src/config.js
       - name: Test
         run: npm run test
+
       - name: Upload coverage
         # https://github.com/codecov/codecov-action/releases/tag/v4.3.0
         uses: codecov/codecov-action@84508663e988701840491b86de86b666e8a86bed
