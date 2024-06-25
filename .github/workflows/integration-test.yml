@@ -42,6 +42,12 @@ jobs:
       - name: Run the tests
         run: npm run test_integration
 
+      - name: Upload coverage
+        # https://github.com/codecov/codecov-action/releases/tag/v4.3.0
+        uses: codecov/codecov-action@84508663e988701840491b86de86b666e8a86bed
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
       - name: Upload debug transaction logs
         if: always()
         # https://github.com/actions/upload-artifact/releases/tag/v2.3.1
@@ -56,9 +62,11 @@ jobs:
         uses: jwalton/gh-docker-logs@2a058a3b4c97aa3524391cb33bb5e917913ed676
         with:
           dest: './docker-logs'
+
       - name: Tar logs
         if: failure()
         run: tar cvzf ./docker-logs.tgz ./docker-logs
+
       - name: Upload logs to GitHub
         if: failure()
         # https://github.com/actions/upload-artifact/releases/tag/v2.3.1
