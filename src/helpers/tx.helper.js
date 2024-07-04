@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { constants: { HATHOR_TOKEN_CONFIG } } = require('@hathor/wallet-lib');
+const { constants: { NATIVE_TOKEN_UID } } = require('@hathor/wallet-lib');
 
 /**
  * The endpoints that return a created tx must keep compatibility
@@ -119,7 +119,7 @@ async function getUtxosToFillTx(wallet, sumOutputs, options) {
  * @param {string} defaultToken='00' Default token uid to use
  * @returns {Promise<PreparedTxResponse|PreparedTxErrorResponse>}
  */
-async function prepareTxFunds(wallet, outputs, inputs, defaultToken = HATHOR_TOKEN_CONFIG.uid) {
+async function prepareTxFunds(wallet, outputs, inputs, defaultToken = NATIVE_TOKEN_UID) {
   const preparedOutputs = [];
   let preparedInputs = [];
 

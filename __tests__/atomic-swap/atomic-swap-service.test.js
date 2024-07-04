@@ -11,7 +11,7 @@ function* mockUtxos(options) {
   yield {
     txId: fakeTxId,
     index: 0,
-    tokenId: hathorLib.constants.HATHOR_TOKEN_CONFIG.uid,
+    tokenId: hathorLib.constants.NATIVE_TOKEN_UID,
     value: 10,
     address: TestUtils.addresses[0],
     timelock: null,
@@ -32,7 +32,7 @@ beforeAll(async () => {
         outputs: [
           {
             value: 10,
-            token: hathorLib.constants.HATHOR_TOKEN_CONFIG.uid,
+            token: hathorLib.constants.NATIVE_TOKEN_UID,
             token_data: 0,
             decoded: { address: TestUtils.addresses[0] },
           },
