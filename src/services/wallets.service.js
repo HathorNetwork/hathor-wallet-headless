@@ -9,6 +9,7 @@ const { Connection, HathorWallet } = require('@hathor/wallet-lib');
 const { removeAllWalletProposals } = require('./atomic-swap.service');
 const { notificationBus } = require('./notification.service');
 const { sanitizeLogInput } = require('../logger');
+const { lock } = require('../lock');
 
 /**
  * All wallets that were initialized by the user, mapped by their identifier
@@ -39,6 +40,7 @@ async function stopWallet(walletId) {
   }
   await wallet.stop();
   initializedWallets.delete(walletId);
+  lock.delete(walletId);
   await removeAllWalletProposals(walletId);
 }
 
