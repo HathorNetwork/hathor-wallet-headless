@@ -13,7 +13,7 @@ describe('create tx-proposal api', () => {
     yield {
       txId: fakeTxId,
       index: 0,
-      token: hathorLib.constants.HATHOR_TOKEN_CONFIG.uid,
+      token: hathorLib.constants.NATIVE_TOKEN_UID,
       address: TestUtils.addresses[0],
       value: 10,
       authorities: 0,
@@ -33,7 +33,7 @@ describe('create tx-proposal api', () => {
           outputs: [
             {
               value: 10,
-              token: hathorLib.constants.HATHOR_TOKEN_CONFIG.uid,
+              token: hathorLib.constants.NATIVE_TOKEN_UID,
               token_data: 0,
               decoded: { address: TestUtils.addresses[0] },
             },
