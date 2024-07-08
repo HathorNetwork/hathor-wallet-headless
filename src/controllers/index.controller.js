@@ -8,13 +8,12 @@
 const { walletApi, tokensUtils, walletUtils, Network, helpersUtils, SendTransaction, constants: hathorLibConstants } = require('@hathor/wallet-lib');
 const { getApiDocs } = require('../api-docs');
 const { initializedWallets, startWallet } = require('../services/wallets.service');
-const { cantSendTxErrorMessage, API_ERROR_CODES } = require('../helpers/constants');
+const { API_ERROR_CODES } = require('../helpers/constants');
 const { parametersValidation } = require('../helpers/validations.helper');
 const { sanitizeLogInput } = require('../logger');
 const { getReadonlyWalletConfig, getWalletConfigFromSeed } = require('../helpers/wallet.helper');
 const { WalletStartError } = require('../errors');
 const { mapTxReturn } = require('../helpers/tx.helper');
-const { lock, lockTypes } = require('../lock');
 const settings = require('../settings');
 
 const { GAP_LIMIT } = hathorLibConstants;
@@ -304,12 +303,6 @@ async function pushTxHex(req, res) {
     return;
   }
 
-  const canStart = lock.lock(lockTypes.SEND_TX);
-  if (!canStart) {
-    res.send({ success: false, error: cantSendTxErrorMessage });
-    return;
-  }
-
   const { txHex } = req.body;
 
   try {
@@ -324,8 +317,6 @@ async function pushTxHex(req, res) {
     res.send({ success: true, tx: mapTxReturn(response) });
   } catch (err) {
     res.send({ success: false, error: err.message });
-  } finally {
-    lock.unlock(lockTypes.SEND_TX);
   }
 }
 

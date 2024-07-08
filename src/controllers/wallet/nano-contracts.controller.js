@@ -83,7 +83,7 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
     return;
   }
 
-  const canStart = lock.lock(lockTypes.SEND_TX);
+  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
   if (!canStart) {
     // TODO: return status code 423
     // we should do this refactor in the future for all APIs
@@ -112,7 +112,7 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {
-    lock.unlock(lockTypes.SEND_TX);
+    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 

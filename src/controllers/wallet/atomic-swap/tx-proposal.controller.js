@@ -310,7 +310,7 @@ async function signAndPush(req, res) {
     return;
   }
 
-  const canStart = lock.lock(lockTypes.SEND_TX);
+  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
   if (!canStart) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
@@ -328,7 +328,7 @@ async function signAndPush(req, res) {
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {
-    lock.unlock(lockTypes.SEND_TX);
+    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 
@@ -405,7 +405,7 @@ async function unlockInputs(req, res) {
     return;
   }
 
-  const canStart = lock.lock(lockTypes.SEND_TX);
+  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
   if (!canStart) {
     res.send({ success: false, error: 'Cannot run this method while a transaction is being sent.' });
     return;
@@ -425,7 +425,7 @@ async function unlockInputs(req, res) {
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {
-    lock.unlock(lockTypes.SEND_TX);
+    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 

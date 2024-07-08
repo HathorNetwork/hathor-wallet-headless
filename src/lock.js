@@ -68,4 +68,42 @@ class Lock {
   }
 }
 
-export const lock = new Lock();
+class GlobalLock {
+  constructor() {
+    this.wallets = {};
+    this.globalLock = new Lock();
+  }
+
+  start(walletId) {
+    if (!this.wallets[walletId]) {
+      this.wallets[walletId] = new Lock();
+    }
+    return this.wallets[walletId];
+  }
+
+  delete(walletId) {
+    if (this.wallets[walletId]) {
+      delete this.wallets[walletId];
+    }
+  }
+
+  get(walletId) {
+    if (!this.wallets[walletId]) {
+      return this.start(walletId);
+    }
+    return this.wallets[walletId];
+  }
+
+  // The `lock` and `unlock` methods work as a global wallet lock
+  // for methods that should lock between multiple wallets
+
+  lock(type, timeout = this.globalLock.DEFAULT_UNLOCK_TIMEOUT) {
+    return this.globalLock.lock(type, timeout);
+  }
+
+  unlock(type) {
+    this.globalLock.unlock(type);
+  }
+}
+
+export const lock = new GlobalLock();
