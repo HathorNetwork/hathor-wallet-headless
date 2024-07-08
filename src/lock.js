@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 /*
  * Lock mutex class singleton to handle memory locks
  * The lock is local and only works with one thread and no balance between multiple instances.
