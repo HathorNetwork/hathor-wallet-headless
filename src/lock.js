@@ -17,8 +17,7 @@ export const lockTypes = {
 };
 
 // Default timeout to unlock the status
-DEFAULT_UNLOCK_TIMEOUT = 2 * 60 * 1000; // 2 minutes
-
+const DEFAULT_UNLOCK_TIMEOUT = 2 * 60 * 1000; // 2 minutes
 
 class Lock {
   constructor() {
