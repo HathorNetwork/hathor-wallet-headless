@@ -32,7 +32,6 @@ class Lock {
       this.lockStatus[type] = false;
       this.setTimeoutLock[type] = null;
     }
-
   }
 
   // Set lock status to false and clear the setTimeout
