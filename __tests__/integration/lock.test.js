@@ -1,6 +1,8 @@
 import { TestUtils } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
-import { cantSendTxErrorMessage } from '../../src/helpers/constants';
+import constants from '../../src/helpers/constants';
+
+const { cantSendTxErrorMessage } = constants;
 
 describe('Wallet lock behavior', () => {
   let wallet1;
