@@ -295,6 +295,8 @@ function getConfigurationString(req, res) {
 }
 
 async function pushTxHex(req, res) {
+  // We don't need to use the send lock here since no shared resources are used.
+  // So this is a safe operation to run concurrently.
   const config = settings.getConfig();
 
   const validationResult = parametersValidation(req);
