@@ -221,7 +221,12 @@ async function start(req, res) {
     walletConfig.preCalculatedAddresses = preCalculatedAddresses;
   }
 
-  startWallet(walletID, walletConfig, config)
+  const walletOptions = {};
+  if (req.body.history_sync_mode) {
+    walletOptions.historySyncMode = req.body.history_sync_mode;
+  }
+
+  startWallet(walletID, walletConfig, config, walletOptions)
     .then(info => {
       res.send({
         success: true,

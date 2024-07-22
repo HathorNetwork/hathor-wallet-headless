@@ -243,6 +243,36 @@ class TestUtils {
           );
         } else if (jsonData.type === 'ping') {
           socket.send(JSON.stringify({ type: 'pong' }));
+        } else if (jsonData.type === 'request:history:xpub') {
+          socket.send(
+            JSON.stringify({
+              id: jsonData.id,
+              type: 'stream:history:address',
+              address: 'WYBwT3xLpDnHNtYZiU52oanupVeDKhAvNp',
+              index: 0,
+            })
+          );
+          socket.send(
+            JSON.stringify({
+              id: jsonData.id,
+              type: 'stream:history:end',
+            })
+          );
+        } else if (jsonData.type === 'request:history:manual') {
+          socket.send(
+            JSON.stringify({
+              id: jsonData.id,
+              type: 'stream:history:address',
+              address: 'WYBwT3xLpDnHNtYZiU52oanupVeDKhAvNp',
+              index: 0,
+            })
+          );
+          socket.send(
+            JSON.stringify({
+              id: jsonData.id,
+              type: 'stream:history:end',
+            })
+          );
         }
       });
     });

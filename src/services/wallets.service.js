@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { Connection, HathorWallet } = require('@hathor/wallet-lib');
+const { Connection, HathorWallet, HistorySyncMode } = require('@hathor/wallet-lib');
 const { removeAllWalletProposals } = require('./atomic-swap.service');
 const { notificationBus } = require('./notification.service');
 const { sanitizeLogInput } = require('../logger');
@@ -72,6 +72,7 @@ async function stopAllWallets() {
  * @param {Configuration} config Application configuration
  * @param {object} [options={}] Additional options
  * @param {string} [options.hsmKeyName] HSM key name
+ * @param {string} [options.historySyncMode] History sync mode
  * @returns {Promise<Object>} Returns the fullnode version data
  */
 async function startWallet(walletId, walletConfig, config, options = {}) {
@@ -93,6 +94,35 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
   }
 
   const wallet = new HathorWallet(hydratedWalletConfig);
+
+  if (options?.historySyncMode || config.history_sync_mode) {
+    // POLLING_HTTP_API is the default case if something invalid is configured
+    // this will be kept.
+    let mode = HistorySyncMode.POLLING_HTTP_API;
+    // Use from options first and if not configured, use from config
+    const strMode = options?.historySyncMode || config.history_sync_mode;
+    switch (strMode) {
+      case 'xpub_stream_ws':
+        mode = HistorySyncMode.XPUB_STREAM_WS;
+        break;
+      case 'manual_stream_ws':
+        mode = HistorySyncMode.MANUAL_STREAM_WS;
+        break;
+      default:
+        break;
+    }
+
+    if (hydratedWalletConfig.multisig) {
+      // XXX: Multisig is not supported on streaming yet
+      mode = HistorySyncMode.POLLING_HTTP_API;
+    }
+    if (hydratedWalletConfig.scanPolicy?.policy && hydratedWalletConfig.scanPolicy?.policy !== 'gap-limit') {
+      // XXX: currently only gap-limit can use streaming modes
+      mode = HistorySyncMode.POLLING_HTTP_API;
+    }
+    console.log(`Configuring wallet history sync mode: ${mode}`);
+    wallet.setHistorySyncMode(mode);
+  }
 
   if (config.gapLimit) {
     // XXX: The gap limit is now a per-wallet configuration
