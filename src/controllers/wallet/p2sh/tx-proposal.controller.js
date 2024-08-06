@@ -9,7 +9,6 @@ const {
   constants: hathorLibConstants,
   SendTransaction,
   transactionUtils,
-  constants,
 } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
@@ -36,7 +35,7 @@ async function buildTxProposal(req, res) {
 
   for (const output of outputs) {
     if (!output.token) {
-      output.token = hathorLibConstants.HATHOR_TOKEN_CONFIG.uid;
+      output.token = hathorLibConstants.NATIVE_TOKEN_UID;
     }
   }
   try {
@@ -47,7 +46,7 @@ async function buildTxProposal(req, res) {
       changeAddress,
     });
     const txData = await sendTransaction.prepareTxData();
-    txData.version = constants.DEFAULT_TX_VERSION;
+    txData.version = hathorLibConstants.DEFAULT_TX_VERSION;
     const tx = transactionUtils.createTransactionFromData(txData, network);
 
     res.send({ success: true, txHex: tx.toHex() });
@@ -242,7 +241,7 @@ async function signAndPush(req, res) {
     return;
   }
 
-  const canStart = lock.lock(lockTypes.SEND_TX);
+  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
   if (!canStart) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
@@ -262,7 +261,7 @@ async function signAndPush(req, res) {
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {
-    lock.unlock(lockTypes.SEND_TX);
+    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 

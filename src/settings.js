@@ -72,6 +72,7 @@ const { initHathorLib } = require('./helpers/wallet.helper');
  * @property {Record<string, PluginConfig>} [plugin_config] - The custom plugin configuration.
  * @property {boolean} [considerHealthcheckWarnAsUnhealthy] - If true, the healthcheck
  * will consider a warn as unhealthy.
+ * @property {string|undefined} [history_sync_mode] - History sync method to use by default.
  */
 
 /**

@@ -12,7 +12,7 @@ const {
   PartialTxInputData,
   PartialTx,
   transactionUtils,
-  constants: { HATHOR_TOKEN_CONFIG, TOKEN_MINT_MASK, TOKEN_MELT_MASK },
+  constants: { NATIVE_TOKEN_UID, TOKEN_MINT_MASK, TOKEN_MELT_MASK },
 } = require('@hathor/wallet-lib');
 const atomicSwapService = require('../../../services/atomic-swap.service');
 const { parametersValidation } = require('../../../helpers/validations.helper');
@@ -117,12 +117,12 @@ async function buildTxProposal(req, res) {
 
   try {
     for (const send of sendTokens.tokens) {
-      const token = send.token || HATHOR_TOKEN_CONFIG.uid;
+      const token = send.token || NATIVE_TOKEN_UID;
       await proposal.addSend(token, send.value, { utxos, changeAddress, markAsSelected });
     }
 
     for (const receive of receiveTokens.tokens) {
-      const token = receive.token || HATHOR_TOKEN_CONFIG.uid;
+      const token = receive.token || NATIVE_TOKEN_UID;
       const timelock = receive.timelock || null;
       const address = receive.address || null;
       await proposal.addReceive(
@@ -310,7 +310,7 @@ async function signAndPush(req, res) {
     return;
   }
 
-  const canStart = lock.lock(lockTypes.SEND_TX);
+  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
   if (!canStart) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
@@ -328,7 +328,7 @@ async function signAndPush(req, res) {
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {
-    lock.unlock(lockTypes.SEND_TX);
+    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 
@@ -405,7 +405,7 @@ async function unlockInputs(req, res) {
     return;
   }
 
-  const canStart = lock.lock(lockTypes.SEND_TX);
+  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
   if (!canStart) {
     res.send({ success: false, error: 'Cannot run this method while a transaction is being sent.' });
     return;
@@ -425,7 +425,7 @@ async function unlockInputs(req, res) {
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {
-    lock.unlock(lockTypes.SEND_TX);
+    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 
