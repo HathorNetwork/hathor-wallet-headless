@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 /*
  * Lock mutex class singleton to handle memory locks
  * The lock is local and only works with one thread and no balance between multiple instances.
@@ -15,6 +16,9 @@ export const lockTypes = {
   HSM: 1,
 };
 
+// Default timeout to unlock the status
+const DEFAULT_UNLOCK_TIMEOUT = 2 * 60 * 1000; // 2 minutes
+
 class Lock {
   constructor() {
     // Stores the lock status for each option in enum
@@ -28,9 +32,6 @@ class Lock {
       this.lockStatus[type] = false;
       this.setTimeoutLock[type] = null;
     }
-
-    // Default timeout to unlock the status
-    this.DEFAULT_UNLOCK_TIMEOUT = 2 * 60 * 1000; // 2 minutes
   }
 
   // Set lock status to false and clear the setTimeout
@@ -48,7 +49,7 @@ class Lock {
   // has already requested this lock and was not released yet
   // Otherwise we set the lockStatus = true, clear any old setTimeout variable
   // and create a new setTimeout to clean this lockStatus for extra protection in case of a problem
-  lock(type, timeout = this.DEFAULT_UNLOCK_TIMEOUT) {
+  lock(type, timeout = DEFAULT_UNLOCK_TIMEOUT) {
     if (this.lockStatus[type]) {
       return false;
     }
@@ -68,4 +69,40 @@ class Lock {
   }
 }
 
-export const lock = new Lock();
+class GlobalLock {
+  constructor() {
+    // A wallet registry where the keys are the wallet-ids and the values
+    // are an instance of Lock, this works as a per-wallet lock mechanism.
+    /** @type {Object.<string, Lock>} */
+    this.wallets = {};
+    // This is the global lock since some methods are required to be
+    // running only once across all wallets.
+    this.globalLock = new Lock();
+  }
+
+  delete(walletId) {
+    if (this.wallets[walletId]) {
+      delete this.wallets[walletId];
+    }
+  }
+
+  get(walletId) {
+    if (!this.wallets[walletId]) {
+      this.wallets[walletId] = new Lock();
+    }
+    return this.wallets[walletId];
+  }
+
+  // The `lock` and `unlock` methods work as a global wallet lock
+  // for methods that should lock between multiple wallets
+
+  lock(type, timeout = DEFAULT_UNLOCK_TIMEOUT) {
+    return this.globalLock.lock(type, timeout);
+  }
+
+  unlock(type) {
+    this.globalLock.unlock(type);
+  }
+}
+
+export const lock = new GlobalLock();

@@ -4,7 +4,7 @@ import {
   Network,
   transactionUtils,
 } from '@hathor/wallet-lib';
-import { HATHOR_TOKEN_CONFIG } from '@hathor/wallet-lib/lib/constants';
+import { NATIVE_TOKEN_UID } from '@hathor/wallet-lib/lib/constants';
 import TestUtils from '../test-utils';
 
 const walletId = 'stub_tx_proposal_create_tx';
@@ -140,14 +140,14 @@ describe('create tx-proposal api', () => {
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
       success: false,
-      token: HATHOR_TOKEN_CONFIG.uid,
+      token: NATIVE_TOKEN_UID,
       error: 'No utxos available for the query filter for this amount.',
     });
 
     // check spyUtxos with query options
     expect(spyUtxos).toHaveBeenCalledWith({
       type: 'query',
-      token: HATHOR_TOKEN_CONFIG.uid,
+      token: NATIVE_TOKEN_UID,
       only_available_utxos: true,
     });
   });
@@ -190,7 +190,7 @@ describe('create tx-proposal api', () => {
     response = await TestUtils.request
       .post('/wallet/tx-proposal')
       .send({
-        outputs: [{ address: TestUtils.addresses[0], value: 1, token: HATHOR_TOKEN_CONFIG.uid }],
+        outputs: [{ address: TestUtils.addresses[0], value: 1, token: NATIVE_TOKEN_UID }],
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
@@ -335,7 +335,7 @@ describe('create tx-proposal api', () => {
       amount_smaller_than: 20,
       amount_bigger_than: 10,
       maximum_amount: 100,
-      token: HATHOR_TOKEN_CONFIG.uid,
+      token: NATIVE_TOKEN_UID,
       only_available_utxos: true,
     });
     expect(spyUtxos).toHaveBeenCalledWith({
@@ -377,7 +377,7 @@ describe('create tx-proposal api', () => {
     expect(spyUtxos).toHaveBeenCalledWith({
       type: 'query',
       filter_address: TestUtils.addresses[4],
-      token: HATHOR_TOKEN_CONFIG.uid,
+      token: NATIVE_TOKEN_UID,
       only_available_utxos: true,
     });
   });

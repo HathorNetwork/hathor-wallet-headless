@@ -106,4 +106,9 @@ module.exports = {
   // You should consider what components you are enabling in the /health endpoint when setting this.
   // Check the /health endpoint documentation for more info.
   considerHealthcheckWarnAsUnhealthy: true,
+
+  // Configure default history sync mode for the wallets
+  // Accepted values are: 'polling_http_api', 'xpub_stream_ws', 'manual_stream_ws'
+  // If no value is configured the default of 'polling_http_api' will be used
+  // history_sync_mode: 'polling_http_api|xpub_stream_ws|manual_stream_ws'
 };

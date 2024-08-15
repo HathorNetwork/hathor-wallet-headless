@@ -20,22 +20,29 @@ jobs:
       matrix:
         node-version: [20.x]
     steps:
-      # https://github.com/actions/checkout/releases/tag/v2.7.0
-      - uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5
+      - name: Checkout
+        # https://github.com/actions/checkout/releases/tag/v4.1.7
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+
       - name: Use Node.js ${{ matrix.node-version }}
-        # https://github.com/actions/setup-node/releases/tag/v1.4.6
-        uses: actions/setup-node@f1f314fca9dfce2769ece7d933488f076716723e
+        # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
         with:
           node-version: ${{ matrix.node-version }}
+
       - name: Install dependencies
         run: npm install
+
       # We mock the config module when testing the settings module, so it needs to exist
       - name: Create config module
         run: cp ./config.js.template ./src/config.js
       - name: Test
         run: npm run test
+
       - name: Upload coverage
-        # https://github.com/codecov/codecov-action/releases/tag/v4.3.0
-        uses: codecov/codecov-action@84508663e988701840491b86de86b666e8a86bed
+        # https://github.com/codecov/codecov-action/releases/tag/v4.5.0
+        uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673
+        with:
+          fail_ci_if_error: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

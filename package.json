@@ -1,6 +1,6 @@
 {
   "name": "hathor-wallet-headless",
-  "version": "0.29.0",
+  "version": "0.30.0-rc.1",
   "description": "Hathor Wallet Headless, i.e., without graphical user interface",
   "main": "index.js",
   "engines": {
@@ -10,8 +10,8 @@
   "dependencies": {
     "@dinamonetworks/hsm-dinamo": "4.9.1",
     "@hathor/healthcheck-lib": "0.1.0",
-    "@hathor/wallet-lib": "1.7.0",
-    "axios": "1.6.8",
+    "@hathor/wallet-lib": "1.9.0",
+    "axios": "1.7.2",
     "express": "4.18.2",
     "express-validator": "6.10.0",
     "jsonwebtoken": "9.0.2",
@@ -28,9 +28,9 @@
     "start": "npm run build && node dist/index.js",
     "test": "jest --forceExit  --runInBand",
     "test_integration": "npm run test_network_up && npm run test_network_integration && npm run test_network_down",
-    "test_network_up": "docker-compose -f ./__tests__/integration/docker-compose.yml up -d && mkdir -p tmp && cp ./__tests__/integration/configuration/precalculated-wallets.json ./tmp/wallets.json",
+    "test_network_up": "docker compose -f ./__tests__/integration/docker-compose.yml up -d && mkdir -p tmp && cp ./__tests__/integration/configuration/precalculated-wallets.json ./tmp/wallets.json",
     "test_network_integration": "jest --config jest-integration.config.js --runInBand --forceExit",
-    "test_network_down": "docker-compose -f ./__tests__/integration/docker-compose.yml down && rm ./tmp/wallets.json",
+    "test_network_down": "docker compose -f ./__tests__/integration/docker-compose.yml down && rm ./tmp/wallets.json",
     "lint": "eslint .",
     "lint_fix": "eslint . --fix",
     "generate_wallets": "babel-node scripts/generate_wallets.js",

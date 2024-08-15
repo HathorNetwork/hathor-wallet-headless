@@ -5,7 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { constants: { HATHOR_TOKEN_CONFIG, TOKEN_INDEX_MASK } } = require('@hathor/wallet-lib');
 const { txApi, walletApi, WalletType, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, transactionUtils, PartialTx } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
 // import is used because there is an issue with winston logger when using require ref: #262
@@ -49,7 +48,7 @@ async function getBalance(req, res) {
    */
   const { wallet } = req;
   // Expects token uid
-  const token = req.query.token || hathorLibConstants.HATHOR_TOKEN_CONFIG.uid;
+  const token = req.query.token || hathorLibConstants.NATIVE_TOKEN_UID;
   const balanceObj = await wallet.getBalance(token);
   res.send({ available: balanceObj[0].balance.unlocked, locked: balanceObj[0].balance.locked });
 }
@@ -247,7 +246,7 @@ async function simpleSendTx(req, res) {
     return;
   }
 
-  const canStart = lock.lock(lockTypes.SEND_TX);
+  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
   if (!canStart) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
@@ -265,7 +264,7 @@ async function simpleSendTx(req, res) {
       tokenId = token.uid;
     }
   } else {
-    tokenId = hathorLibConstants.HATHOR_TOKEN_CONFIG.uid;
+    tokenId = hathorLibConstants.NATIVE_TOKEN_UID;
   }
   const changeAddress = req.body.change_address || null;
   try {
@@ -282,16 +281,16 @@ async function simpleSendTx(req, res) {
     console.error(err);
     res.send({ success: false, error: err.message });
   } finally {
-    lock.unlock(lockTypes.SEND_TX);
+    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 
 async function decodeTx(req, res) {
   function getToken(utxo, txObj) {
     if (utxo.token) return utxo.token;
-    if (utxo.token_data === 0) return HATHOR_TOKEN_CONFIG.uid;
+    if (utxo.token_data === 0) return hathorLibConstants.NATIVE_TOKEN_UID;
 
-    const tokenIndex = (utxo.token_data & TOKEN_INDEX_MASK) - 1;
+    const tokenIndex = (utxo.token_data & hathorLibConstants.TOKEN_INDEX_MASK) - 1;
     if (txObj.tokens.length > tokenIndex) return txObj.tokens[tokenIndex];
     return undefined;
   }
@@ -380,7 +379,7 @@ async function decodeTx(req, res) {
       if (output.tokenData !== 0) {
         outputData.token = tx.tokens[output.getTokenIndex()];
       } else {
-        outputData.token = HATHOR_TOKEN_CONFIG.uid;
+        outputData.token = hathorLibConstants.NATIVE_TOKEN_UID;
       }
       switch (outputData.type) {
         case 'data':
@@ -440,7 +439,7 @@ async function sendTx(req, res) {
     return;
   }
 
-  const canStart = lock.lock(lockTypes.SEND_TX);
+  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
   if (!canStart) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
@@ -458,10 +457,10 @@ async function sendTx(req, res) {
     wallet,
     req.body.outputs,
     req.body.inputs || [],
-    (req.body.token && req.body.token.uid) || hathorLibConstants.HATHOR_TOKEN_CONFIG.uid,
+    (req.body.token && req.body.token.uid) || hathorLibConstants.NATIVE_TOKEN_UID,
   );
   if (!preparedFundsResponse.success) {
-    lock.unlock(lockTypes.SEND_TX);
+    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
     res.send(preparedFundsResponse);
     return;
   }
@@ -489,7 +488,7 @@ async function sendTx(req, res) {
     if (debug) {
       wallet.disableDebugMode();
     }
-    lock.unlock(lockTypes.SEND_TX);
+    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 
@@ -501,7 +500,7 @@ async function createToken(req, res) {
     return;
   }
 
-  const canStart = lock.lock(lockTypes.SEND_TX);
+  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
   if (!canStart) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
@@ -549,7 +548,7 @@ async function createToken(req, res) {
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {
-    lock.unlock(lockTypes.SEND_TX);
+    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 
@@ -561,7 +560,7 @@ async function mintTokens(req, res) {
     return;
   }
 
-  const canStart = lock.lock(lockTypes.SEND_TX);
+  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
   if (!canStart) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
@@ -596,7 +595,7 @@ async function mintTokens(req, res) {
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {
-    lock.unlock(lockTypes.SEND_TX);
+    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 
@@ -607,7 +606,7 @@ async function meltTokens(req, res) {
     return;
   }
 
-  const canStart = lock.lock(lockTypes.SEND_TX);
+  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
   if (!canStart) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
@@ -642,7 +641,7 @@ async function meltTokens(req, res) {
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {
-    lock.unlock(lockTypes.SEND_TX);
+    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 
@@ -681,7 +680,7 @@ async function utxoConsolidation(req, res) {
     return;
   }
 
-  const canStart = lock.lock(lockTypes.SEND_TX);
+  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
   if (!canStart) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
@@ -696,7 +695,7 @@ async function utxoConsolidation(req, res) {
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {
-    lock.unlock(lockTypes.SEND_TX);
+    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 
@@ -707,7 +706,7 @@ async function createNft(req, res) {
     return;
   }
 
-  const canStart = lock.lock(lockTypes.SEND_TX);
+  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
   if (!canStart) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
@@ -752,7 +751,7 @@ async function createNft(req, res) {
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {
-    lock.unlock(lockTypes.SEND_TX);
+    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 

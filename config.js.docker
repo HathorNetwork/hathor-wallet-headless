@@ -150,4 +150,9 @@ if (fireblocksApiSecret) {
   throw new Error(warnMessage);
 }
 
+const historySyncMode = getParam('history_sync_mode');
+if (historySyncMode) {
+  config.history_sync_mode = historySyncMode;
+}
+
 module.exports = config;

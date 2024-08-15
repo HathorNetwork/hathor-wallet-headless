@@ -162,6 +162,12 @@ const defaultApiDocs = {
                     type: 'number',
                     description: 'Stop loading addresses at this index. Only used when scanPolicy is set to \'index-limit\'. Defaults to policyStartIndex',
                   },
+                  historySyncMode: {
+                    type: 'string',
+                    enum: ['polling_http_api', 'xpub_stream_ws', 'manual_stream_ws'],
+                    description: 'History sync mode for the wallet to use.',
+                    default: 'polling_http_api',
+                  },
                 }
               },
               examples: {
