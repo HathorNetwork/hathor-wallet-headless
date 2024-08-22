@@ -8,7 +8,19 @@
 const friendlyWalletState = require('../helpers/constants');
 const { initializedWallets, isHsmWallet, hsmWalletIds } = require('../services/wallets.service');
 const settings = require('../settings');
+import { HathorWallet } from '@hathor/wallet-lib';
+import {Request, Response, NextFunction} from 'express';
 
+/**
+ * Extracts wallet from initializedWallets based on the X-Wallet-ID header and
+ * validates the call, if valid, injects the wallet instance in the request
+ * instance and proceed with the call stack.
+ *
+ * @param {Request} req
+ * @param {Response} res
+ * @param {NextFunction} next
+ *
+ */
 async function walletMiddleware(req, res, next) {
   const sendError = (message, state) => {
     res.send({
@@ -43,10 +55,21 @@ async function walletMiddleware(req, res, next) {
     }
   }
 
-  if (!wallet.isReady()) {
-    sendError('Wallet is not ready.', wallet.state);
-    return;
+  // Does not require `/wallet` prefix since this is being routed in the walletRouter.
+  // Matches `/stop` and `/stop/` since both are valid.
+  if (/^\/stop\/?$/.test(req.path)) {
+    // A special case for `/wallet/stop` is when
+    if (!(wallet.isReady() || wallet.state === HathorWallet.ERROR)) {
+      sendError('Wallet needs to be ready or unrecoverable to be stopped.', wallet.state);
+      return;
+    }
+  } else {
+    if (!wallet.isReady()) {
+      sendError('Wallet is not ready.', wallet.state);
+      return;
+    }
   }
+
 
   // Adding to req parameter, so we don't need to get it in all requests
   req.wallet = wallet;
