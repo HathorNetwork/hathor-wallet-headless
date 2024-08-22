@@ -5,20 +5,19 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+const { HathorWallet } = require('@hathor/wallet-lib');
 const friendlyWalletState = require('../helpers/constants');
 const { initializedWallets, isHsmWallet, hsmWalletIds } = require('../services/wallets.service');
 const settings = require('../settings');
-import { HathorWallet } from '@hathor/wallet-lib';
-import {Request, Response, NextFunction} from 'express';
 
 /**
  * Extracts wallet from initializedWallets based on the X-Wallet-ID header and
  * validates the call, if valid, injects the wallet instance in the request
  * instance and proceed with the call stack.
  *
- * @param {Request} req
- * @param {Response} res
- * @param {NextFunction} next
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
  *
  */
 async function walletMiddleware(req, res, next) {
@@ -63,13 +62,10 @@ async function walletMiddleware(req, res, next) {
       sendError('Wallet needs to be ready or unrecoverable to be stopped.', wallet.state);
       return;
     }
-  } else {
-    if (!wallet.isReady()) {
-      sendError('Wallet is not ready.', wallet.state);
-      return;
-    }
+  } else if (!wallet.isReady()) {
+    sendError('Wallet is not ready.', wallet.state);
+    return;
   }
-
 
   // Adding to req parameter, so we don't need to get it in all requests
   req.wallet = wallet;
