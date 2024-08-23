@@ -123,6 +123,7 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
       // XXX: currently only gap-limit can use streaming modes
       mode = HistorySyncMode.POLLING_HTTP_API;
     }
+    // eslint-disable-next-line no-console
     console.log(`Configuring wallet ${sanitizeLogInput(walletId)} for history sync mode: ${mode}`);
     wallet.setHistorySyncMode(mode);
   }
@@ -140,6 +141,7 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
 
   const info = await wallet.start();
   // The replace avoids Log Injection
+  // eslint-disable-next-line no-console
   console.log(`Wallet started with wallet id ${sanitizeLogInput(walletId)}. \
 Full-node info: ${JSON.stringify(info, null, 2)}`);
 

@@ -253,11 +253,13 @@ class FireblocksClient {
         && e.response.data
         && e.response.data.code === TX_ALREADY_EXISTS_ERROR_CODE
       )) {
+        // eslint-disable-next-line no-console
         console.error(e);
         throw e;
       }
       // This transaction was already submitted.
       // We can safely ignore the error and fetch the tx info.
+      // eslint-disable-next-line no-console
       console.log('Raw transaction already submitted, fetching tx info...');
     }
     const txId = dataToSignHash.toString('hex');

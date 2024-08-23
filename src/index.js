@@ -28,10 +28,12 @@ async function startHeadless() {
       process.argv.slice(2),
       { silent: true, env: process.env },
     );
+    // eslint-disable-next-line no-console
     console.log(`child process started with pid ${child.pid}`);
 
     process.on('exit', () => {
       if (child.connected || !child.killed) {
+        // eslint-disable-next-line no-console
         console.log('disconnecting from child.');
         child.disconnect();
       }
@@ -50,16 +52,19 @@ async function startHeadless() {
     });
 
     child.on('error', err => {
+      // eslint-disable-next-line no-console
       console.error(`child process error: ${err.message}`);
     });
 
     child.on('disconnect', (code, signal) => {
+      // eslint-disable-next-line no-console
       console.log(`child process disconnected from IPC channel with (${code} and ${signal})`);
       // Killing child just in case it has not yet died.
       child.kill(); // SIGTERM
     });
 
     child.on('exit', (code, signal) => {
+      // eslint-disable-next-line no-console
       console.log(`child process exited with code ${code} or due to signal ${signal}.`);
       // Try to exit with the same signal as the child process.
       process.exit(code || 127); // Have a default to indicate it was not a normal termination
@@ -81,6 +86,7 @@ async function startHeadless() {
   const app = createApp(config);
 
   // Logging relevant variables on the console
+  // eslint-disable-next-line no-console
   console.log('Starting Hathor Wallet...', {
     wallet: version,
     version: process.version,
@@ -88,6 +94,7 @@ async function startHeadless() {
     pid: process.pid,
   });
 
+  // eslint-disable-next-line no-console
   console.log('Configuration...', {
     network: config.network,
     server: config.server,
@@ -100,6 +107,7 @@ async function startHeadless() {
   });
 
   app.listen(config.http_port, config.http_bind_address, () => {
+    // eslint-disable-next-line no-console
     console.log(`Listening on ${config.http_bind_address}:${config.http_port}...`);
   });
 }

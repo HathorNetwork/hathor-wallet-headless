@@ -23,7 +23,12 @@ async function buildTxProposal(req, res) {
     return;
   }
 
-  /** @type {{ wallet: import('@hathor/wallet-lib').HathorWallet, logger: import('winston').Logger }} */
+  /**
+   * @type {{
+     wallet: import('@hathor/wallet-lib').HathorWallet,
+     logger: import('winston').Logger,
+   }}
+   */
   const { wallet, logger } = req;
 
   // Get the utxos to fill the transaction

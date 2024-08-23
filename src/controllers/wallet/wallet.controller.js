@@ -301,6 +301,8 @@ async function decodeTx(req, res) {
     return;
   }
 
+  /** @type {{ logger: import('winston').Logger }} */
+  const { logger } = req;
   const txHex = req.body.txHex || null;
   const partialTx = req.body.partial_tx || null;
 
@@ -335,7 +337,7 @@ async function decodeTx(req, res) {
     };
 
     for (const input of tx.inputs) {
-      const _tx = await getTx(req.wallet, input.hash);
+      const _tx = await getTx(req.wallet, input.hash, { logger });
       if (!_tx) {
         throw new Error(`Could not find input transaction for txId ${input.hash}`);
       }

@@ -136,7 +136,7 @@ class HsmSession {
         this.addressKeys[index] = addressKeyName;
         return addressKeyName;
       }
-      console.error(err);
+      this.logger.error(err);
       throw err;
     }
 

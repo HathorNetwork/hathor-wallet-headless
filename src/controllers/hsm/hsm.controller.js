@@ -127,7 +127,9 @@ async function startHsmWallet(req, res) {
     const wallet = initializedWallets.get(walletId);
     const walletLogger = walletLoggers.get(walletId);
     // When signing transactions, the wallet will use this function
-    wallet.setExternalTxSigningMethod(hsmService.hsmSignTxMethodBuilder(hsmKeyName,walletLogger || logger));
+    wallet.setExternalTxSigningMethod(
+      hsmService.hsmSignTxMethodBuilder(hsmKeyName, walletLogger || logger)
+    );
 
     res.send({ success: true });
   } catch (error) {
