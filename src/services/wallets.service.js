@@ -10,6 +10,7 @@ const { removeAllWalletProposals } = require('./atomic-swap.service');
 const { notificationBus } = require('./notification.service');
 const { sanitizeLogInput } = require('../logger');
 const { lock } = require('../lock');
+const { walletLoggers, initializeWalletLogger } = require('./logger.service');
 
 /**
  * All wallets that were initialized by the user, mapped by their identifier
@@ -40,6 +41,7 @@ async function stopWallet(walletId) {
   }
   await wallet.stop();
   initializedWallets.delete(walletId);
+  walletLoggers.delete(walletId);
   lock.delete(walletId);
   await removeAllWalletProposals(walletId);
 }
@@ -57,6 +59,7 @@ async function stopAllWallets() {
 
   for (const walletId of Array.from(initializedWallets.keys())) {
     initializedWallets.delete(walletId);
+    walletLoggers.delete(walletId);
     await removeAllWalletProposals(walletId);
   }
 }
@@ -120,7 +123,7 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
       // XXX: currently only gap-limit can use streaming modes
       mode = HistorySyncMode.POLLING_HTTP_API;
     }
-    console.log(`Configuring wallet history sync mode: ${mode}`);
+    console.log(`Configuring wallet ${sanitizeLogInput(walletId)} for history sync mode: ${mode}`);
     wallet.setHistorySyncMode(mode);
   }
 
@@ -141,6 +144,7 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
 Full-node info: ${JSON.stringify(info, null, 2)}`);
 
   initializedWallets.set(walletId, wallet);
+  initializeWalletLogger(walletId);
   if (options?.hsmKeyName) {
     hsmWalletIds.set(walletId, options.hsmKeyName);
   }

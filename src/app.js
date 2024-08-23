@@ -11,7 +11,7 @@ import morgan from 'morgan';
 import apiKeyAuth from './middlewares/api-key-auth.middleware';
 import { ConfigErrorHandler } from './middlewares/config-error-handler.middleware';
 import { ReadonlyErrorHandler } from './middlewares/xpub-error-handler.middleware';
-import buildLogger from './logger';
+import { buildAppLogger } from './logger';
 import mainRouter from './routes/index.routes';
 import { initHathorLib } from './helpers/wallet.helper';
 
@@ -20,7 +20,7 @@ import { initHathorLib } from './helpers/wallet.helper';
 const createApp = config => {
   initHathorLib(config);
 
-  const logger = buildLogger(config);
+  const logger = buildAppLogger(config);
 
   // Initializing ExpressJS
   const app = express();
@@ -35,7 +35,7 @@ const createApp = config => {
   app.use(mainRouter);
   app.use(ConfigErrorHandler);
   app.use(ReadonlyErrorHandler);
-  app.use((err, req, res, next) => {
+  app.use((err, _req, res, next) => {
     console.error(err.stack);
     res.status(err.statusCode || 500).json({ message: err.message, stack: err.stack });
   });
