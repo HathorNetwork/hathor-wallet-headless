@@ -10,7 +10,6 @@ const { query, checkSchema } = require('express-validator');
 const rootControllers = require('../controllers/index.controller');
 const { txHexSchema } = require('../schemas');
 const { patchExpressRouter } = require('../patch');
-const { loggerMiddleware } = require('../middlewares/logger.middleware');
 
 const mainRouter = patchExpressRouter(Router({ mergeParams: true }));
 const walletRouter = require('./wallet/wallet.routes');
@@ -18,7 +17,6 @@ const healthcheckRouter = require('./healthcheck/healthcheck.routes');
 const hsmRouter = require('./hsm/hsm.routes');
 const fireblocksRouter = require('./fireblocks/fireblocks.routes');
 
-mainRouter.use(loggerMiddleware);
 mainRouter.get('/', rootControllers.welcome);
 mainRouter.get('/docs', rootControllers.docs);
 mainRouter.post('/start', rootControllers.start);

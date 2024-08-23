@@ -6,7 +6,6 @@
  */
 
 import { buildAppLogger, buildWalletLogger } from '../logger';
-import { getConfig } from '../settings';
 
 /**
  * Wallet loggers mapped by walletId
@@ -39,13 +38,13 @@ function getLogger(req) {
   } else {
     // There is no wallet for this request
     // will return the app logger instance.
-    return buildAppLogger(getConfig());
+    return buildAppLogger();
   }
 
   const logger = walletLoggers.get(walletId);
   if (!logger) {
     // Uninitialized wallet, should use the app logger.
-    return buildAppLogger(getConfig());
+    return buildAppLogger();
   }
   return logger;
 }

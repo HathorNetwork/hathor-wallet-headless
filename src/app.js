@@ -14,6 +14,7 @@ import { ReadonlyErrorHandler } from './middlewares/xpub-error-handler.middlewar
 import { buildAppLogger } from './logger';
 import mainRouter from './routes/index.routes';
 import { initHathorLib } from './helpers/wallet.helper';
+import { loggerMiddleware } from './middlewares/logger.middleware';
 
 // Initializing Hathor Lib
 
@@ -27,6 +28,7 @@ const createApp = config => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(morgan(config.httpLogFormat || 'combined', { stream: logger.stream }));
+  app.use(loggerMiddleware);
 
   if (config.http_api_key) {
     app.use(apiKeyAuth(config.http_api_key));
@@ -35,8 +37,8 @@ const createApp = config => {
   app.use(mainRouter);
   app.use(ConfigErrorHandler);
   app.use(ReadonlyErrorHandler);
-  app.use((err, _req, res, next) => {
-    console.error(err.stack);
+  app.use((err, req, res, next) => {
+    req.logger.error(err.stack);
     res.status(err.statusCode || 500).json({ message: err.message, stack: err.stack });
   });
 

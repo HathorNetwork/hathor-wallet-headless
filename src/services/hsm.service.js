@@ -83,10 +83,12 @@ class HsmSession {
   /**
    * @param {hsm.interfaces.Hsm} conn
    * @param {string} rootKeyname
+   * @param {import('winston').Logger} logger
    */
-  constructor(conn, rootKeyname) {
+  constructor(conn, rootKeyname, logger) {
     this.conn = conn;
     this.rootKey = rootKeyname;
+    this.logger = logger;
     /**
      * @type {Record<number, string>}
      */
@@ -237,11 +239,12 @@ class HsmSession {
 /**
  * Starts a new HSM session
  * @param {string} rootKeyname
+ * @param {import('winston').Logger} logger
  * @returns {Promise<HsmSession>}
  */
-async function hsmStartSession(rootKeyname) {
+async function hsmStartSession(rootKeyname, logger) {
   const hsmConnection = await hsmConnect();
-  return new HsmSession(hsmConnection, rootKeyname);
+  return new HsmSession(hsmConnection, rootKeyname, logger);
 }
 
 /**
@@ -462,12 +465,13 @@ async function getXPubFromKey(hsmConnection, hsmKeyName) {
  * be used to sign transactions by the wallet facade.
  *
  * @param {string} hsmKeyName
+ * @param {import('winston').Logger} logger
  * @returns {EcdsaTxSign}
  */
-function hsmSignTxMethodBuilder(hsmKeyName) {
+function hsmSignTxMethodBuilder(hsmKeyName, logger) {
   return async (tx, storage, pinCode) => {
     // Start HSM session
-    const hsmSession = await hsmStartSession(hsmKeyName);
+    const hsmSession = await hsmStartSession(hsmKeyName, logger);
     // Sign the transaction and get the signatures
     const signatureData = await hsmSession.signTx(tx, storage, pinCode);
     // Close session

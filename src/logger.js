@@ -66,6 +66,8 @@ function buildLogger(config, defaultService) {
     defaultMeta: { service: defaultService },
     transports,
   });
+
+  return logger;
 }
 
 /**
@@ -74,7 +76,7 @@ function buildLogger(config, defaultService) {
  * @param {Configuration} config
  * @return {winston.Logger}
  */
-export function buildAppLogger(config) {
+function buildAppLogger(config) {
   if (logger) {
     return logger;
   }
@@ -102,9 +104,9 @@ export function buildAppLogger(config) {
 }
 
 // This fixes some logs where Github code scanning complains about a `Log Injection` possibility
-const sanitizeLogInput = input => String(input).replace(/\n|\r/g, '');
-
-export { sanitizeLogInput };
+function sanitizeLogInput (input) {
+  return String(input).replace(/\n|\r/g, '');
+}
 
 /**
  * Build a wallet logger instance.
@@ -112,9 +114,9 @@ export { sanitizeLogInput };
  * @param {string} walletId
  * @return {winston.Logger}
  */
-export function buildWalletLogger(walletId) {
+function buildWalletLogger(walletId) {
   const config = getConfig();
   return buildLogger(config, sanitizeLogInput(`wallet(${walletId})`));
 }
 
-export default buildLogger;
+export { sanitizeLogInput, buildAppLogger, buildWalletLogger };

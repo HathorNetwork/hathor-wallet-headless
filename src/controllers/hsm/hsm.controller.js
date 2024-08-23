@@ -10,10 +10,12 @@ const {
   initializedWallets,
   startWallet,
 } = require('../../services/wallets.service');
+const { walletLoggers } = require('../../services/logger.service');
 const { API_ERROR_CODES } = require('../../helpers/constants');
 const hsmService = require('../../services/hsm.service');
 const { HsmError } = require('../../errors');
 const { getReadonlyWalletConfig } = require('../../helpers/wallet.helper');
+const { sanitizeLogInput } = require('../../logger');
 
 /**
  * Starts a read-only wallet integrated with the HSM.
@@ -24,6 +26,8 @@ async function startHsmWallet(req, res) {
   // Retrieving parameters from request body
   const walletId = req.body['wallet-id'];
   const hsmKeyName = req.body['hsm-key'];
+  /** @type {{ logger: import('winston').Logger }} */
+  const { logger } = req;
 
   // Validates input wallet-id
   if (!walletId) {
@@ -37,7 +41,7 @@ async function startHsmWallet(req, res) {
     // We already have a wallet for this key
     // so we log that it won't start a new one because
     // it must first stop the old wallet and then start the new
-    console.error('Error starting wallet because this wallet-id is already in use. You must stop the wallet first.');
+    logger.error(`Error starting wallet ${sanitizeLogInput(walletId)} because this wallet-id is already in use. You must stop the wallet first.`);
     res.send({
       success: false,
       message: `Failed to start wallet with wallet id ${walletId}`,
@@ -63,7 +67,7 @@ async function startHsmWallet(req, res) {
   try {
     connectionObj = await hsmService.hsmConnect();
   } catch (e) {
-    console.error(e);
+    logger.error(e);
     const responseObj = {
       success: false,
       message: `Unexpected error on HSM connection: ${e.message}`,
@@ -101,7 +105,7 @@ async function startHsmWallet(req, res) {
     await hsmService.deriveMainKeysFromRoot(connectionObj, hsmKeyName);
     xPub = await hsmService.getXPubFromKey(connectionObj, hsmKeyName);
   } catch (e) {
-    console.error(e);
+    logger.error(e);
     res.send({
       success: false,
       message: `Unexpected error on HSM xPub derivation: ${e.message}`,
@@ -121,12 +125,13 @@ async function startHsmWallet(req, res) {
     await startWallet(walletId, walletConfig, config, { hsmKeyName });
 
     const wallet = initializedWallets.get(walletId);
+    const walletLogger = walletLoggers.get(walletId);
     // When signing transactions, the wallet will use this function
-    wallet.setExternalTxSigningMethod(hsmService.hsmSignTxMethodBuilder(hsmKeyName));
+    wallet.setExternalTxSigningMethod(hsmService.hsmSignTxMethodBuilder(hsmKeyName,walletLogger || logger));
 
     res.send({ success: true });
   } catch (error) {
-    console.error(`Error starting HSM wallet: ${error.message}`);
+    logger.error(`Error starting HSM wallet: ${error.message}`);
     res.status(500).send({
       success: false,
       message: `Failed to start wallet with wallet id ${walletId} and key ${hsmKeyName}`,

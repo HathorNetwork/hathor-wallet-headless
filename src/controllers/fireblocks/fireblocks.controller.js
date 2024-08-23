@@ -14,6 +14,7 @@ const {
 const { API_ERROR_CODES } = require('../../helpers/constants');
 const { getReadonlyWalletConfig } = require('../../helpers/wallet.helper');
 const fireblocksService = require('../../services/fireblocks.service');
+const { sanitizeLogInput } = require('../../logger');
 
 /**
  * Starts a read-only wallet integrated with fireblocks.
@@ -24,6 +25,8 @@ async function startFireblocksWallet(req, res) {
   // Retrieving parameters from request body
   const walletId = req.body['wallet-id'];
   const { xpub } = req.body;
+  /** @type {{ logger: import('winston').Logger }} */
+  const { logger } = req;
 
   // Validates input wallet-id
   if (!walletId) {
@@ -47,7 +50,7 @@ async function startFireblocksWallet(req, res) {
     // We already have a wallet for this key
     // so we log that it won't start a new one because
     // it must first stop the old wallet and then start the new
-    console.error('Error starting wallet because this wallet-id is already in use. You must stop the wallet first.');
+    logger.error(`Error starting wallet ${sanitizeLogInput(walletId)} because this wallet-id is already in use. You must stop the wallet first.`);
     res.send({
       success: false,
       message: `Failed to start wallet with wallet id ${walletId}`,
@@ -63,7 +66,7 @@ async function startFireblocksWallet(req, res) {
   if (!(config.fireblocksUrl
         && config.fireblocksApiKey
         && (config.fireblocksApiSecret || config.fireblocksApiSecretFile))) {
-    console.error('Error starting wallet because fireblocks is not configured.');
+    logger('Error starting wallet because fireblocks is not configured.');
     res.send({
       success: false,
       message: 'Fireblocks client is not configured.',
@@ -81,7 +84,7 @@ async function startFireblocksWallet(req, res) {
     const localPublicKey = hathorlib.walletUtils.getPublicKeyFromXpub(changeXpub, 0);
 
     if (addressPubkeyInfo.publicKey !== localPublicKey.toString('hex')) {
-      console.error('Fireblocks api public key does not match local public key.');
+      logger.error('Fireblocks api public key does not match local public key.');
       res.send({
         success: false,
         message: 'Fireblocks api generated a public key different from local public key.',
@@ -89,7 +92,7 @@ async function startFireblocksWallet(req, res) {
       return;
     }
   } catch (error) {
-    console.error(`Fireblocks credentials are invalid: ${error.message}`);
+    logger.error(`Fireblocks credentials are invalid: ${error.message}`);
     res.status(500).send({
       success: false,
       message: `Could not validate Fireblocks client config, received error: ${error.message}`,
@@ -98,7 +101,7 @@ async function startFireblocksWallet(req, res) {
   }
 
   // XXX: Developer warning that Fireblocks uses its own derivation standard instead of BIP44
-  console.log('[WARNING] Fireblocks integration does NOT use BIP44 derivation standard.');
+  logger.info('[WARNING] Fireblocks integration does NOT use BIP44 derivation standard.');
 
   // Builds the wallet configuration object
   const walletConfig = getReadonlyWalletConfig({ xpub });
@@ -112,8 +115,8 @@ async function startFireblocksWallet(req, res) {
 
     res.send({ success: true });
   } catch (error) {
-    console.error(error);
-    console.error(`Error starting Fireblocks wallet: ${error.message}`);
+    logger.error(error);
+    logger.error(`Error starting Fireblocks wallet: ${error.message}`);
     res.status(500).send({
       success: false,
       message: `Failed to start wallet with wallet id ${walletId}`,
