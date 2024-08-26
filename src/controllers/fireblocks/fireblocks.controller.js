@@ -66,7 +66,7 @@ async function startFireblocksWallet(req, res) {
   if (!(config.fireblocksUrl
         && config.fireblocksApiKey
         && (config.fireblocksApiSecret || config.fireblocksApiSecretFile))) {
-    logger('Error starting wallet because fireblocks is not configured.');
+    logger.error('Error starting wallet because fireblocks is not configured.');
     res.send({
       success: false,
       message: 'Fireblocks client is not configured.',
