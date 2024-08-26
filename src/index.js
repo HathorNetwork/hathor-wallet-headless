@@ -14,7 +14,7 @@ import { EVENTBUS_EVENT_NAME, notificationBus } from './services/notification.se
 import version from './version';
 import settings from './settings';
 
-// eslint-disable no-console
+/* eslint-disable no-console */
 async function startHeadless() {
   await settings.setupConfig();
   const config = settings.getConfig();
@@ -102,6 +102,6 @@ async function startHeadless() {
     console.log(`Listening on ${config.http_bind_address}:${config.http_port}...`);
   });
 }
-// eslint-enable no-console
+/* eslint-enable no-console */
 
 startHeadless();

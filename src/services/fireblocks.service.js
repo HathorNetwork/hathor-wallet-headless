@@ -381,9 +381,8 @@ function buildFireblocksSignerMethod(logger) {
   return async function fireblocksSigner(tx, storage, _) {
     const client = startClient(logger);
     return getTxSignatures(tx, storage, client);
-  }
+  };
 }
-
 
 module.exports = {
   buildFireblocksSignerMethod,
