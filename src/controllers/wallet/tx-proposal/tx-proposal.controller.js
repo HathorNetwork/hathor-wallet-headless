@@ -23,8 +23,13 @@ async function buildTxProposal(req, res) {
     return;
   }
 
-  // build a transaction hex
-  const { wallet } = req;
+  /**
+   * @type {{
+     wallet: import('@hathor/wallet-lib').HathorWallet,
+     logger: import('winston').Logger,
+   }}
+   */
+  const { wallet, logger } = req;
 
   // Get the utxos to fill the transaction
   // XXX this can be refactored to use the lib methods
@@ -55,7 +60,7 @@ async function buildTxProposal(req, res) {
 
     res.send({ success: true, txHex: tx.toHex(), dataToSignHash: tx.getDataToSignHash().toString('hex') });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.send({ success: false, error: err.message });
   }
 }

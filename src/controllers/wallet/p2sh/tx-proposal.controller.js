@@ -23,6 +23,8 @@ async function buildTxProposal(req, res) {
     return;
   }
 
+  /** @type {{ logger: import('winston').Logger }} */
+  const { logger } = req;
   const network = req.wallet.getNetworkObject();
   const { outputs } = req.body;
   const inputs = req.body.inputs || [];
@@ -51,7 +53,7 @@ async function buildTxProposal(req, res) {
 
     res.send({ success: true, txHex: tx.toHex() });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.send({ success: false, error: err.message });
   }
 }
@@ -143,6 +145,8 @@ async function buildMeltTokensTxProposal(req, res) {
     return;
   }
 
+  /** @type {{ logger: import('winston').Logger }} */
+  const { logger } = req;
   const {
     token,
     amount,
@@ -174,7 +178,7 @@ async function buildMeltTokensTxProposal(req, res) {
 
     res.send({ success: true, txHex: meltTokenTransaction.toHex() });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.send({ success: false, error: err.message });
   }
 }
