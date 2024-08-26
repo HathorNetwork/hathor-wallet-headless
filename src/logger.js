@@ -112,12 +112,12 @@ function sanitizeLogInput(input) {
 /**
  * Build a wallet logger instance.
  *
- * @param {string} walletId
+ * @param {string} service
  * @return {winston.Logger}
  */
-function buildWalletLogger(walletId) {
+function buildServiceLogger(service) {
   const config = getConfig();
-  return buildLogger(config, sanitizeLogInput(`wallet(${walletId})`));
+  return buildLogger(config, sanitizeLogInput(service));
 }
 
-export { sanitizeLogInput, buildAppLogger, buildWalletLogger };
+export { sanitizeLogInput, buildAppLogger, buildServiceLogger };

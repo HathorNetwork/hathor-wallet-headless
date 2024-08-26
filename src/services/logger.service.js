@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { buildAppLogger, buildWalletLogger } from '../logger';
+import { buildAppLogger, buildServiceLogger } from '../logger';
 
 /**
  * Wallet loggers mapped by walletId
@@ -18,7 +18,7 @@ const walletLoggers = new Map();
  * @param {string} walletId
  */
 function initializeWalletLogger(walletId) {
-  const logger = buildWalletLogger(walletId);
+  const logger = buildServiceLogger(`wallet(${walletId})`);
   walletLoggers.set(walletId, logger);
 }
 
@@ -43,8 +43,7 @@ function getLogger(req) {
 
   const logger = walletLoggers.get(walletId);
   if (!logger) {
-    // Uninitialized wallet, should use the app logger.
-    return buildAppLogger();
+    return buildServiceLogger(`uninitialized_wallet(${walletId})`);
   }
   return logger;
 }
