@@ -111,7 +111,7 @@ async function startFireblocksWallet(req, res) {
 
     const wallet = initializedWallets.get(walletId);
     // When signing transactions, the wallet will use this function
-    wallet.setExternalTxSigningMethod(fireblocksService.fireblocksSigner);
+    wallet.setExternalTxSigningMethod(fireblocksService.buildFireblocksSignerMethod(logger));
 
     res.send({ success: true });
   } catch (error) {
