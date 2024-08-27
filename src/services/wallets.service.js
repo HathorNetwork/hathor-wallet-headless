@@ -96,6 +96,10 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
     hydratedWalletConfig.tokenUid = config.tokenUid;
   }
 
+  // Set the lib logger to the be wallet logger
+  const [logger, libLogger] = initializeWalletLogger(walletId);
+  hydratedWalletConfig.logger = libLogger;
+
   const wallet = new HathorWallet(hydratedWalletConfig);
 
   if (options?.historySyncMode || config.history_sync_mode) {
@@ -146,7 +150,7 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
 Full-node info: ${JSON.stringify(info, null, 2)}`);
 
   initializedWallets.set(walletId, wallet);
-  initializeWalletLogger(walletId);
+  walletLoggers.set(walletId, logger);
   if (options?.hsmKeyName) {
     hsmWalletIds.set(walletId, options.hsmKeyName);
   }

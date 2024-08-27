@@ -14,12 +14,35 @@ import { buildAppLogger, buildServiceLogger } from '../logger';
 const walletLoggers = new Map();
 
 /**
+ * @typedef {Object} ILogger
+ * @property {(...args) => void} debug - Log message at the debug level
+ * @property {(...args) => void} info - Log message at the info level
+ * @property {(...args) => void} warn - Log message at the warn level
+ * @property {(...args) => void} error - Log message at the error level
+ */
+
+/**
+ * @param {import('winston').Logger} logger
+ * @returns {ILogger}
+ */
+function buildLibLogger(logger) {
+  return {
+    debug: (...args) => logger.debug.call(logger, ...args),
+    info: (...args) => logger.info.call(logger, ...args),
+    warn: (...args) => logger.warn.call(logger, ...args),
+    error: (...args) => logger.error.call(logger, ...args),
+  };
+}
+
+/**
  * Initialize a wallet logger
  * @param {string} walletId
+ * @returns {import('winston').Logger}
  */
 function initializeWalletLogger(walletId) {
   const logger = buildServiceLogger(`wallet(${walletId})`);
-  walletLoggers.set(walletId, logger);
+  const libLogger = buildLibLogger(logger);
+  return [logger, libLogger];
 }
 
 /**
