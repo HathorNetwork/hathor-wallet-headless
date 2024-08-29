@@ -77,7 +77,6 @@ describe('nano contract routes', () => {
 
     // Bet 100 to address 2
     const address2 = await wallet.getAddressAt(2);
-    const address2Obj = new Address(address2, { network });
     const responseBet = await TestUtils.request
       .post('/wallet/nano-contracts/execute')
       .send({
@@ -86,7 +85,7 @@ describe('nano contract routes', () => {
         method: 'bet',
         data: {
           args: [
-            bufferUtils.bufferToHex(address2Obj.decode()),
+            address2,
             '1x0'
           ],
           actions: [
@@ -115,7 +114,7 @@ describe('nano contract routes', () => {
         method: 'bet',
         data: {
           args: [
-            bufferUtils.bufferToHex(address3Obj.decode()),
+            address3,
             '2x0'
           ],
           actions: [
@@ -153,7 +152,7 @@ describe('nano contract routes', () => {
           'total',
           'final_result',
           'oracle_script',
-          'date_last_offer',
+          'date_last_bet',
           `address_details.a'${address2}'`,
           `withdrawals.a'${address2}'`,
           `address_details.a'${address3}'`,
@@ -166,7 +165,7 @@ describe('nano contract routes', () => {
     const outputScriptBuffer1 = outputScriptObj1.createScript();
 
     expect(ncState.fields.token_uid.value).toBe(HATHOR_TOKEN_ID);
-    expect(ncState.fields.date_last_offer.value).toBe(dateLastBet);
+    expect(ncState.fields.date_last_bet.value).toBe(dateLastBet);
     expect(ncState.fields.oracle_script.value).toBe(bufferUtils.bufferToHex(outputScriptBuffer1));
     expect(ncState.fields.final_result.value).toBeNull();
     expect(ncState.fields.total.value).toBe(300);
@@ -230,7 +229,7 @@ describe('nano contract routes', () => {
           'total',
           'final_result',
           'oracle_script',
-          'date_last_offer',
+          'date_last_bet',
           `address_details.a'${address2}'`,
           `withdrawals.a'${address2}'`,
           `address_details.a'${address3}'`,
@@ -239,7 +238,7 @@ describe('nano contract routes', () => {
       .set({ 'x-wallet-id': wallet.walletId });
     const ncState2 = responseState2.body.state;
     expect(ncState2.fields.token_uid.value).toBe(HATHOR_TOKEN_ID);
-    expect(ncState2.fields.date_last_offer.value).toBe(dateLastBet);
+    expect(ncState2.fields.date_last_bet.value).toBe(dateLastBet);
     expect(ncState2.fields.oracle_script.value).toBe(bufferUtils.bufferToHex(outputScriptBuffer1));
     expect(ncState2.fields.final_result.value).toBe('1x0');
     expect(ncState2.fields.total.value).toBe(300);
