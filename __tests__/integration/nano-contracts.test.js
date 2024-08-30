@@ -105,7 +105,6 @@ describe('nano contract routes', () => {
 
     // Bet 200 to address 3
     const address3 = await wallet.getAddressAt(3);
-    const address3Obj = new Address(address3, { network });
     const responseBet2 = await TestUtils.request
       .post('/wallet/nano-contracts/execute')
       .send({
