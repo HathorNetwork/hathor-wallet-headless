@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { buildAppLogger, buildServiceLogger } from '../logger';
 import { HathorWallet } from '@hathor/wallet-lib';
+import { buildAppLogger, buildServiceLogger } from '../logger';
 
 /**
  * Wallet loggers mapped by walletId
@@ -83,8 +83,8 @@ function setupWalletStateLogs(wallet, logger) {
     processing: 0,
     ready: 0,
   };
-  wallet.on('state', () => {
-    switch(state) {
+  wallet.on('state', state => {
+    switch (state) {
       case HathorWallet.CONNECTING:
         times.connecting = Date.now();
         break;
@@ -99,6 +99,8 @@ function setupWalletStateLogs(wallet, logger) {
       case HathorWallet.READY:
         times.ready = Date.now();
         logger.info(`state_update[ready]: time to process history ${(times.ready - times.processing) / 1000} seconds`);
+        break;
+      default:
         break;
     }
   });
