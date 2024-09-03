@@ -220,7 +220,7 @@ class TestUtils {
     httpMock.onGet('http://fake.txmining:8084/health').reply(200, httpFixtures['http://fake.txmining:8084/health']);
     httpMock.onGet('/nano_contract/state').reply(200, httpFixtures['/nano_contract/state']);
     httpMock.onGet('/nano_contract/history').reply(200, httpFixtures['/nano_contract/history']);
-    httpMock.onGet('/nano_contract/blueprint').reply(200, httpFixtures['/nano_contract/blueprint']);
+    httpMock.onGet('/nano_contract/blueprint/info').reply(200, httpFixtures['/nano_contract/blueprint/info']);
 
     // Fireblocks mock
     httpMock.onGet(/http:\/\/fake-fireblocks-url\/v1\/transactions\/external_tx_id\/*/).reply(fireblocksFixtures.transaction_status);
