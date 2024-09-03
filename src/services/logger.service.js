@@ -6,6 +6,7 @@
  */
 
 import { buildAppLogger, buildServiceLogger } from '../logger';
+import { HathorWallet } from '@hathor/wallet-lib';
 
 /**
  * Wallet loggers mapped by walletId
@@ -37,7 +38,7 @@ function buildLibLogger(logger) {
 /**
  * Initialize a wallet logger
  * @param {string} walletId
- * @returns {import('winston').Logger}
+ * @returns {[import('winston').Logger, ILogger]}
  */
 function initializeWalletLogger(walletId) {
   const logger = buildServiceLogger(`wallet(${walletId})`);
@@ -71,4 +72,36 @@ function getLogger(req) {
   return logger;
 }
 
-export { walletLoggers, initializeWalletLogger, getLogger };
+/**
+ * @param {HathorWallet} wallet
+ * @param {import('winston').Logger} logger
+ */
+function setupWalletStateLogs(wallet, logger) {
+  const times = {
+    connecting: 0,
+    syncing: 0,
+    processing: 0,
+    ready: 0,
+  };
+  wallet.on('state', () => {
+    switch(state) {
+      case HathorWallet.CONNECTING:
+        times.connecting = Date.now();
+        break;
+      case HathorWallet.SYNCING:
+        times.syncing = Date.now();
+        logger.info(`state_update[syncing]: time to connect ${(times.syncing - times.connecting) / 1000} seconds`);
+        break;
+      case HathorWallet.PROCESSING:
+        times.processing = Date.now();
+        logger.info(`state_update[processing]: time to sync ${(times.processing - times.syncing) / 1000} seconds`);
+        break;
+      case HathorWallet.READY:
+        times.ready = Date.now();
+        logger.info(`state_update[ready]: time to process history ${(times.ready - times.processing) / 1000} seconds`);
+        break;
+    }
+  });
+}
+
+export { walletLoggers, initializeWalletLogger, getLogger, setupWalletStateLogs };

@@ -10,7 +10,7 @@ const { removeAllWalletProposals } = require('./atomic-swap.service');
 const { notificationBus } = require('./notification.service');
 const { sanitizeLogInput } = require('../logger');
 const { lock } = require('../lock');
-const { walletLoggers, initializeWalletLogger } = require('./logger.service');
+const { walletLoggers, initializeWalletLogger, setupWalletStateLogs } = require('./logger.service');
 
 /**
  * All wallets that were initialized by the user, mapped by their identifier
@@ -102,6 +102,7 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
   hydratedWalletConfig.logger = libLogger;
 
   const wallet = new HathorWallet(hydratedWalletConfig);
+  setupWalletStateLogs(wallet, logger);
 
   if (options?.historySyncMode || config.history_sync_mode) {
     // POLLING_HTTP_API is the default case if something invalid is configured
