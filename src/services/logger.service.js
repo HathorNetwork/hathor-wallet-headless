@@ -90,19 +90,22 @@ function setupWalletStateLogs(wallet, logger) {
         break;
       case HathorWallet.SYNCING:
         times.syncing = Date.now();
-        logger.info(`state_update[syncing]: time to connect ${(times.syncing - times.connecting) / 1000} seconds`);
+        logger.debug(`state_update[syncing]: time to connect ${(times.syncing - times.connecting) / 1000} seconds`);
         break;
       case HathorWallet.PROCESSING:
         times.processing = Date.now();
-        logger.info(`state_update[processing]: time to sync ${(times.processing - times.syncing) / 1000} seconds`);
+        logger.debug(`state_update[processing]: time to sync ${(times.processing - times.syncing) / 1000} seconds`);
         break;
       case HathorWallet.READY:
         times.ready = Date.now();
-        logger.info(`state_update[ready]: time to process history ${(times.ready - times.processing) / 1000} seconds`);
+        logger.debug(`state_update[ready]: time to process history ${(times.ready - times.processing) / 1000} seconds`);
         break;
       default:
         break;
     }
+  });
+  wallet.conn.on('wallet-load-partial-update', (data) => {
+    logger.debug(`Found ${data.addressesFound} addresses and ${data.historyLength} transactions`);
   });
 }
 
