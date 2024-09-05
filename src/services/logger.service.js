@@ -104,7 +104,7 @@ function setupWalletStateLogs(wallet, logger) {
         break;
     }
   });
-  wallet.conn.on('wallet-load-partial-update', (data) => {
+  wallet.conn.on('wallet-load-partial-update', data => {
     logger.debug(`Found ${data.addressesFound} addresses and ${data.historyLength} transactions`);
   });
 }
