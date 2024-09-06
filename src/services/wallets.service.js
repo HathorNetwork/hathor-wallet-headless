@@ -10,7 +10,7 @@ const { removeAllWalletProposals } = require('./atomic-swap.service');
 const { notificationBus } = require('./notification.service');
 const { sanitizeLogInput } = require('../logger');
 const { lock } = require('../lock');
-const { walletLoggers, initializeWalletLogger } = require('./logger.service');
+const { walletLoggers, initializeWalletLogger, setupWalletStateLogs } = require('./logger.service');
 
 /**
  * All wallets that were initialized by the user, mapped by their identifier
@@ -83,12 +83,14 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
     throw new Error('Invalid parameter for startWallet helper');
   }
   const hydratedWalletConfig = { ...walletConfig };
+  const [logger, libLogger] = initializeWalletLogger(walletId);
 
   // Builds the connection object
   hydratedWalletConfig.connection = new Connection({
     network: config.network,
     servers: [config.server],
     connectionTimeout: config.connectionTimeout,
+    logger: libLogger,
   });
 
   // tokenUid is optional but if not passed as parameter the wallet will use HTR
@@ -96,7 +98,11 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
     hydratedWalletConfig.tokenUid = config.tokenUid;
   }
 
+  // Set the lib logger to the be wallet logger
+  hydratedWalletConfig.logger = libLogger;
+
   const wallet = new HathorWallet(hydratedWalletConfig);
+  setupWalletStateLogs(wallet, logger);
 
   if (options?.historySyncMode || config.history_sync_mode) {
     // POLLING_HTTP_API is the default case if something invalid is configured
@@ -146,7 +152,7 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
 Full-node info: ${JSON.stringify(info, null, 2)}`);
 
   initializedWallets.set(walletId, wallet);
-  initializeWalletLogger(walletId);
+  walletLoggers.set(walletId, logger);
   if (options?.hsmKeyName) {
     hsmWalletIds.set(walletId, options.hsmKeyName);
   }
