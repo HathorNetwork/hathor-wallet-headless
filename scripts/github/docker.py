@@ -46,6 +46,8 @@ def prep_tags(environ: Dict):
     elif ref == 'refs/heads/master':
         # A push to master creates a staging tag
         tags.add(base_ecr_tag + 'staging-{}-{}'.format(sha, timestamp))
+        tags.add(base_dockerhub_tag + 'staging-{}-{}'.format(sha, timestamp))
+        tags.add(base_dockerhub_tag + 'master')
     else:
         # A push to any other branch creates a dev tag
         # XXX: We currently do not run on other branches

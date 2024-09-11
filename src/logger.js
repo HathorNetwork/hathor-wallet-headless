@@ -7,14 +7,20 @@
 
 import util from 'util';
 import winston from 'winston';
+import { getConfig } from './settings';
+/** @import { Configuration } from './settings' */
 
+/** @type {winston.Logger} */
 let logger = null;
 
-function buildLogger(config) {
-  if (logger) {
-    return logger;
-  }
-
+/**
+ * Build a winston logger instance.
+ *
+ * @param {Configuration} config
+ * @param {string} defaultService
+ * @return {winston.Logger}
+ */
+function buildLogger(config, defaultService) {
   const myFormat = winston.format.printf(({ level, message, service, timestamp, ...args }) => {
     let argsStr = '';
     if (Object.keys(args).length > 0) {
@@ -41,7 +47,7 @@ function buildLogger(config) {
   ];
 
   // eslint-disable-next-line no-unused-vars
-  for (const [key, item] of Object.entries(config.logging || {})) {
+  for (const [_key, item] of Object.entries(config.logging || {})) {
     transports.push(new winston.transports.File({
       format: winston.format.combine(
         winston.format.json(),
@@ -57,33 +63,61 @@ function buildLogger(config) {
       winston.format.timestamp(),
       winston.format.errors({ stack: true }),
     ),
-    defaultMeta: { service: 'wallet' },
+    defaultMeta: { service: defaultService },
     transports,
   });
-
-  // create a stream object with a 'write' function that will be used by `morgan`
-  logger.stream = {
-    write(message, encoding) {
-      // use the 'info' log level so the output will be picked up by
-      // both transports (file + console)
-      logger.info(message.trim(), {
-        service: 'http',
-      });
-    },
-  };
-
-  console.log = (...args) => logger.info.call(logger, ...args);
-  console.info = (...args) => logger.info.call(logger, ...args);
-  console.warn = (...args) => logger.warn.call(logger, ...args);
-  console.error = (...args) => logger.error.call(logger, ...args);
-  console.debug = (...args) => logger.debug.call(logger, ...args);
 
   return logger;
 }
 
+/**
+ * Build an application logger instance.
+ *
+ * @param {Configuration} config
+ * @return {winston.Logger}
+ */
+function buildAppLogger(config) {
+  if (logger) {
+    return logger;
+  }
+
+  const appLogger = buildLogger(config, 'wallet');
+
+  // create a stream object with a 'write' function that will be used by `morgan`
+  appLogger.stream = {
+    write(message, _encoding) {
+      // use the 'info' log level so the output will be picked up by
+      // both transports (file + console)
+      appLogger.info(message.trim(), {
+        service: 'http',
+      });
+    },
+  };
+  /* eslint-disable no-console */
+  console.log = (...args) => appLogger.info.call(appLogger, ...args);
+  console.info = (...args) => appLogger.info.call(appLogger, ...args);
+  console.warn = (...args) => appLogger.warn.call(appLogger, ...args);
+  console.error = (...args) => appLogger.error.call(appLogger, ...args);
+  console.debug = (...args) => appLogger.debug.call(appLogger, ...args);
+  /* eslint-enable no-console */
+
+  return appLogger;
+}
+
 // This fixes some logs where Github code scanning complains about a `Log Injection` possibility
-const sanitizeLogInput = input => String(input).replace(/\n|\r/g, '');
+function sanitizeLogInput(input) {
+  return String(input).replace(/\n|\r/g, '');
+}
 
-export { sanitizeLogInput };
+/**
+ * Build a wallet logger instance.
+ *
+ * @param {string} service
+ * @return {winston.Logger}
+ */
+function buildServiceLogger(service) {
+  const config = getConfig();
+  return buildLogger(config, sanitizeLogInput(service));
+}
 
-export default buildLogger;
+export { sanitizeLogInput, buildAppLogger, buildServiceLogger };
