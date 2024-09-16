@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { txApi, walletApi, WalletType, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, transactionUtils, PartialTx } = require('@hathor/wallet-lib');
+const { txApi, walletApi, WalletType, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, transactionUtils, PartialTx, default: hathorLib } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
 // import is used because there is an issue with winston logger when using require ref: #262
 const { parametersValidation } = require('../../helpers/validations.helper');
@@ -763,6 +763,31 @@ async function stop(req, res) {
   res.send({ success: true });
 }
 
+/**
+ * Mark the inputs from the txHex as used.
+ *
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+async function markInputsAsUsed(req, res) {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    res.status(400).json(validationResult);
+    return;
+  }
+
+  /** @type {{ logger: import('winston').Logger, wallet: hathorLib.HathorWallet }} */
+  const { logger, wallet } = req;
+  const { txHex, ttl } = req.body;
+
+  const tx = helpersUtils.createTxFromHex(txHex, wallet.getNetworkObject());
+  await Promise.all(tx.inputs.map(input => {
+    return wallet.storage.utxoSelectAsInput({ txId: input.hash, index: input.index }, true, ttl);
+  }));
+
+  res.send({ success: true });
+}
+
 module.exports = {
   getStatus,
   getBalance,
@@ -783,4 +808,5 @@ module.exports = {
   utxoConsolidation,
   createNft,
   stop,
+  markInputsAsUsed,
 };
