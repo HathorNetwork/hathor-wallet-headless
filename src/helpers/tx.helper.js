@@ -208,13 +208,16 @@ async function prepareTxFunds(wallet, outputs, inputs, defaultToken = NATIVE_TOK
  *
  * @param {HathorWallet} wallet
  * @param {string} id Hash of the transaction to get data from
+ * @param {Object} options
+ * @param {import('winston').Logger} options.logger
  * @return {Promise<DecodedTx|FullNodeTx|null>} Data from the transaction to get.
  *    Can be null if both the wallet and fullnode does not contain the tx.
  *
  * @see DecodedTx at {@link https://github.com/HathorNetwork/hathor-wallet-lib/blob/bc94221cece2bd6d7b64d971ef30b7d593f07e42/src/new/wallet.js#L1058}
  * @see FullNodeTx at {@link https://github.com/HathorNetwork/hathor-wallet-lib/blob/bc94221cece2bd6d7b64d971ef30b7d593f07e42/src/wallet/types.ts#L500}
  */
-async function getTx(wallet, id) {
+async function getTx(wallet, id, options) {
+  const { logger } = options;
   const tx = await wallet.getTx(id);
   if (tx) {
     return tx;
@@ -226,10 +229,10 @@ async function getTx(wallet, id) {
       return response.tx;
     }
 
-    console.warn('Failed to get transaction from fullnode.', response.message);
+    logger.warn('Failed to get transaction from fullnode.', response.message);
     return null;
   } catch (error) {
-    console.error('Error while getting transaction from fullnode.', error);
+    logger.error('Error while getting transaction from fullnode.', error);
     return null;
   }
 }

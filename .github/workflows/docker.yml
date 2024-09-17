@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      # https://github.com/actions/checkout/releases/tag/v3.5.0
-      uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3
+      # https://github.com/actions/checkout/releases/tag/v4.1.7
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
     - name: Prepare tags
       id: tags
       run: |
@@ -21,27 +21,27 @@ jobs:
 
         python scripts/github/docker.py
     - name: Set up QEMU
-      # https://github.com/docker/setup-qemu-action/releases/tag/v2.2.0
-      uses: docker/setup-qemu-action@2b82ce82d56a2a04d2637cd93a637ae1b359c0a7
+      # https://github.com/docker/setup-qemu-action/releases/tag/v3.2.0
+      uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf
     - name: Set up Docker Buildx
-      # https://github.com/docker/setup-buildx-action/releases/tag/v2.10.0
-      uses: docker/setup-buildx-action@885d1462b80bc1c1c7f0b00334ad271f09369c55
+      # https://github.com/docker/setup-buildx-action/releases/tag/v3.6.1
+      uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db
     - name: Login to DockerHub
-      # https://github.com/docker/login-action/releases/tag/v2.2.0
-      uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
+      # https://github.com/docker/login-action/releases/tag/v3.3.0
+      uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Login to AWS ECR
-      # https://github.com/docker/login-action/releases/tag/v2.2.0
-      uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
+      # https://github.com/docker/login-action/releases/tag/v3.3.0
+      uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
       with:
           registry: ${{ secrets.AWS_ECR_URL}}
           username: ${{ secrets.AWS_ACCESS_KEY_ID }}
           password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     - name: Build and push
-      # https://github.com/docker/build-push-action/releases/tag/v3.3.1
-      uses: docker/build-push-action@1104d471370f9806843c095c1db02b5a90c5f8b6
+      # https://github.com/docker/build-push-action/releases/tag/v6.7.0
+      uses: docker/build-push-action@5cd11c3a4ced054e52742c5fd54dca954e0edd85
       with:
         push: true
         tags: ${{ steps.tags.outputs.tags }}

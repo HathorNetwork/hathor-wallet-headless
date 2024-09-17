@@ -14,6 +14,7 @@ import { EVENTBUS_EVENT_NAME, notificationBus } from './services/notification.se
 import version from './version';
 import settings from './settings';
 
+/* eslint-disable no-console */
 async function startHeadless() {
   await settings.setupConfig();
   const config = settings.getConfig();
@@ -39,13 +40,11 @@ async function startHeadless() {
 
     // This is to unify logs from child and main process.
     child.stdout.on('data', data => {
-      // eslint-disable-next-line no-console
       console.log(data.toString());
     });
 
     // Pipe child stderr to stdout.
     child.stderr.on('data', data => {
-      // eslint-disable-next-line no-console
       console.error(data.toString());
     });
 
@@ -103,5 +102,6 @@ async function startHeadless() {
     console.log(`Listening on ${config.http_bind_address}:${config.http_port}...`);
   });
 }
+/* eslint-enable no-console */
 
 startHeadless();

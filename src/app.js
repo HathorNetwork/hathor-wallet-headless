@@ -11,22 +11,24 @@ import morgan from 'morgan';
 import apiKeyAuth from './middlewares/api-key-auth.middleware';
 import { ConfigErrorHandler } from './middlewares/config-error-handler.middleware';
 import { ReadonlyErrorHandler } from './middlewares/xpub-error-handler.middleware';
-import buildLogger from './logger';
+import { buildAppLogger } from './logger';
 import mainRouter from './routes/index.routes';
 import { initHathorLib } from './helpers/wallet.helper';
+import { loggerMiddleware } from './middlewares/logger.middleware';
 
 // Initializing Hathor Lib
 
 const createApp = config => {
   initHathorLib(config);
 
-  const logger = buildLogger(config);
+  const logger = buildAppLogger(config);
 
   // Initializing ExpressJS
   const app = express();
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(morgan(config.httpLogFormat || 'combined', { stream: logger.stream }));
+  app.use(loggerMiddleware);
 
   if (config.http_api_key) {
     app.use(apiKeyAuth(config.http_api_key));
@@ -36,7 +38,7 @@ const createApp = config => {
   app.use(ConfigErrorHandler);
   app.use(ReadonlyErrorHandler);
   app.use((err, req, res, next) => {
-    console.error(err.stack);
+    req.logger.error(err.stack);
     res.status(err.statusCode || 500).json({ message: err.message, stack: err.stack });
   });
 

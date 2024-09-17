@@ -40,6 +40,18 @@
   "ignorePatterns": [ "src/config.js", "src/config.*.js", "dist/*" ],
   "overrides": [
     {
+      "files": [ "src/**" ],
+      "rules": {
+        "no-console": "error"
+      }
+    },
+    {
+      "files": [ "src/plugins/**" ],
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
       "files": [
         "**/*.js"
       ],

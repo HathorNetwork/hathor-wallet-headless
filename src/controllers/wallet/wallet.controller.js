@@ -252,9 +252,9 @@ async function simpleSendTx(req, res) {
     return;
   }
   /**
-   * @type {HathorWallet} wallet - Wallet object
+   * @type {{wallet: HathorWallet, logger: import('winston').Logger}}
    */
-  const { wallet } = req;
+  const { wallet, logger } = req;
   const { address, value, token } = req.body;
   let tokenId;
   if (token) {
@@ -278,7 +278,7 @@ async function simpleSendTx(req, res) {
     );
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.send({ success: false, error: err.message });
   } finally {
     lock.get(req.walletId).unlock(lockTypes.SEND_TX);
@@ -301,6 +301,8 @@ async function decodeTx(req, res) {
     return;
   }
 
+  /** @type {{ logger: import('winston').Logger }} */
+  const { logger } = req;
   const txHex = req.body.txHex || null;
   const partialTx = req.body.partial_tx || null;
 
@@ -335,7 +337,7 @@ async function decodeTx(req, res) {
     };
 
     for (const input of tx.inputs) {
-      const _tx = await getTx(req.wallet, input.hash);
+      const _tx = await getTx(req.wallet, input.hash, { logger });
       if (!_tx) {
         throw new Error(`Could not find input transaction for txId ${input.hash}`);
       }
@@ -445,9 +447,9 @@ async function sendTx(req, res) {
     return;
   }
   /**
-   * @type {HathorWallet} wallet - Wallet object
+   * @type {{wallet: HathorWallet, logger: import('winston').Logger}}
    */
-  const { wallet } = req;
+  const { wallet, logger } = req;
 
   /**
    * This works because it only uses facade methods so the logic is unchanged.
@@ -478,7 +480,7 @@ async function sendTx(req, res) {
   } catch (err) {
     const ret = { success: false, error: err.message };
     if (debug) {
-      console.debug('/send-tx failed', {
+      logger.debug('/send-tx failed', {
         body: JSON.stringify(req.body),
         response: JSON.stringify(ret),
       });
