@@ -152,7 +152,7 @@ describe('create tx-proposal api', () => {
     expect(response.body.success).toBe(false);
   });
 
-  it.only('should mark utxos as used when sending mark_as_used', async () => {
+  it('should mark utxos as used when sending mark_as_used', async () => {
     const selectSpy = jest.spyOn(SendTransaction.prototype, 'updateOutputSelected').mockImplementationOnce(jest.fn(async () => {}));
     try {
       const response = await TestUtils.request

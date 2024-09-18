@@ -769,7 +769,7 @@ async function stop(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async function markInputsAsUsed(req, res) {
+async function markUtxosSelectedAsInput(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
     res.status(400).json(validationResult);
@@ -779,19 +779,24 @@ async function markInputsAsUsed(req, res) {
   /** @type {{ wallet: import('@hathor/wallet-lib').HathorWallet }} */
   const { wallet } = req;
   const { txHex, ttl } = req.body;
+  const markAsUsed = req.body.mark_as_used ?? true;
 
-  const tx = helpersUtils.createTxFromHex(txHex, wallet.getNetworkObject());
-  await Promise.all(
-    tx.inputs.map(
-      input => (wallet.storage.utxoSelectAsInput(
-        { txId: input.hash, index: input.index },
-        true,
-        ttl,
-      )),
-    )
-  );
+  try {
+    const tx = helpersUtils.createTxFromHex(txHex, wallet.getNetworkObject());
+    await Promise.all(
+      tx.inputs.map(
+        input => (wallet.storage.utxoSelectAsInput(
+          { txId: input.hash, index: input.index },
+          markAsUsed,
+          ttl,
+        )),
+      )
+    );
 
-  res.send({ success: true });
+    res.send({ success: true });
+  } catch (err) {
+    res.send({ success: false, error: err.message });
+  }
 }
 
 module.exports = {
@@ -814,5 +819,5 @@ module.exports = {
   utxoConsolidation,
   createNft,
   stop,
-  markInputsAsUsed,
+  markUtxosSelectedAsInput,
 };
