@@ -22,7 +22,7 @@ function createCustomTxHex() {
 describe('mark utxos selected_as_input api', () => {
   let selectSpy;
   const txHex = createCustomTxHex();
-  
+
   beforeAll(async () => {
     selectSpy = jest.spyOn(Storage.prototype, 'utxoSelectAsInput');
     await TestUtils.startWallet({ walletId });
@@ -107,8 +107,8 @@ describe('mark utxos selected_as_input api', () => {
 
     expect(selectSpy).toHaveBeenCalledTimes(3);
     expect(selectSpy).toHaveBeenCalledWith(
-      { index: 0, txId: '5db0a8c77f818c51cb107532fc1a36785adfa700d81d973fd1f23438b2f3dd74'}, 
-      true, 
+      { index: 0, txId: '5db0a8c77f818c51cb107532fc1a36785adfa700d81d973fd1f23438b2f3dd74' },
+      true,
       undefined,
     );
   });
@@ -123,8 +123,8 @@ describe('mark utxos selected_as_input api', () => {
 
     expect(selectSpy).toHaveBeenCalledTimes(3);
     expect(selectSpy).toHaveBeenCalledWith(
-      { index: 0, txId: '5db0a8c77f818c51cb107532fc1a36785adfa700d81d973fd1f23438b2f3dd74'}, 
-      true, 
+      { index: 0, txId: '5db0a8c77f818c51cb107532fc1a36785adfa700d81d973fd1f23438b2f3dd74' },
+      true,
       123,
     );
   });
@@ -139,8 +139,8 @@ describe('mark utxos selected_as_input api', () => {
 
     expect(selectSpy).toHaveBeenCalledTimes(3);
     expect(selectSpy).toHaveBeenCalledWith(
-      { index: 0, txId: '5db0a8c77f818c51cb107532fc1a36785adfa700d81d973fd1f23438b2f3dd74'}, 
-      false, 
+      { index: 0, txId: '5db0a8c77f818c51cb107532fc1a36785adfa700d81d973fd1f23438b2f3dd74' },
+      false,
       undefined,
     );
   });
@@ -155,8 +155,8 @@ describe('mark utxos selected_as_input api', () => {
 
     expect(selectSpy).toHaveBeenCalledTimes(3);
     expect(selectSpy).toHaveBeenCalledWith(
-      { index: 0, txId: '5db0a8c77f818c51cb107532fc1a36785adfa700d81d973fd1f23438b2f3dd74'}, 
-      true, 
+      { index: 0, txId: '5db0a8c77f818c51cb107532fc1a36785adfa700d81d973fd1f23438b2f3dd74' },
+      true,
       undefined,
     );
   });
@@ -171,8 +171,8 @@ describe('mark utxos selected_as_input api', () => {
 
     expect(selectSpy).toHaveBeenCalledTimes(3);
     expect(selectSpy).toHaveBeenCalledWith(
-      { index: 0, txId: '5db0a8c77f818c51cb107532fc1a36785adfa700d81d973fd1f23438b2f3dd74'}, 
-      false, 
+      { index: 0, txId: '5db0a8c77f818c51cb107532fc1a36785adfa700d81d973fd1f23438b2f3dd74' },
+      false,
       456,
     );
   });
