@@ -173,7 +173,7 @@ describe('create tx-proposal api', () => {
       expect(tx.outputs.map(o => o.decodedScript.address.base58))
         .toEqual(expect.arrayContaining(['WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau']));
 
-      expect(selectSpy).toHaveBeenCalledTimes(1);;
+      expect(selectSpy).toHaveBeenCalledTimes(1);
     } finally {
       selectSpy.mockRestore();
     }
