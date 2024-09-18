@@ -81,7 +81,7 @@ txProposalRouter.post(
       isString: true,
       optional: true,
     },
-    mark_as_used: {
+    mark_inputs_as_used: {
       in: ['body'],
       errorMessage: 'Invalid mark_as_used argument',
       isBoolean: true,

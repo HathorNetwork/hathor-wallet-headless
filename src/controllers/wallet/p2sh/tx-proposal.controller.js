@@ -29,8 +29,8 @@ async function buildTxProposal(req, res) {
   const { outputs } = req.body;
   const inputs = req.body.inputs || [];
   const changeAddress = req.body.change_address || null;
-  // `mark_as_used` but if it's undefined or null defaults to `false`.
-  const markAsUsed = req.body.mark_as_used ?? false;
+  // `mark_inputs_as_used` but if it's undefined or null defaults to `false`.
+  const markAsUsed = req.body.mark_inputs_as_used ?? false;
 
   if (changeAddress && !await req.wallet.isAddressMine(changeAddress)) {
     res.send({ success: false, error: 'Change address does not belong to the loaded wallet.' });
