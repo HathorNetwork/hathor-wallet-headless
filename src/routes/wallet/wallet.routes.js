@@ -13,7 +13,7 @@ const {
   simpleSendTx, decodeTx, sendTx, createToken, mintTokens, meltTokens, utxoFilter,
   utxoConsolidation, createNft, getAddressInfo, stop,
   getAddressIndex, getTxConfirmationBlocks,
-  markUtxosSelectedAsInput,
+  utxosSelectedAsInput,
 } = require('../../controllers/wallet/wallet.controller');
 const { txHexSchema, partialTxSchema } = require('../../schemas');
 const p2shRouter = require('./p2sh/p2sh.routes');
@@ -504,7 +504,7 @@ walletRouter.put(
       optional: true,
     },
   }),
-  markUtxosSelectedAsInput,
+  utxosSelectedAsInput,
 );
 
 module.exports = walletRouter;

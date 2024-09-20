@@ -440,4 +440,34 @@ describe('create-token tx-proposal api', () => {
     expect(authorityOutputs[0].value).toBe(AUTHORITY_VALUE.MINT);
     expect(authorityOutputs[1].value).toBe(AUTHORITY_VALUE.MELT);
   });
+
+  it('should mark utxos as used when sending mark_inputs_as_used', async () => {
+    const markSpy = jest.spyOn(hathorLib.Storage.prototype, 'utxoSelectAsInput').mockImplementation(jest.fn(async () => {}));
+    try {
+      const response = await TestUtils.request
+        .post('/wallet/p2sh/tx-proposal/create-token')
+        .send({
+          name: 'My Custom Token',
+          symbol: 'MCT',
+          amount: 1,
+          mark_inputs_as_used: true,
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.txHex).toBeDefined();
+      const tx = hathorLib.helpersUtils.createTxFromHex(response.body.txHex, new hathorLib.Network('testnet'));
+      expect(tx.outputs.map(o => o.decodedScript.address.base58))
+        .toEqual(expect.arrayContaining([TestUtils.multisigAddresses[1]]));
+      expect(tx.inputs).toEqual(expect.not.arrayContaining([
+        expect.objectContaining({
+          data: expect.any(Object),
+        }),
+      ]));
+
+      expect(markSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      markSpy.mockRestore();
+    }
+  });
 });

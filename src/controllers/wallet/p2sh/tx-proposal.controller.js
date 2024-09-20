@@ -13,7 +13,7 @@ const {
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
 const { cantSendTxErrorMessage } = require('../../../helpers/constants');
-const { mapTxReturn } = require('../../../helpers/tx.helper');
+const { mapTxReturn, markUtxosSelectedAsInput } = require('../../../helpers/tx.helper');
 const { DEFAULT_PIN } = require('../../../constants');
 
 async function buildTxProposal(req, res) {
@@ -52,7 +52,14 @@ async function buildTxProposal(req, res) {
     const txData = await sendTransaction.prepareTxData();
 
     if (markAsUsed) {
-      await sendTransaction.updateOutputSelected(true);
+      await markUtxosSelectedAsInput(
+        req.wallet,
+        txData.inputs.map(input => ({
+          txId: input.txId,
+          index: input.index,
+        })),
+        true,
+      );
     }
     txData.version = hathorLibConstants.DEFAULT_TX_VERSION;
     const tx = transactionUtils.createTransactionFromData(txData, network);
@@ -84,8 +91,11 @@ async function buildCreateTokenTxProposal(req, res) {
   const createMelt = req.body.create_melt ?? true;
   const meltAuthorityAddress = req.body.melt_authority_address || null;
   const allowExternalMeltAuthorityAddress = req.body.allow_external_melt_authority_address || null;
+  // `mark_inputs_as_used` but if it's undefined or null defaults to `false`.
+  const markAsUsed = req.body.mark_inputs_as_used ?? false;
 
   try {
+    /** @type {import('@hathor/wallet-lib').CreateTokenTransaction} */
     const createTokenTransaction = await req.wallet.prepareCreateNewToken(name, symbol, amount, {
       address,
       changeAddress,
@@ -97,6 +107,14 @@ async function buildCreateTokenTxProposal(req, res) {
       allowExternalMeltAuthorityAddress,
       signTx: false,
     });
+
+    if (markAsUsed) {
+      await markUtxosSelectedAsInput(
+        req.wallet,
+        createTokenTransaction.inputs.map(input => ({ txId: input.hash, index: input.index })),
+        true,
+      );
+    }
 
     res.send({ success: true, txHex: createTokenTransaction.toHex() });
   } catch (err) {
@@ -120,12 +138,15 @@ async function buildMintTokensTxProposal(req, res) {
   const createAnotherMint = req.body.create_mint ?? true;
   const mintAuthorityAddress = req.body.mint_authority_address || null;
   const allowExternalMintAuthorityAddress = req.body.allow_external_mint_authority_address || null;
+  // `mark_inputs_as_used` but if it's undefined or null defaults to `false`.
+  const markAsUsed = req.body.mark_inputs_as_used ?? false;
 
   try {
     if (changeAddress && !await req.wallet.isAddressMine(changeAddress)) {
       throw new Error('Change address is not from this wallet');
     }
 
+    /** @type {import('@hathor/wallet-lib').Transaction} */
     const mintTokenTransaction = await req.wallet.prepareMintTokensData(
       token,
       amount,
@@ -138,6 +159,14 @@ async function buildMintTokensTxProposal(req, res) {
         signTx: false,
       }
     );
+
+    if (markAsUsed) {
+      await markUtxosSelectedAsInput(
+        req.wallet,
+        mintTokenTransaction.inputs.map(input => ({ txId: input.hash, index: input.index })),
+        true,
+      );
+    }
     res.send({ success: true, txHex: mintTokenTransaction.toHex() });
   } catch (err) {
     res.send({ success: false, error: err.message });
@@ -163,12 +192,15 @@ async function buildMeltTokensTxProposal(req, res) {
   const createAnotherMelt = req.body.create_melt ?? true;
   const meltAuthorityAddress = req.body.melt_authority_address || null;
   const allowExternalMeltAuthorityAddress = req.body.allow_external_melt_authority_address || null;
+  // `mark_inputs_as_used` but if it's undefined or null defaults to `false`.
+  const markAsUsed = req.body.mark_inputs_as_used ?? false;
 
   try {
     if (changeAddress && !await req.wallet.isAddressMine(changeAddress)) {
       throw new Error('Change address is not from this wallet');
     }
 
+    /** @type {import('@hathor/wallet-lib').Transaction} */
     const meltTokenTransaction = await req.wallet.prepareMeltTokensData(
       token,
       amount,
@@ -181,6 +213,14 @@ async function buildMeltTokensTxProposal(req, res) {
         signTx: false,
       }
     );
+
+    if (markAsUsed) {
+      await markUtxosSelectedAsInput(
+        req.wallet,
+        meltTokenTransaction.inputs.map(input => ({ txId: input.hash, index: input.index })),
+        true,
+      );
+    }
 
     res.send({ success: true, txHex: meltTokenTransaction.toHex() });
   } catch (err) {

@@ -237,9 +237,24 @@ async function getTx(wallet, id, options) {
   }
 }
 
+/**
+ * Mark or unmark all utxos as selected_as_input on the given storage.
+ * @param {import('@hathor/wallet-lib').HathorWallet} wallet
+ * @param {{ txId: string, index: number }[]} utxos
+ * @param {boolean} [markAs=true]
+ * @param {number?} [ttl=undefined]
+ */
+async function markUtxosSelectedAsInput(wallet, utxos, markAs, ttl) {
+  const mark = markAs ?? true;
+  for (const utxo of utxos) {
+    await wallet.storage.utxoSelectAsInput(utxo, mark, ttl);
+  }
+}
+
 module.exports = {
   mapTxReturn,
   getUtxosToFillTx,
   prepareTxFunds,
-  getTx
+  getTx,
+  markUtxosSelectedAsInput,
 };

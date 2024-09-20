@@ -1,4 +1,4 @@
-import hathorLib, { SendTransaction } from '@hathor/wallet-lib';
+import hathorLib from '@hathor/wallet-lib';
 import TestUtils from '../test-utils';
 import settings from '../../src/settings';
 
@@ -152,8 +152,8 @@ describe('create tx-proposal api', () => {
     expect(response.body.success).toBe(false);
   });
 
-  it('should mark utxos as used when sending mark_as_used', async () => {
-    const selectSpy = jest.spyOn(SendTransaction.prototype, 'updateOutputSelected').mockImplementationOnce(jest.fn(async () => {}));
+  it('should mark utxos as used when sending mark_inputs_as_used', async () => {
+    const markSpy = jest.spyOn(hathorLib.Storage.prototype, 'utxoSelectAsInput').mockImplementation(jest.fn(async () => {}));
     try {
       const response = await TestUtils.request
         .post('/wallet/p2sh/tx-proposal')
@@ -166,16 +166,15 @@ describe('create tx-proposal api', () => {
         })
         .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(200);
-      console.log(JSON.stringify(response.body));
       expect(response.body.txHex).toBeDefined();
       expect(response.body.success).toBe(true);
       const tx = hathorLib.helpersUtils.createTxFromHex(response.body.txHex, new hathorLib.Network('testnet'));
       expect(tx.outputs.map(o => o.decodedScript.address.base58))
         .toEqual(expect.arrayContaining(['WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau']));
 
-      expect(selectSpy).toHaveBeenCalledTimes(1);
+      expect(markSpy).toHaveBeenCalledTimes(1);
     } finally {
-      selectSpy.mockRestore();
+      markSpy.mockRestore();
     }
   });
 });
