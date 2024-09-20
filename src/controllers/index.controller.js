@@ -28,6 +28,8 @@ function docs(req, res) {
 }
 
 async function start(req, res) {
+  /** @type {{ logger: import('winston').Logger }} */
+  const { logger } = req;
   const config = settings.getConfig();
   // We expect the user to either send the seed or an xpubkey he wants to use.
   if (!('xpubkey' in req.body) && !('seedKey' in req.body) && !('seed' in req.body)) {
@@ -68,7 +70,7 @@ async function start(req, res) {
     // We already have a wallet for this key
     // so we log that it won't start a new one because
     // it must first stop the old wallet and then start the new
-    console.error('Error starting wallet because this wallet-id is already in use. You must stop the wallet first.');
+    logger.error(`Error starting wallet ${sanitizeLogInput(walletID)} because this wallet-id is already in use. You must stop the wallet first.`);
     res.send({
       success: false,
       message: `Failed to start wallet with wallet id ${walletID}`,
@@ -109,7 +111,7 @@ async function start(req, res) {
       numSignatures: mconfig.numSignatures,
       pubkeys: mconfig.pubkeys,
     };
-    console.log(`Starting multisig wallet with ${multisigData.pubkeys.length} pubkeys `
+    logger.info(`Starting multisig wallet with ${multisigData.pubkeys.length} pubkeys `
                 + `and ${multisigData.numSignatures} numSignatures`);
   }
 
@@ -217,7 +219,7 @@ async function start(req, res) {
 
   const preCalculatedAddresses = 'preCalculatedAddresses' in req.body ? req.body.preCalculatedAddresses : [];
   if (preCalculatedAddresses && preCalculatedAddresses.length) {
-    console.log(`Received pre-calculated addresses`, sanitizeLogInput(preCalculatedAddresses));
+    logger.info(`Received pre-calculated addresses`, sanitizeLogInput(preCalculatedAddresses));
     walletConfig.preCalculatedAddresses = preCalculatedAddresses;
   }
 
@@ -233,7 +235,7 @@ async function start(req, res) {
       });
     })
     .catch(error => {
-      console.error('Error:', error);
+      logger.error('Error:', error);
       res.send({
         success: false,
         message: `Failed to start wallet with wallet id ${walletID}`,

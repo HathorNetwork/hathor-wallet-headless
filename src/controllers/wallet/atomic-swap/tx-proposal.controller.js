@@ -444,7 +444,7 @@ async function listenedProposalList(req, res) {
  * Registers a proposal on this wallet, storing its identifier and password locally
  */
 async function registerProposal(req, res) {
-  const { walletId } = req;
+  const { walletId, logger } = req;
   const { proposalId } = req.params;
   const { password } = req.body;
 
@@ -474,7 +474,7 @@ async function registerProposal(req, res) {
     );
     res.send({ success: true });
   } catch (err) {
-    console.error(err.stack);
+    logger.error(err.stack);
     res.send({
       success: false,
       error: err.message,

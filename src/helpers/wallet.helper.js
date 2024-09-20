@@ -112,6 +112,7 @@ export function getWalletConfigFromSeed({
     if (!allowPassphrase) {
       // To use a passphrase on /start POST request
       // the configuration of the headless must explicitly allow it
+      // eslint-disable-next-line no-console
       console.error('Failed to start wallet because using a passphrase is not allowed by the current config. See allowPassphrase.');
       throw new WalletStartError('Failed to start wallet. To use a passphrase you must explicitly allow it in the configuration file. Using a passphrase completely changes the addresses of your wallet, only use it if you know what you are doing.');
     }

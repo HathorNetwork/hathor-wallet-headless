@@ -158,10 +158,17 @@ async function getTxSignatures(tx, storage, client) {
 }
 
 class FireblocksClient {
-  constructor(baseUrl, apiKey, apiSecret) {
+  /**
+   * @param {string} baseUrl
+   * @param {string} apiKey
+   * @param {string} apiSecret
+   * @param {import('winston').Logger} logger
+   */
+  constructor(baseUrl, apiKey, apiSecret, logger) {
     this.baseUrl = baseUrl;
     this.apiKey = apiKey;
     this.secret = apiSecret;
+    this.logger = logger;
 
     this.client = axios.create({
       baseURL: baseUrl,
@@ -253,12 +260,12 @@ class FireblocksClient {
         && e.response.data
         && e.response.data.code === TX_ALREADY_EXISTS_ERROR_CODE
       )) {
-        console.error(e);
+        this.logger.error(e);
         throw e;
       }
       // This transaction was already submitted.
       // We can safely ignore the error and fetch the tx info.
-      console.log('Raw transaction already submitted, fetching tx info...');
+      this.logger.info('Raw transaction already submitted, fetching tx info...');
     }
     const txId = dataToSignHash.toString('hex');
     let txStatus = null;
@@ -341,9 +348,10 @@ function createRawTransaction(dataToSignHash, indices) {
 
 /**
  * Start Fireblocks client with the headless config.
+ * @param {import('winston').Logger} logger
  * @returns {FireblocksClient}
  */
-function startClient() {
+function startClient(logger) {
   const config = getConfig();
 
   let apiSecret = config.fireblocksApiSecret;
@@ -355,23 +363,29 @@ function startClient() {
     config.fireblocksUrl,
     config.fireblocksApiKey,
     apiSecret,
+    logger,
   );
 }
 
 /**
- * External tx signer method to register with our wallet-lib.
- * @param {hathorLib.Transaction} tx
- * @param {hathorLib.Storage} storage
- * @param {string} _ - pinCode is not used with Fireblocks
+ * Build the fireblocks signer method
+ * @param {import('winston').Logger} logger
  */
-async function fireblocksSigner(tx, storage, _) {
-  const client = startClient();
-  const signatures = getTxSignatures(tx, storage, client);
-  return signatures;
+function buildFireblocksSignerMethod(logger) {
+  /**
+   * External tx signer method to register with our wallet-lib.
+   * @param {hathorLib.Transaction} tx
+   * @param {hathorLib.Storage} storage
+   * @param {string} _ - pinCode is not used with Fireblocks
+   */
+  return async function fireblocksSigner(tx, storage, _) {
+    const client = startClient(logger);
+    return getTxSignatures(tx, storage, client);
+  };
 }
 
 module.exports = {
-  fireblocksSigner,
+  buildFireblocksSignerMethod,
   FireblocksClient,
   startClient,
 };
