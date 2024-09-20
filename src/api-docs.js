@@ -1566,17 +1566,6 @@ const defaultApiDocs = {
                     type: 'boolean',
                     description: 'If the mint authority address is allowed to be from another wallet. Default is false.'
                   },
-                  unshift_data: {
-                    type: 'boolean',
-                    description: 'Add data outputs at the beginning of the outputs. Default is true.'
-                  },
-                  data: {
-                    type: 'array',
-                    items: {
-                      type: 'string'
-                    },
-                    description: 'List of utf-8 encoded strings to create a data output for each.'
-                  },
                   mark_inputs_as_used: {
                     type: 'boolean',
                     description: 'If we should lock the utxos chosen as inputs so they are not chosen when creating another transaction.'
