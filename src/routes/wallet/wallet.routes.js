@@ -12,7 +12,8 @@ const {
   getStatus, getBalance, getAddress, getAddresses, getTxHistory, getTransaction,
   simpleSendTx, decodeTx, sendTx, createToken, mintTokens, meltTokens, utxoFilter,
   utxoConsolidation, createNft, getAddressInfo, stop,
-  getAddressIndex, getTxConfirmationBlocks
+  getAddressIndex, getTxConfirmationBlocks,
+  utxosSelectedAsInput,
 } = require('../../controllers/wallet/wallet.controller');
 const { txHexSchema, partialTxSchema } = require('../../schemas');
 const p2shRouter = require('./p2sh/p2sh.routes');
@@ -464,5 +465,46 @@ walletRouter.post(
  * For the docs, see api-docs.js
  */
 walletRouter.post('/stop', stop);
+
+/**
+ * PUT request to mark inputs from a txHex as used.
+ * For the docs, see api-docs.js
+ */
+walletRouter.put(
+  '/utxos-selected-as-input',
+  checkSchema({
+    txHex: {
+      in: ['body'],
+      errorMessage: 'Invalid txHex',
+      isString: true,
+      custom: {
+        options: (value, { req, location, path }) => {
+          // Test if txHex is actually hex
+          if (!(/^[0-9a-fA-F]+$/.test(value))) return false;
+          return true;
+        }
+      },
+    },
+    mark_as_used: {
+      in: ['body'],
+      errorMessage: 'Invalid mark',
+      isBoolean: true,
+      toBoolean: true,
+      optional: true,
+    },
+    ttl: {
+      in: ['body'],
+      errorMessage: 'Invalid ttl',
+      isInt: {
+        options: {
+          min: 1,
+        },
+      },
+      toInt: true,
+      optional: true,
+    },
+  }),
+  utxosSelectedAsInput,
+);
 
 module.exports = walletRouter;
