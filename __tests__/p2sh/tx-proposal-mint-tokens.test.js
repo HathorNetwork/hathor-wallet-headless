@@ -235,4 +235,34 @@ describe('mint-tokens tx-proposal api', () => {
     expect(authorityOutputs).toHaveLength(1);
     expect(authorityOutputs[0].value).toBe(AUTHORITY_VALUE.MINT);
   });
+
+  it('should mark utxos as used when sending mark_inputs_as_used', async () => {
+    const markSpy = jest.spyOn(hathorLib.Storage.prototype, 'utxoSelectAsInput').mockImplementation(jest.fn(async () => {}));
+    try {
+      const response = await TestUtils.request
+        .post('/wallet/p2sh/tx-proposal/mint-tokens')
+        .send({
+          token: '0000073b972162f70061f61cf0082b7a47263cc1659a05976aca5cd01b3351ee',
+          amount: 1,
+          mark_inputs_as_used: true,
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.txHex).toBeDefined();
+      const tx = hathorLib.helpersUtils
+        .createTxFromHex(response.body.txHex, new hathorLib.Network('testnet'));
+      expect(tx.outputs.map(o => o.decodedScript.address.base58))
+        .toEqual(expect.arrayContaining(['wbe2eJdyZVimA7nJjmBQnKYJSXmpnpMKgG']));
+      expect(tx.inputs).toEqual(expect.not.arrayContaining([
+        expect.objectContaining({
+          data: expect.any(Object),
+        }),
+      ]));
+
+      expect(markSpy).toHaveBeenCalledTimes(2);
+    } finally {
+      markSpy.mockRestore();
+    }
+  });
 });

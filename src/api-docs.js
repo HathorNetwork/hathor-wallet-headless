@@ -803,6 +803,46 @@ const defaultApiDocs = {
         },
       },
     },
+    '/wallet/utxos-selected-as-input': {
+      put: {
+        operationId: 'utxosSelectedAsInput',
+        summary: 'Mark or unmark the inputs of a given transaction as selected as inputs on the storage. This prevents the inputs from being chosen by another transaction.',
+        requestBody: {
+          description: 'Transaction hex representation.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  txHex: {
+                    type: 'string',
+                    description: 'Hex format of a Transaction instance.'
+                  },
+                }
+              },
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Mark the inputs from the given transaction',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      success: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     '/wallet/tx-proposal': {
       post: {
         operationId: 'createTxProposal',
@@ -1322,6 +1362,10 @@ const defaultApiDocs = {
                     type: 'string',
                     description: 'Optional address to send the change amount.'
                   },
+                  mark_inputs_as_used: {
+                    type: 'boolean',
+                    description: 'If we should lock the utxos chosen as inputs so they are not chosen when creating another transaction.'
+                  },
                 }
               },
               examples: {
@@ -1433,6 +1477,10 @@ const defaultApiDocs = {
                     type: 'boolean',
                     description: 'If the melt authority address is allowed to be from another wallet. Default is false.'
                   },
+                  mark_inputs_as_used: {
+                    type: 'boolean',
+                    description: 'If we should lock the utxos chosen as inputs so they are not chosen when creating another transaction.'
+                  },
                 }
               },
               examples: {
@@ -1518,16 +1566,9 @@ const defaultApiDocs = {
                     type: 'boolean',
                     description: 'If the mint authority address is allowed to be from another wallet. Default is false.'
                   },
-                  unshift_data: {
+                  mark_inputs_as_used: {
                     type: 'boolean',
-                    description: 'Add data outputs at the beginning of the outputs. Default is true.'
-                  },
-                  data: {
-                    type: 'array',
-                    items: {
-                      type: 'string'
-                    },
-                    description: 'List of utf-8 encoded strings to create a data output for each.'
+                    description: 'If we should lock the utxos chosen as inputs so they are not chosen when creating another transaction.'
                   },
                 }
               },
@@ -1552,6 +1593,94 @@ const defaultApiDocs = {
                   error: {
                     summary: 'Insufficient amount of tokens',
                     value: { success: false, error: "Don't have enough HTR funds to mint this amount." }
+                  },
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, txHex: '0001010203000016392ed330ed99ff0f74e4169a8d257fd1d07d3b38c4f8ecf21a78f10efa000016392ed330ed99ff0f74e4169a8d257fd1d07d3b38c4f8ecf21a78f10efa00006946304402201166baf8513c0bfd21edcb169a4df5645ca826b22b6ed22d13945628094a04c502204f382ef9e6b903397b2bcaaed5316b0bb54212037a30e5cda7a5cf4d785b8f332102a5c1b462ccdcd8b4bb2cf672e0672576420c3102ecbe74da15b2cf56cf49b4a5000016392ed330ed99ff0f74e4169a8d257fd1d07d3b38c4f8ecf21a78f10efa02006946304402201166baf8513c0bfd21edcb169a4df5645ca826b22b6ed22d13945628094a04c502204f382ef9e6b903397b2bcaaed5316b0bb54212037a30e5cda7a5cf4d785b8f332102a5c1b462ccdcd8b4bb2cf672e0672576420c3102ecbe74da15b2cf56cf49b4a5000001f1000017a91462d397b360118b99a8d35892366074fe16fa6f098700000001010017a91462d397b360118b99a8d35892366074fe16fa6f098700000001810017a91462d397b360118b99a8d35892366074fe16fa6f098740327a9b3baad50b649b5f1d0000000000' }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  ...commonExamples.xWalletIdErrResponseExamples,
+                },
+              },
+            },
+          },
+        },
+      }
+    },
+    '/wallet/p2sh/tx-proposal/melt-tokens': {
+      post: {
+        operationId: 'meltTokensP2shProposal',
+        summary: 'Get the hex representation of a melt tokens transaction without input data.',
+        parameters: [
+          { $ref: '#/components/parameters/XWalletIdParameter' },
+        ],
+        requestBody: {
+          description: 'Data to melt tokens.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['token', 'amount'],
+                properties: {
+                  token: {
+                    type: 'string',
+                    description: 'UID of the token to melt.'
+                  },
+                  amount: {
+                    type: 'integer',
+                    description: 'The amount of tokens to melt. It must be an integer with the value in cents, i.e., 123 means 1.23.'
+                  },
+                  deposit_address: {
+                    type: 'string',
+                    description: 'Optional address to send the deposit HTR received after the melt.'
+                  },
+                  change_address: {
+                    type: 'string',
+                    description: 'Optional address to send the change amount of custom tokens after melt.'
+                  },
+                  create_melt: {
+                    type: 'boolean',
+                    description: 'If we should create another melt authority for the token. Default is true.'
+                  },
+                  melt_authority_address: {
+                    type: 'string',
+                    description: 'Optional address to send the new melt authority output created.'
+                  },
+                  allow_external_melt_authority_address: {
+                    type: 'boolean',
+                    description: 'If the melt authority address is allowed to be from another wallet. Default is false.'
+                  },
+                  mark_inputs_as_used: {
+                    type: 'boolean',
+                    description: 'If we should lock the utxos chosen as inputs so they are not chosen when creating another transaction.'
+                  },
+                }
+              },
+              examples: {
+                'Melt Tokens': {
+                  summary: 'Data to melt tokens',
+                  value: {
+                    token: '0000073b972162f70061f61cf0082b7a47263cc1659a05976aca5cd01b3351ee',
+                    amount: 100,
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Melt tokens.',
+            content: {
+              'application/json': {
+                examples: {
+                  error: {
+                    summary: 'Insuficient amount of tokens',
+                    value: { success: false, error: "There aren't enough inputs to melt." }
                   },
                   success: {
                     summary: 'Success',

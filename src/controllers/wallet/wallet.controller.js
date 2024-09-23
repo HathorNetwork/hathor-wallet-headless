@@ -11,7 +11,7 @@ const { matchedData } = require('express-validator');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../lock');
 const { cantSendTxErrorMessage, friendlyWalletState } = require('../../helpers/constants');
-const { mapTxReturn, prepareTxFunds, getTx } = require('../../helpers/tx.helper');
+const { mapTxReturn, prepareTxFunds, getTx, markUtxosSelectedAsInput } = require('../../helpers/tx.helper');
 const { stopWallet } = require('../../services/wallets.service');
 
 async function getStatus(req, res) {
@@ -763,6 +763,41 @@ async function stop(req, res) {
   res.send({ success: true });
 }
 
+/**
+ * Mark the inputs from the txHex as used.
+ *
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+async function utxosSelectedAsInput(req, res) {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    res.status(400).json(validationResult);
+    return;
+  }
+
+  /** @type {{ wallet: import('@hathor/wallet-lib').HathorWallet }} */
+  const { wallet } = req;
+  const { txHex, ttl } = req.body;
+  const markAsUsed = req.body.mark_as_used ?? true;
+
+  try {
+    const tx = helpersUtils.createTxFromHex(txHex, wallet.getNetworkObject());
+    await markUtxosSelectedAsInput(
+      wallet,
+      tx.inputs.map(
+        input => ({ txId: input.hash, index: input.index })
+      ),
+      markAsUsed,
+      ttl,
+    );
+
+    res.send({ success: true });
+  } catch (err) {
+    res.send({ success: false, error: err.message });
+  }
+}
+
 module.exports = {
   getStatus,
   getBalance,
@@ -783,4 +818,5 @@ module.exports = {
   utxoConsolidation,
   createNft,
   stop,
+  utxosSelectedAsInput,
 };
