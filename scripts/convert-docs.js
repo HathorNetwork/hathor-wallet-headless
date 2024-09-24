@@ -13,8 +13,15 @@ const settings = require('../src/settings');
   // Fetch config data from this instance and generate the ApiDocs
   await settings.setupConfig();
   const docsObj = getApiDocs();
+  console.log(JSON.stringify(docsObj));
 
   // Output to temporary JSON file
   await writeFile('./tmp/api-docs.json', JSON.stringify(docsObj, null, 2));
 })()
-  .catch(err => console.error(err.stack));
+  .then(() => {
+    process.exit(0);
+  })
+  .catch(err => {
+    console.error(err.stack)
+    process.exit(1);
+  });
