@@ -6,6 +6,7 @@
  */
 
 const { constants: { NATIVE_TOKEN_UID } } = require('@hathor/wallet-lib');
+/** @import { HathorWallet } from '@hathor/wallet-lib' */
 
 /**
  * The endpoints that return a created tx must keep compatibility
@@ -237,9 +238,24 @@ async function getTx(wallet, id, options) {
   }
 }
 
+/**
+ * Mark or unmark all utxos as selected_as_input on the given storage.
+ * @param {HathorWallet} wallet
+ * @param {{ txId: string, index: number }[]} utxos
+ * @param {boolean} [markAs=true]
+ * @param {number?} [ttl=undefined]
+ */
+async function markUtxosSelectedAsInput(wallet, utxos, markAs, ttl) {
+  const mark = markAs ?? true;
+  for (const utxo of utxos) {
+    await wallet.markUtxoSelected(utxo.txId, utxo.index, mark, ttl);
+  }
+}
+
 module.exports = {
   mapTxReturn,
   getUtxosToFillTx,
   prepareTxFunds,
-  getTx
+  getTx,
+  markUtxosSelectedAsInput,
 };
