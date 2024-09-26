@@ -1,4 +1,5 @@
 export default {
+  capabilities: { capabilities: ['history-streaming'] },
   dashboard: {
     transactions: 2,
     blocks: 1537,

@@ -17,4 +17,10 @@ const settings = require('../src/settings');
   // Output to temporary JSON file
   await writeFile('./tmp/api-docs.json', JSON.stringify(docsObj, null, 2));
 })()
-  .catch(err => console.error(err.stack));
+  .then(() => {
+    process.exit(0);
+  })
+  .catch(err => {
+    console.error(err.stack);
+    process.exit(1);
+  });

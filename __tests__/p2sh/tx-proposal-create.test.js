@@ -151,4 +151,30 @@ describe('create tx-proposal api', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
   });
+
+  it('should mark utxos as used when sending mark_inputs_as_used', async () => {
+    const markSpy = jest.spyOn(hathorLib.Storage.prototype, 'utxoSelectAsInput').mockImplementation(jest.fn(async () => {}));
+    try {
+      const response = await TestUtils.request
+        .post('/wallet/p2sh/tx-proposal')
+        .send({
+          outputs: [
+            { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 },
+            { address: 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau', value: 1 },
+          ],
+          mark_inputs_as_used: true,
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body.txHex).toBeDefined();
+      expect(response.body.success).toBe(true);
+      const tx = hathorLib.helpersUtils.createTxFromHex(response.body.txHex, new hathorLib.Network('testnet'));
+      expect(tx.outputs.map(o => o.decodedScript.address.base58))
+        .toEqual(expect.arrayContaining(['WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau']));
+
+      expect(markSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      markSpy.mockRestore();
+    }
+  });
 });
