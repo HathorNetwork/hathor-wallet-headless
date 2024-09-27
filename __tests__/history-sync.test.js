@@ -6,6 +6,10 @@ import { initializedWallets } from '../src/services/wallets.service';
 const walletId = 'stub_history_sync';
 
 describe('history sync', () => {
+  beforeEach(() => {
+    settings._resetConfig();
+  });
+
   afterEach(async () => {
     await TestUtils.stopWallet({ walletId });
   });
@@ -27,11 +31,11 @@ describe('history sync', () => {
     const response = await TestUtils.request
       .post('/start')
       .send({ seedKey: TestUtils.seedKey, 'wallet-id': walletId });
-    settings._resetConfig();
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
     const wallet = initializedWallets.get(walletId);
     expect(wallet.historySyncMode).toEqual(hathorLib.HistorySyncMode.MANUAL_STREAM_WS);
+    await TestUtils.stopWallet({ walletId });
   });
 
   it('should use the history sync from the request when provided', async () => {
@@ -45,7 +49,6 @@ describe('history sync', () => {
         'wallet-id': walletId,
         history_sync_mode: 'xpub_stream_ws',
       });
-    settings._resetConfig();
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
     const wallet = initializedWallets.get(walletId);

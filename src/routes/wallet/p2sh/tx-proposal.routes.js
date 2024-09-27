@@ -81,6 +81,13 @@ txProposalRouter.post(
       isString: true,
       optional: true,
     },
+    mark_inputs_as_used: {
+      in: ['body'],
+      errorMessage: 'Invalid mark_as_used argument',
+      isBoolean: true,
+      toBoolean: true,
+      optional: true,
+    }
   }),
   buildTxProposal,
 );
@@ -98,6 +105,7 @@ txProposalRouter.post(
   body('create_melt').isBoolean().optional(),
   body('melt_authority_address').isString().notEmpty().optional(),
   body('allow_external_melt_authority_address').isBoolean().optional().toBoolean(),
+  body('mark_inputs_as_used').isBoolean().optional().toBoolean(),
   buildCreateTokenTxProposal,
 );
 
@@ -110,6 +118,7 @@ txProposalRouter.post(
   body('create_mint').isBoolean().optional(),
   body('mint_authority_address').isString().notEmpty().optional(),
   body('allow_external_mint_authority_address').isBoolean().optional().toBoolean(),
+  body('mark_inputs_as_used').isBoolean().optional().toBoolean(),
   buildMintTokensTxProposal,
 );
 
@@ -122,6 +131,7 @@ txProposalRouter.post(
   body('create_melt').isBoolean().optional(),
   body('melt_authority_address').isString().notEmpty().optional(),
   body('allow_external_melt_authority_address').isBoolean().optional().toBoolean(),
+  body('mark_inputs_as_used').isBoolean().optional().toBoolean(),
   buildMeltTokensTxProposal,
 );
 
