@@ -297,8 +297,12 @@ async function simpleSendTx(req, res) {
     }
 
     /** @type {SendTransaction} */
-    const sendTx = await wallet.sendTransactionInstance(address, value, { token: tokenId, changeAddress });
-    const tx = await runSendTransaction(sendTx, unlock);
+    const sendTransaction = await wallet.sendTransactionInstance(
+      address,
+      value,
+      { token: tokenId, changeAddress },
+    );
+    const tx = await runSendTransaction(sendTransaction, unlock);
     res.send({ success: true, ...mapTxReturn(tx) });
   } catch (err) {
     logger.error(err);
@@ -306,7 +310,6 @@ async function simpleSendTx(req, res) {
   } finally {
     unlock();
   }
-
 }
 
 async function decodeTx(req, res) {
@@ -508,8 +511,11 @@ async function sendTx(req, res) {
 
   try {
     /** @type {SendTransaction} */
-    const sendTx = await wallet.sendManyOutputsSendTransaction(outputs, { inputs, changeAddress });
-    const tx = await runSendTransaction(sendTx, unlock);
+    const sendTransaction = await wallet.sendManyOutputsSendTransaction(
+      outputs,
+      { inputs, changeAddress },
+    );
+    const tx = await runSendTransaction(sendTransaction, unlock);
     res.send({ success: true, ...mapTxReturn(tx) });
   } catch (err) {
     const ret = { success: false, error: err.message };
@@ -567,7 +573,7 @@ async function createToken(req, res) {
     }
 
     /** @type {SendTransaction} */
-    const sendTx = await wallet.createNewTokenSendTransaction(
+    const sendTransaction = await wallet.createNewTokenSendTransaction(
       name,
       symbol,
       amount,
@@ -583,7 +589,7 @@ async function createToken(req, res) {
         data,
       }
     );
-    const tx = await runSendTransaction(sendTx, unlock);
+    const tx = await runSendTransaction(sendTransaction, unlock);
 
     const configurationString = tokensUtils.getConfigurationString(
       tx.hash,
@@ -634,7 +640,7 @@ async function mintTokens(req, res) {
       throw new Error('Change address is not from this wallet');
     }
     /** @type {SendTransaction} */
-    const sendTx = await wallet.mintTokenSendTransactions(
+    const sendTransaction = await wallet.mintTokenSendTransactions(
       token,
       amount,
       {
@@ -646,7 +652,7 @@ async function mintTokens(req, res) {
         data,
       }
     );
-    const tx = await runSendTransaction(sendTx, unlock);
+    const tx = await runSendTransaction(sendTransaction, unlock);
     res.send({ success: true, ...mapTxReturn(tx) });
   } catch (err) {
     res.send({ success: false, error: err.message });
@@ -690,7 +696,7 @@ async function meltTokens(req, res) {
       throw new Error('Change address is not from this wallet');
     }
     /** @type {SendTransaction} */
-    const sendTx = await wallet.meltTokensSendTransaction(
+    const sendTransaction = await wallet.meltTokensSendTransaction(
       token,
       amount,
       {
@@ -702,7 +708,7 @@ async function meltTokens(req, res) {
         data,
       }
     );
-    const tx = await runSendTransaction(sendTx);
+    const tx = await runSendTransaction(sendTransaction);
     res.send({ success: true, ...mapTxReturn(tx) });
   } catch (err) {
     res.send({ success: false, error: err.message });
@@ -765,8 +771,11 @@ async function utxoConsolidation(req, res) {
 
   try {
     /** @type {SendTransaction} */
-    const sendTx = await wallet.consolidateUtxosSendTransaction(destinationAddress, options);
-    const tx = await runSendTransaction(sendTx, unlock);
+    const sendTransaction = await wallet.consolidateUtxosSendTransaction(
+      destinationAddress,
+      options,
+    );
+    const tx = await runSendTransaction(sendTransaction, unlock);
     res.send({ success: true, ...mapTxReturn(tx) });
   } catch (err) {
     res.send({ success: false, error: err.message });
@@ -810,7 +819,7 @@ async function createNft(req, res) {
     if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
       throw new Error('Change address is not from this wallet');
     }
-    const sendTx = await wallet.createNFTSendTransaction(
+    const sendTransaction = await wallet.createNFTSendTransaction(
       name,
       symbol,
       amount,
@@ -826,7 +835,7 @@ async function createNft(req, res) {
         allowExternalMeltAuthorityAddress,
       }
     );
-    const tx = await runSendTransaction(sendTx, unlock);
+    const tx = await runSendTransaction(sendTransaction, unlock);
     const configurationString = tokensUtils.getConfigurationString(
       tx.hash,
       tx.name,

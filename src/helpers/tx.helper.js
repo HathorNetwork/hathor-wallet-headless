@@ -12,7 +12,6 @@ const { constants: { NATIVE_TOKEN_UID } } = require('@hathor/wallet-lib');
  * @typedef {import('@hathor/wallet-lib').HathorWallet} HathorWallet
  */
 
-
 /**
  * The endpoints that return a created tx must keep compatibility
  * The library has changed some keys and we must map the return to continue returning the same keys
