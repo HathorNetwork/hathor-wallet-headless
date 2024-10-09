@@ -6,7 +6,12 @@
  */
 
 const { constants: { NATIVE_TOKEN_UID } } = require('@hathor/wallet-lib');
-/** @import { HathorWallet } from '@hathor/wallet-lib' */
+
+/**
+ * @typedef {import('@hathor/wallet-lib').SendTransaction} SendTransaction
+ * @typedef {import('@hathor/wallet-lib').HathorWallet} HathorWallet
+ */
+
 
 /**
  * The endpoints that return a created tx must keep compatibility
@@ -252,10 +257,33 @@ async function markUtxosSelectedAsInput(wallet, utxos, markAs, ttl) {
   }
 }
 
+/**
+ * Execute a SendTransaction instance and return the transaction.
+ * Will call the unlock method given after the tx is prepared.
+ *
+ * @param {SendTransaction} sendTx
+ * @param {Function} unlock
+ * @returns {Promise<Transaction>}
+ */
+async function runSendTransaction(sendTx, unlock) {
+  try {
+    if (!sendTx.transaction) {
+      await sendTx.prepareTx();
+    }
+    await sendTx.updateOutputSelected(true);
+  } finally {
+    // If an error happens of things go as planned we release the lock
+    unlock();
+  }
+
+  return sendTx.runFromMining();
+}
+
 module.exports = {
   mapTxReturn,
   getUtxosToFillTx,
   prepareTxFunds,
   getTx,
   markUtxosSelectedAsInput,
+  runSendTransaction,
 };
