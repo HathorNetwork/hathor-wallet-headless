@@ -255,5 +255,63 @@ describe('nano contract routes', () => {
     for (const tx of responseHistory2.body.history) {
       expect(txIds).toContain(tx.hash);
     }
+
+    // Get state in an old block hash, after the second bet
+    const responseStateOld = await TestUtils.request
+      .get('/wallet/nano-contracts/state')
+      .query({ id: tx1.hash,
+        fields: [
+          'token_uid',
+          'total',
+          'final_result',
+          'oracle_script',
+          'date_last_bet',
+          `address_details.a'${address2}'`,
+          `withdrawals.a'${address2}'`,
+          `address_details.a'${address3}'`,
+          `withdrawals.a'${address3}'`
+        ],
+        block_hash: responseHistory2.body.history[2].first_block })
+      .set({ 'x-wallet-id': wallet.walletId });
+    const ncStateOld = responseStateOld.body.state;
+    expect(ncStateOld.fields.token_uid.value).toBe(HATHOR_TOKEN_ID);
+    expect(ncStateOld.fields.date_last_bet.value).toBe(dateLastBet);
+    expect(ncStateOld.fields.oracle_script.value).toBe(
+      bufferUtils.bufferToHex(outputScriptBuffer1)
+    );
+    expect(ncStateOld.fields.final_result.value).toBeNull();
+    expect(ncStateOld.fields.total.value).toBe(300);
+    expect(ncStateOld.fields[`address_details.a'${address2}'`].value).toHaveProperty('1x0', 100);
+    expect(ncStateOld.fields[`withdrawals.a'${address2}'`].value).toBeUndefined();
+    expect(ncStateOld.fields[`address_details.a'${address3}'`].value).toHaveProperty('2x0', 200);
+    expect(ncStateOld.fields[`withdrawals.a'${address3}'`].value).toBeUndefined();
+
+    // Now we will test the history with pagination
+    const history2 = responseHistory2.body.history;
+
+    // Get history with count 2
+    const responseHistory3 = await TestUtils.request
+      .get('/wallet/nano-contracts/history')
+      .query({ id: tx1.hash, count: 2 })
+      .set({ 'x-wallet-id': wallet.walletId });
+    expect(responseHistory3.body.history.length).toBe(2);
+    expect(responseHistory3.body.history).toStrictEqual([history2[0], history2[1]]);
+
+    // Now the next page with after
+    const responseHistory4 = await TestUtils.request
+      .get('/wallet/nano-contracts/history')
+      .query({ id: tx1.hash, count: 2, after: responseHistory3.body.history[1].hash })
+      .set({ 'x-wallet-id': wallet.walletId });
+    expect(responseHistory4.body.history.length).toBe(2);
+    expect(responseHistory4.body.history).toStrictEqual([history2[2], history2[3]]);
+
+    // Now the previous page with before
+    const responseHistory5 = await TestUtils.request
+      .get('/wallet/nano-contracts/history')
+      .query({ id: tx1.hash, count: 2, before: responseHistory4.body.history[0].hash })
+      .set({ 'x-wallet-id': wallet.walletId });
+    expect(responseHistory5.body.history.length).toBe(2);
+    // When using before, the order comes reverted
+    expect(responseHistory5.body.history).toStrictEqual([history2[1], history2[0]]);
   });
 });

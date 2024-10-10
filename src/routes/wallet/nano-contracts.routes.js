@@ -30,6 +30,8 @@ nanoContractRouter.get(
   query('fields').isArray().optional().default([]),
   query('balances').isArray().optional().default([]),
   query('calls').isArray().optional().default([]),
+  query('block_hash').isString().optional(),
+  query('block_height').isInt({ min: 0 }).optional().toInt(),
   getState
 );
 
@@ -68,6 +70,7 @@ nanoContractRouter.get(
   query('id').isString(),
   query('count').isInt({ min: 0 }).optional().toInt(),
   query('after').isString().optional(),
+  query('before').isString().optional(),
   getHistory
 );
 
