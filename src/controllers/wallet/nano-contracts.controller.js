@@ -21,10 +21,24 @@ async function getState(req, res) {
     return;
   }
 
-  const { id, fields, balances, calls } = req.query;
+  const {
+    id,
+    fields,
+    balances,
+    calls,
+    block_hash: blockHash,
+    block_height: blockHeight
+  } = req.query;
 
   try {
-    const state = await ncApi.getNanoContractState(id, fields, balances, calls);
+    const state = await ncApi.getNanoContractState(
+      id,
+      fields,
+      balances,
+      calls,
+      blockHash,
+      blockHeight
+    );
 
     res.send({
       success: true,
@@ -45,10 +59,10 @@ async function getHistory(req, res) {
     return;
   }
 
-  const { id, count, after } = req.query;
+  const { id, count, after, before } = req.query;
 
   try {
-    const data = await ncApi.getNanoContractHistory(id, count, after);
+    const data = await ncApi.getNanoContractHistory(id, count, after, before);
 
     res.send({
       success: true,
