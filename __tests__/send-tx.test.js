@@ -342,7 +342,7 @@ describe('send-tx api', () => {
   });
 
   it('should log errors on send-tx when debug=true on req.body', async () => {
-    const spy = jest.spyOn(HathorWallet.prototype, 'sendManyOutputsTransaction').mockImplementation(() => {
+    const spy = jest.spyOn(HathorWallet.prototype, 'sendManyOutputsSendTransaction').mockImplementation(() => {
       throw new Error('Boom!');
     });
     const response = await TestUtils.request
