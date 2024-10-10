@@ -31,6 +31,7 @@ describe('utxo api', () => {
     expect(response.status).toBe(200);
     expect(response.body.total_utxos_consolidated).toBe(13);
     expect(response.body.total_amount).toBe(76809);
+    expect(response.body.txId).toBeDefined();
     expect(response.body.utxos).toHaveLength(13);
   });
 });

@@ -709,6 +709,19 @@ export default {
           {
             value: 1,
             token_data: 129,
+            script: 'dqkUsmE9zshkgB58piBD7ETUV0e/NgmIrA==',
+            decoded: {
+              type: 'P2PKH',
+              address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN',
+              timelock: null,
+            },
+            token: '0000073b972162f70061f61cf0082b7a47263cc1659a05976aca5cd01b3351ee',
+            spent_by: null,
+            selected_as_input: false,
+          },
+          {
+            value: 1,
+            token_data: 129,
             script: 'qRTqJUJmzEmBNvhkmDuZ4JxcMh5/ioc=',
             decoded: {
               type: 'P2SH',

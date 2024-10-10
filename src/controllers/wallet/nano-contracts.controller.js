@@ -9,7 +9,7 @@ const { ncApi, nanoUtils, bufferUtils, NanoContractSerializer } = require('@hath
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../lock');
 const { cantSendTxErrorMessage } = require('../../helpers/constants');
-const { mapTxReturn } = require('../../helpers/tx.helper');
+const { mapTxReturn, runSendTransaction } = require('../../helpers/tx.helper');
 
 /**
  * Get state fields of a nano contract
@@ -83,13 +83,21 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
     return;
   }
 
-  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
+  const walletLock = lock.get(req.walletId);
+  const canStart = walletLock.lock(lockTypes.SEND_TX);
   if (!canStart) {
     // TODO: return status code 423
     // we should do this refactor in the future for all APIs
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
+  let lockReleased = false;
+  const unlock = () => {
+    if (!lockReleased) {
+      walletLock.unlock(lockTypes.SEND_TX);
+    }
+    lockReleased = true;
+  };
 
   const { wallet } = req;
   const { blueprint_id: blueprintId, nc_id: ncId, address, data } = req.body;
@@ -103,16 +111,18 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
   }
 
   try {
-    const response = await wallet.createAndSendNanoContractTransaction(
+    /** @type {import('@hathor/wallet-lib').SendTransaction} */
+    const sendTransaction = await wallet.createNanoContractTransaction(
       method,
       address,
       data
     );
-    res.send({ success: true, ...mapTxReturn(response) });
+    const tx = await runSendTransaction(sendTransaction, unlock);
+    res.send({ success: true, ...mapTxReturn(tx) });
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {
-    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
+    unlock();
   }
 }
 

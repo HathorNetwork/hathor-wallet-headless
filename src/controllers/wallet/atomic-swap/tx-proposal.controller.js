@@ -18,7 +18,7 @@ const atomicSwapService = require('../../../services/atomic-swap.service');
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
 const { cantSendTxErrorMessage } = require('../../../helpers/constants');
-const { mapTxReturn } = require('../../../helpers/tx.helper');
+const { mapTxReturn, runSendTransaction } = require('../../../helpers/tx.helper');
 const constants = require('../../../constants');
 const { removeListenedProposal } = require('../../../services/atomic-swap.service');
 
@@ -310,11 +310,19 @@ async function signAndPush(req, res) {
     return;
   }
 
-  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
+  const walletLock = lock.get(req.walletId);
+  const canStart = walletLock.lock(lockTypes.SEND_TX);
   if (!canStart) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
+  let lockReleased = false;
+  const unlock = () => {
+    if (!lockReleased) {
+      walletLock.unlock(lockTypes.SEND_TX);
+    }
+    lockReleased = true;
+  };
 
   const partialTx = req.body.partial_tx;
   const sigs = req.body.signatures || [];
@@ -323,12 +331,12 @@ async function signAndPush(req, res) {
     const transaction = atomicSwapService.assembleTransaction(partialTx, sigs, req.wallet.storage);
 
     const sendTransaction = new SendTransaction({ transaction, storage: req.wallet.storage });
-    const response = await sendTransaction.runFromMining();
+    const response = await runSendTransaction(sendTransaction, unlock);
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {
-    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
+    unlock();
   }
 }
 

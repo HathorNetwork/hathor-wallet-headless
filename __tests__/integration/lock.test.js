@@ -1,3 +1,4 @@
+import { SendTransaction } from '@hathor/wallet-lib';
 import { TestUtils } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
 import constants from '../../src/helpers/constants';
@@ -7,8 +8,14 @@ const { cantSendTxErrorMessage } = constants;
 describe('Wallet lock behavior', () => {
   let wallet1;
   let wallet2;
+  let utxoSpy;
 
   beforeAll(async () => {
+    utxoSpy = jest.spyOn(SendTransaction.prototype, 'updateOutputSelected').mockImplementation(async () => {
+      await new Promise(resolve => {
+        setTimeout(resolve, 1000);
+      });
+    });
     try {
       wallet1 = WalletHelper.getPrecalculatedWallet('lock-wallet-tx-1');
       wallet2 = WalletHelper.getPrecalculatedWallet('lock-wallet-tx-2');
@@ -22,6 +29,7 @@ describe('Wallet lock behavior', () => {
   });
 
   afterAll(async () => {
+    utxoSpy.mockRestore();
     await wallet1.stop();
     await wallet2.stop();
   });
