@@ -1,4 +1,4 @@
-import { HathorWallet } from '@hathor/wallet-lib';
+import { HathorWallet, SendTransaction } from '@hathor/wallet-lib';
 import TestUtils from './test-utils';
 import { MAX_DATA_SCRIPT_LENGTH } from '../src/constants';
 
@@ -114,24 +114,33 @@ describe('send-tx api', () => {
   });
 
   it('should receive an error when trying to do concurrent transactions (lock/unlock behavior)', async () => {
-    const promise1 = TestUtils.request
-      .post('/wallet/send-tx')
-      .send({
-        outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
-      })
-      .set({ 'x-wallet-id': walletId });
-    const promise2 = TestUtils.request
-      .post('/wallet/send-tx')
-      .send({
-        outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
-      })
-      .set({ 'x-wallet-id': walletId });
+    const spy = jest.spyOn(SendTransaction.prototype, 'updateOutputSelected').mockImplementation(async () => {
+      await new Promise(resolve => {
+        setTimeout(resolve, 1000);
+      });
+    });
+    try {
+      const promise1 = TestUtils.request
+        .post('/wallet/send-tx')
+        .send({
+          outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
+        })
+        .set({ 'x-wallet-id': walletId });
+      const promise2 = TestUtils.request
+        .post('/wallet/send-tx')
+        .send({
+          outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
+        })
+        .set({ 'x-wallet-id': walletId });
 
-    const [response1, response2] = await Promise.all([promise1, promise2]);
-    expect(response1.status).toBe(200);
-    expect(response1.body.hash).toBeTruthy();
-    expect(response2.status).toBe(200);
-    expect(response2.body.success).toBe(false);
+      const [response1, response2] = await Promise.all([promise1, promise2]);
+      expect(response1.status).toBe(200);
+      expect(response1.body.hash).toBeTruthy();
+      expect(response2.status).toBe(200);
+      expect(response2.body.success).toBe(false);
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it('should accept a custom token transaction', async () => {

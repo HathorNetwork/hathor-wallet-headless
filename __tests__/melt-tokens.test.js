@@ -1,3 +1,4 @@
+import { SendTransaction } from '@hathor/wallet-lib';
 import TestUtils from './test-utils';
 import wsFixtures from './__fixtures__/ws-fixtures';
 
@@ -22,6 +23,7 @@ describe('melt-tokens api', () => {
         amount: 1,
       })
       .set({ 'x-wallet-id': walletId });
+    console.log(JSON.stringify(response.body, null, 2));
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
   });
@@ -127,28 +129,37 @@ describe('melt-tokens api', () => {
   });
 
   it('should receive an error when trying to do concurrent melt-tokens (lock/unlock behavior)', async () => {
-    const promise1 = TestUtils.request
-      .post('/wallet/melt-tokens')
-      .send({
-        token:
-          '00da712d64e04866c8c9aa8fceca70e80d1693864176b6b443220cf29adab5ed',
-        amount: 1,
-      })
-      .set({ 'x-wallet-id': walletId });
-    const promise2 = TestUtils.request
-      .post('/wallet/melt-tokens')
-      .send({
-        token:
-          '00da712d64e04866c8c9aa8fceca70e80d1693864176b6b443220cf29adab5ed',
-        amount: 1,
-      })
-      .set({ 'x-wallet-id': walletId });
+    const spy = jest.spyOn(SendTransaction.prototype, 'updateOutputSelected').mockImplementation(async () => {
+      await new Promise(resolve => {
+        setTimeout(resolve, 1000);
+      });
+    });
+    try {
+      const promise1 = TestUtils.request
+        .post('/wallet/melt-tokens')
+        .send({
+          token:
+            '00da712d64e04866c8c9aa8fceca70e80d1693864176b6b443220cf29adab5ed',
+          amount: 1,
+        })
+        .set({ 'x-wallet-id': walletId });
+      const promise2 = TestUtils.request
+        .post('/wallet/melt-tokens')
+        .send({
+          token:
+            '00da712d64e04866c8c9aa8fceca70e80d1693864176b6b443220cf29adab5ed',
+          amount: 1,
+        })
+        .set({ 'x-wallet-id': walletId });
 
-    const [response1, response2] = await Promise.all([promise1, promise2]);
-    expect(response1.status).toBe(200);
-    expect(response1.body.hash).toBeTruthy();
-    expect(response2.status).toBe(200);
-    expect(response2.body.success).toBe(false);
+      const [response1, response2] = await Promise.all([promise1, promise2]);
+      expect(response1.status).toBe(200);
+      expect(response1.body.hash).toBeTruthy();
+      expect(response2.status).toBe(200);
+      expect(response2.body.success).toBe(false);
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it('should return 200 when sending data parameters', async () => {

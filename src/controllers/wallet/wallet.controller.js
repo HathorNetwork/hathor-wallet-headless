@@ -708,7 +708,7 @@ async function meltTokens(req, res) {
         data,
       }
     );
-    const tx = await runSendTransaction(sendTransaction);
+    const tx = await runSendTransaction(sendTransaction, unlock);
     res.send({ success: true, ...mapTxReturn(tx) });
   } catch (err) {
     res.send({ success: false, error: err.message });
@@ -819,6 +819,7 @@ async function createNft(req, res) {
     if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
       throw new Error('Change address is not from this wallet');
     }
+    /** @type {SendTransaction} */
     const sendTransaction = await wallet.createNFTSendTransaction(
       name,
       symbol,
