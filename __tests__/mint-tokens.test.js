@@ -4,11 +4,11 @@ import TestUtils from './test-utils';
 const walletId = 'stub_mint_tokens';
 
 describe('mint-tokens api', () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
     await TestUtils.startWallet({ walletId, preCalculatedAddresses: TestUtils.addresses });
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await TestUtils.stopWallet({ walletId });
   });
 

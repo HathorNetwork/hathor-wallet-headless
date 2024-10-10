@@ -640,7 +640,7 @@ async function mintTokens(req, res) {
       throw new Error('Change address is not from this wallet');
     }
     /** @type {SendTransaction} */
-    const sendTransaction = await wallet.mintTokenSendTransactions(
+    const sendTransaction = await wallet.mintTokensSendTransaction(
       token,
       amount,
       {
