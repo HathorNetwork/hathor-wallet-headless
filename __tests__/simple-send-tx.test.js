@@ -1,5 +1,5 @@
-import TestUtils from './test-utils';
 import { SendTransaction } from '@hathor/wallet-lib';
+import TestUtils from './test-utils';
 
 const walletId = 'stub_simple_send_tx';
 
