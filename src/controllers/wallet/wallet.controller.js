@@ -771,12 +771,12 @@ async function utxoConsolidation(req, res) {
 
   try {
     /** @type {SendTransaction} */
-    const sendTransaction = await wallet.consolidateUtxosSendTransaction(
+    const { sendTx: sendTransaction, ...rest } = await wallet.consolidateUtxosSendTransaction(
       destinationAddress,
       options,
     );
     const tx = await runSendTransaction(sendTransaction, unlock);
-    res.send({ success: true, ...mapTxReturn(tx) });
+    res.send({ success: true, txId: tx.hash, ...rest });
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {
