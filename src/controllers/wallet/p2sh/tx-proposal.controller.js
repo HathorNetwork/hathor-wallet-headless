@@ -13,7 +13,7 @@ const {
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
 const { cantSendTxErrorMessage } = require('../../../helpers/constants');
-const { mapTxReturn, markUtxosSelectedAsInput } = require('../../../helpers/tx.helper');
+const { mapTxReturn, markUtxosSelectedAsInput, runSendTransaction } = require('../../../helpers/tx.helper');
 const { DEFAULT_PIN } = require('../../../constants');
 
 async function buildTxProposal(req, res) {
@@ -291,11 +291,19 @@ async function signAndPush(req, res) {
     return;
   }
 
-  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
+  const walletLock = lock.get(req.walletId);
+  const canStart = walletLock.lock(lockTypes.SEND_TX);
   if (!canStart) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
+  let lockReleased = false;
+  const unlock = () => {
+    if (!lockReleased) {
+      walletLock.unlock(lockTypes.SEND_TX);
+    }
+    lockReleased = true;
+  };
 
   const { txHex } = req.body;
   const signatures = req.body.signatures || [];
@@ -306,12 +314,12 @@ async function signAndPush(req, res) {
       storage: req.wallet.storage,
       transaction: tx,
     });
-    const response = await sendTransaction.runFromMining();
+    const response = await runSendTransaction(sendTransaction, unlock);
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {
-    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
+    unlock();
   }
 }
 
