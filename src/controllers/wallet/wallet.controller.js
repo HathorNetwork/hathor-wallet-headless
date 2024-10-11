@@ -9,10 +9,10 @@ const { txApi, walletApi, WalletType, constants: hathorLibConstants, helpersUtil
 const { matchedData } = require('express-validator');
 // import is used because there is an issue with winston logger when using require ref: #262
 const { parametersValidation } = require('../../helpers/validations.helper');
-const { lock, lockTypes } = require('../../lock');
-const { cantSendTxErrorMessage, friendlyWalletState } = require('../../helpers/constants');
+const { friendlyWalletState } = require('../../helpers/constants');
 const { mapTxReturn, prepareTxFunds, getTx, markUtxosSelectedAsInput, runSendTransaction } = require('../../helpers/tx.helper');
 const { stopWallet } = require('../../services/wallets.service');
+const { lockSendTx } = require('../../helpers/lock.helper');
 
 /**
  * @typedef {import('@hathor/wallet-lib').SendTransaction} SendTransaction
@@ -264,19 +264,12 @@ async function simpleSendTx(req, res) {
     return;
   }
 
-  const walletLock = lock.get(req.walletId);
-  const canStart = walletLock.lock(lockTypes.SEND_TX);
-  if (!canStart) {
-    res.send({ success: false, error: cantSendTxErrorMessage });
+  const [unlock, errorMsg] = lockSendTx(req.walletId);
+  if (errorMsg !== null) {
+    res.send({ success: false, error: errorMsg });
     return;
   }
-  let lockReleased = false;
-  const unlock = () => {
-    if (!lockReleased) {
-      walletLock.unlock(lockTypes.SEND_TX);
-    }
-    lockReleased = true;
-  };
+
   const { wallet, logger } = req;
   const { address, value, token } = req.body;
   let tokenId;
@@ -468,19 +461,11 @@ async function sendTx(req, res) {
     return;
   }
 
-  const walletLock = lock.get(req.walletId);
-  const canStart = walletLock.lock(lockTypes.SEND_TX);
-  if (!canStart) {
-    res.send({ success: false, error: cantSendTxErrorMessage });
+  const [unlock, errorMsg] = lockSendTx(req.walletId);
+  if (errorMsg !== null) {
+    res.send({ success: false, error: errorMsg });
     return;
   }
-  let lockReleased = false;
-  const unlock = () => {
-    if (!lockReleased) {
-      walletLock.unlock(lockTypes.SEND_TX);
-    }
-    lockReleased = true;
-  };
   /**
    * @type {{wallet: HathorWallet, logger: import('winston').Logger}}
    */
@@ -542,19 +527,11 @@ async function createToken(req, res) {
     return;
   }
 
-  const walletLock = lock.get(req.walletId);
-  const canStart = walletLock.lock(lockTypes.SEND_TX);
-  if (!canStart) {
-    res.send({ success: false, error: cantSendTxErrorMessage });
+  const [unlock, errorMsg] = lockSendTx(req.walletId);
+  if (errorMsg !== null) {
+    res.send({ success: false, error: errorMsg });
     return;
   }
-  let lockReleased = false;
-  const unlock = () => {
-    if (!lockReleased) {
-      walletLock.unlock(lockTypes.SEND_TX);
-    }
-    lockReleased = true;
-  };
 
   const { wallet } = req;
   const { name, symbol, amount } = req.body;
@@ -612,19 +589,11 @@ async function mintTokens(req, res) {
     return;
   }
 
-  const walletLock = lock.get(req.walletId);
-  const canStart = walletLock.lock(lockTypes.SEND_TX);
-  if (!canStart) {
-    res.send({ success: false, error: cantSendTxErrorMessage });
+  const [unlock, errorMsg] = lockSendTx(req.walletId);
+  if (errorMsg !== null) {
+    res.send({ success: false, error: errorMsg });
     return;
   }
-  let lockReleased = false;
-  const unlock = () => {
-    if (!lockReleased) {
-      walletLock.unlock(lockTypes.SEND_TX);
-    }
-    lockReleased = true;
-  };
 
   const { wallet } = req;
   const { token, amount } = req.body;
@@ -668,19 +637,11 @@ async function meltTokens(req, res) {
     return;
   }
 
-  const walletLock = lock.get(req.walletId);
-  const canStart = walletLock.lock(lockTypes.SEND_TX);
-  if (!canStart) {
-    res.send({ success: false, error: cantSendTxErrorMessage });
+  const [unlock, errorMsg] = lockSendTx(req.walletId);
+  if (errorMsg !== null) {
+    res.send({ success: false, error: errorMsg });
     return;
   }
-  let lockReleased = false;
-  const unlock = () => {
-    if (!lockReleased) {
-      walletLock.unlock(lockTypes.SEND_TX);
-    }
-    lockReleased = true;
-  };
 
   const { wallet } = req;
   const { token, amount } = req.body;
@@ -752,19 +713,11 @@ async function utxoConsolidation(req, res) {
     return;
   }
 
-  const walletLock = lock.get(req.walletId);
-  const canStart = walletLock.lock(lockTypes.SEND_TX);
-  if (!canStart) {
-    res.send({ success: false, error: cantSendTxErrorMessage });
+  const [unlock, errorMsg] = lockSendTx(req.walletId);
+  if (errorMsg !== null) {
+    res.send({ success: false, error: errorMsg });
     return;
   }
-  let lockReleased = false;
-  const unlock = () => {
-    if (!lockReleased) {
-      walletLock.unlock(lockTypes.SEND_TX);
-    }
-    lockReleased = true;
-  };
 
   const { wallet } = req;
   const { destination_address: destinationAddress, ...options } = matchedData(req, { locations: ['body'] });
@@ -791,19 +744,11 @@ async function createNft(req, res) {
     return;
   }
 
-  const walletLock = lock.get(req.walletId);
-  const canStart = walletLock.lock(lockTypes.SEND_TX);
-  if (!canStart) {
-    res.send({ success: false, error: cantSendTxErrorMessage });
+  const [unlock, errorMsg] = lockSendTx(req.walletId);
+  if (errorMsg !== null) {
+    res.send({ success: false, error: errorMsg });
     return;
   }
-  let lockReleased = false;
-  const unlock = () => {
-    if (!lockReleased) {
-      walletLock.unlock(lockTypes.SEND_TX);
-    }
-    lockReleased = true;
-  };
 
   const { wallet } = req;
   const { name, symbol, amount, data } = req.body;

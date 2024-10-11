@@ -17,10 +17,10 @@ const {
 const atomicSwapService = require('../../../services/atomic-swap.service');
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
-const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 const { mapTxReturn, runSendTransaction } = require('../../../helpers/tx.helper');
 const constants = require('../../../constants');
 const { removeListenedProposal } = require('../../../services/atomic-swap.service');
+const { lockSendTx } = require('../../../helpers/lock.helper');
 
 /**
  * Build or update a partial transaction proposal.
@@ -310,19 +310,11 @@ async function signAndPush(req, res) {
     return;
   }
 
-  const walletLock = lock.get(req.walletId);
-  const canStart = walletLock.lock(lockTypes.SEND_TX);
-  if (!canStart) {
-    res.send({ success: false, error: cantSendTxErrorMessage });
+  const [unlock, errorMsg] = lockSendTx(req.walletId);
+  if (errorMsg !== null) {
+    res.send({ success: false, error: errorMsg });
     return;
   }
-  let lockReleased = false;
-  const unlock = () => {
-    if (!lockReleased) {
-      walletLock.unlock(lockTypes.SEND_TX);
-    }
-    lockReleased = true;
-  };
 
   const partialTx = req.body.partial_tx;
   const sigs = req.body.signatures || [];

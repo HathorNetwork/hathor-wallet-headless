@@ -11,10 +11,9 @@ const {
   transactionUtils,
 } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../../helpers/validations.helper');
-const { lock, lockTypes } = require('../../../lock');
-const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 const { mapTxReturn, markUtxosSelectedAsInput, runSendTransaction } = require('../../../helpers/tx.helper');
 const { DEFAULT_PIN } = require('../../../constants');
+const { lockSendTx } = require('../../../helpers/lock.helper');
 
 async function buildTxProposal(req, res) {
   const validationResult = parametersValidation(req);
@@ -291,19 +290,11 @@ async function signAndPush(req, res) {
     return;
   }
 
-  const walletLock = lock.get(req.walletId);
-  const canStart = walletLock.lock(lockTypes.SEND_TX);
-  if (!canStart) {
-    res.send({ success: false, error: cantSendTxErrorMessage });
+  const [unlock, errorMsg] = lockSendTx(req.walletId);
+  if (errorMsg !== null) {
+    res.send({ success: false, error: errorMsg });
     return;
   }
-  let lockReleased = false;
-  const unlock = () => {
-    if (!lockReleased) {
-      walletLock.unlock(lockTypes.SEND_TX);
-    }
-    lockReleased = true;
-  };
 
   const { txHex } = req.body;
   const signatures = req.body.signatures || [];

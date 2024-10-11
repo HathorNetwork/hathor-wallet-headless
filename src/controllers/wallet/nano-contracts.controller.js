@@ -7,9 +7,8 @@
 
 const { ncApi, nanoUtils, bufferUtils, NanoContractSerializer } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../helpers/validations.helper');
-const { lock, lockTypes } = require('../../lock');
-const { cantSendTxErrorMessage } = require('../../helpers/constants');
 const { mapTxReturn, runSendTransaction } = require('../../helpers/tx.helper');
+const { lockSendTx } = require('../../helpers/lock.helper');
 
 /**
  * Get state fields of a nano contract
@@ -83,21 +82,13 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
     return;
   }
 
-  const walletLock = lock.get(req.walletId);
-  const canStart = walletLock.lock(lockTypes.SEND_TX);
-  if (!canStart) {
+  const [unlock, errorMsg] = lockSendTx(req.walletId);
+  if (errorMsg !== null) {
     // TODO: return status code 423
     // we should do this refactor in the future for all APIs
-    res.send({ success: false, error: cantSendTxErrorMessage });
+    res.send({ success: false, error: errorMsg });
     return;
   }
-  let lockReleased = false;
-  const unlock = () => {
-    if (!lockReleased) {
-      walletLock.unlock(lockTypes.SEND_TX);
-    }
-    lockReleased = true;
-  };
 
   const { wallet } = req;
   const { blueprint_id: blueprintId, nc_id: ncId, address, data } = req.body;
