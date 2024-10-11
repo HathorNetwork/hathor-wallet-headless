@@ -6,6 +6,7 @@
  */
 
 const { lock, lockTypes } = require('../lock');
+const { hsmWalletIds } = require('../services/wallets.service');
 
 /**
  * Acquire the SEND_TX lock for a wallet and return the method to unlock it.
@@ -15,7 +16,14 @@ const { lock, lockTypes } = require('../lock');
  *
  */
 function lockSendTx(walletId) {
-  const walletLock = lock.get(walletId);
+  let walletLock;
+  if (hsmWalletIds.has(walletId)) {
+    // This is an HSM wallet and the walletLock should be global.
+    walletLock = lock.hsmLock;
+  } else {
+    walletLock = lock.get(walletId);
+  }
+
   const canStart = walletLock.lock(lockTypes.SEND_TX);
   if (!canStart) {
     return null;
