@@ -111,8 +111,8 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
     const tx = await runSendTransaction(sendTransaction, unlock);
     res.send({ success: true, ...mapTxReturn(tx) });
   } catch (err) {
-    // The unlock method should be always called.
-    // runSendTransaction method already calls unlock, so we can manually call it only in the catch block
+    // The unlock method should be always called. `runSendTransaction` method
+    // already calls unlock, so we can manually call it only in the catch block.
     unlock();
     res.send({ success: false, error: err.message });
   }

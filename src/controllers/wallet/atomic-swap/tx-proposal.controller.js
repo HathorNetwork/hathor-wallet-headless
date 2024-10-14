@@ -326,8 +326,8 @@ async function signAndPush(req, res) {
     const response = await runSendTransaction(sendTransaction, unlock);
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
-    // The unlock method should be always called.
-    // runSendTransaction method already calls unlock, so we can manually call it only in the catch block
+    // The unlock method should be always called. `runSendTransaction` method
+    // already calls unlock, so we can manually call it only in the catch block.
     unlock();
     res.send({ success: false, error: err.message });
   }
