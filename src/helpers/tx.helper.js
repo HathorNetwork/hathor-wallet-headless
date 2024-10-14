@@ -271,7 +271,7 @@ async function runSendTransaction(sendTx, unlock) {
     }
     await sendTx.updateOutputSelected(true);
   } finally {
-    // If an error happens of things go as planned we release the lock
+    // If an error happens or things go as planned we release the lock
     unlock();
   }
 
