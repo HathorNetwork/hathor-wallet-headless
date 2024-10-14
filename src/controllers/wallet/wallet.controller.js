@@ -298,10 +298,11 @@ async function simpleSendTx(req, res) {
     const tx = await runSendTransaction(sendTransaction, unlock);
     res.send({ success: true, ...mapTxReturn(tx) });
   } catch (err) {
+    // The unlock method should be always called.
+    // runSendTransaction method already calls unlock, so we can manually call it only in the catch block
+    unlock();
     logger.error(err);
     res.send({ success: false, error: err.message });
-  } finally {
-    unlock();
   }
 }
 
@@ -503,6 +504,9 @@ async function sendTx(req, res) {
     const tx = await runSendTransaction(sendTransaction, unlock);
     res.send({ success: true, ...mapTxReturn(tx) });
   } catch (err) {
+    // The unlock method should be always called.
+    // runSendTransaction method already calls unlock, so we can manually call it only in the catch block
+    unlock();
     const ret = { success: false, error: err.message };
     if (debug) {
       logger.debug('/send-tx failed', {
@@ -515,7 +519,6 @@ async function sendTx(req, res) {
     if (debug) {
       wallet.disableDebugMode();
     }
-    unlock();
   }
 }
 
@@ -575,9 +578,10 @@ async function createToken(req, res) {
     );
     res.send({ success: true, configurationString, ...mapTxReturn(tx) });
   } catch (err) {
-    res.send({ success: false, error: err.message });
-  } finally {
+    // The unlock method should be always called.
+    // runSendTransaction method already calls unlock, so we can manually call it only in the catch block
     unlock();
+    res.send({ success: false, error: err.message });
   }
 }
 
@@ -624,9 +628,10 @@ async function mintTokens(req, res) {
     const tx = await runSendTransaction(sendTransaction, unlock);
     res.send({ success: true, ...mapTxReturn(tx) });
   } catch (err) {
-    res.send({ success: false, error: err.message });
-  } finally {
+    // The unlock method should be always called.
+    // runSendTransaction method already calls unlock, so we can manually call it only in the catch block
     unlock();
+    res.send({ success: false, error: err.message });
   }
 }
 
@@ -672,9 +677,10 @@ async function meltTokens(req, res) {
     const tx = await runSendTransaction(sendTransaction, unlock);
     res.send({ success: true, ...mapTxReturn(tx) });
   } catch (err) {
-    res.send({ success: false, error: err.message });
-  } finally {
+    // The unlock method should be always called.
+    // runSendTransaction method already calls unlock, so we can manually call it only in the catch block
     unlock();
+    res.send({ success: false, error: err.message });
   }
 }
 
@@ -731,9 +737,10 @@ async function utxoConsolidation(req, res) {
     const tx = await runSendTransaction(sendTransaction, unlock);
     res.send({ success: true, txId: tx.hash, ...rest });
   } catch (err) {
-    res.send({ success: false, error: err.message });
-  } finally {
+    // The unlock method should be always called.
+    // runSendTransaction method already calls unlock, so we can manually call it only in the catch block
     unlock();
+    res.send({ success: false, error: err.message });
   }
 }
 
@@ -789,9 +796,10 @@ async function createNft(req, res) {
     );
     res.send({ success: true, configurationString, ...mapTxReturn(tx) });
   } catch (err) {
-    res.send({ success: false, error: err.message });
-  } finally {
+    // The unlock method should be always called.
+    // runSendTransaction method already calls unlock, so we can manually call it only in the catch block
     unlock();
+    res.send({ success: false, error: err.message });
   }
 }
 
