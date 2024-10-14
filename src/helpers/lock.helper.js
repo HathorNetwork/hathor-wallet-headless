@@ -19,7 +19,7 @@ function lockSendTx(walletId) {
   const walletLock = lock.get(walletId);
   const canStart = walletLock.lock(lockTypes.SEND_TX);
   if (!canStart) {
-    return [() => {}, cantSendTxErrorMessage];
+    return [() => null, cantSendTxErrorMessage];
   }
 
   let lockReleased = false;
