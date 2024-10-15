@@ -17,10 +17,11 @@ const {
 const atomicSwapService = require('../../../services/atomic-swap.service');
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { lock, lockTypes } = require('../../../lock');
-const { cantSendTxErrorMessage } = require('../../../helpers/constants');
-const { mapTxReturn } = require('../../../helpers/tx.helper');
+const { mapTxReturn, runSendTransaction } = require('../../../helpers/tx.helper');
 const constants = require('../../../constants');
 const { removeListenedProposal } = require('../../../services/atomic-swap.service');
+const { lockSendTx } = require('../../../helpers/lock.helper');
+const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 
 /**
  * Build or update a partial transaction proposal.
@@ -310,8 +311,8 @@ async function signAndPush(req, res) {
     return;
   }
 
-  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
-  if (!canStart) {
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
@@ -323,12 +324,13 @@ async function signAndPush(req, res) {
     const transaction = atomicSwapService.assembleTransaction(partialTx, sigs, req.wallet.storage);
 
     const sendTransaction = new SendTransaction({ transaction, storage: req.wallet.storage });
-    const response = await sendTransaction.runFromMining();
+    const response = await runSendTransaction(sendTransaction, unlock);
     res.send({ success: true, ...mapTxReturn(response) });
   } catch (err) {
+    // The unlock method should be always called. `runSendTransaction` method
+    // already calls unlock, so we can manually call it only in the catch block.
+    unlock();
     res.send({ success: false, error: err.message });
-  } finally {
-    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 
