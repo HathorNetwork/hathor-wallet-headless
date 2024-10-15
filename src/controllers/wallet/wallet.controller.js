@@ -9,7 +9,7 @@ const { txApi, walletApi, WalletType, constants: hathorLibConstants, helpersUtil
 const { matchedData } = require('express-validator');
 // import is used because there is an issue with winston logger when using require ref: #262
 const { parametersValidation } = require('../../helpers/validations.helper');
-const { friendlyWalletState } = require('../../helpers/constants');
+const { friendlyWalletState, cantSendTxErrorMessage } = require('../../helpers/constants');
 const { mapTxReturn, prepareTxFunds, getTx, markUtxosSelectedAsInput, runSendTransaction } = require('../../helpers/tx.helper');
 const { stopWallet } = require('../../services/wallets.service');
 const { lockSendTx } = require('../../helpers/lock.helper');
@@ -264,9 +264,9 @@ async function simpleSendTx(req, res) {
     return;
   }
 
-  const [unlock, errorMsg] = lockSendTx(req.walletId);
-  if (errorMsg !== null) {
-    res.send({ success: false, error: errorMsg });
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
+    res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
 
@@ -462,9 +462,9 @@ async function sendTx(req, res) {
     return;
   }
 
-  const [unlock, errorMsg] = lockSendTx(req.walletId);
-  if (errorMsg !== null) {
-    res.send({ success: false, error: errorMsg });
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
+    res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
   /**
@@ -530,9 +530,9 @@ async function createToken(req, res) {
     return;
   }
 
-  const [unlock, errorMsg] = lockSendTx(req.walletId);
-  if (errorMsg !== null) {
-    res.send({ success: false, error: errorMsg });
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
+    res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
 
@@ -593,9 +593,9 @@ async function mintTokens(req, res) {
     return;
   }
 
-  const [unlock, errorMsg] = lockSendTx(req.walletId);
-  if (errorMsg !== null) {
-    res.send({ success: false, error: errorMsg });
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
+    res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
 
@@ -642,9 +642,9 @@ async function meltTokens(req, res) {
     return;
   }
 
-  const [unlock, errorMsg] = lockSendTx(req.walletId);
-  if (errorMsg !== null) {
-    res.send({ success: false, error: errorMsg });
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
+    res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
 
@@ -719,9 +719,9 @@ async function utxoConsolidation(req, res) {
     return;
   }
 
-  const [unlock, errorMsg] = lockSendTx(req.walletId);
-  if (errorMsg !== null) {
-    res.send({ success: false, error: errorMsg });
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
+    res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
 
@@ -751,9 +751,9 @@ async function createNft(req, res) {
     return;
   }
 
-  const [unlock, errorMsg] = lockSendTx(req.walletId);
-  if (errorMsg !== null) {
-    res.send({ success: false, error: errorMsg });
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
+    res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
 

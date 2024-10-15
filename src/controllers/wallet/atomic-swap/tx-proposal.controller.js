@@ -21,6 +21,7 @@ const { mapTxReturn, runSendTransaction } = require('../../../helpers/tx.helper'
 const constants = require('../../../constants');
 const { removeListenedProposal } = require('../../../services/atomic-swap.service');
 const { lockSendTx } = require('../../../helpers/lock.helper');
+const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 
 /**
  * Build or update a partial transaction proposal.
@@ -310,9 +311,9 @@ async function signAndPush(req, res) {
     return;
   }
 
-  const [unlock, errorMsg] = lockSendTx(req.walletId);
-  if (errorMsg !== null) {
-    res.send({ success: false, error: errorMsg });
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
+    res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
 

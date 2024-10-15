@@ -14,6 +14,7 @@ const { parametersValidation } = require('../../../helpers/validations.helper');
 const { mapTxReturn, markUtxosSelectedAsInput, runSendTransaction } = require('../../../helpers/tx.helper');
 const { DEFAULT_PIN } = require('../../../constants');
 const { lockSendTx } = require('../../../helpers/lock.helper');
+const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 
 async function buildTxProposal(req, res) {
   const validationResult = parametersValidation(req);
@@ -290,9 +291,9 @@ async function signAndPush(req, res) {
     return;
   }
 
-  const [unlock, errorMsg] = lockSendTx(req.walletId);
-  if (errorMsg !== null) {
-    res.send({ success: false, error: errorMsg });
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
+    res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
 

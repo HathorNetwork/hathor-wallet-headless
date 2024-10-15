@@ -6,20 +6,19 @@
  */
 
 const { lock, lockTypes } = require('../lock');
-const { cantSendTxErrorMessage } = require('./constants');
 
 /**
  * Acquire the SEND_TX lock for a wallet and return the method to unlock it.
  *
  * @param {string} walletId
- * @return {[CallableFunction, string|null]} The unlock function and the error message.
+ * @return {CallableFunction|null} The function to unlock the SEND_TX lock.
  *
  */
 function lockSendTx(walletId) {
   const walletLock = lock.get(walletId);
   const canStart = walletLock.lock(lockTypes.SEND_TX);
   if (!canStart) {
-    return [() => null, cantSendTxErrorMessage];
+    return null;
   }
 
   let lockReleased = false;
@@ -30,7 +29,7 @@ function lockSendTx(walletId) {
     }
   };
 
-  return [unlock, null];
+  return unlock;
 }
 
 module.exports = {

@@ -9,6 +9,7 @@ const { ncApi, nanoUtils, bufferUtils, NanoContractSerializer } = require('@hath
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { mapTxReturn, runSendTransaction } = require('../../helpers/tx.helper');
 const { lockSendTx } = require('../../helpers/lock.helper');
+const { cantSendTxErrorMessage } = require('../../helpers/constants');
 
 /**
  * Get state fields of a nano contract
@@ -82,11 +83,11 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
     return;
   }
 
-  const [unlock, errorMsg] = lockSendTx(req.walletId);
-  if (errorMsg !== null) {
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
     // TODO: return status code 423
     // we should do this refactor in the future for all APIs
-    res.send({ success: false, error: errorMsg });
+    res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
 
