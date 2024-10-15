@@ -3750,6 +3750,24 @@ const defaultApiDocs = {
               },
             }
           },
+          {
+            name: 'block_hash',
+            in: 'query',
+            description: 'Hash of the block to get the state.',
+            required: false,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'block_height',
+            in: 'query',
+            description: 'Height of the block to get the state.',
+            required: false,
+            schema: {
+              type: 'integer',
+            },
+          },
         ],
         responses: {
           200: {
@@ -3823,6 +3841,15 @@ const defaultApiDocs = {
             name: 'after',
             in: 'query',
             description: 'Hash of transaction to offset the result.',
+            required: false,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'before',
+            in: 'query',
+            description: 'Hash of transaction to offset the result for previous transactions.',
             required: false,
             schema: {
               type: 'string',
