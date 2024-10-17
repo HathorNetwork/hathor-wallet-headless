@@ -16,7 +16,7 @@ const {
 } = require('@hathor/wallet-lib');
 const atomicSwapService = require('../../../services/atomic-swap.service');
 const { parametersValidation } = require('../../../helpers/validations.helper');
-const { lock, lockTypes } = require('../../../lock');
+const { lockTypes } = require('../../../lock');
 const { mapTxReturn, runSendTransaction } = require('../../../helpers/tx.helper');
 const constants = require('../../../constants');
 const { removeListenedProposal } = require('../../../services/atomic-swap.service');

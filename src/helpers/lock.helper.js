@@ -16,9 +16,8 @@ function getWalletLock(walletId) {
   if (hsmWalletIds.has(walletId)) {
     // This is an HSM wallet and the walletLock should be global.
     return lock.hsmLock;
-  } else {
-    return lock.get(walletId);
   }
+  return lock.get(walletId);
 }
 
 /**
