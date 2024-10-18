@@ -78,6 +78,9 @@ class GlobalLock {
     // This is the global lock since some methods are required to be
     // running only once across all wallets.
     this.globalLock = new Lock();
+    // HSM wallets need to share the same send-tx lock because the SDK does not
+    // allow 2 open connections at the same time.
+    this._hsmLock = new Lock();
   }
 
   delete(walletId) {
@@ -102,6 +105,10 @@ class GlobalLock {
 
   unlock(type) {
     this.globalLock.unlock(type);
+  }
+
+  get hsmLock() {
+    return this._hsmLock;
   }
 }
 
