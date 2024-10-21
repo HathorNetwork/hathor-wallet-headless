@@ -16,11 +16,11 @@ const {
 } = require('@hathor/wallet-lib');
 const atomicSwapService = require('../../../services/atomic-swap.service');
 const { parametersValidation } = require('../../../helpers/validations.helper');
-const { lock, lockTypes } = require('../../../lock');
+const { lockTypes } = require('../../../lock');
 const { mapTxReturn, runSendTransaction } = require('../../../helpers/tx.helper');
 const constants = require('../../../constants');
 const { removeListenedProposal } = require('../../../services/atomic-swap.service');
-const { lockSendTx } = require('../../../helpers/lock.helper');
+const { lockSendTx, getWalletLock } = require('../../../helpers/lock.helper');
 const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 
 /**
@@ -407,7 +407,7 @@ async function unlockInputs(req, res) {
     return;
   }
 
-  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
+  const canStart = getWalletLock(req.walletId).lock(lockTypes.SEND_TX);
   if (!canStart) {
     res.send({ success: false, error: 'Cannot run this method while a transaction is being sent.' });
     return;
@@ -427,7 +427,7 @@ async function unlockInputs(req, res) {
   } catch (err) {
     res.send({ success: false, error: err.message });
   } finally {
-    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
+    getWalletLock(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 

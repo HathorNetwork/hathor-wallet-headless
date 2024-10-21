@@ -6,6 +6,19 @@
  */
 
 const { lock, lockTypes } = require('../lock');
+const { hsmWalletIds } = require('../services/wallets.service');
+
+/**
+ * Get the Lock instance for the given walletID.
+ * @param {string} walletId
+ */
+function getWalletLock(walletId) {
+  if (hsmWalletIds.has(walletId)) {
+    // This is an HSM wallet and the walletLock should be global.
+    return lock.hsmLock;
+  }
+  return lock.get(walletId);
+}
 
 /**
  * Acquire the SEND_TX lock for a wallet and return the method to unlock it.
@@ -15,7 +28,8 @@ const { lock, lockTypes } = require('../lock');
  *
  */
 function lockSendTx(walletId) {
-  const walletLock = lock.get(walletId);
+  const walletLock = getWalletLock(walletId);
+
   const canStart = walletLock.lock(lockTypes.SEND_TX);
   if (!canStart) {
     return null;
@@ -34,4 +48,5 @@ function lockSendTx(walletId) {
 
 module.exports = {
   lockSendTx,
+  getWalletLock,
 };
