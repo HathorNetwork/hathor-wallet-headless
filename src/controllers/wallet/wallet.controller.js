@@ -9,11 +9,25 @@ const { txApi, walletApi, WalletType, constants: hathorLibConstants, helpersUtil
 const { matchedData } = require('express-validator');
 // import is used because there is an issue with winston logger when using require ref: #262
 const { parametersValidation } = require('../../helpers/validations.helper');
-const { lock, lockTypes } = require('../../lock');
-const { cantSendTxErrorMessage, friendlyWalletState } = require('../../helpers/constants');
-const { mapTxReturn, prepareTxFunds, getTx, markUtxosSelectedAsInput } = require('../../helpers/tx.helper');
+const { friendlyWalletState, cantSendTxErrorMessage } = require('../../helpers/constants');
+const { mapTxReturn, prepareTxFunds, getTx, markUtxosSelectedAsInput, runSendTransaction } = require('../../helpers/tx.helper');
 const { stopWallet } = require('../../services/wallets.service');
+const { lockSendTx } = require('../../helpers/lock.helper');
 
+/**
+ * @typedef {import('@hathor/wallet-lib').SendTransaction} SendTransaction
+ * @typedef {import('@hathor/wallet-lib').HathorWallet} HathorWallet
+ * @typedef {import('winston').Logger} Logger
+ * @typedef {{ walletId: string, wallet: HathorWallet, logger: Logger }} HathorRequestExtras
+ * @typedef {import('express').Request} ExpressRequest
+ * @typedef {ExpressRequest & HathorRequestExtras} Request
+ * @typedef {import('express').Response} Response
+ */
+
+/**
+ * @param {Request} req
+ * @param {Response} res
+ */
 async function getStatus(req, res) {
   /**
    * @type {HathorWallet} wallet - Wallet object
@@ -239,6 +253,10 @@ async function getTxConfirmationBlocks(req, res) {
   res.send({ success: true, confirmationNumber });
 }
 
+/**
+ * @param {Request} req
+ * @param {Response} res
+ */
 async function simpleSendTx(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
@@ -246,14 +264,12 @@ async function simpleSendTx(req, res) {
     return;
   }
 
-  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
-  if (!canStart) {
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
-  /**
-   * @type {{wallet: HathorWallet, logger: import('winston').Logger}}
-   */
+
   const { wallet, logger } = req;
   const { address, value, token } = req.body;
   let tokenId;
@@ -267,21 +283,26 @@ async function simpleSendTx(req, res) {
     tokenId = hathorLibConstants.NATIVE_TOKEN_UID;
   }
   const changeAddress = req.body.change_address || null;
+
   try {
     if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
       throw new Error('Change address is not from this wallet');
     }
-    const response = await wallet.sendTransaction(
+
+    /** @type {SendTransaction} */
+    const sendTransaction = await wallet.sendTransactionInstance(
       address,
       value,
-      { token: tokenId, changeAddress }
+      { token: tokenId, changeAddress },
     );
-    res.send({ success: true, ...mapTxReturn(response) });
+    const tx = await runSendTransaction(sendTransaction, unlock);
+    res.send({ success: true, ...mapTxReturn(tx) });
   } catch (err) {
+    // The unlock method should be always called. `runSendTransaction` method
+    // already calls unlock, so we can manually call it only in the catch block.
+    unlock();
     logger.error(err);
     res.send({ success: false, error: err.message });
-  } finally {
-    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 
@@ -441,8 +462,8 @@ async function sendTx(req, res) {
     return;
   }
 
-  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
-  if (!canStart) {
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
@@ -462,7 +483,7 @@ async function sendTx(req, res) {
     (req.body.token && req.body.token.uid) || hathorLibConstants.NATIVE_TOKEN_UID,
   );
   if (!preparedFundsResponse.success) {
-    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
+    unlock();
     res.send(preparedFundsResponse);
     return;
   }
@@ -475,9 +496,17 @@ async function sendTx(req, res) {
   }
 
   try {
-    const response = await wallet.sendManyOutputsTransaction(outputs, { inputs, changeAddress });
-    res.send({ success: true, ...mapTxReturn(response) });
+    /** @type {SendTransaction} */
+    const sendTransaction = await wallet.sendManyOutputsSendTransaction(
+      outputs,
+      { inputs, changeAddress },
+    );
+    const tx = await runSendTransaction(sendTransaction, unlock);
+    res.send({ success: true, ...mapTxReturn(tx) });
   } catch (err) {
+    // The unlock method should be always called. `runSendTransaction` method
+    // already calls unlock, so we can manually call it only in the catch block.
+    unlock();
     const ret = { success: false, error: err.message };
     if (debug) {
       logger.debug('/send-tx failed', {
@@ -490,7 +519,6 @@ async function sendTx(req, res) {
     if (debug) {
       wallet.disableDebugMode();
     }
-    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 
@@ -502,8 +530,8 @@ async function createToken(req, res) {
     return;
   }
 
-  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
-  if (!canStart) {
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
@@ -524,7 +552,8 @@ async function createToken(req, res) {
       throw new Error('Change address is not from this wallet');
     }
 
-    const response = await wallet.createNewToken(
+    /** @type {SendTransaction} */
+    const sendTransaction = await wallet.createNewTokenSendTransaction(
       name,
       symbol,
       amount,
@@ -540,17 +569,19 @@ async function createToken(req, res) {
         data,
       }
     );
+    const tx = await runSendTransaction(sendTransaction, unlock);
 
     const configurationString = tokensUtils.getConfigurationString(
-      response.hash,
-      response.name,
-      response.symbol
+      tx.hash,
+      tx.name,
+      tx.symbol
     );
-    res.send({ success: true, configurationString, ...mapTxReturn(response) });
+    res.send({ success: true, configurationString, ...mapTxReturn(tx) });
   } catch (err) {
+    // The unlock method should be always called. `runSendTransaction` method
+    // already calls unlock, so we can manually call it only in the catch block.
+    unlock();
     res.send({ success: false, error: err.message });
-  } finally {
-    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 
@@ -562,8 +593,8 @@ async function mintTokens(req, res) {
     return;
   }
 
-  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
-  if (!canStart) {
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
@@ -581,7 +612,8 @@ async function mintTokens(req, res) {
     if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
       throw new Error('Change address is not from this wallet');
     }
-    const response = await wallet.mintTokens(
+    /** @type {SendTransaction} */
+    const sendTransaction = await wallet.mintTokensSendTransaction(
       token,
       amount,
       {
@@ -593,11 +625,13 @@ async function mintTokens(req, res) {
         data,
       }
     );
-    res.send({ success: true, ...mapTxReturn(response) });
+    const tx = await runSendTransaction(sendTransaction, unlock);
+    res.send({ success: true, ...mapTxReturn(tx) });
   } catch (err) {
+    // The unlock method should be always called. `runSendTransaction` method
+    // already calls unlock, so we can manually call it only in the catch block.
+    unlock();
     res.send({ success: false, error: err.message });
-  } finally {
-    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 
@@ -608,8 +642,8 @@ async function meltTokens(req, res) {
     return;
   }
 
-  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
-  if (!canStart) {
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
@@ -627,7 +661,8 @@ async function meltTokens(req, res) {
     if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
       throw new Error('Change address is not from this wallet');
     }
-    const response = await wallet.meltTokens(
+    /** @type {SendTransaction} */
+    const sendTransaction = await wallet.meltTokensSendTransaction(
       token,
       amount,
       {
@@ -639,11 +674,13 @@ async function meltTokens(req, res) {
         data,
       }
     );
-    res.send({ success: true, ...mapTxReturn(response) });
+    const tx = await runSendTransaction(sendTransaction, unlock);
+    res.send({ success: true, ...mapTxReturn(tx) });
   } catch (err) {
+    // The unlock method should be always called. `runSendTransaction` method
+    // already calls unlock, so we can manually call it only in the catch block.
+    unlock();
     res.send({ success: false, error: err.message });
-  } finally {
-    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 
@@ -682,8 +719,8 @@ async function utxoConsolidation(req, res) {
     return;
   }
 
-  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
-  if (!canStart) {
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
@@ -692,12 +729,18 @@ async function utxoConsolidation(req, res) {
   const { destination_address: destinationAddress, ...options } = matchedData(req, { locations: ['body'] });
 
   try {
-    const response = await wallet.consolidateUtxos(destinationAddress, options);
-    res.send({ success: true, ...response });
+    /** @type {SendTransaction} */
+    const { sendTx: sendTransaction, ...rest } = await wallet.consolidateUtxosSendTransaction(
+      destinationAddress,
+      options,
+    );
+    const tx = await runSendTransaction(sendTransaction, unlock);
+    res.send({ success: true, txId: tx.hash, ...rest });
   } catch (err) {
+    // The unlock method should be always called. `runSendTransaction` method
+    // already calls unlock, so we can manually call it only in the catch block.
+    unlock();
     res.send({ success: false, error: err.message });
-  } finally {
-    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 
@@ -708,8 +751,8 @@ async function createNft(req, res) {
     return;
   }
 
-  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
-  if (!canStart) {
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
     res.send({ success: false, error: cantSendTxErrorMessage });
     return;
   }
@@ -728,7 +771,8 @@ async function createNft(req, res) {
     if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
       throw new Error('Change address is not from this wallet');
     }
-    const response = await wallet.createNFT(
+    /** @type {SendTransaction} */
+    const sendTransaction = await wallet.createNFTSendTransaction(
       name,
       symbol,
       amount,
@@ -744,16 +788,18 @@ async function createNft(req, res) {
         allowExternalMeltAuthorityAddress,
       }
     );
+    const tx = await runSendTransaction(sendTransaction, unlock);
     const configurationString = tokensUtils.getConfigurationString(
-      response.hash,
-      response.name,
-      response.symbol
+      tx.hash,
+      tx.name,
+      tx.symbol
     );
-    res.send({ success: true, configurationString, ...mapTxReturn(response) });
+    res.send({ success: true, configurationString, ...mapTxReturn(tx) });
   } catch (err) {
+    // The unlock method should be always called. `runSendTransaction` method
+    // already calls unlock, so we can manually call it only in the catch block.
+    unlock();
     res.send({ success: false, error: err.message });
-  } finally {
-    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 
