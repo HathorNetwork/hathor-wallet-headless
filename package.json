@@ -1,6 +1,6 @@
 {
   "name": "hathor-wallet-headless",
-  "version": "0.32.0-rc.1",
+  "version": "0.32.0",
   "description": "Hathor Wallet Headless, i.e., without graphical user interface",
   "main": "index.js",
   "engines": {
@@ -10,7 +10,7 @@
   "dependencies": {
     "@dinamonetworks/hsm-dinamo": "4.9.1",
     "@hathor/healthcheck-lib": "0.1.0",
-    "@hathor/wallet-lib": "1.13.0",
+    "@hathor/wallet-lib": "1.14.0",
     "axios": "1.7.2",
     "express": "4.18.2",
     "express-validator": "6.10.0",
@@ -58,6 +58,7 @@
     "@babel/node": "7.23.9",
     "@babel/plugin-proposal-class-properties": "7.18.6",
     "@babel/preset-env": "7.24.0",
+    "@types/express": "5.0.0",
     "axios-mock-adapter": "1.22.0",
     "babel-jest": "29.7.0",
     "eslint": "8.57.0",
