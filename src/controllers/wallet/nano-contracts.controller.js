@@ -7,9 +7,9 @@
 
 const { ncApi, nanoUtils, bufferUtils, NanoContractSerializer } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../helpers/validations.helper');
-const { lock, lockTypes } = require('../../lock');
+const { mapTxReturn, runSendTransaction } = require('../../helpers/tx.helper');
+const { lockSendTx } = require('../../helpers/lock.helper');
 const { cantSendTxErrorMessage } = require('../../helpers/constants');
-const { mapTxReturn } = require('../../helpers/tx.helper');
 
 /**
  * Get state fields of a nano contract
@@ -21,10 +21,24 @@ async function getState(req, res) {
     return;
   }
 
-  const { id, fields, balances, calls } = req.query;
+  const {
+    id,
+    fields,
+    balances,
+    calls,
+    block_hash: blockHash,
+    block_height: blockHeight
+  } = req.query;
 
   try {
-    const state = await ncApi.getNanoContractState(id, fields, balances, calls);
+    const state = await ncApi.getNanoContractState(
+      id,
+      fields,
+      balances,
+      calls,
+      blockHash,
+      blockHeight
+    );
 
     res.send({
       success: true,
@@ -45,10 +59,10 @@ async function getHistory(req, res) {
     return;
   }
 
-  const { id, count, after } = req.query;
+  const { id, count, after, before } = req.query;
 
   try {
-    const data = await ncApi.getNanoContractHistory(id, count, after);
+    const data = await ncApi.getNanoContractHistory(id, count, after, before);
 
     res.send({
       success: true,
@@ -83,8 +97,8 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
     return;
   }
 
-  const canStart = lock.get(req.walletId).lock(lockTypes.SEND_TX);
-  if (!canStart) {
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
     // TODO: return status code 423
     // we should do this refactor in the future for all APIs
     res.send({ success: false, error: cantSendTxErrorMessage });
@@ -103,16 +117,19 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
   }
 
   try {
-    const response = await wallet.createAndSendNanoContractTransaction(
+    /** @type {import('@hathor/wallet-lib').SendTransaction} */
+    const sendTransaction = await wallet.createNanoContractTransaction(
       method,
       address,
       data
     );
-    res.send({ success: true, ...mapTxReturn(response) });
+    const tx = await runSendTransaction(sendTransaction, unlock);
+    res.send({ success: true, ...mapTxReturn(tx) });
   } catch (err) {
+    // The unlock method should be always called. `runSendTransaction` method
+    // already calls unlock, so we can manually call it only in the catch block.
+    unlock();
     res.send({ success: false, error: err.message });
-  } finally {
-    lock.get(req.walletId).unlock(lockTypes.SEND_TX);
   }
 }
 
