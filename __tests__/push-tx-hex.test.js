@@ -49,7 +49,7 @@ describe('push tx api', () => {
       error: 'Boom!',
     });
 
-    createSpy.mockImplementation(() => createTxToPush([new Input(FAKE_TX_ID, 0)], [new Output(1, Buffer.from('CAFECAFE', 'hex'))]));
+    createSpy.mockImplementation(() => createTxToPush([new Input(FAKE_TX_ID, 0)], [new Output(1n, Buffer.from('CAFECAFE', 'hex'))]));
     const miningSpy = jest.spyOn(SendTransaction.prototype, 'runFromMining').mockImplementationOnce(async () => {
       throw new Error('Another boom!');
     });
@@ -69,7 +69,7 @@ describe('push tx api', () => {
   });
 
   it('should push valid transactions', async () => {
-    const tx = createTxToPush([new Input(FAKE_TX_ID, 0)], [new Output(1, Buffer.from('CAFECAFE', 'hex'))]);
+    const tx = createTxToPush([new Input(FAKE_TX_ID, 0)], [new Output(1n, Buffer.from('CAFECAFE', 'hex'))]);
     const response = await TestUtils.request
       .post('/push-tx')
       .send({ txHex: tx.toHex() })

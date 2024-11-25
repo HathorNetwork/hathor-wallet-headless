@@ -6,6 +6,7 @@
  */
 
 import { walletUtils } from '@hathor/wallet-lib';
+import { bigIntCoercibleSchema, parseSchema } from '@hathor/wallet-lib/lib/utils/bigint';
 
 export const txHexSchema = {
   txHex: {
@@ -144,7 +145,9 @@ export const atomicSwapCreateSchema = {
         min: 1,
       },
     },
-    toInt: true,
+    customSanitizer: {
+      options: bigIntSanitizer,
+    },
   },
   'receive.tokens': {
     in: ['body'],
@@ -167,7 +170,9 @@ export const atomicSwapCreateSchema = {
         min: 1,
       },
     },
-    toInt: true,
+    customSanitizer: {
+      options: bigIntSanitizer,
+    },
   },
   'receive.tokens.*.timelock': {
     in: ['body'],
@@ -257,8 +262,10 @@ export const txBuildSchema = {
         min: 1,
       },
     },
-    toInt: true,
     optional: true,
+    customSanitizer: {
+      options: bigIntSanitizer,
+    },
   },
   'outputs.*.token': {
     in: ['body'],
@@ -365,7 +372,9 @@ export const queryInputSchema = {
         min: 2,
       },
     },
-    toInt: true,
+    customSanitizer: {
+      options: bigIntSanitizer,
+    },
     optional: true,
   },
   'inputs.*.amount_bigger_than': {
@@ -376,7 +385,9 @@ export const queryInputSchema = {
         min: 1,
       },
     },
-    toInt: true,
+    customSanitizer: {
+      options: bigIntSanitizer,
+    },
     optional: true,
   },
   'inputs.*.maximum_amount': {
@@ -387,8 +398,10 @@ export const queryInputSchema = {
         min: 1,
       },
     },
-    toInt: true,
     optional: true,
+    customSanitizer: {
+      options: bigIntSanitizer,
+    },
   },
 };
 
@@ -518,7 +531,9 @@ export const nanoContractData = {
   'data.actions.*.amount': {
     in: ['body'],
     errorMessage: 'Invalid action amount.',
-    isInt: true,
+    customSanitizer: {
+      options: bigIntSanitizer,
+    },
   },
   'data.actions.*.address': {
     in: ['body'],
@@ -533,3 +548,13 @@ export const nanoContractData = {
     optional: true,
   },
 };
+
+export function bigIntSanitizer(value) {
+  try {
+    return value === undefined || value === null
+      ? value
+      : parseSchema(value, bigIntCoercibleSchema);
+  } catch {
+    return undefined;
+  }
+}
