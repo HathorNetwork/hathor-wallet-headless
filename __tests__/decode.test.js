@@ -146,7 +146,7 @@ describe('decode api', () => {
     let script = new P2PKH(address);
     partialTx.outputs.push(
       new ProposalOutput(
-        10,
+        10n,
         script.createScript(),
         { token: fakeToken1, tokenData: 1 }
       )
@@ -154,28 +154,19 @@ describe('decode api', () => {
 
     address = new Address(TestUtils.addresses[1]);
     script = new P2PKH(address);
-    partialTx.outputs.push(new ProposalOutput(20, script.createScript()));
+    partialTx.outputs.push(new ProposalOutput(20n, script.createScript()));
 
     partialTx.inputs.push(
       new ProposalInput(
         fakeInputHash,
         1,
-        30,
+        30n,
         TestUtils.addresses[2],
         { token: fakeToken2, tokenData: 1 },
       )
     );
 
-    const txHistoryResponse = httpFixtures['/thin_wallet/address_history'];
-    const txHistory = txHistoryResponse.history;
-    const fakeTx = txHistory[0];
-    const fakeTxResponse = {
-      success: true,
-      tx: fakeTx,
-      meta: {
-        first_block_height: 1234,
-      },
-    };
+    const fakeTxResponse = httpFixtures['/transaction'];
     TestUtils.httpMock.onGet('/transaction').reply(200, fakeTxResponse);
 
     // 1 input, 2 outputs
@@ -199,6 +190,7 @@ describe('decode api', () => {
               address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
               type: 'MultiSig',
               timelock: null,
+              value: 6400,
             },
             script: expect.any(String),
             token: '00',

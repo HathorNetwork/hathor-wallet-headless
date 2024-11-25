@@ -292,7 +292,7 @@ describe('create token', () => {
       o => transactionUtils.isAuthorityOutput({ token_data: o.tokenData })
     );
     expect(authorityOutputs.length).toBe(1);
-    expect(authorityOutputs[0].value).toBe(constants.TOKEN_MINT_MASK);
+    expect(BigInt(authorityOutputs[0].value)).toBe(constants.TOKEN_MINT_MASK);
   });
 
   it('should create token with only melt authority', async () => {
@@ -319,7 +319,7 @@ describe('create token', () => {
       o => transactionUtils.isAuthorityOutput({ token_data: o.tokenData })
     );
     expect(authorityOutputs.length).toBe(1);
-    expect(authorityOutputs[0].value).toBe(constants.TOKEN_MELT_MASK);
+    expect(BigInt(authorityOutputs[0].value)).toBe(constants.TOKEN_MELT_MASK);
   });
 
   it('should create token with mint and melt authorities', async () => {
@@ -346,8 +346,8 @@ describe('create token', () => {
       o => transactionUtils.isAuthorityOutput({ token_data: o.tokenData })
     );
     expect(authorityOutputs.length).toBe(2);
-    expect(authorityOutputs.find(o => o.value === constants.TOKEN_MINT_MASK)).toBeTruthy();
-    expect(authorityOutputs.find(o => o.value === constants.TOKEN_MELT_MASK)).toBeTruthy();
+    expect(authorityOutputs.find(o => BigInt(o.value) === constants.TOKEN_MINT_MASK)).toBeTruthy();
+    expect(authorityOutputs.find(o => BigInt(o.value) === constants.TOKEN_MELT_MASK)).toBeTruthy();
   });
 
   it('should create the token and send authority outputs to the correct address', async () => {
@@ -378,14 +378,14 @@ describe('create token', () => {
     );
     expect(authorityOutputs).toHaveLength(2);
     const mintOutput = authorityOutputs.filter(
-      o => o.value === constants.TOKEN_MINT_MASK
+      o => BigInt(o.value) === constants.TOKEN_MINT_MASK
     );
     const mintP2pkh = scriptsUtils.parseP2PKH(Buffer.from(mintOutput[0].script.data), network);
     // Validate that the mint output was sent to the correct address
     expect(mintP2pkh.address.base58).toEqual(address0);
 
     const meltOutput = authorityOutputs.filter(
-      o => o.value === constants.TOKEN_MELT_MASK
+      o => BigInt(o.value) === constants.TOKEN_MELT_MASK
     );
     const meltP2pkh = scriptsUtils.parseP2PKH(Buffer.from(meltOutput[0].script.data), network);
     // Validate that the melt output was sent to the correct address
@@ -454,14 +454,14 @@ describe('create token', () => {
     );
     expect(authorityOutputs).toHaveLength(2);
     const mintOutput = authorityOutputs.filter(
-      o => o.value === constants.TOKEN_MINT_MASK
+      o => BigInt(o.value) === constants.TOKEN_MINT_MASK
     );
     const mintP2pkh = scriptsUtils.parseP2PKH(Buffer.from(mintOutput[0].script.data), network);
     // Validate that the mint output was sent to the correct address
     expect(mintP2pkh.address.base58).toEqual(address2idx0);
 
     const meltOutput = authorityOutputs.filter(
-      o => o.value === constants.TOKEN_MELT_MASK
+      o => BigInt(o.value) === constants.TOKEN_MELT_MASK
     );
     const meltP2pkh = scriptsUtils.parseP2PKH(Buffer.from(meltOutput[0].script.data), network);
     // Validate that the melt output was sent to the correct address

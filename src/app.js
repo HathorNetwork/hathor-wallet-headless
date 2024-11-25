@@ -16,6 +16,8 @@ import mainRouter from './routes/index.routes';
 import { initHathorLib } from './helpers/wallet.helper';
 import { loggerMiddleware } from './middlewares/logger.middleware';
 
+const { bigIntUtils } = require('@hathor/wallet-lib');
+
 // Initializing Hathor Lib
 
 const createApp = config => {
@@ -25,7 +27,18 @@ const createApp = config => {
 
   // Initializing ExpressJS
   const app = express();
-  app.use(express.json());
+
+  // To deal with BigInts in JSONs, which are used mainly in transaction output values, we need
+  // to configure both a custom JSON replacer and a reviver, below.
+
+  // We configure a custom JSON replacer that Express will use to stringify API responses.
+  app.set('json replacer', bigIntUtils.JSONBigInt.bigIntReplacer);
+
+  // We configure a custom JSON reviver that Express will use to parse API requests.
+  app.use(express.json({
+    reviver: bigIntUtils.JSONBigInt.bigIntReviver,
+  }));
+
   app.use(express.urlencoded({ extended: true }));
   app.use(morgan(config.httpLogFormat || 'combined', { stream: logger.stream }));
   app.use(loggerMiddleware);

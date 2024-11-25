@@ -83,7 +83,7 @@ async function buildTxProposal(req, res) {
 
         const addressIndex = await wallet.getAddressIndex(txout.decoded.address);
         const addressPath = addressIndex ? await req.wallet.getAddressPathForIndex(addressIndex) : '';
-        let authorities = 0;
+        let authorities = 0n;
         if (transactionUtils.isMint(txout)) {
           authorities += TOKEN_MINT_MASK;
         }
