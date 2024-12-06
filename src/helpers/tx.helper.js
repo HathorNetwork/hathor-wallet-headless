@@ -51,7 +51,7 @@ function mapTxReturn(tx) {
  * XXX This can be refactored to use the lib methods, specially the storage.selectUtxos
  *
  * @param {HathorWallet} wallet The wallet object
- * @param {number} sumOutputs The sum of outputs of the transaction I need to fill
+ * @param {bigint} sumOutputs The sum of outputs of the transaction I need to fill
  * @param {Object} options The options to filter the utxos
  *                         (see utxo-filter API to see the possibilities)
  */
@@ -69,7 +69,12 @@ async function getUtxosToFillTx(wallet, sumOutputs, options) {
 
   const { utxos } = utxosDetails;
   // Sort utxos with larger amounts first
-  utxos.sort((a, b) => b.amount - a.amount);
+  utxos.sort((a, b) => {
+    if (a.amount < b.amount) {
+      return 1;
+    }
+    return a.amount > b.amount ? -1 : 0;
+  });
 
   if (utxos[0].amount > sumOutputs) {
     // If I have a single utxo capable of providing the full amount
@@ -87,7 +92,7 @@ async function getUtxosToFillTx(wallet, sumOutputs, options) {
     return [utxos[firstSmallerIndex - 1]];
   }
   // Else I get the utxos in order until the full amount is filled
-  let total = 0;
+  let total = 0n;
   const retUtxos = [];
   for (const utxo of utxos) {
     retUtxos.push(utxo);
@@ -132,7 +137,7 @@ async function prepareTxFunds(wallet, outputs, inputs, defaultToken = NATIVE_TOK
    * @typedef TokenOutput
    * A structure to help calculate how many tokens will be needed on send-tx's automatic inputs
    * @property {string} tokenUid Hash identification of the token
-   * @property {number} amount Amount of tokens necessary on the inputs
+   * @property {bigint} amount Amount of tokens necessary on the inputs
    */
 
   /**
@@ -151,14 +156,14 @@ async function prepareTxFunds(wallet, outputs, inputs, defaultToken = NATIVE_TOK
 
     // Updating the `tokens` amount
     if (!tokens.has(output.token)) {
-      tokens.set(output.token, { tokenUid: output.token, amount: 0 });
+      tokens.set(output.token, { tokenUid: output.token, amount: 0n });
     }
 
     if (output.type === 'data') {
       // The data output requires that the user burns 0.01 HTR
       // this must be set here, in order to make the filter_address query
       // work if the inputs are selected by this method
-      output.value = 1;
+      output.value = 1n;
     }
 
     const sumObject = tokens.get(output.token);

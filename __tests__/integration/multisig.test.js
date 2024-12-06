@@ -313,7 +313,7 @@ describe('send tx (HTR)', () => {
       if (decoded.address.base58 === burnAddress) {
         // This is the intended output
         expect(decoded.getType()).toBe('p2pkh');
-        expect(output.value).toBe(10);
+        expect(output.value).toBe(10n);
         continue;
       }
 

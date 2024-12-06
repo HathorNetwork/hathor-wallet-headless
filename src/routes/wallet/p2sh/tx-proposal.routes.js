@@ -17,6 +17,7 @@ const {
   signAndPush,
 } = require('../../../controllers/wallet/p2sh/tx-proposal.controller');
 const { patchExpressRouter } = require('../../../patch');
+const { bigIntSanitizer } = require('../../../schemas');
 
 const txProposalRouter = patchExpressRouter(Router({ mergeParams: true }));
 
@@ -42,7 +43,9 @@ txProposalRouter.post(
           min: 1,
         },
       },
-      toInt: true,
+      customSanitizer: {
+        options: bigIntSanitizer,
+      },
     },
     'outputs.*.token': {
       in: ['body'],
@@ -96,7 +99,7 @@ txProposalRouter.post(
   '/create-token',
   body('name').isString().notEmpty(),
   body('symbol').isString().notEmpty(),
-  body('amount').isInt({ min: 1 }).toInt(),
+  body('amount').isInt({ min: 1 }).customSanitizer(bigIntSanitizer),
   body('address').isString().notEmpty().optional(),
   body('change_address').isString().notEmpty().optional(),
   body('create_mint').isBoolean().optional(),
@@ -112,7 +115,7 @@ txProposalRouter.post(
 txProposalRouter.post(
   '/mint-tokens',
   body('token').isString().notEmpty(),
-  body('amount').isInt({ min: 1 }).toInt(),
+  body('amount').isInt({ min: 1 }).customSanitizer(bigIntSanitizer),
   body('address').isString().notEmpty().optional(),
   body('change_address').isString().notEmpty().optional(),
   body('create_mint').isBoolean().optional(),
@@ -125,7 +128,7 @@ txProposalRouter.post(
 txProposalRouter.post(
   '/melt-tokens',
   body('token').isString().notEmpty(),
-  body('amount').isInt({ min: 1 }).toInt(),
+  body('amount').isInt({ min: 1 }).customSanitizer(bigIntSanitizer),
   body('deposit_address').isString().notEmpty().optional(),
   body('change_address').isString().notEmpty().optional(),
   body('create_melt').isBoolean().optional(),
