@@ -51,7 +51,7 @@ function mapTxReturn(tx) {
  * XXX This can be refactored to use the lib methods, specially the storage.selectUtxos
  *
  * @param {HathorWallet} wallet The wallet object
- * @param {number} sumOutputs The sum of outputs of the transaction I need to fill
+ * @param {bigint} sumOutputs The sum of outputs of the transaction I need to fill
  * @param {Object} options The options to filter the utxos
  *                         (see utxo-filter API to see the possibilities)
  */
