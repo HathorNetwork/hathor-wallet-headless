@@ -384,7 +384,7 @@ describe('melt tokens', () => {
     );
     expect(authorityOutputs).toHaveLength(1);
     const authorityOutput = authorityOutputs[0];
-    expect(authorityOutput.value).toEqual(constants.TOKEN_MELT_MASK);
+    expect(BigInt(authorityOutput.value)).toEqual(constants.TOKEN_MELT_MASK);
     const p2pkh = scriptsUtils.parseP2PKH(Buffer.from(authorityOutput.script.data), network);
     // Validate that the authority output was sent to the correct address
     expect(p2pkh.address.base58).toEqual(address0);
@@ -514,7 +514,7 @@ describe('melt tokens', () => {
     );
     expect(authorityOutputs).toHaveLength(1);
     const authorityOutput = authorityOutputs[0];
-    expect(authorityOutput.value).toEqual(constants.TOKEN_MELT_MASK);
+    expect(BigInt(authorityOutput.value)).toEqual(constants.TOKEN_MELT_MASK);
     const p2pkh = scriptsUtils.parseP2PKH(Buffer.from(authorityOutput.script.data), network);
     // Validate that the authority output was sent to the correct address
     expect(p2pkh.address.base58).toEqual(externalAddress);
