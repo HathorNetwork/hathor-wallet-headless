@@ -101,10 +101,10 @@ describe('get-my-signatures api', () => {
     fromPartialTxSpy.mockImplementation((pt, storage) => createProposal(
       storage,
       [
-        new ProposalInput(fakeTxId, 0, 10, TestUtils.addresses[0]),
+        new ProposalInput(fakeTxId, 0, 10n, TestUtils.addresses[0]),
       ],
       [
-        new ProposalOutput(10, scriptFromAddress(TestUtils.addresses[1])),
+        new ProposalOutput(10n, scriptFromAddress(TestUtils.addresses[1])),
       ],
     ));
 

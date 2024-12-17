@@ -255,30 +255,30 @@ describe('create tx-proposal api', () => {
     expect(tx.getDataToSignHash().toString('hex')).toEqual(response.body.dataToSignHash);
 
     expect(tx.outputs).toEqual(expect.arrayContaining([
-      expect.objectContaining({ value: 1, tokenData: 0, decodedScript: { data: 'cafed00d' } }),
+      expect.objectContaining({ value: 1n, tokenData: 0, decodedScript: { data: 'cafed00d' } }),
       expect.objectContaining({
-        value: 10,
+        value: 10n,
         tokenData: 0,
         decodedScript: expect.objectContaining({
           address: expect.objectContaining({ base58: TestUtils.addresses[0] })
         }),
       }),
       expect.objectContaining({
-        value: 15,
+        value: 15n,
         tokenData: 1,
         decodedScript: expect.objectContaining({
           address: expect.objectContaining({ base58: TestUtils.addresses[1] })
         }),
       }),
       expect.objectContaining({
-        value: 20,
+        value: 20n,
         tokenData: 0,
         decodedScript: expect.objectContaining({
           address: expect.objectContaining({ base58: TestUtils.multisigAddresses[0] })
         }),
       }),
       expect.objectContaining({
-        value: 25,
+        value: 25n,
         tokenData: 1,
         decodedScript: expect.objectContaining({
           address: expect.objectContaining({ base58: TestUtils.multisigAddresses[1] })
@@ -291,17 +291,17 @@ describe('create tx-proposal api', () => {
     // HTR inputs utxos
     // The helper getUtxosToFillTx will filter utxos to send the least amount of inputs.
     spyUtxos.mockReturnValueOnce({
-      total_amount_available: 6400,
+      total_amount_available: 6400n,
       utxos: [
-        { amount: 6400, tx_id: TX_ID, index: 0 },
+        { amount: 6400n, tx_id: TX_ID, index: 0 },
       ],
     });
     // custom token utxos
     // The helper will add both since we need them to fill the output
     spyUtxos.mockReturnValueOnce({
-      total_amount_available: 100,
+      total_amount_available: 100n,
       utxos: [
-        { amount: 100, tx_id: TOKEN_UID, index: 1 },
+        { amount: 100n, tx_id: TOKEN_UID, index: 1 },
       ],
     });
     let response = await TestUtils.request
@@ -332,9 +332,9 @@ describe('create tx-proposal api', () => {
       type: 'query',
       max_utxos: 27,
       filter_address: TestUtils.addresses[2],
-      amount_smaller_than: 20,
-      amount_bigger_than: 10,
-      maximum_amount: 100,
+      amount_smaller_than: 20n,
+      amount_bigger_than: 10n,
+      maximum_amount: 100n,
       token: NATIVE_TOKEN_UID,
       only_available_utxos: true,
     });
@@ -342,18 +342,18 @@ describe('create tx-proposal api', () => {
       type: 'query',
       max_utxos: 27,
       filter_address: TestUtils.addresses[2],
-      amount_smaller_than: 20,
-      amount_bigger_than: 10,
-      maximum_amount: 100,
+      amount_smaller_than: 20n,
+      amount_bigger_than: 10n,
+      maximum_amount: 100n,
       token: TOKEN_UID,
       only_available_utxos: true,
     });
 
     // Will run a similar query but passing only 1 parameter
     spyUtxos.mockReturnValueOnce({
-      total_amount_available: 6400,
+      total_amount_available: 6400n,
       utxos: [
-        { amount: 6400, tx_id: TX_ID, index: 0 },
+        { amount: 6400n, tx_id: TX_ID, index: 0 },
       ],
     });
     response = await TestUtils.request
@@ -401,7 +401,7 @@ describe('create tx-proposal api', () => {
     const tx = helpersUtils.createTxFromHex(response.body.txHex, new Network('testnet'));
     expect(tx.outputs).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        value: 1,
+        value: 1n,
         tokenData: 0,
         decodedScript: expect.objectContaining({
           address: expect.objectContaining({ base58: TestUtils.addresses[0] })

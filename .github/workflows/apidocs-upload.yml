@@ -62,7 +62,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [22.x]
 
     steps:
       # https://github.com/actions/checkout/releases/tag/v4.0.0

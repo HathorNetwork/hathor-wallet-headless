@@ -8,6 +8,7 @@
 const { txApi, walletApi, WalletType, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, transactionUtils, PartialTx } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
 // import is used because there is an issue with winston logger when using require ref: #262
+const { JSONBigInt } = require('@hathor/wallet-lib/lib/utils/bigint');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { friendlyWalletState, cantSendTxErrorMessage } = require('../../helpers/constants');
 const { mapTxReturn, prepareTxFunds, getTx, markUtxosSelectedAsInput, runSendTransaction } = require('../../helpers/tx.helper');
@@ -510,7 +511,7 @@ async function sendTx(req, res) {
     const ret = { success: false, error: err.message };
     if (debug) {
       logger.debug('/send-tx failed', {
-        body: JSON.stringify(req.body),
+        body: JSONBigInt.stringify(req.body),
         response: JSON.stringify(ret),
       });
     }
