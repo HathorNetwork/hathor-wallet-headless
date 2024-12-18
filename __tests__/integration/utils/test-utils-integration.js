@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
 
 import supertest from 'supertest';
-import { txApi, walletApi, HathorWallet, walletUtils } from '@hathor/wallet-lib';
+import superagent from 'superagent';
+import { txApi, walletApi, HathorWallet, walletUtils, bigIntUtils } from '@hathor/wallet-lib';
 import createApp from '../../../src/app';
 import { initializedWallets } from '../../../src/services/wallets.service';
 import { loggers } from './logger.util';
@@ -53,6 +54,18 @@ export class TestUtils {
         if (err) {
           return reject(err);
         }
+        superagent.parse['application/json'] = (res, callback) => {
+          let rawData = '';
+          res.on('data', chunk => { rawData += chunk; });
+          res.on('end', () => {
+            try {
+              res.text = rawData;
+              callback(null, bigIntUtils.JSONBigInt.parse(rawData));
+            } catch (parseErr) {
+              callback(parseErr);
+            }
+          });
+        };
 
         // Ensures the supertest agent will be bound to the correct express port
         request = supertest.agent(server);
