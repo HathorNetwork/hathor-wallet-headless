@@ -15,7 +15,10 @@ const {
   getAddressIndex, getTxConfirmationBlocks,
   utxosSelectedAsInput,
 } = require('../../controllers/wallet/wallet.controller');
-const { txHexSchema, partialTxSchema } = require('../../schemas');
+const {
+  txHexSchema, partialTxSchema, bigIntSanitizer,
+  bigIntValidator
+} = require('../../schemas');
 const p2shRouter = require('./p2sh/p2sh.routes');
 const atomicSwapRouter = require('./atomic-swap/atomic-swap.routes');
 const txProposalRouter = require('./tx-proposal/tx-proposal.routes');
@@ -134,12 +137,12 @@ walletRouter.post(
     },
     value: {
       in: ['body'],
-      isInt: {
-        options: {
-          min: 1
-        }
+      custom: {
+        options: bigIntValidator({ min: 1 }),
       },
-      toInt: true
+      customSanitizer: {
+        options: bigIntSanitizer,
+      },
     },
     change_address: {
       in: ['body'],
@@ -208,12 +211,12 @@ walletRouter.post(
     },
     'outputs.*.value': {
       in: ['body'],
-      isInt: {
-        options: {
-          min: 1
-        }
+      custom: {
+        options: bigIntValidator({ min: 1 }),
       },
-      toInt: true,
+      customSanitizer: {
+        options: bigIntSanitizer,
+      },
       optional: true
     },
     'outputs.*.token': {
@@ -357,7 +360,7 @@ walletRouter.post(
   '/create-token',
   body('name').isString(),
   body('symbol').isString(),
-  body('amount').isInt({ min: 1 }).toInt(),
+  body('amount').custom(bigIntValidator({ min: 1 })).customSanitizer(bigIntSanitizer),
   body('address').isString().optional(),
   body('change_address').isString().optional(),
   body('create_mint').isBoolean().optional().toBoolean(),
@@ -378,7 +381,7 @@ walletRouter.post(
 walletRouter.post(
   '/mint-tokens',
   body('token').isString(),
-  body('amount').isInt({ min: 1 }).toInt(),
+  body('amount').custom(bigIntValidator({ min: 1 })).customSanitizer(bigIntSanitizer),
   body('address').isString().optional(),
   body('change_address').isString().optional(),
   body('mint_authority_address').isString().optional(),
@@ -396,7 +399,7 @@ walletRouter.post(
 walletRouter.post(
   '/melt-tokens',
   body('token').isString(),
-  body('amount').isInt({ min: 1 }).toInt(),
+  body('amount').custom(bigIntValidator({ min: 1 })).customSanitizer(bigIntSanitizer),
   body('change_address').isString().optional(),
   body('deposit_address').isString().optional(),
   body('melt_authority_address').isString().optional(),
@@ -416,9 +419,9 @@ walletRouter.get(
   query('max_utxos').isInt().optional().toInt(),
   query('token').isString().optional(),
   query('filter_address').isString().optional(),
-  query('amount_smaller_than').isInt().optional().toInt(),
-  query('amount_bigger_than').isInt().optional().toInt(),
-  query('maximum_amount').isInt().optional().toInt(),
+  query('amount_smaller_than').custom(bigIntValidator()).optional().customSanitizer(bigIntSanitizer),
+  query('amount_bigger_than').custom(bigIntValidator()).optional().customSanitizer(bigIntSanitizer),
+  query('maximum_amount').custom(bigIntValidator()).optional().customSanitizer(bigIntSanitizer),
   query('only_available_utxos').isBoolean().optional().toBoolean(),
   utxoFilter
 );
@@ -433,9 +436,9 @@ walletRouter.post(
   body('max_utxos').isInt().optional().toInt(),
   body('token').isString().optional(),
   body('filter_address').isString().optional(),
-  body('amount_smaller_than').isInt().optional().toInt(),
-  body('amount_bigger_than').isInt().optional().toInt(),
-  body('maximum_amount').isInt().optional().toInt(),
+  body('amount_smaller_than').custom(bigIntValidator()).optional().customSanitizer(bigIntSanitizer),
+  body('amount_bigger_than').custom(bigIntValidator()).optional().customSanitizer(bigIntSanitizer),
+  body('maximum_amount').custom(bigIntValidator()).optional().customSanitizer(bigIntSanitizer),
   utxoConsolidation
 );
 
@@ -447,7 +450,7 @@ walletRouter.post(
   '/create-nft',
   body('name').isString(),
   body('symbol').isString(),
-  body('amount').isInt({ min: 1 }).toInt(),
+  body('amount').custom(bigIntValidator({ min: 1 })).customSanitizer(bigIntSanitizer),
   body('data').isString().isLength({ max: MAX_DATA_SCRIPT_LENGTH }),
   body('address').isString().optional(),
   body('change_address').isString().optional(),

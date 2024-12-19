@@ -29,8 +29,8 @@ describe('healthcheck api', () => {
   describe('/health', () => {
     it('should return 400 when the x-wallet-id is invalid', async () => {
       const response = await TestUtils.request
-        .query({ wallet_ids: 'invalid' })
-        .get('/health');
+        .get('/health')
+        .query({ wallet_ids: 'invalid' });
 
       expect(response.status).toBe(400);
       expect(response.body).toStrictEqual({
@@ -51,12 +51,12 @@ describe('healthcheck api', () => {
 
     it('should return 200 when all components are healthy', async () => {
       const response = await TestUtils.request
+        .get('/health')
         .query({
           include_tx_mining: true,
           include_fullnode: true,
           wallet_ids: `${walletId},${anotherWalletId}`
-        })
-        .get('/health');
+        });
       expect(response.status).toBe(200);
 
       expect(response.body).toStrictEqual({
@@ -121,8 +121,8 @@ describe('healthcheck api', () => {
       wallet.state = HathorWallet.SYNCING;
 
       const response = await TestUtils.request
-        .query({ include_tx_mining: true, include_fullnode: true, wallet_ids: walletId })
-        .get('/health');
+        .get('/health')
+        .query({ include_tx_mining: true, include_fullnode: true, wallet_ids: walletId });
       expect(response.status).toBe(503);
 
       expect(response.body).toStrictEqual({
@@ -179,8 +179,8 @@ describe('healthcheck api', () => {
       TestUtils.httpMock.onGet('http://fakehost:8083/v1a/health').reply(200, { status: 'fail' });
 
       const response = await TestUtils.request
-        .query({ include_tx_mining: true, include_fullnode: true, wallet_ids: walletId })
-        .get('/health');
+        .get('/health')
+        .query({ include_tx_mining: true, include_fullnode: true, wallet_ids: walletId });
       expect(response.status).toBe(503);
 
       expect(response.body).toStrictEqual({
@@ -229,8 +229,8 @@ describe('healthcheck api', () => {
       TestUtils.httpMock.onGet('http://fakehost:8083/v1a/health').reply(503, { status: 'fail' });
 
       const response = await TestUtils.request
-        .query({ include_tx_mining: true, include_fullnode: true, wallet_ids: walletId })
-        .get('/health');
+        .get('/health')
+        .query({ include_tx_mining: true, include_fullnode: true, wallet_ids: walletId });
       expect(response.status).toBe(503);
 
       expect(response.body).toStrictEqual({
@@ -282,8 +282,8 @@ describe('healthcheck api', () => {
       );
 
       const response = await TestUtils.request
-        .query({ include_tx_mining: true, include_fullnode: true, wallet_ids: walletId })
-        .get('/health');
+        .get('/health')
+        .query({ include_tx_mining: true, include_fullnode: true, wallet_ids: walletId });
       expect(response.status).toBe(503);
 
       expect(response.body).toStrictEqual({
@@ -330,8 +330,8 @@ describe('healthcheck api', () => {
 
     it('should not include the fullnode when the parameter is missing', async () => {
       const response = await TestUtils.request
-        .query({ include_tx_mining: true, wallet_ids: walletId })
-        .get('/health');
+        .get('/health')
+        .query({ include_tx_mining: true, wallet_ids: walletId });
       expect(response.status).toBe(200);
 
       expect(response.body).toStrictEqual({
@@ -367,8 +367,8 @@ describe('healthcheck api', () => {
 
     it('should not include the tx mining service when the parameter is missing', async () => {
       const response = await TestUtils.request
-        .query({ include_fullnode: true, wallet_ids: walletId })
-        .get('/health');
+        .get('/health')
+        .query({ include_fullnode: true, wallet_ids: walletId });
       expect(response.status).toBe(200);
 
       expect(response.body).toStrictEqual({

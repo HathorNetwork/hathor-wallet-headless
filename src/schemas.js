@@ -6,6 +6,9 @@
  */
 
 import { walletUtils } from '@hathor/wallet-lib';
+import { bigIntCoercibleSchema, parseSchema } from '@hathor/wallet-lib/lib/utils/bigint';
+
+const validator = require('validator');
 
 export const txHexSchema = {
   txHex: {
@@ -139,12 +142,12 @@ export const atomicSwapCreateSchema = {
   'send.tokens.*.value': {
     in: ['body'],
     errorMessage: 'Invalid value',
-    isInt: {
-      options: {
-        min: 1,
-      },
+    custom: {
+      options: bigIntValidator({ min: 1 }),
     },
-    toInt: true,
+    customSanitizer: {
+      options: bigIntSanitizer,
+    },
   },
   'receive.tokens': {
     in: ['body'],
@@ -162,12 +165,12 @@ export const atomicSwapCreateSchema = {
   'receive.tokens.*.value': {
     in: ['body'],
     errorMessage: 'Invalid value',
-    isInt: {
-      options: {
-        min: 1,
-      },
+    custom: {
+      options: bigIntValidator({ min: 1 }),
     },
-    toInt: true,
+    customSanitizer: {
+      options: bigIntSanitizer,
+    },
   },
   'receive.tokens.*.timelock': {
     in: ['body'],
@@ -252,13 +255,13 @@ export const txBuildSchema = {
   'outputs.*.value': {
     in: ['body'],
     errorMessage: 'Invalid value',
-    isInt: {
-      options: {
-        min: 1,
-      },
+    custom: {
+      options: bigIntValidator({ min: 1 }),
     },
-    toInt: true,
     optional: true,
+    customSanitizer: {
+      options: bigIntSanitizer,
+    },
   },
   'outputs.*.token': {
     in: ['body'],
@@ -360,35 +363,35 @@ export const queryInputSchema = {
   'inputs.*.amount_smaller_than': {
     in: ['body'],
     errorMessage: 'Invalid amount_smaller_than',
-    isInt: {
-      options: {
-        min: 2,
-      },
+    custom: {
+      options: bigIntValidator({ min: 2 }),
     },
-    toInt: true,
+    customSanitizer: {
+      options: bigIntSanitizer,
+    },
     optional: true,
   },
   'inputs.*.amount_bigger_than': {
     in: ['body'],
     errorMessage: 'Invalid amount_bigger_than',
-    isInt: {
-      options: {
-        min: 1,
-      },
+    custom: {
+      options: bigIntValidator({ min: 1 }),
     },
-    toInt: true,
+    customSanitizer: {
+      options: bigIntSanitizer,
+    },
     optional: true,
   },
   'inputs.*.maximum_amount': {
     in: ['body'],
     errorMessage: 'Invalid maximum_amount',
-    isInt: {
-      options: {
-        min: 1,
-      },
+    custom: {
+      options: bigIntValidator({ min: 1 }),
     },
-    toInt: true,
     optional: true,
+    customSanitizer: {
+      options: bigIntSanitizer,
+    },
   },
 };
 
@@ -518,7 +521,9 @@ export const nanoContractData = {
   'data.actions.*.amount': {
     in: ['body'],
     errorMessage: 'Invalid action amount.',
-    isInt: true,
+    customSanitizer: {
+      options: bigIntSanitizer,
+    },
   },
   'data.actions.*.address': {
     in: ['body'],
@@ -533,3 +538,22 @@ export const nanoContractData = {
     optional: true,
   },
 };
+
+export function bigIntSanitizer(value) {
+  try {
+    return value === undefined || value === null
+      ? value
+      : parseSchema(value, bigIntCoercibleSchema);
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * This function substitutes express-validator's default `isInt` validator, as it doesn't work with
+ * BigInts. It uses the exact same underlying validator from the validatorjs package, so it accepts
+ * the same kinds of options.
+ */
+export function bigIntValidator(options) {
+  return value => validator.isInt(String(value), options);
+}

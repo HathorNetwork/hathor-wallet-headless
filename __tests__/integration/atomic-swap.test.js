@@ -865,8 +865,8 @@ describe('send tx (HTR)', () => {
       outputs: [expect.objectContaining({ // only 1 output
         isChange: true,
         token: '00',
-        value: 2,
-        authorities: 0,
+        value: 2n,
+        authorities: 0n,
         decodedScript: expect.objectContaining({
           address: expect.objectContaining({ base58: changeAddr }),
         }),
@@ -905,8 +905,8 @@ describe('send tx (HTR)', () => {
       outputs: [expect.objectContaining({ // only 1 output
         isChange: true,
         token: '00',
-        value: 2,
-        authorities: 0,
+        value: 2n,
+        authorities: 0n,
         decodedScript: expect.objectContaining({
           address: expect.objectContaining({
             base58: expect.toBeInArray(wallet1.addresses),
@@ -936,8 +936,8 @@ describe('send tx (HTR)', () => {
       outputs: [expect.objectContaining({
         isChange: false,
         token: '00',
-        value: 4,
-        authorities: 0,
+        value: 4n,
+        authorities: 0n,
         decodedScript: expect.objectContaining({
           address: expect.objectContaining({ base58: recvAddr }),
         }),
