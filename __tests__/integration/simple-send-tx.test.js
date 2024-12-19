@@ -141,6 +141,48 @@ describe('simple-send-tx (HTR)', () => {
     expect(balance1.available).toBe(800);
   });
 
+  it('should make a successful transaction with large value', async () => {
+    const largeWallet1 = WalletHelper.getPrecalculatedWallet('large-wallet1');
+    const largeWallet2 = WalletHelper.getPrecalculatedWallet('large-wallet2');
+    await WalletHelper.startMultipleWalletsForTest([largeWallet1, largeWallet2]);
+
+    let wallet1balance = await largeWallet1.getBalance();
+    expect(wallet1balance.available).toStrictEqual(0);
+
+    let wallet2balance = await largeWallet2.getBalance();
+    expect(wallet2balance.available).toStrictEqual(0);
+
+    const value = 2n ** 55n; // Just a large value that would lose precision as a Number
+    await largeWallet1.injectFunds(value.toString());
+
+    wallet1balance = await largeWallet1.getBalance();
+    expect(wallet1balance.available).toStrictEqual(value);
+
+    const response = await TestUtils.request
+      .post('/wallet/simple-send-tx')
+      .send({
+        address: await largeWallet2.getAddressAt(0),
+        value: value.toString(),
+      })
+      .set({ 'x-wallet-id': largeWallet1.walletId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.outputs).toHaveLength(1);
+
+    await TestUtils.waitForTxReceived(largeWallet1.walletId, response.body.hash);
+    await TestUtils.waitForTxReceived(largeWallet2.walletId, response.body.hash);
+
+    const addr0 = await largeWallet2.getAddressInfo(0);
+    expect(addr0.total_amount_available).toStrictEqual(value);
+
+    wallet2balance = await largeWallet2.getBalance();
+    expect(wallet2balance.available).toStrictEqual(value);
+
+    wallet1balance = await largeWallet1.getBalance();
+    expect(wallet1balance.available).toStrictEqual(0);
+  });
+
   it('should make a successful transaction with change address', async () => {
     const changeAddress = await wallet1.getAddressAt(5);
 
