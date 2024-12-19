@@ -54,15 +54,23 @@ export class TestUtils {
         if (err) {
           return reject(err);
         }
+
         superagent.parse['application/json'] = (res, callback) => {
-          let rawData = '';
-          res.on('data', chunk => { rawData += chunk; });
+          // reference: https://github.com/ladjs/superagent/blob/2c188904f8181ab760496d2849977dddee9900d1/src/node/parsers/json.js
+          res.text = '';
+          res.setEncoding('utf8');
+          res.on('data', chunk => { res.text += chunk; });
           res.on('end', () => {
+            let body;
+            let error;
             try {
-              res.text = rawData;
-              callback(null, bigIntUtils.JSONBigInt.parse(rawData));
+              body = res.text && bigIntUtils.JSONBigInt.parse(res.text);
             } catch (parseErr) {
-              callback(parseErr);
+              error = parseErr;
+              error.rawResponse = res.text || null;
+              error.statusCode = res.statusCode;
+            } finally {
+              callback(error, body);
             }
           });
         };

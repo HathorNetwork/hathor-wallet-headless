@@ -149,7 +149,7 @@ describe('simple-send-tx (HTR)', () => {
     let wallet1balance = await largeWallet1.getBalance();
     expect(wallet1balance.available).toStrictEqual(0);
 
-    const wallet2balance = await largeWallet2.getBalance();
+    let wallet2balance = await largeWallet2.getBalance();
     expect(wallet2balance.available).toStrictEqual(0);
 
     const value = 2n ** 55n; // Just a large value that would lose precision as a Number
@@ -175,6 +175,9 @@ describe('simple-send-tx (HTR)', () => {
 
     const addr0 = await largeWallet2.getAddressInfo(0);
     expect(addr0.total_amount_available).toStrictEqual(value);
+
+    wallet2balance = await largeWallet2.getBalance();
+    expect(wallet2balance.available).toStrictEqual(value);
 
     wallet1balance = await largeWallet1.getBalance();
     expect(wallet1balance.available).toStrictEqual(0);
