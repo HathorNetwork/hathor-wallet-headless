@@ -170,7 +170,7 @@ describe('create-nft routes', () => {
     // Validating authority tokens
     const authorityOutputs = nftTx.outputs.filter(o => TOKEN_DATA.isAuthorityToken(o.token_data));
     expect(authorityOutputs.length).toBe(1);
-    expect(authorityOutputs[0].value).toBe(AUTHORITY_VALUE.MINT);
+    expect(BigInt(authorityOutputs[0].value)).toBe(AUTHORITY_VALUE.MINT);
   });
 
   it('should create nft with melt authority', async () => {
@@ -193,7 +193,7 @@ describe('create-nft routes', () => {
     // Validating authority tokens
     const authorityOutputs = nftTx.outputs.filter(o => TOKEN_DATA.isAuthorityToken(o.token_data));
     expect(authorityOutputs.length).toBe(1);
-    expect(authorityOutputs[0].value).toBe(AUTHORITY_VALUE.MELT);
+    expect(BigInt(authorityOutputs[0].value)).toBe(AUTHORITY_VALUE.MELT);
   });
 
   it('should create nft with mint and melt authorities', async () => {
@@ -217,8 +217,8 @@ describe('create-nft routes', () => {
     // Validating authority tokens
     const authorityOutputs = nftTx.outputs.filter(o => TOKEN_DATA.isAuthorityToken(o.token_data));
     expect(authorityOutputs.length).toBe(2);
-    expect(authorityOutputs.find(o => o.value === AUTHORITY_VALUE.MINT)).toBeTruthy();
-    expect(authorityOutputs.find(o => o.value === AUTHORITY_VALUE.MELT)).toBeTruthy();
+    expect(authorityOutputs.find(o => BigInt(o.value) === AUTHORITY_VALUE.MINT)).toBeTruthy();
+    expect(authorityOutputs.find(o => BigInt(o.value) === AUTHORITY_VALUE.MELT)).toBeTruthy();
   });
 
   it('should create the NFT and send authority outputs to the correct address', async () => {
@@ -248,14 +248,14 @@ describe('create-nft routes', () => {
     );
     expect(authorityOutputs).toHaveLength(2);
     const mintOutput = authorityOutputs.filter(
-      o => o.value === constants.TOKEN_MINT_MASK
+      o => BigInt(o.value) === constants.TOKEN_MINT_MASK
     );
     const mintP2pkh = scriptsUtils.parseP2PKH(Buffer.from(mintOutput[0].script.data), network);
     // Validate that the mint output was sent to the correct address
     expect(mintP2pkh.address.base58).toEqual(address0);
 
     const meltOutput = authorityOutputs.filter(
-      o => o.value === constants.TOKEN_MELT_MASK
+      o => BigInt(o.value) === constants.TOKEN_MELT_MASK
     );
     const meltP2pkh = scriptsUtils.parseP2PKH(Buffer.from(meltOutput[0].script.data), network);
     // Validate that the melt output was sent to the correct address
@@ -320,14 +320,14 @@ describe('create-nft routes', () => {
     );
     expect(authorityOutputs).toHaveLength(2);
     const mintOutput = authorityOutputs.filter(
-      o => o.value === constants.TOKEN_MINT_MASK
+      o => BigInt(o.value) === constants.TOKEN_MINT_MASK
     );
     const mintP2pkh = scriptsUtils.parseP2PKH(Buffer.from(mintOutput[0].script.data), network);
     // Validate that the mint output was sent to the correct address
     expect(mintP2pkh.address.base58).toEqual(address2idx0);
 
     const meltOutput = authorityOutputs.filter(
-      o => o.value === constants.TOKEN_MELT_MASK
+      o => BigInt(o.value) === constants.TOKEN_MELT_MASK
     );
     const meltP2pkh = scriptsUtils.parseP2PKH(Buffer.from(meltOutput[0].script.data), network);
     // Validate that the melt output was sent to the correct address
