@@ -8,15 +8,15 @@
 import { walletUtils } from '@hathor/wallet-lib';
 
 function main() {
- const words = walletUtils.generateWalletWords();
+  const words = walletUtils.generateWalletWords();
 
- console.log(words);
+  console.log(words);
 }
 
 try {
- main()
- process.exit(0);
-} catch(err) {
- console.error(err);
- process.exit(1);
+  main();
+  process.exit(0);
+} catch (err) {
+  console.error(err);
+  process.exit(1);
 }
