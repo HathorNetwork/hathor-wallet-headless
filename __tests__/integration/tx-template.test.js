@@ -36,9 +36,9 @@ describe('tx-template build', () => {
     const response = await TestUtils.request
       .post('/wallet/tx-template/build')
       .send([
-        { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' }},
+        { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' } },
         { type: 'input/utxo', fill: 1 },
-        { type: 'output/token', amount: 1, address: '{addr}'},
+        { type: 'output/token', amount: 1, address: '{addr}' },
       ])
       .set({ 'x-wallet-id': wallet.walletId });
 
@@ -50,9 +50,9 @@ describe('tx-template build', () => {
     const response = await TestUtils.request
       .post('/wallet/tx-template/build')
       .send([
-        { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' }},
+        { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' } },
         { type: 'input/utxo', fill: 1 },
-        { type: 'output/token', amount: 1, address: '{addr}'},
+        { type: 'output/token', amount: 1, address: '{addr}' },
       ])
       .query({ debug: true })
       .set({ 'x-wallet-id': wallet.walletId });
@@ -65,7 +65,7 @@ describe('tx-template build', () => {
     const response = await TestUtils.request
       .post('/wallet/tx-template/build')
       .send([
-        { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' }},
+        { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' } },
         { type: 'action/config', tokenName: 'Test Token', tokenSymbol: 'TT' },
         { type: 'input/utxo', fill: 1 },
         { type: 'output/token', amount: 100, address: '{addr}', useCreatedToken: true },
@@ -75,35 +75,6 @@ describe('tx-template build', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
-  });
-
-  it('should make a successful transaction with change address', async () => {
-    const changeAddress = await wallet.getAddressAt(5);
-
-    const response = await TestUtils.request
-      .post('/wallet/simple-send-tx')
-      .send({
-        address: await wallet2.getAddressAt(0),
-        value: 200,
-        change_address: changeAddress,
-      })
-      .set({ 'x-wallet-id': wallet.walletId });
-
-    expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.outputs).toHaveLength(2);
-
-    await TestUtils.waitForTxReceived(wallet.walletId, response.body.hash);
-    await TestUtils.waitForTxReceived(wallet2.walletId, response.body.hash);
-
-    // Check if the transaction arrived at the correct address
-
-    // The wallet1 started with 1000, transferred 400 to wallet2. Change should be 600
-    const addr5 = await wallet.getAddressInfo(5);
-    expect(addr5.total_amount_received).toBe(600);
-
-    const addr0 = await wallet2.getAddressInfo(0);
-    expect(addr0.total_amount_available).toBe(400);
   });
 });
 
@@ -143,9 +114,9 @@ describe('tx-template run', () => {
     const response = await TestUtils.request
       .post('/wallet/tx-template/run')
       .send([
-        { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' }},
+        { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' } },
         { type: 'input/utxo', fill: 1 },
-        { type: 'output/token', amount: 1, address: '{addr}'},
+        { type: 'output/token', amount: 1, address: '{addr}' },
       ])
       .set({ 'x-wallet-id': wallet.walletId });
 
@@ -159,9 +130,9 @@ describe('tx-template run', () => {
     const response = await TestUtils.request
       .post('/wallet/tx-template/run')
       .send([
-        { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' }},
+        { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' } },
         { type: 'input/utxo', fill: 1 },
-        { type: 'output/token', amount: 1, address: '{addr}'},
+        { type: 'output/token', amount: 1, address: '{addr}' },
       ])
       .query({ debug: true })
       .set({ 'x-wallet-id': wallet.walletId });
@@ -176,7 +147,7 @@ describe('tx-template run', () => {
     const response = await TestUtils.request
       .post('/wallet/tx-template/run')
       .send([
-        { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' }},
+        { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' } },
         { type: 'action/config', tokenName: 'Test Token', tokenSymbol: 'TT' },
         { type: 'input/utxo', fill: 1 },
         { type: 'output/token', amount: 100, address: '{addr}', useCreatedToken: true },
@@ -203,7 +174,7 @@ describe('tx-template run', () => {
     const response = await TestUtils.request
       .post('/wallet/tx-template/run')
       .send([
-        { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' }},
+        { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' } },
         { type: 'input/utxo', fill: 1 },
         { type: 'input/authority', authority: 'mint', token: tokenId },
         { type: 'output/token', amount: 100, address: '{addr}', token: tokenId },

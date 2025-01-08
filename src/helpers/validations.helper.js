@@ -5,7 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { z } from 'zod';
 import { validationResult } from 'express-validator';
 
 /**
@@ -32,5 +31,5 @@ export function validateZodSchema(schema) {
       const errorMessages = error.errors.map(issue => (`${issue.path.join('.')} is ${issue.message}`));
       res.status(400).json({ success: false, details: errorMessages });
     }
-  }
+  };
 }
