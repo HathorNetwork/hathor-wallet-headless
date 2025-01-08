@@ -12,7 +12,6 @@ const { parametersValidation } = require('../../../helpers/validations.helper');
 const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 
 /**
- * @typedef {import('@hathor/wallet-lib').SendTransaction} SendTransaction
  * @typedef {import('@hathor/wallet-lib').HathorWallet} HathorWallet
  * @typedef {import('winston').Logger} Logger
  * @typedef {{ walletId: string, wallet: HathorWallet, logger: Logger }} HathorRequestExtras
@@ -23,6 +22,7 @@ const { cantSendTxErrorMessage } = require('../../../helpers/constants');
 
 
 /**
+ * Build a transaction from the tx-template and push to the network.
  * @param {Request} req
  * @param {Response} res
  */
@@ -40,7 +40,11 @@ async function runTemplate(req, res) {
   }
 
   const { wallet, logger } = req;
+
   try {
+    if (req.query.debug) {
+      wallet.enableDebugMode();
+    }
     // build a transaction and sign it
     const transaction = await wallet.buildTxTemplate(req.body);
 
@@ -55,10 +59,13 @@ async function runTemplate(req, res) {
     unlock();
     logger.error(err);
     res.send({ success: false, error: err.message });
+  } finally {
+    wallet.disableDebugMode();
   }
 }
 
 /**
+ * Build a transaction from the tx-template.
  * @param {Request} req
  * @param {Response} res
  */
@@ -73,7 +80,7 @@ async function buildTemplate(req, res) {
   try {
     const template = TransactionTemplate.parse(req.body);
     const interpreter = new WalletTxTemplateInterpreter(wallet);
-    const transaction = await interpreter.build(template, false);
+    const transaction = await interpreter.build(template, req.query.debug);
 
     res.send({ success: true, txHex: transaction.toHex() });
   } catch (err) {
