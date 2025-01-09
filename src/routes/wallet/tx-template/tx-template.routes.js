@@ -24,14 +24,15 @@ const txTemplateRouter = patchExpressRouter(Router({ mergeParams: true }));
 txTemplateRouter.post(
   '/run',
   validateZodSchema(TransactionTemplate),
-  query('debug').default(false).isBoolean(),
+  query('debug').default(false).isBoolean().toBoolean(),
   runTemplate,
 );
 
 txTemplateRouter.post(
   '/build',
   validateZodSchema(TransactionTemplate),
-  query('debug').default(false).isBoolean(),
+  query('debug').default(false).isBoolean().toBoolean(),
+  query('sign').default(false).isBoolean().toBoolean(),
   buildTemplate,
 );
 

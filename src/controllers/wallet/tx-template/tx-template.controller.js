@@ -10,6 +10,7 @@ const { mapTxReturn, runSendTransaction } = require('../../../helpers/tx.helper'
 const { lockSendTx } = require('../../../helpers/lock.helper');
 const { parametersValidation } = require('../../../helpers/validations.helper');
 const { cantSendTxErrorMessage } = require('../../../helpers/constants');
+const { DEFAULT_PIN } = require('../../../constants');
 
 /**
  * @typedef {import('@hathor/wallet-lib').HathorWallet} HathorWallet
@@ -19,7 +20,6 @@ const { cantSendTxErrorMessage } = require('../../../helpers/constants');
  * @typedef {ExpressRequest & HathorRequestExtras} Request
  * @typedef {import('express').Response} Response
  */
-
 
 /**
  * Build a transaction from the tx-template and push to the network.
@@ -78,14 +78,20 @@ async function buildTemplate(req, res) {
 
   const { wallet, logger } = req;
   try {
-    const template = TransactionTemplate.parse(req.body);
-    const interpreter = new WalletTxTemplateInterpreter(wallet);
-    const transaction = await interpreter.build(template, req.query.debug);
+    if (req.query.debug) {
+      wallet.enableDebugMode();
+    }
+    const transaction = await wallet.buildTxTemplate(req.body, {
+      signTx: req.query.sign,
+      pinCode: DEFAULT_PIN,
+    });
 
     res.send({ success: true, txHex: transaction.toHex() });
   } catch (err) {
     logger.error(err);
     res.send({ success: false, error: err.message });
+  } finally {
+    wallet.disableDebugMode();
   }
 }
 
