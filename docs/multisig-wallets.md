@@ -44,21 +44,33 @@ The order of the pubkeys is not important.
 
 ## Collect pubkeys
 
-Configure your wallet normally and use the `/multisig-pubkey` to get your pubkey.
+There are two ways for getting the pubkey.
+
+1. Configure your wallet normally and use the `/multisig-pubkey` to get your pubkey.
+2. Use the `make multisig_xpub_from_seed` command to generate the pubkey.
+
 This public key will be shared among all participants and will be used in the configuration file in the pubkeys array.
-You don't need to start the wallet yet.
 
 ### POST /multisig-pubkey
+
+You don't need to start the wallet before sending this request, just have the seedKey configured in your configuration file.
 
 Parameters:
 
 `seedKey`: Parameter to define which seed (from the object seeds in the config file) will be used to generate the pubkey.
 `passphrase`: Optional parameter to generate the pubkey with a passphrase. If not sent we use empty string. Should be the same when starting the wallet later.
 
-
 ```bash
 $ curl -X POST --data-urlencode "passphrase=123" --data "seedKey=default" http://localhost:8000/multisig-pubkey
 {"success":true,"xpubkey":"xpub..."}
+```
+
+### make multisig_xpub_from_seed
+
+Just run the command, passing the seed key as argument. This method does not support passphrase yet, use the previous method if you need it.
+
+```bash
+make multisig_xpub_from_seed seed='<seed words>'
 ```
 
 ## Start a MultiSig Wallet
