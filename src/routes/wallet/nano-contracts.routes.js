@@ -11,6 +11,7 @@ const {
   getState,
   getHistory,
   createNanoContract,
+  createOnChainBlueprint,
   executeNanoContractMethod,
   getOracleData,
   getOracleSignedResult
@@ -97,6 +98,17 @@ nanoContractRouter.post(
   body('address').isString(),
   checkSchema(nanoContractData),
   executeNanoContractMethod,
+);
+
+/**
+ * POST request to create an on chain blueprint tx
+ * For the docs, see api-docs.js
+ */
+nanoContractRouter.post(
+  '/create-on-chain-blueprint',
+  body('code').isString(),
+  body('address').isString(),
+  createOnChainBlueprint,
 );
 
 module.exports = nanoContractRouter;
