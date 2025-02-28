@@ -2,6 +2,9 @@ ARG IMG=node:22.11-alpine3.19
 
 FROM $IMG as builder
 
+# This should be set after the FROM to work
+ARG ENABLE_RABBITMQ=false
+
 WORKDIR /usr/src/app/
 
 COPY .babelrc package.json package-lock.json ./
@@ -27,8 +30,12 @@ ENV NODE_ENV=production
 
 COPY package.json package-lock.json ./
 RUN apk add --no-cache --virtual .gyp python3 make g++ &&\
-    npm ci --only=production &&\
-    apk del .gyp &&\
+    npm ci --only=production
+
+# Install amqp library if RabbitMQ is enabled
+RUN if [ "$ENABLE_RABBITMQ" = "true" ]; then npm install amqplib@^0.10.5; fi
+
+RUN apk del .gyp &&\
     npm cache clean --force &&\
     rm -rf /tmp/* /var/cache/apk/*
 
