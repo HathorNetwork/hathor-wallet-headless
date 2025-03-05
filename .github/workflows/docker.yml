@@ -52,6 +52,7 @@ jobs:
     - name: Build and push RabbitMQ image
       # https://github.com/docker/build-push-action/releases/tag/v6.15.0
       uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4
+      if: steps.tags.outputs.rabbitmq_tags != ''
       with:
         build-args:
           ENABLE_RABBITMQ=true
