@@ -1,9 +1,6 @@
 ARG IMG=node:22.11-alpine3.19
 
-FROM $IMG as builder
-
-# This should be set after the FROM to work
-ARG ENABLE_RABBITMQ=false
+FROM $IMG AS builder
 
 WORKDIR /usr/src/app/
 
@@ -20,7 +17,7 @@ COPY config.js.docker ./src/config.js
 
 RUN npm run build && npm run build-scripts
 
-FROM $IMG as deps
+FROM $IMG AS deps
 
 WORKDIR /usr/src/app/
 ENV NODE_ENV=production
@@ -33,6 +30,8 @@ RUN apk add --no-cache --virtual .gyp python3 make g++ &&\
     npm ci --only=production
 
 # Install amqp library if RabbitMQ is enabled
+ARG ENABLE_RABBITMQ=false
+ENV ENABLE_RABBITMQ=${ENABLE_RABBITMQ}
 RUN if [ "$ENABLE_RABBITMQ" = "true" ]; then npm install amqplib@^0.10.5; fi
 
 RUN apk del .gyp &&\
