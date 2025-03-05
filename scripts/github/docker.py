@@ -58,8 +58,6 @@ def prep_tags(environ: Dict):
         # A push to any other branch creates a dev tag
         # XXX: We currently do not run on other branches
         tags.add(base_ecr_tag + 'dev-{}-{}'.format(sha, timestamp))
-        # TODO: Remove this. Just for testing purposes
-        rabbitmq_tags.add(base_dockerhub_tag + 'latest-rabbitmq')
 
     return tags, rabbitmq_tags
 
