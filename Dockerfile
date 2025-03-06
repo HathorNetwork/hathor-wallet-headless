@@ -32,7 +32,7 @@ RUN apk add --no-cache --virtual .gyp python3 make g++ &&\
 # Install amqp library if RabbitMQ is enabled
 ARG ENABLE_RABBITMQ=false
 ENV ENABLE_RABBITMQ=${ENABLE_RABBITMQ}
-RUN if [ "$ENABLE_RABBITMQ" = "true" ]; then npm install amqplib@^0.10.5; fi
+RUN if [ "$ENABLE_RABBITMQ" = "true" ]; then npm install amqplib@0.10.5; fi
 
 RUN apk del .gyp &&\
     npm cache clean --force &&\
