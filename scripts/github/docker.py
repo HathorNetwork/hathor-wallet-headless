@@ -19,6 +19,8 @@ def prep_tags(environ: Dict):
     ref = environ.get('GITHUB_REF')
     sha = environ.get('GITHUB_SHA')
     tags = set()
+    # These are used to deploy images with the RabbitMQ plugin included
+    rabbitmq_tags = set()
 
     if ref.startswith('refs/tags/'):
         git_tag = ref[10:]
@@ -39,10 +41,14 @@ def prep_tags(environ: Dict):
                 tags.add(base_ecr_tag + version)
                 tags.add(base_ecr_tag + '{}-{}'.format(sha, timestamp))
                 tags.add(base_ecr_tag + 'latest')
+                rabbitmq_tags.add(base_ecr_tag + version + '-rabbitmq')
+                rabbitmq_tags.add(base_ecr_tag + 'latest-rabbitmq')
 
                 tags.add(base_dockerhub_tag + version)
                 tags.add(base_dockerhub_tag + '{}-{}'.format(sha, timestamp))
                 tags.add(base_dockerhub_tag + 'latest')
+                rabbitmq_tags.add(base_dockerhub_tag + version + '-rabbitmq')
+                rabbitmq_tags.add(base_dockerhub_tag + 'latest-rabbitmq')
     elif ref == 'refs/heads/master':
         # A push to master creates a staging tag
         tags.add(base_ecr_tag + 'staging-{}-{}'.format(sha, timestamp))
@@ -53,7 +59,7 @@ def prep_tags(environ: Dict):
         # XXX: We currently do not run on other branches
         tags.add(base_ecr_tag + 'dev-{}-{}'.format(sha, timestamp))
 
-    return tags
+    return tags, rabbitmq_tags
 
 def print_output(output: Dict):
     outputs = ['{}={}\n'.format(k, v) for k, v in output.items()]
@@ -61,6 +67,8 @@ def print_output(output: Dict):
         f.writelines(outputs)
 
 if __name__ == '__main__':
-    tags = prep_tags(os.environ)
+    tags, rabbitmq_tags = prep_tags(os.environ)
     if tags:
         print_output({'tags': ','.join(tags)})
+    if rabbitmq_tags:
+        print_output({'rabbitmq_tags': ','.join(rabbitmq_tags)})
