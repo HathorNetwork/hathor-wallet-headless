@@ -134,3 +134,18 @@ The `custom_plugin.js` file will have the plugin logic.
 To configure custom plugins you need to add the plugin id to the [enabled plugins](#configuration) and for each custom plugin there should be 2 new variables, the `--plugin_<pluginId>_file` (or `HEADLESS_PLUGIN_<pluginId>_FILE`) and `--plugin_<pluginId>_name` (or `HEADLESS_PLUGIN_<pluginId>_NAME`).
 
 Any configuration of the plugin itself will be made outside the config module.
+
+### BigInt support
+
+We have support for BigInt on the headless, which means it's possible that data sent to the plugins will contain BigInt values.
+
+In case your plugin needs to serialize data to send it upstream to some other tool, you may want to use our serialization tools available at the `wallet-lib` in order to guarantee the correct serialization of BigInt data.
+
+They can be used like so:
+
+```javascript
+import { bigIntUtils } from 'wallet-lib';
+
+const serializedData = bigIntUtils.JSONBigInt.stringify(data);
+const deserializedData = bigIntUtils.JSONBigInt.parse(serializedData);
+```

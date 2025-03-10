@@ -6,6 +6,7 @@
  */
 
 import { eventHandler, getSettings } from '../../src/plugins/hathor_debug';
+import { bigIntUtils } from '@hathor/wallet-lib';
 
 test('settings', () => {
   const oldArgs = process.argv;
@@ -27,9 +28,9 @@ test('settings', () => {
 test('event handler', () => {
   const oldArgs = process.argv;
   const logSpy = jest.spyOn(console, 'log');
-  const smallMsg = { type: 'small', walletId: 'default', foo: 'bar' };
+  const smallMsg = { type: 'small', walletId: 'default', foo: 'bar', bigInt: BigInt(Number.MAX_SAFE_INTEGER) + 1n };
   const bigMsg = { type: 'big', walletId: 'default' };
-  const bigCompleteMsg = { ...bigMsg, message: '' };
+  const bigCompleteMsg = { ...bigMsg, message: '', bigInt: BigInt(Number.MAX_SAFE_INTEGER) + 1n };
   for (let i = 0; i < 200; i++) {
     // 200 * 'aaaaa'(length of 5) -> lenght of 1000
     bigCompleteMsg.message += 'aaaaa';
@@ -48,7 +49,7 @@ test('event handler', () => {
   logSpy.mockReset();
   // small message: always log
   eventHandler(smallMsg);
-  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(JSON.stringify(smallMsg)));
+  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(bigIntUtils.JSONBigInt.stringify(smallMsg)));
   logSpy.mockReset();
   // big message: should not log
   eventHandler(bigCompleteMsg);
@@ -63,11 +64,11 @@ test('event handler', () => {
   logSpy.mockReset();
   // small message: always log
   eventHandler(smallMsg);
-  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(JSON.stringify(smallMsg)));
+  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(bigIntUtils.JSONBigInt.stringify(smallMsg)));
   logSpy.mockReset();
   // big message: should log the entire message
   eventHandler(bigCompleteMsg);
-  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(JSON.stringify(bigCompleteMsg)));
+  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(bigIntUtils.JSONBigInt.stringify(bigCompleteMsg)));
 
   // debugLong: unexpected value
   process.argv = [
@@ -78,11 +79,11 @@ test('event handler', () => {
   logSpy.mockReset();
   // small message: always log
   eventHandler(smallMsg);
-  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(JSON.stringify(smallMsg)));
+  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(bigIntUtils.JSONBigInt.stringify(smallMsg)));
   logSpy.mockReset();
   // big message: should log partially
   eventHandler(bigCompleteMsg);
-  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(JSON.stringify(bigMsg)));
+  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(bigIntUtils.JSONBigInt.stringify(bigMsg)));
 
   // debugLong: default (should be the same as unexpected)
   process.argv = [
@@ -92,11 +93,11 @@ test('event handler', () => {
   logSpy.mockReset();
   // small message: always log
   eventHandler(smallMsg);
-  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(JSON.stringify(smallMsg)));
+  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(bigIntUtils.JSONBigInt.stringify(smallMsg)));
   logSpy.mockReset();
   // big message: should log partially
   eventHandler(bigCompleteMsg);
-  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(JSON.stringify(bigMsg)));
+  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(bigIntUtils.JSONBigInt.stringify(bigMsg)));
 
   // Restore original argv state
   process.argv = oldArgs;

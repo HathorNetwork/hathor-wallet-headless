@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import { bigIntUtils } from '@hathor/wallet-lib';
+
 /* istanbul ignore next */
 async function checkDeps() {
   const requiredDeps = {
@@ -60,7 +62,7 @@ export function connectionHandler(socket) {
 export function eventHandler(data) {
   // Broadcast to all live connections
   for (const socket of sockets) {
-    socket.send(JSON.stringify(data));
+    socket.send(bigIntUtils.JSONBigInt.stringify(data));
   }
 }
 
