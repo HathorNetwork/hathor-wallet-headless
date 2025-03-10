@@ -34,7 +34,7 @@
         pkgs.devshell.mkShell {
           packages = with pkgs; [
             nixpkgs-fmt
-            nodejs-18_x
+            nodejs_22
             yarn
           ];
         };
