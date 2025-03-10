@@ -6,6 +6,7 @@
  */
 
 import { getSockets, eventHandler, connectionHandler, getSettings } from '../../src/plugins/hathor_websocket';
+import { bigIntUtils } from '@hathor/wallet-lib';
 
 test('settings', () => {
   const oldArgs = process.argv;
@@ -55,9 +56,10 @@ test('event handler', () => {
   connectionHandler(socket1);
   connectionHandler(socket2);
 
-  eventHandler({ foo: 'bar' });
-  expect(socket1.send).toHaveBeenCalledWith('{"foo":"bar"}');
-  expect(socket2.send).toHaveBeenCalledWith('{"foo":"bar"}');
+  const data = { foo: 'bar', bigInt: BigInt(Number.MAX_SAFE_INTEGER) + 1n };
+  eventHandler(data);
+  expect(socket1.send).toHaveBeenCalledWith(bigIntUtils.JSONBigInt.stringify(data));
+  expect(socket2.send).toHaveBeenCalledWith(bigIntUtils.JSONBigInt.stringify(data));
 
   // simulate disconnections
   socket1.cb();

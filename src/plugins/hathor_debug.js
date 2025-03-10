@@ -4,6 +4,8 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
+import { bigIntUtils } from '@hathor/wallet-lib';
+
 let debugLong;
 
 /* istanbul ignore next */
@@ -38,7 +40,7 @@ function debugLog(data) {
 }
 
 export function eventHandler(data) {
-  const message = JSON.stringify(data);
+  const message = bigIntUtils.JSONBigInt.stringify(data);
   if (message.length < 1000) {
     debugLog(message);
     return;

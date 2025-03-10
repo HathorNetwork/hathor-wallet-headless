@@ -6,6 +6,7 @@
  */
 
 import { eventHandlerFactory, getSettings } from '../../src/plugins/hathor_rabbitmq';
+import { bigIntUtils } from '@hathor/wallet-lib';
 
 test('settings', () => {
   const oldArgs = process.argv;
@@ -34,5 +35,5 @@ test('event handler', () => {
   const data = { test: 'event' };
 
   evHandler(data);
-  expect(channelMock.sendToQueue).toHaveBeenCalledWith('test-queue', Buffer.from(JSON.stringify(data)));
+  expect(channelMock.sendToQueue).toHaveBeenCalledWith('test-queue', Buffer.from(bigIntUtils.JSONBigInt.stringify(data)));
 });
