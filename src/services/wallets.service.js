@@ -105,21 +105,17 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
   setupWalletStateLogs(wallet, logger);
 
   if (options?.historySyncMode || config.history_sync_mode) {
-    // POLLING_HTTP_API is the default case if something invalid is configured
+    // MANUAL_STREAM_WS is the default case if something invalid is configured
     // this will be kept.
-    let mode = HistorySyncMode.POLLING_HTTP_API;
+    const defaultMode = HistorySyncMode.MANUAL_STREAM_WS;
     // Use from options first and if not configured, use from config
-    const strMode = options?.historySyncMode || config.history_sync_mode;
-    switch (strMode) {
-      case 'xpub_stream_ws':
-        mode = HistorySyncMode.XPUB_STREAM_WS;
-        break;
-      case 'manual_stream_ws':
-        mode = HistorySyncMode.MANUAL_STREAM_WS;
-        break;
-      default:
-        break;
-    }
+    const configMode = {
+      polling_http_api: HistorySyncMode.POLLING_HTTP_API,
+      xpub_stream_ws  : HistorySyncMode.XPUB_STREAM_WS,
+      manual_stream_ws: HistorySyncMode.MANUAL_STREAM_WS,
+    }[options?.historySyncMode || config.history_sync_mode];
+
+    let mode = configMode || defaultMode;
 
     if (hydratedWalletConfig.multisig) {
       // XXX: Multisig is not supported on streaming yet
