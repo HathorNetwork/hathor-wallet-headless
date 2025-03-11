@@ -104,31 +104,27 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
   const wallet = new HathorWallet(hydratedWalletConfig);
   setupWalletStateLogs(wallet, logger);
 
-  if (options?.historySyncMode || config.history_sync_mode) {
-    // MANUAL_STREAM_WS is the default case if something invalid is configured
-    // this will be kept.
-    const defaultMode = HistorySyncMode.MANUAL_STREAM_WS;
-    // Use from options first and if not configured, use from config
-    const configMode = {
-      polling_http_api: HistorySyncMode.POLLING_HTTP_API,
-      xpub_stream_ws  : HistorySyncMode.XPUB_STREAM_WS,
-      manual_stream_ws: HistorySyncMode.MANUAL_STREAM_WS,
-    }[options?.historySyncMode || config.history_sync_mode];
+  // Will try to use the options.historySyncMode then config.history_sync_mode
+  const configMode = {
+    polling_http_api: HistorySyncMode.POLLING_HTTP_API,
+    xpub_stream_ws: HistorySyncMode.XPUB_STREAM_WS,
+    manual_stream_ws: HistorySyncMode.MANUAL_STREAM_WS,
+  }[options?.historySyncMode || config.history_sync_mode];
 
-    let mode = configMode || defaultMode;
+  // MANUAL_STREAM_WS is the default case if nothing was configured.
+  let mode = configMode || HistorySyncMode.MANUAL_STREAM_WS;
 
-    if (hydratedWalletConfig.multisig) {
-      // XXX: Multisig is not supported on streaming yet
-      mode = HistorySyncMode.POLLING_HTTP_API;
-    }
-    if (hydratedWalletConfig.scanPolicy?.policy && hydratedWalletConfig.scanPolicy?.policy !== 'gap-limit') {
-      // XXX: currently only gap-limit can use streaming modes
-      mode = HistorySyncMode.POLLING_HTTP_API;
-    }
-    // eslint-disable-next-line no-console
-    console.log(`Configuring wallet ${sanitizeLogInput(walletId)} for history sync mode: ${mode}`);
-    wallet.setHistorySyncMode(mode);
+  if (hydratedWalletConfig.multisig) {
+    // XXX: Multisig is not supported on streaming yet
+    mode = HistorySyncMode.POLLING_HTTP_API;
   }
+  if (hydratedWalletConfig.scanPolicy?.policy && hydratedWalletConfig.scanPolicy?.policy !== 'gap-limit') {
+    // XXX: currently only gap-limit can use streaming modes
+    mode = HistorySyncMode.POLLING_HTTP_API;
+  }
+  // eslint-disable-next-line no-console
+  console.log(`Configuring wallet ${sanitizeLogInput(walletId)} for history sync mode: ${mode}`);
+  wallet.setHistorySyncMode(mode);
 
   if (config.gapLimit) {
     // XXX: The gap limit is now a per-wallet configuration
