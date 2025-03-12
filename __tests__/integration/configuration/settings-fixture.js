@@ -34,6 +34,7 @@ const defaultConfig = {
   connectionTimeout: 30000,
   allowPassphrase: false,
   confirmFirstAddress: false,
+  history_sync_mode: 'polling_http_api',
 };
 
 let config = cloneDeep(defaultConfig);
