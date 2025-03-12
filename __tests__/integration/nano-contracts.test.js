@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { Address, P2PKH, bufferUtils } from '@hathor/wallet-lib';
 import { isEmpty } from 'lodash';
 import { TestUtils } from './utils/test-utils-integration';
@@ -7,14 +8,13 @@ import { initializedWallets } from '../../src/services/wallets.service';
 
 describe('nano contract routes', () => {
   let wallet;
-  let libWalletObject;
+  const builtInBlueprintId = '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595';
 
   beforeAll(async () => {
     try {
       // A random HTR value for the first wallet
       wallet = WalletHelper.getPrecalculatedWallet('nano-contracts');
       await WalletHelper.startMultipleWalletsForTest([wallet]);
-      libWalletObject = initializedWallets.get(wallet.walletId);
       await wallet.injectFunds(1000);
     } catch (err) {
       TestUtils.logError(err.stack);
@@ -25,24 +25,25 @@ describe('nano contract routes', () => {
     await wallet.stop();
   });
 
-  const checkTxValid = async txId => {
+  const checkTxValid = async (txId, wallet) => {
     expect(txId).toBeDefined();
     await TestUtils.waitForTxReceived(wallet.walletId, txId);
     // We need to wait for the tx to get a first block, so we guarantee it was executed
     await TestUtils.waitTxConfirmed(wallet.walletId, txId);
     // Now we query the transaction from the full node to double check it's still valid
     // after the nano execution and it already has a first block, so it was really executed
+    const libWalletObject = initializedWallets.get(wallet.walletId);
     const txAfterExecution = await libWalletObject.getFullTxById(txId);
     expect(isEmpty(txAfterExecution.meta.voided_by)).toBe(true);
     expect(isEmpty(txAfterExecution.meta.first_block)).not.toBeNull();
   };
 
-  it('bet methods', async () => {
+  const executeTests = async (wallet, blueprintId) => {
     const address0 = await wallet.getAddressAt(0);
     const address1 = await wallet.getAddressAt(1);
     const dateLastBet = parseInt(Date.now().valueOf() / 1000, 10) + 6000; // Now + 6000 seconds
+    const libWalletObject = initializedWallets.get(wallet.walletId);
     const network = libWalletObject.getNetworkObject();
-    const blueprintId = '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595';
 
     // Create NC
     const response = await TestUtils.request
@@ -73,7 +74,7 @@ describe('nano contract routes', () => {
     expect(responseTx1.status).toBe(200);
     expect(responseTx1.body.success).toBe(true);
     const tx1 = responseTx1.body;
-    await checkTxValid(tx1.hash);
+    await checkTxValid(tx1.hash, wallet);
 
     // Bet 100 to address 2
     const address2 = await wallet.getAddressAt(2);
@@ -101,7 +102,7 @@ describe('nano contract routes', () => {
     expect(responseBet.status).toBe(200);
     expect(responseBet.body.success).toBe(true);
     const txBet = responseBet.body;
-    await checkTxValid(txBet.hash);
+    await checkTxValid(txBet.hash, wallet);
 
     // Bet 200 to address 3
     const address3 = await wallet.getAddressAt(3);
@@ -129,7 +130,7 @@ describe('nano contract routes', () => {
     expect(responseBet2.status).toBe(200);
     expect(responseBet2.body.success).toBe(true);
     const txBet2 = responseBet2.body;
-    await checkTxValid(txBet2.hash);
+    await checkTxValid(txBet2.hash, wallet);
 
     // Get nc history
     const txIds = [tx1.hash, txBet.hash, txBet2.hash];
@@ -193,7 +194,7 @@ describe('nano contract routes', () => {
       })
       .set({ 'x-wallet-id': wallet.walletId });
     const txSetResult = responseSetResult.body;
-    await checkTxValid(txSetResult.hash);
+    await checkTxValid(txSetResult.hash, wallet);
     txIds.push(txSetResult.hash);
 
     // Try to withdraw to address 2, success
@@ -216,7 +217,7 @@ describe('nano contract routes', () => {
       })
       .set({ 'x-wallet-id': wallet.walletId });
     const txWithdrawal = responseWithdrawal.body;
-    await checkTxValid(txWithdrawal.hash);
+    await checkTxValid(txWithdrawal.hash, wallet);
     txIds.push(txWithdrawal.hash);
 
     // Get state again
@@ -313,5 +314,41 @@ describe('nano contract routes', () => {
     expect(responseHistory5.body.history.length).toBe(2);
     // When using before, the order comes reverted
     expect(responseHistory5.body.history).toStrictEqual([history2[1], history2[0]]);
+  };
+
+  it('built in bet methods', async () => {
+    await executeTests(wallet, builtInBlueprintId);
+  });
+
+  it('on chain bet methods', async () => {
+    // For now the on chain blueprints needs a signature from a specific address
+    // so we must always generate the same seed
+    const seed =
+      'bicycle dice amused car lock outdoor auto during nest accident soon sauce slot enact hand they member source job forward vibrant lab catch coach';
+    const ocbWallet = new WalletHelper('ocb-wallet', { words: seed });
+    await WalletHelper.startMultipleWalletsForTest([ocbWallet]);
+    const libOcbWalletObject = initializedWallets.get(ocbWallet.walletId);
+    // We use the address0 to inject funds because they are needed for the nano tests execution
+    const address0 = await libOcbWalletObject.getAddressAtIndex(0);
+    await ocbWallet.injectFunds(1000);
+    // We use the address10 as caller of the ocb tx
+    // so we don't mess with the number of transactions for address0 tests
+    const address10 = await libOcbWalletObject.getAddressAtIndex(10);
+
+    // Use the bet blueprint code
+    const code = fs.readFileSync('./__tests__/integration/configuration/bet.py', 'utf8');
+    const response = await TestUtils.request
+      .post('/wallet/nano-contracts/create-on-chain-blueprint')
+      .send({ code, address: address10 })
+      .set({ 'x-wallet-id': ocbWallet.walletId });
+    const ocbHash = response.body.hash;
+    // Wait for the tx to be confirmed, so we can use the on chain blueprint
+    await TestUtils.waitForTxReceived(ocbWallet.walletId, ocbHash);
+    await TestUtils.waitTxConfirmed(ocbWallet.walletId, ocbHash);
+    // We must have one transaction in the address10 now
+    const address10Meta = await libOcbWalletObject.storage.store.getAddressMeta(address10);
+    expect(address10Meta.numTransactions).toBe(1);
+    // Execute the bet blueprint tests
+    await executeTests(ocbWallet, ocbHash);
   });
 });
