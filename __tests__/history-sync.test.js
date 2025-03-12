@@ -15,6 +15,9 @@ describe('history sync', () => {
   });
 
   it('should start a wallet with default manual streaming if not configured', async () => {
+    let config = settings._getDefaultConfig();
+    delete config.history_sync_mode;
+    settings._setConfig(config);
     const response = await TestUtils.request
       .post('/start')
       .send({ seedKey: TestUtils.seedKey, 'wallet-id': walletId });
