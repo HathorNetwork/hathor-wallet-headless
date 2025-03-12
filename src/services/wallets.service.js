@@ -111,8 +111,8 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
     manual_stream_ws: HistorySyncMode.MANUAL_STREAM_WS,
   }[options?.historySyncMode || config.history_sync_mode];
 
-  // MANUAL_STREAM_WS is the default case if nothing was configured.
-  let mode = configMode || HistorySyncMode.MANUAL_STREAM_WS;
+  // XPUB_STREAM_WS is the default case if nothing was configured.
+  let mode = configMode || HistorySyncMode.XPUB_STREAM_WS;
 
   if (hydratedWalletConfig.multisig) {
     // XXX: Multisig is not supported on streaming yet
