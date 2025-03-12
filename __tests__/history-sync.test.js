@@ -11,7 +11,7 @@ describe('history sync', () => {
   });
 
   afterEach(async () => {
-    await TestUtils.stopWallet({ walletId });
+    await TestUtils.stopWallet({ walletId, pollInterval: 2000 });
   });
 
   it('should start a wallet with default xpub streaming if not configured', async () => {
