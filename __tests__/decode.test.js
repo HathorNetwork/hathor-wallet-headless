@@ -188,9 +188,10 @@ describe('decode api', () => {
             value: 6400,
             decoded: {
               address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
-              type: 'MultiSig',
+              type: 'P2SH',
               timelock: null,
               value: 6400,
+              token_data: 0,
             },
             script: expect.any(String),
             token: '00',
