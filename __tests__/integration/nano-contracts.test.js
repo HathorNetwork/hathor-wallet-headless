@@ -7,22 +7,22 @@ import { WalletHelper } from './utils/wallet-helper';
 import { initializedWallets } from '../../src/services/wallets.service';
 
 describe('nano contract routes', () => {
-  let wallet;
+  let walletNano;
   const builtInBlueprintId = '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595';
 
   beforeAll(async () => {
     try {
       // A random HTR value for the first wallet
-      wallet = WalletHelper.getPrecalculatedWallet('nano-contracts');
-      await WalletHelper.startMultipleWalletsForTest([wallet]);
-      await wallet.injectFunds(1000);
+      walletNano = WalletHelper.getPrecalculatedWallet('nano-contracts');
+      await WalletHelper.startMultipleWalletsForTest([walletNano]);
+      await walletNano.injectFunds(1000);
     } catch (err) {
       TestUtils.logError(err.stack);
     }
   });
 
   afterAll(async () => {
-    await wallet.stop();
+    await walletNano.stop();
   });
 
   const checkTxValid = async (txId, wallet) => {
@@ -317,19 +317,16 @@ describe('nano contract routes', () => {
   };
 
   it('built in bet methods', async () => {
-    await executeTests(wallet, builtInBlueprintId);
+    await executeTests(walletNano, builtInBlueprintId);
   });
 
   it('on chain bet methods', async () => {
     // For now the on chain blueprints needs a signature from a specific address
     // so we must always generate the same seed
-    const seed =
-      'bicycle dice amused car lock outdoor auto during nest accident soon sauce slot enact hand they member source job forward vibrant lab catch coach';
+    const seed = 'bicycle dice amused car lock outdoor auto during nest accident soon sauce slot enact hand they member source job forward vibrant lab catch coach';
     const ocbWallet = new WalletHelper('ocb-wallet', { words: seed });
     await WalletHelper.startMultipleWalletsForTest([ocbWallet]);
     const libOcbWalletObject = initializedWallets.get(ocbWallet.walletId);
-    // We use the address0 to inject funds because they are needed for the nano tests execution
-    const address0 = await libOcbWalletObject.getAddressAtIndex(0);
     await ocbWallet.injectFunds(1000);
     // We use the address10 as caller of the ocb tx
     // so we don't mess with the number of transactions for address0 tests
