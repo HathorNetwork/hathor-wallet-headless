@@ -7,7 +7,7 @@
 
 /* istanbul ignore file */
 import { fork } from 'child_process';
-import { config as hathorLibConfig } from '@hathor/wallet-lib';
+import { config as hathorLibConfig, bigIntUtils } from '@hathor/wallet-lib';
 
 import createApp from './app';
 import { EVENTBUS_EVENT_NAME, notificationBus } from './services/notification.service';
@@ -71,7 +71,7 @@ async function startHeadless() {
         return;
       }
       // Sending event data
-      child.send(data);
+      child.send(bigIntUtils.JSONBigInt.stringify(data));
     });
   }
 

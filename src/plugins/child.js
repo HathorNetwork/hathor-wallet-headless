@@ -7,6 +7,7 @@
 
 import path from 'path';
 import settings from '../settings';
+import { bigIntUtils } from '@hathor/wallet-lib';
 
 import { notificationBus, EVENTBUS_EVENT_NAME } from '../services/notification.service';
 
@@ -121,7 +122,8 @@ if (process.env.NODE_ENV !== 'test') {
     process.exit(127);
   });
 
-  process.on('message', data => {
+  process.on('message', serializedData => {
+    const data = bigIntUtils.JSONBigInt.parse(serializedData);
     // Repeat notifications from main process to local notification service
     notificationBus.emit(EVENTBUS_EVENT_NAME, data);
     if (data.type) {
