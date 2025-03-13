@@ -24,6 +24,7 @@ const atomicSwapRouter = require('./atomic-swap/atomic-swap.routes');
 const txProposalRouter = require('./tx-proposal/tx-proposal.routes');
 const configRouter = require('./config/config.routes');
 const nanoContractRouter = require('./nano-contracts.routes');
+const txTemplateRouter = require('./tx-template/tx-template.routes');
 const { MAX_DATA_SCRIPT_LENGTH } = require('../../constants');
 const { patchExpressRouter } = require('../../patch');
 
@@ -32,6 +33,7 @@ walletRouter.use(walletMiddleware);
 walletRouter.use('/atomic-swap', atomicSwapRouter);
 walletRouter.use('/p2sh', p2shRouter);
 walletRouter.use('/tx-proposal', txProposalRouter);
+walletRouter.use('/tx-template', txTemplateRouter);
 walletRouter.use('/config', configRouter);
 walletRouter.use('/nano-contracts', nanoContractRouter);
 
