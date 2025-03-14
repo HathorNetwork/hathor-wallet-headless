@@ -199,6 +199,40 @@ async function getOracleSignedResult(req, res) {
   }
 }
 
+/**
+ * Create an on chain blueprint transaction
+ */
+async function createOnChainBlueprint(req, res) {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    res.status(400).json(validationResult);
+    return;
+  }
+
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
+    // TODO: return status code 423
+    // we should do this refactor in the future for all APIs
+    res.send({ success: false, error: cantSendTxErrorMessage });
+    return;
+  }
+
+  const { wallet } = req;
+  const { code, address } = req.body;
+
+  try {
+    /** @type {import('@hathor/wallet-lib').SendTransaction} */
+    const sendTransaction = await wallet.createOnChainBlueprintTransaction(code, address);
+    const tx = await runSendTransaction(sendTransaction, unlock);
+    res.send({ success: true, ...mapTxReturn(tx) });
+  } catch (err) {
+    // The unlock method should be always called. `runSendTransaction` method
+    // already calls unlock, so we can manually call it only in the catch block.
+    unlock();
+    res.send({ success: false, error: err.message });
+  }
+}
+
 module.exports = {
   getState,
   getHistory,
@@ -206,4 +240,5 @@ module.exports = {
   executeNanoContractMethod,
   getOracleData,
   getOracleSignedResult,
+  createOnChainBlueprint,
 };
