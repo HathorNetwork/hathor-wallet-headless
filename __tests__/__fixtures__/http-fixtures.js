@@ -47,7 +47,7 @@ export default {
             token_data: 0,
             script: 'qRTqJUJmzEmBNvhkmDuZ4JxcMh5/ioc=',
             decoded: {
-              type: 'P2SH',
+              type: 'MultiSig',
               address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
               timelock: null
             },
@@ -90,7 +90,7 @@ export default {
             token_data: 0,
             script: 'qRTqJUJmzEmBNvhkmDuZ4JxcMh5/ioc=',
             decoded: {
-              type: 'P2SH',
+              type: 'MultiSig',
               address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
               timelock: null
             },
@@ -133,7 +133,7 @@ export default {
             token_data: 0,
             script: 'qRTqJUJmzEmBNvhkmDuZ4JxcMh5/ioc=',
             decoded: {
-              type: 'P2SH',
+              type: 'MultiSig',
               address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
               timelock: null
             },
@@ -176,7 +176,7 @@ export default {
             token_data: 0,
             script: 'qRTqJUJmzEmBNvhkmDuZ4JxcMh5/ioc=',
             decoded: {
-              type: 'P2SH',
+              type: 'MultiSig',
               address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
               timelock: null
             },
@@ -219,7 +219,7 @@ export default {
             token_data: 0,
             script: 'qRTqJUJmzEmBNvhkmDuZ4JxcMh5/ioc=',
             decoded: {
-              type: 'P2SH',
+              type: 'MultiSig',
               address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
               timelock: null
             },
@@ -262,7 +262,7 @@ export default {
             token_data: 0,
             script: 'qRTqJUJmzEmBNvhkmDuZ4JxcMh5/ioc=',
             decoded: {
-              type: 'P2SH',
+              type: 'MultiSig',
               address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
               timelock: null
             },
@@ -305,7 +305,7 @@ export default {
             token_data: 0,
             script: 'qRTqJUJmzEmBNvhkmDuZ4JxcMh5/ioc=',
             decoded: {
-              type: 'P2SH',
+              type: 'MultiSig',
               address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
               timelock: null
             },
@@ -348,7 +348,7 @@ export default {
             token_data: 0,
             script: 'qRTqJUJmzEmBNvhkmDuZ4JxcMh5/ioc=',
             decoded: {
-              type: 'P2SH',
+              type: 'MultiSig',
               address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
               timelock: null
             },
@@ -391,7 +391,7 @@ export default {
             token_data: 0,
             script: 'qRTqJUJmzEmBNvhkmDuZ4JxcMh5/ioc=',
             decoded: {
-              type: 'P2SH',
+              type: 'MultiSig',
               address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
               timelock: null
             },
@@ -434,7 +434,7 @@ export default {
             token_data: 0,
             script: 'qRTqJUJmzEmBNvhkmDuZ4JxcMh5/ioc=',
             decoded: {
-              type: 'P2SH',
+              type: 'MultiSig',
               address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
               timelock: null
             },
@@ -477,7 +477,7 @@ export default {
             token_data: 0,
             script: 'qRTqJUJmzEmBNvhkmDuZ4JxcMh5/ioc=',
             decoded: {
-              type: 'P2SH',
+              type: 'MultiSig',
               address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
               timelock: null
             },
@@ -520,7 +520,7 @@ export default {
             token_data: 0,
             script: 'qRTqJUJmzEmBNvhkmDuZ4JxcMh5/ioc=',
             decoded: {
-              type: 'P2SH',
+              type: 'MultiSig',
               address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
               timelock: null
             },
@@ -566,7 +566,7 @@ export default {
             token_data: 0,
             script: 'qRTqJUJmzEmBNvhkmDuZ4JxcMh5/ioc=',
             decoded: {
-              type: 'P2SH',
+              type: 'MultiSig',
               address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
               timelock: null
             },
@@ -666,7 +666,7 @@ export default {
             token_data: 0,
             script: 'qRTqJUJmzEmBNvhkmDuZ4JxcMh5/ioc=',
             decoded: {
-              type: 'P2SH',
+              type: 'MultiSig',
               address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
               timelock: null
             },
@@ -764,7 +764,7 @@ export default {
             token_data: 0,
             script: 'qRTqJUJmzEmBNvhkmDuZ4JxcMh5/ioc=',
             decoded: {
-              type: 'P2SH',
+              type: 'MultiSig',
               address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
               timelock: null
             },
@@ -1038,7 +1038,6 @@ export default {
             address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN',
             timelock: null,
             value: 6400,
-            token_data: 0,
           },
           token: '00',
           spent_by: null,
@@ -1049,11 +1048,10 @@ export default {
           token_data: 0,
           script: 'qRTqJUJmzEmBNvhkmDuZ4JxcMh5/ioc=',
           decoded: {
-            type: 'P2SH',
+            type: 'MultiSig',
             address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
             timelock: null,
             value: 6400,
-            token_data: 0,
           },
           token: '00',
           spent_by: null,
