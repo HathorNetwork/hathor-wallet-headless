@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { eventHandlerFactory, getSettings } from '../../src/plugins/hathor_rabbitmq';
 import { bigIntUtils } from '@hathor/wallet-lib';
+import { eventHandlerFactory, getSettings } from '../../src/plugins/hathor_rabbitmq';
 
 test('settings', () => {
   const oldArgs = process.argv;

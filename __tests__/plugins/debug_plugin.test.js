@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { eventHandler, getSettings } from '../../src/plugins/hathor_debug';
 import { bigIntUtils } from '@hathor/wallet-lib';
+import { eventHandler, getSettings } from '../../src/plugins/hathor_debug';
 
 test('settings', () => {
   const oldArgs = process.argv;
@@ -68,7 +68,9 @@ test('event handler', () => {
   logSpy.mockReset();
   // big message: should log the entire message
   eventHandler(bigCompleteMsg);
-  expect(logSpy).toHaveBeenCalledWith(toDebugMessage(bigIntUtils.JSONBigInt.stringify(bigCompleteMsg)));
+  expect(logSpy).toHaveBeenCalledWith(
+    toDebugMessage(bigIntUtils.JSONBigInt.stringify(bigCompleteMsg))
+  );
 
   // debugLong: unexpected value
   process.argv = [

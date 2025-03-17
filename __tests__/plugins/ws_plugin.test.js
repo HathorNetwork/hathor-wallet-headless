@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { getSockets, eventHandler, connectionHandler, getSettings } from '../../src/plugins/hathor_websocket';
 import { bigIntUtils } from '@hathor/wallet-lib';
+import { getSockets, eventHandler, connectionHandler, getSettings } from '../../src/plugins/hathor_websocket';
 
 test('settings', () => {
   const oldArgs = process.argv;
