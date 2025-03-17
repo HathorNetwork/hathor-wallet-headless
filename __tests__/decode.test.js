@@ -191,6 +191,7 @@ describe('decode api', () => {
               type: 'MultiSig',
               timelock: null,
               value: 6400,
+              token_data: 0,
             },
             script: expect.any(String),
             token: '00',
