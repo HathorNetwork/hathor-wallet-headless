@@ -2,7 +2,7 @@ import fs from 'fs';
 import { Address, P2PKH, bufferUtils } from '@hathor/wallet-lib';
 import { isEmpty } from 'lodash';
 import { TestUtils } from './utils/test-utils-integration';
-import { HATHOR_TOKEN_ID } from './configuration/test-constants';
+import { HATHOR_TOKEN_ID, WALLET_CONSTANTS } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
 import { initializedWallets } from '../../src/services/wallets.service';
 
@@ -323,7 +323,7 @@ describe('nano contract routes', () => {
   it('on chain bet methods', async () => {
     // For now the on chain blueprints needs a signature from a specific address
     // so we must always generate the same seed
-    const seed = 'bicycle dice amused car lock outdoor auto during nest accident soon sauce slot enact hand they member source job forward vibrant lab catch coach';
+    const seed = WALLET_CONSTANTS.ocb.seed;
     const ocbWallet = new WalletHelper('ocb-wallet', { words: seed });
     await WalletHelper.startMultipleWalletsForTest([ocbWallet]);
     const libOcbWalletObject = initializedWallets.get(ocbWallet.walletId);
