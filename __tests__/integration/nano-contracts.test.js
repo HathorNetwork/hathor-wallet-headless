@@ -323,7 +323,7 @@ describe('nano contract routes', () => {
   it('on chain bet methods', async () => {
     // For now the on chain blueprints needs a signature from a specific address
     // so we must always generate the same seed
-    const seed = WALLET_CONSTANTS.ocb.seed;
+    const { seed } = WALLET_CONSTANTS.ocb;
     const ocbWallet = new WalletHelper('ocb-wallet', { words: seed });
     await WalletHelper.startMultipleWalletsForTest([ocbWallet]);
     const libOcbWalletObject = initializedWallets.get(ocbWallet.walletId);
