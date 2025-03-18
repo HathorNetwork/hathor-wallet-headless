@@ -60,6 +60,9 @@ export const WALLET_CONSTANTS = {
       'WgWfrJqAgS3RwzXMMz8fywidQAUx6a5smc'
     ]
   },
+  ocb: {
+    seed: 'bicycle dice amused car lock outdoor auto during nest accident soon sauce slot enact hand they member source job forward vibrant lab catch coach', // The wallet that can sign on chain blueprint txs with its address at index 0
+  },
 };
 
 export const TOKEN_DATA = {
