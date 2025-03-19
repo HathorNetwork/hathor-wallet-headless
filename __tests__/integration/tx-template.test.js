@@ -167,7 +167,7 @@ describe('tx-template run', () => {
     const balance = await wallet.getBalance(tokenId);
     expect(balance.available).toEqual(100);
     const balanceHTR = await wallet.getBalance('00');
-    expect(balanceHTR.available).toEqual(9);
+    expect(balanceHTR.available).toEqual(99);
   });
 
   it('should build a transaction that mint tokens', async () => {
@@ -193,6 +193,6 @@ describe('tx-template run', () => {
     const balance = await wallet.getBalance(tokenId);
     expect(balance.available).toEqual(200);
     const balanceHTR = await wallet.getBalance('00');
-    expect(balanceHTR.available).toEqual(8);
+    expect(balanceHTR.available).toEqual(98);
   });
 });
