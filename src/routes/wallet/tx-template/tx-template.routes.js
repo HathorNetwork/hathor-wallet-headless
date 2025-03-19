@@ -7,13 +7,13 @@
 
 const { Router } = require('express');
 const { query } = require('express-validator');
+const { TransactionTemplate } = require('@hathor/wallet-lib');
 const {
   buildTemplate,
   runTemplate,
 } = require('../../../controllers/wallet/tx-template/tx-template.controller');
 const { patchExpressRouter } = require('../../../patch');
 const { validateZodSchema } = require('../../../helpers/validations.helper');
-const { TransactionTemplate } = require('@hathor/wallet-lib');
 
 const txTemplateRouter = patchExpressRouter(Router({ mergeParams: true }));
 

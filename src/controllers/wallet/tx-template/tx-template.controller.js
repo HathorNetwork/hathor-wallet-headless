@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { SendTransaction, WalletTxTemplateInterpreter, TransactionTemplate } = require('@hathor/wallet-lib');
+const { SendTransaction } = require('@hathor/wallet-lib');
 const { mapTxReturn, runSendTransaction } = require('../../../helpers/tx.helper');
 const { lockSendTx } = require('../../../helpers/lock.helper');
 const { parametersValidation } = require('../../../helpers/validations.helper');
