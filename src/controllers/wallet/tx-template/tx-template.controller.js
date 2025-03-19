@@ -46,7 +46,13 @@ async function runTemplate(req, res) {
       wallet.enableDebugMode();
     }
     // build a transaction and sign it
-    const transaction = await wallet.buildTxTemplate(req.body);
+    const transaction = await wallet.buildTxTemplate(
+      req.body,
+      {
+        signTx: true,
+        pinCode: DEFAULT_PIN,
+      },
+    );
 
     // Use runSendTransaction to release lock after marking utxos.
     const sendTransaction = new SendTransaction({ storage: wallet.storage, transaction });
