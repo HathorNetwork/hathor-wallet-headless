@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import { bigIntUtils } from '@hathor/wallet-lib';
+
 /* istanbul ignore next */
 async function checkDeps() {
   const requiredDeps = {
@@ -53,7 +55,7 @@ export function eventHandlerFactory(sqs, settings) {
   return data => {
     const params = {
       QueueUrl: settings.queueUrl,
-      MessageBody: JSON.stringify(data),
+      MessageBody: bigIntUtils.JSONBigInt.stringify(data),
     };
     sqs.sendMessage(params, err => {
       if (err) {

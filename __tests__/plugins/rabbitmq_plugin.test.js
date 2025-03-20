@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import { bigIntUtils } from '@hathor/wallet-lib';
 import { eventHandlerFactory, getSettings } from '../../src/plugins/hathor_rabbitmq';
 
 test('settings', () => {
@@ -34,5 +35,5 @@ test('event handler', () => {
   const data = { test: 'event' };
 
   evHandler(data);
-  expect(channelMock.sendToQueue).toHaveBeenCalledWith('test-queue', Buffer.from(JSON.stringify(data)));
+  expect(channelMock.sendToQueue).toHaveBeenCalledWith('test-queue', Buffer.from(bigIntUtils.JSONBigInt.stringify(data)));
 });
