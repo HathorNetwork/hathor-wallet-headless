@@ -64,7 +64,11 @@ export function eventHandlerFactory(channel, settings) {
   if (settings.exchange !== undefined) {
     return data => {
       // Check https://amqp-node.github.io/amqplib/channel_api.html#channel_publish
-      channel.publish(settings.exchange, settings.routingKey, Buffer.from(JSON.stringify(data)));
+      channel.publish(
+        settings.exchange,
+        settings.routingKey,
+        Buffer.from(bigIntUtils.JSONBigInt.stringify(data))
+      );
     };
   }
 
