@@ -4312,15 +4312,7 @@ const defaultApiDocs = {
         operationId: 'ocbCreate',
         summary: 'Create an on chain blueprint transaction.',
         parameters: [
-          {
-            name: 'x-wallet-id',
-            in: 'header',
-            description: 'Define the key of the corresponding wallet it will be executed the request.',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          }
+          { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
         requestBody: {
           description: 'Data to create the on chain blueprint.',
@@ -4385,18 +4377,7 @@ const defaultApiDocs = {
                       }
                     }
                   },
-                  'wallet-not-ready': {
-                    summary: 'Wallet is not ready yet',
-                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
-                  },
-                  'no-wallet-id': {
-                    summary: 'No wallet id parameter',
-                    value: { success: false, message: "Parameter 'wallet-id' is required." }
-                  },
-                  'invalid-wallet-id': {
-                    summary: 'Wallet id parameter is invalid',
-                    value: { success: false, message: 'Invalid wallet-id parameter.' }
-                  },
+                  ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
