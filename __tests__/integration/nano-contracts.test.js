@@ -334,6 +334,17 @@ describe('nano contract routes', () => {
 
     // Use the bet blueprint code
     const code = fs.readFileSync('./__tests__/integration/configuration/bet.py', 'utf8');
+
+    // First we will have a test case for an error when calling the lib method
+    // when running with an invalid address
+    const responseError = await TestUtils.request
+      .post('/wallet/nano-contracts/create-on-chain-blueprint')
+      .send({ code, address: '123' })
+      .set({ 'x-wallet-id': ocbWallet.walletId });
+
+    expect(responseError.body.success).toBe(false);
+
+    // Now success
     const response = await TestUtils.request
       .post('/wallet/nano-contracts/create-on-chain-blueprint')
       .send({ code, address: address10 })
