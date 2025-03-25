@@ -4733,7 +4733,7 @@ const defaultApiDocs = {
     '/wallet/tx-template/build': {
       post: {
         operationId: 'buildTxTemplate',
-        summary: 'Executes a transaction template and pushes the transaction to the network.',
+        summary: 'Executes a transaction template.',
         parameters: [
           { $ref: '#/components/parameters/XWalletIdParameter' },
           {
