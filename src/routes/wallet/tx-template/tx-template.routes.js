@@ -18,8 +18,7 @@ const { validateZodSchema } = require('../../../helpers/validations.helper');
 const txTemplateRouter = patchExpressRouter(Router({ mergeParams: true }));
 
 /**
- * GET request to fetch which of the tx inputs are from the wallet.
- * For the docs, see api-docs.js
+ * POST request to build and run a transaction template.
  */
 txTemplateRouter.post(
   '/run',
@@ -28,6 +27,9 @@ txTemplateRouter.post(
   runTemplate,
 );
 
+/**
+ * POST request to build a transaction from the template.
+ */
 txTemplateRouter.post(
   '/build',
   validateZodSchema(TransactionTemplate),

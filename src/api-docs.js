@@ -4663,6 +4663,15 @@ const defaultApiDocs = {
         summary: 'Executes a transaction template and pushes the transaction to the network.',
         parameters: [
           { $ref: '#/components/parameters/XWalletIdParameter' },
+          {
+            name: 'debug',
+            in: 'query',
+            description: 'Turn debug on. Optional parameter to log more data when the template is built.',
+            required: false,
+            schema: {
+              type: 'boolean',
+            },
+          },
         ],
         requestBody: {
           description: 'A transaction template in JSON format.',
@@ -4727,6 +4736,24 @@ const defaultApiDocs = {
         summary: 'Executes a transaction template and pushes the transaction to the network.',
         parameters: [
           { $ref: '#/components/parameters/XWalletIdParameter' },
+          {
+            name: 'debug',
+            in: 'query',
+            description: 'Turn debug on. Optional parameter to log more data when the template is built.',
+            required: false,
+            schema: {
+              type: 'boolean',
+            },
+          },
+          {
+            name: 'sign',
+            in: 'query',
+            description: 'If we should sign and prepare the transaction to be sent.',
+            required: false,
+            schema: {
+              type: 'boolean',
+            },
+          },
         ],
         requestBody: {
           description: 'A transaction template in JSON format.',
