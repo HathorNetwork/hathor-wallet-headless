@@ -4307,6 +4307,84 @@ const defaultApiDocs = {
         },
       },
     },
+    '/wallet/nano-contracts/create-on-chain-blueprint': {
+      post: {
+        operationId: 'ocbCreate',
+        summary: 'Create an on chain blueprint transaction.',
+        parameters: [
+          { $ref: '#/components/parameters/XWalletIdParameter' },
+        ],
+        requestBody: {
+          description: 'Data to create the on chain blueprint.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['code', 'address'],
+                properties: {
+                  code: {
+                    type: 'string',
+                    description: 'Blueprint code.'
+                  },
+                  address: {
+                    type: 'string',
+                    description: 'Address caller that will sign the on chain blueprint transaction.'
+                  },
+                },
+              },
+              examples: {
+                data: {
+                  summary: 'Data to create the on chain blueprint',
+                  value: {
+                    code: 'class TestBlueprint:\n\n    def x():\n        pass\n\n__blueprint__ = TestBlueprint\n',
+                    address: 'H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt',
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Create the on chain blueprint',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      success: true,
+                      inputs: [],
+                      outputs: [],
+                      signalBits: 0,
+                      version: 6,
+                      weight: 21.99328529001309,
+                      nonce: 782869,
+                      timestamp: 1740594655,
+                      parents: [
+                        '0008f0e9dbe6e4bbc3a85fce7494fee70011b9c7e72f5276daa2a235355ac013',
+                        '008d81d9d58a43fd9649f33483d804a4417247b4d4e4e01d64406c4177fee0c2'
+                      ],
+                      tokens: [],
+                      hash: '000001b28c9dcffde620193906952714401d9208569b5aa923ec18ace525a86a',
+                      code: {
+                        kind: 'python+gzip',
+                        content: {
+                          type: 'Buffer',
+                          data: []
+                        }
+                      }
+                    }
+                  },
+                  ...commonExamples.xWalletIdErrResponseExamples,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     '/configuration-string': {
       get: {
         operationId: 'getTokenConfigurationString',

@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import { bigIntUtils } from '@hathor/wallet-lib';
 import { eventHandlerFactory, getSettings } from '../../src/plugins/hathor_sqs';
 
 test('settings', () => {
@@ -47,11 +48,11 @@ test('event handler', () => {
   };
   const mockedSettings = { queueUrl: 'test-queue' };
   const evHandler = eventHandlerFactory(sqsMock, mockedSettings);
-  const data = { test: 'event' };
+  const data = { test: 'event', bigInt: BigInt(Number.MAX_SAFE_INTEGER) + 1n };
 
   evHandler(data);
   expect(sqsMock.sendMessage).toHaveBeenCalledWith({
     QueueUrl: mockedSettings.queueUrl,
-    MessageBody: JSON.stringify(data),
+    MessageBody: bigIntUtils.JSONBigInt.stringify(data),
   }, expect.anything());
 });

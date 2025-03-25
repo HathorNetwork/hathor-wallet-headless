@@ -6,6 +6,9 @@
  */
 
 /* istanbul ignore next */
+
+import { bigIntUtils } from '@hathor/wallet-lib';
+
 async function checkDeps() {
   const requiredDeps = {
     yargs: '^17.7.2',
@@ -39,7 +42,7 @@ export function getSettings() {
 
 export function eventHandlerFactory(channel, settings) {
   return data => {
-    channel.sendToQueue(settings.queue, Buffer.from(JSON.stringify(data)));
+    channel.sendToQueue(settings.queue, Buffer.from(bigIntUtils.JSONBigInt.stringify(data)));
   };
 }
 
