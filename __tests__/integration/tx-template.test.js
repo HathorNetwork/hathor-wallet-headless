@@ -1,7 +1,6 @@
 import { HathorWallet, SendTransaction } from '@hathor/wallet-lib';
 import { TestUtils } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
-const { cantSendTxErrorMessage } = require('../../src/helpers/constants');
 
 describe('tx-template build', () => {
   let wallet;
@@ -75,7 +74,7 @@ describe('tx-template build', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe(cantSendTxErrorMessage);
+      expect(response.body.error).toBe('You already have a transaction being sent. Please wait until it\'s done to send another.');
     } finally {
       spy.mockRestore();
     }
@@ -200,7 +199,7 @@ describe('tx-template run', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe(cantSendTxErrorMessage);
+      expect(response.body.error).toBe('You already have a transaction being sent. Please wait until it\'s done to send another.');
     } finally {
       spy.mockRestore();
     }
