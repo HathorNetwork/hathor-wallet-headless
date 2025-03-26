@@ -4735,6 +4735,161 @@ const defaultApiDocs = {
         },
       },
     },
+    '/wallet/tx-template/run': {
+      post: {
+        operationId: 'runTxTemplate',
+        summary: 'Executes a transaction template and pushes the transaction to the network.',
+        parameters: [
+          { $ref: '#/components/parameters/XWalletIdParameter' },
+          {
+            name: 'debug',
+            in: 'query',
+            description: 'Turn debug on. Optional parameter to log more data when the template is built.',
+            required: false,
+            schema: {
+              type: 'boolean',
+            },
+          },
+        ],
+        requestBody: {
+          description: 'A transaction template in JSON format.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'array',
+                items: {},
+              },
+              examples: {
+                create_token: {
+                  summary: 'A template that creates a new token.',
+                  value: [
+                    { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' } },
+                    { type: 'action/config', tokenName: 'Api Docs Token', tokenSymbol: 'ApiTK' },
+                    { type: 'input/utxo', fill: 1 },
+                    { type: 'output/token', amount: 100, address: '{addr}', useCreatedToken: true },
+                  ],
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Success confirmation or handled error',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, inputs: [{ hash: '0000742e9e0a147d72cad5e0a2e2da893119c1da1096de218b420e5f87b70742', index: 0, tx_id: '0000742e9e0a147d72cad5e0a2e2da893119c1da1096de218b420e5f87b70742' }], outputs: [{ value: 100, tokenData: 1, decodedScript: null, token_data: 1 }], signalBits: 0, version: 2, weight: 17.0299, nonce: 72798, timestamp: 1742486041, parents: ['0000805f6ec264cd17069e4a7054c4735885cf914c29431e4cad80f3508d12fd', '00006a88cede497d4c5419da0859c397048f56bc8bd76bcff1fbab2b89f25540'], tokens: [], hash: '00005d39b210f230cf238b894fbba8aa15a0ff80bd69fc637c439af3b93ee45d', name: 'ApiDocsToken', symbol: 'ApiTK' }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  'invalid-instruction': {
+                    summary: 'Using an instruction that does not exist',
+                    value: { success: false, details: ["0.type is Invalid discriminator value. Expected 'input/raw' | 'input/utxo' | 'input/authority' | 'output/raw' | 'output/data' | 'output/token' | 'output/authority' | 'action/shuffle' | 'action/change' | 'action/complete' | 'action/config' | 'action/setvar'"] }
+                  },
+                  'invalid-argument': {
+                    summary: 'Invalid argument in instruction',
+                    value: { success: false, details: ['0.name is Required'] }
+                  },
+                  ...commonExamples.xWalletIdErrResponseExamples,
+                },
+              },
+            },
+          },
+        },
+        externalDocs: {
+          description: 'Template Instructions',
+          url: 'https://github.com/HathorNetwork/hathor-wallet-lib/blob/master/src/template/transaction/instructions.ts',
+        },
+      },
+    },
+    '/wallet/tx-template/build': {
+      post: {
+        operationId: 'buildTxTemplate',
+        summary: 'Executes a transaction template.',
+        parameters: [
+          { $ref: '#/components/parameters/XWalletIdParameter' },
+          {
+            name: 'debug',
+            in: 'query',
+            description: 'Turn debug on. Optional parameter to log more data when the template is built.',
+            required: false,
+            schema: {
+              type: 'boolean',
+            },
+          },
+          {
+            name: 'sign',
+            in: 'query',
+            description: 'If we should sign and prepare the transaction to be sent.',
+            required: false,
+            schema: {
+              type: 'boolean',
+            },
+          },
+        ],
+        requestBody: {
+          description: 'A transaction template in JSON format.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'array',
+                items: {},
+              },
+              examples: {
+                create_token: {
+                  summary: 'A template that creates a new token.',
+                  value: [
+                    { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' } },
+                    { type: 'action/config', tokenName: 'Api Docs Token', tokenSymbol: 'ApiTK' },
+                    { type: 'input/utxo', fill: 1 },
+                    { type: 'output/token', amount: 100, address: '{addr}', useCreatedToken: true },
+                  ],
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Success confirmation or handled error',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, txHex: '00020101000006e698232a0b3929aaf3ea269f3985c408d2ec3a012b8a6ab30c6a8df6bc0100000000006401001976a914dee13cb4a58c5ae606ee79380d140bf786bab51388ac010c417069446f6373546f6b656e05417069544b0000000000000000000000000000000000' }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  'invalid-instruction': {
+                    summary: 'Using an instruction that does not exist',
+                    value: { success: false, details: ["0.type is Invalid discriminator value. Expected 'input/raw' | 'input/utxo' | 'input/authority' | 'output/raw' | 'output/data' | 'output/token' | 'output/authority' | 'action/shuffle' | 'action/change' | 'action/complete' | 'action/config' | 'action/setvar'"] }
+                  },
+                  'invalid-argument': {
+                    summary: 'Invalid argument in instruction',
+                    value: { success: false, details: ['0.name is Required'] }
+                  },
+                  ...commonExamples.xWalletIdErrResponseExamples,
+                },
+              },
+            },
+          },
+        },
+        externalDocs: {
+          description: 'Template Instructions',
+          url: 'https://github.com/HathorNetwork/hathor-wallet-lib/blob/master/src/template/transaction/instructions.ts',
+        },
+      },
+    },
   },
 };
 
