@@ -55,7 +55,7 @@ describe('RabbitMQ plugin settings', () => {
     process.argv = oldArgs;
   });
 
-  it('should return the settings if everything is correct', () => {
+  it('should return the settings if everything is correct with queue configuration', () => {
     const oldArgs = process.argv;
     process.argv = [
       'node', // not used but a value is required at this index
@@ -85,6 +85,24 @@ describe('RabbitMQ plugin settings', () => {
       url: 'test-url',
       exchange: 'test-exchange',
       routingKey: 'test-routing-key',
+    });
+    process.argv = oldArgs;
+  });
+
+  it('should return the settings if everything is correct with exchange and a blank routing key', () => {
+    const oldArgs = process.argv;
+    process.argv = [
+      'node', // not used but a value is required at this index
+      'a_script_file.js', // not used but a value is required at this index
+      '--plugin_rabbitmq_url', 'test-url',
+      '--plugin_rabbitmq_exchange', 'test-exchange',
+      '--plugin_rabbitmq_routing_key', '',
+    ];
+    const settings = getSettings();
+    expect(settings).toMatchObject({
+      url: 'test-url',
+      exchange: 'test-exchange',
+      routingKey: '',
     });
     process.argv = oldArgs;
   });
