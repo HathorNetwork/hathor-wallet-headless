@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { txApi, walletApi, WalletType, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, transactionUtils, PartialTx } = require('@hathor/wallet-lib');
+const { txApi, walletApi, WalletType, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, transactionUtils, PartialTx, axios } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
 // import is used because there is an issue with winston logger when using require ref: #262
 const { JSONBigInt } = require('@hathor/wallet-lib/lib/utils/bigint');
@@ -202,6 +202,19 @@ async function getTransaction(req, res) {
   }
 }
 
+const getFeatureInfo = (resolve) => {
+  return axios.createRequestInstance(resolve)
+    .get('feature')
+    .then(
+      res => {
+        resolve(res.data);
+      },
+      res => {
+        return Promise.reject(res);
+      }
+    );
+}
+
 async function getTxConfirmationBlocks(req, res) {
   const validationResult = parametersValidation(req);
   if (!validationResult.success) {
@@ -226,7 +239,7 @@ async function getTxConfirmationBlocks(req, res) {
   // Disabling this eslint rule because of the way API call is done in the lib
   // otherwise the code would need to be more complex
   // We should change this when we refactor the way we call APIs in the lib
-  // (this comment also applies for the getMiningInfo call)
+  // (this comment also applies for the getFeatureInfo call)
   // eslint-disable-next-line no-promise-executor-return
   const txDataResponse = await new Promise(resolve => txApi.getTransaction(id, resolve));
 
@@ -237,18 +250,18 @@ async function getTxConfirmationBlocks(req, res) {
 
   // Now we get the current height of the network
   // eslint-disable-next-line no-promise-executor-return
-  const networkHeightResponse = await new Promise(resolve => walletApi.getMiningInfo(resolve));
+  const networkHeightResponse = await new Promise(resolve => getFeatureInfo(resolve));
 
-  if (!networkHeightResponse.success) {
-    res.send({ success: false, error: 'Failed to get network heigth from the full node.' });
-    return;
-  }
+  // if (!networkHeightResponse.success) {
+  //   res.send({ success: false, error: 'Failed to get network heigth from the full node.' });
+  //   return;
+  // }
 
   let confirmationNumber = 0;
 
   // first_block_height will be null until a block confirms this transaction
   if (txDataResponse.meta && txDataResponse.meta.first_block_height) {
-    confirmationNumber = networkHeightResponse.blocks - txDataResponse.meta.first_block_height;
+    confirmationNumber = networkHeightResponse.block_height - txDataResponse.meta.first_block_height;
   }
 
   res.send({ success: true, confirmationNumber });
