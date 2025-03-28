@@ -39,8 +39,8 @@ export function getSettings() {
   const exchange = argv.plugin_rabbitmq_exchange
   || process.env.HEADLESS_PLUGIN_RABBITMQ_EXCHANGE;
   const routingKey = argv.plugin_rabbitmq_routing_key !== undefined
-                      ? argv.plugin_rabbitmq_routing_key
-                      : process.env.HEADLESS_PLUGIN_RABBITMQ_ROUTING_KEY;
+    ? argv.plugin_rabbitmq_routing_key
+    : process.env.HEADLESS_PLUGIN_RABBITMQ_ROUTING_KEY;
 
   if (url === undefined) {
     throw new Error('You must provide a RabbitMQ URL');
