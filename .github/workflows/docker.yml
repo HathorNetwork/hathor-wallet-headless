@@ -5,6 +5,7 @@ on:
       - v*
     branches:
       - master
+      - hotfix/remove-getmininginfo
 jobs:
   build:
     runs-on: ubuntu-latest
