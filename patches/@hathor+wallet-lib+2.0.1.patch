@@ -1,0 +1,65 @@
+diff --git a/node_modules/@hathor/wallet-lib/lib/api/axiosWrapper.js b/node_modules/@hathor/wallet-lib/lib/api/axiosWrapper.js
+index 4b13e8d..51b054c 100644
+--- a/node_modules/@hathor/wallet-lib/lib/api/axiosWrapper.js
++++ b/node_modules/@hathor/wallet-lib/lib/api/axiosWrapper.js
+@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
+   value: true
+ });
+ exports.default = exports.axiosWrapperCreateRequestInstance = void 0;
+-var _axios = _interopRequireDefault(require("axios"));
++var _axios = _interopRequireDefault(require("axios/dist/node/axios.cjs"));
+ var _constants = require("../constants");
+ var _config = _interopRequireDefault(require("../config"));
+ function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+diff --git a/node_modules/@hathor/wallet-lib/lib/api/nano.js b/node_modules/@hathor/wallet-lib/lib/api/nano.js
+index 04be165..39b5ae1 100644
+--- a/node_modules/@hathor/wallet-lib/lib/api/nano.js
++++ b/node_modules/@hathor/wallet-lib/lib/api/nano.js
+@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
+   value: true
+ });
+ exports.default = void 0;
+-var _axios = _interopRequireDefault(require("axios"));
++var _axios = _interopRequireDefault(require("axios/dist/node/axios.cjs"));
+ var _axiosInstance = require("./axiosInstance");
+ var _errors = require("../errors");
+ function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+diff --git a/node_modules/@hathor/wallet-lib/lib/utils/storage.js b/node_modules/@hathor/wallet-lib/lib/utils/storage.js
+index 2ea66aa..23a332b 100644
+--- a/node_modules/@hathor/wallet-lib/lib/utils/storage.js
++++ b/node_modules/@hathor/wallet-lib/lib/utils/storage.js
+@@ -17,7 +17,7 @@ exports.processNewTx = processNewTx;
+ exports.processUtxoUnlock = processUtxoUnlock;
+ exports.scanPolicyStartAddresses = scanPolicyStartAddresses;
+ var _lodash = require("lodash");
+-var _axios = _interopRequireDefault(require("axios"));
++var _axios = _interopRequireDefault(require("axios/dist/node/axios.cjs"));
+ var _types = require("../types");
+ var _wallet = _interopRequireDefault(require("../api/wallet"));
+ var _helpers = _interopRequireDefault(require("./helpers"));
+diff --git a/node_modules/@hathor/wallet-lib/lib/wallet/api/swapService.js b/node_modules/@hathor/wallet-lib/lib/wallet/api/swapService.js
+index 5aff800..81b3ccf 100644
+--- a/node_modules/@hathor/wallet-lib/lib/wallet/api/swapService.js
++++ b/node_modules/@hathor/wallet-lib/lib/wallet/api/swapService.js
+@@ -9,7 +9,7 @@ exports.encryptString = encryptString;
+ exports.get = void 0;
+ exports.hashPassword = hashPassword;
+ exports.update = void 0;
+-var _axios = _interopRequireDefault(require("axios"));
++var _axios = _interopRequireDefault(require("axios/dist/node/axios.cjs"));
+ var _sha = _interopRequireDefault(require("crypto-js/sha256"));
+ var _aes = _interopRequireDefault(require("crypto-js/aes"));
+ var _cryptoJs = _interopRequireDefault(require("crypto-js"));
+diff --git a/node_modules/@hathor/wallet-lib/lib/wallet/api/walletServiceAxios.js b/node_modules/@hathor/wallet-lib/lib/wallet/api/walletServiceAxios.js
+index 266c2bf..6e24191 100644
+--- a/node_modules/@hathor/wallet-lib/lib/wallet/api/walletServiceAxios.js
++++ b/node_modules/@hathor/wallet-lib/lib/wallet/api/walletServiceAxios.js
+@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
+   value: true
+ });
+ exports.default = exports.axiosInstance = void 0;
+-var _axios = _interopRequireDefault(require("axios"));
++var _axios = _interopRequireDefault(require("axios/dist/node/axios.cjs"));
+ var _constants = require("../../constants");
+ var _config = _interopRequireDefault(require("../../config"));
+ function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
