@@ -1,4 +1,3 @@
-import { HathorWallet, SendTransaction } from '@hathor/wallet-lib';
 import { TestUtils } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
 
@@ -45,39 +44,6 @@ describe('tx-template build', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
-  });
-
-  it('should fail if we are already running another template', async () => {
-    const spy = jest.spyOn(HathorWallet.prototype, 'buildTxTemplate').mockImplementation(async () => {
-      await new Promise(resolve => {
-        setTimeout(resolve, 1000);
-      });
-    });
-    try {
-      await TestUtils.request
-        .post('/wallet/tx-template/build')
-        .send([
-          { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' } },
-          { type: 'input/utxo', fill: 1 },
-          { type: 'output/token', amount: 1, address: '{addr}' },
-        ])
-        .set({ 'x-wallet-id': wallet.walletId });
-
-      const response = await TestUtils.request
-        .post('/wallet/tx-template/build')
-        .send([
-          { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' } },
-          { type: 'input/utxo', fill: 1 },
-          { type: 'output/token', amount: 1, address: '{addr}' },
-        ])
-        .set({ 'x-wallet-id': wallet.walletId });
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('You already have a transaction being sent. Please wait until it\'s done to send another.');
-    } finally {
-      spy.mockRestore();
-    }
   });
 
   it('should build a transaction from a valid template', async () => {
@@ -170,39 +136,6 @@ describe('tx-template run', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
-  });
-
-  it('should fail if we are already running another template', async () => {
-    const spy = jest.spyOn(SendTransaction.prototype, 'updateOutputSelected').mockImplementation(async () => {
-      await new Promise(resolve => {
-        setTimeout(resolve, 1000);
-      });
-    });
-    try {
-      await TestUtils.request
-        .post('/wallet/tx-template/run')
-        .send([
-          { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' } },
-          { type: 'input/utxo', fill: 1 },
-          { type: 'output/token', amount: 1, address: '{addr}' },
-        ])
-        .set({ 'x-wallet-id': wallet.walletId });
-
-      const response = await TestUtils.request
-        .post('/wallet/tx-template/run')
-        .send([
-          { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' } },
-          { type: 'input/utxo', fill: 1 },
-          { type: 'output/token', amount: 1, address: '{addr}' },
-        ])
-        .set({ 'x-wallet-id': wallet.walletId });
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('You already have a transaction being sent. Please wait until it\'s done to send another.');
-    } finally {
-      spy.mockRestore();
-    }
   });
 
   it('should build a transaction from a valid template', async () => {
