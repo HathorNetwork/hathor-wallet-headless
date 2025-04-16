@@ -11,7 +11,7 @@ jobs:
   # This follows semver recommendations, with release candidates having a dash and a dot
   # @see https://semver.org/spec/v2.0.0-rc.2.html
   check-version:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     outputs:
       release_status_output: ${{ steps.release_version.outputs.version_status_output }}
 
@@ -47,7 +47,7 @@ jobs:
 
   # Initiate upload only if the version is valid
   upload-apidocs:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     permissions:
       id-token: write # This is required for requesting the JWT
     needs: check-version
