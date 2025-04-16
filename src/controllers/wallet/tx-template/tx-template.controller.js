@@ -83,6 +83,13 @@ async function buildTemplate(req, res) {
   }
 
   const { wallet, logger } = req;
+
+  const unlock = lockSendTx(req.walletId);
+  if (unlock === null) {
+    res.send({ success: false, error: cantSendTxErrorMessage });
+    return;
+  }
+
   try {
     if (req.query.debug) {
       wallet.enableDebugMode();
@@ -97,6 +104,7 @@ async function buildTemplate(req, res) {
     logger.error(err);
     res.send({ success: false, error: err.message });
   } finally {
+    unlock();
     wallet.disableDebugMode();
   }
 }
