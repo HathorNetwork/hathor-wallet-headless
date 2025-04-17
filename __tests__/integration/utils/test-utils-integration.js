@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
 
 import supertest from 'supertest';
-import { txApi, walletApi, HathorWallet, walletUtils } from '@hathor/wallet-lib';
+import superagent from 'superagent';
+import { txApi, walletApi, HathorWallet, walletUtils, bigIntUtils } from '@hathor/wallet-lib';
 import createApp from '../../../src/app';
 import { initializedWallets } from '../../../src/services/wallets.service';
 import { loggers } from './logger.util';
@@ -53,6 +54,26 @@ export class TestUtils {
         if (err) {
           return reject(err);
         }
+
+        superagent.parse['application/json'] = (res, callback) => {
+          // reference: https://github.com/ladjs/superagent/blob/2c188904f8181ab760496d2849977dddee9900d1/src/node/parsers/json.js
+          res.text = '';
+          res.setEncoding('utf8');
+          res.on('data', chunk => { res.text += chunk; });
+          res.on('end', () => {
+            let body;
+            let error;
+            try {
+              body = res.text && bigIntUtils.JSONBigInt.parse(res.text);
+            } catch (parseErr) {
+              error = parseErr;
+              error.rawResponse = res.text || null;
+              error.statusCode = res.statusCode;
+            } finally {
+              callback(error, body);
+            }
+          });
+        };
 
         // Ensures the supertest agent will be bound to the correct express port
         request = supertest.agent(server);

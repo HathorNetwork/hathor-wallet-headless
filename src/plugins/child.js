@@ -6,6 +6,7 @@
  */
 
 import path from 'path';
+import { bigIntUtils } from '@hathor/wallet-lib';
 import settings from '../settings';
 
 import { notificationBus, EVENTBUS_EVENT_NAME } from '../services/notification.service';
@@ -114,6 +115,16 @@ export const main = async () => {
   }
 };
 
+// We export this just for testing purposes
+export const handleMessage = serializedData => {
+  const data = bigIntUtils.JSONBigInt.parse(serializedData);
+  // Repeat notifications from main process to local notification service
+  notificationBus.emit(EVENTBUS_EVENT_NAME, data);
+  if (data.type) {
+    notificationBus.emit(data.type, data);
+  }
+};
+
 if (process.env.NODE_ENV !== 'test') {
   process.on('disconnect', () => {
     // If parent disconnects, we must exit to avoid running indefinetly
@@ -121,13 +132,7 @@ if (process.env.NODE_ENV !== 'test') {
     process.exit(127);
   });
 
-  process.on('message', data => {
-    // Repeat notifications from main process to local notification service
-    notificationBus.emit(EVENTBUS_EVENT_NAME, data);
-    if (data.type) {
-      notificationBus.emit(data.type, data);
-    }
-  });
+  process.on('message', handleMessage);
 
   console.log('[child_process] startup');
   main();

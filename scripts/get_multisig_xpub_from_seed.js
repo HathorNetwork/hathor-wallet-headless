@@ -17,12 +17,10 @@ function main() {
   * separated by spaces
   */
   const seed = process.argv.slice(2).join(' ');
-  const hdprivkeyRoot = hathorLib.walletUtils.getXPrivKeyFromSeed(seed);
-  // `accountDerivationIndex` will make the util method derive to the change path
-  const hdprivkey = hathorLib.walletUtils.deriveXpriv(hdprivkeyRoot, '0\'/0');
+  const xpubkey = hathorLib.walletUtils.getMultiSigXPubFromWords(seed);
 
   // Print the xpubkey
-  console.log(hdprivkey.xpubkey);
+  console.log(xpubkey);
 }
 
 try {
