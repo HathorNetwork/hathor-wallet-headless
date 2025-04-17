@@ -19,8 +19,8 @@ env:
 
 jobs:
   itest:
-    runs-on: ubuntu-20.04
-    timeout-minutes: 40
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
 
     strategy:
       matrix:

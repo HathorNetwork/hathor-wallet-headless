@@ -40,11 +40,23 @@ jobs:
           username: ${{ secrets.AWS_ACCESS_KEY_ID }}
           password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     - name: Build and push
-      # https://github.com/docker/build-push-action/releases/tag/v6.7.0
-      uses: docker/build-push-action@5cd11c3a4ced054e52742c5fd54dca954e0edd85
+      # https://github.com/docker/build-push-action/releases/tag/v6.15.0
+      uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4
       with:
         push: true
         tags: ${{ steps.tags.outputs.tags }}
+        platforms: linux/amd64,linux/arm64
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    - name: Build and push RabbitMQ image
+      # https://github.com/docker/build-push-action/releases/tag/v6.15.0
+      uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4
+      if: steps.tags.outputs.rabbitmq_tags != ''
+      with:
+        build-args:
+          ENABLE_RABBITMQ=true
+        push: true
+        tags: ${{ steps.tags.outputs.rabbitmq_tags }}
         platforms: linux/amd64,linux/arm64
         cache-from: type=gha
         cache-to: type=gha,mode=max

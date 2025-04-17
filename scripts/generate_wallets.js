@@ -124,4 +124,5 @@ if (walletsArray) {
     });
 } else {
   console.log(generatedWallet);
+  process.exit(1);
 }

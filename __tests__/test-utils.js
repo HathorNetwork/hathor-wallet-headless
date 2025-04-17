@@ -135,6 +135,7 @@ class TestUtils {
     exitIfClosed = false,
     retries = 3,
     firstAddress = null,
+    pollInterval = 500,
   } = {}) {
     for (let i = 0; i < retries; i++) {
       const res = await TestUtils.walletStatus({ walletId, firstAddress });
@@ -152,7 +153,7 @@ class TestUtils {
         return false;
       }
       await new Promise(resolve => {
-        setTimeout(resolve, 500);
+        setTimeout(resolve, pollInterval);
       });
     }
     TestUtils.logger.debug('[TestUtil:waitReady] too many attempts', { walletId });
@@ -187,8 +188,8 @@ class TestUtils {
     await TestUtils.waitReady({ walletId, retries: 10 });
   }
 
-  static async stopWallet({ walletId = WALLET_ID } = {}) {
-    const isReady = await TestUtils.waitReady({ walletId, exitIfClosed: true });
+  static async stopWallet({ walletId = WALLET_ID, pollInterval = 500 } = {}) {
+    const isReady = await TestUtils.waitReady({ walletId, exitIfClosed: true, pollInterval });
     if (!isReady) {
       TestUtils.logger.debug('[TestUtil:stopWallet] wallet is already stopped', { walletId });
       return;

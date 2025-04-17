@@ -65,6 +65,15 @@ else
 	node dist-scripts/get_xpub_from_seed.js $(seed)
 endif
 
+# Internal target to run multisig_xpub_from_seed command.
+.PHONY: .run_multisig_xpub_from_seed
+.run_multisig_xpub_from_seed:
+ifeq ($(seed),)
+	@echo "Usage: make multisig_xpub_from_seed seed=YOUR_SEED"
+else
+	node dist-scripts/get_multisig_xpub_from_seed.js $(seed)
+endif
+
 # Command: generate words
 .PHONY: words
 words: .script-build-dirs .run_words .script-clean-dirs
@@ -76,3 +85,7 @@ create_hsm_key: .script-build-dirs .run_create_hsm_key .script-clean-dirs
 # Command: Derive xPub from seed
 .PHONY: xpub_from_seed
 xpub_from_seed: .script-build-dirs .run_xpub_from_seed .script-clean-dirs
+
+# Command: Derive multisig xPub from seed
+.PHONY: multisig_xpub_from_seed
+multisig_xpub_from_seed: .script-build-dirs .run_multisig_xpub_from_seed .script-clean-dirs

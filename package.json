@@ -10,7 +10,7 @@
   "dependencies": {
     "@dinamonetworks/hsm-dinamo": "4.9.1",
     "@hathor/healthcheck-lib": "0.1.0",
-    "@hathor/wallet-lib": "2.0.1",
+    "@hathor/wallet-lib": "2.1.1",
     "axios": "1.7.7",
     "express": "4.18.2",
     "express-validator": "6.10.0",
@@ -68,6 +68,7 @@
     "jest": "29.7.0",
     "mock-socket": "9.3.1",
     "nodemon": "3.1.0",
-    "supertest": "6.3.4"
+    "supertest": "7.0.0",
+    "superagent": "9.0.2"
   }
 }
