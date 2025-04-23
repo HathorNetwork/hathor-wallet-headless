@@ -1,5 +1,6 @@
 import { HathorWallet, SendTransaction } from '@hathor/wallet-lib';
 import TestUtils from './test-utils';
+// eslint-disable-next-line import/named
 import { cantSendTxErrorMessage } from '../src/helpers/constants';
 
 const walletId = 'stub_simple_send_tx';
@@ -14,13 +15,12 @@ describe('tx-template build api', () => {
   });
 
   it('should receive an error when trying to do concurrent builds (lock/unlock behavior)', async () => {
-    const spy = jest.spyOn(HathorWallet.prototype, 'buildTxTemplate').mockImplementation(async () => {
-      return await new Promise(resolve => {
+    const spy = jest.spyOn(HathorWallet.prototype, 'buildTxTemplate')
+      .mockImplementation(async () => (new Promise(resolve => {
         setTimeout(() => resolve({
           toHex: () => ('tx-hex'),
         }), 1000);
-      });
-    });
+      })));
     try {
       const promise1 = TestUtils.request
         .post('/wallet/tx-template/build')
@@ -50,7 +50,6 @@ describe('tx-template build api', () => {
     }
   });
 });
-
 
 describe('tx-template run api', () => {
   beforeAll(async () => {
