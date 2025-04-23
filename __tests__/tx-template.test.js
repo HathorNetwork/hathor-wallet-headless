@@ -40,7 +40,6 @@ describe('tx-template build api', () => {
         .set({ 'x-wallet-id': walletId });
 
       const [response1, response2] = await Promise.all([promise1, promise2]);
-      console.debug(response1)
       expect(response1.status).toBe(200);
       expect(response1.body.txHex).toEqual('tx-hex');
       expect(response2.status).toBe(200);
