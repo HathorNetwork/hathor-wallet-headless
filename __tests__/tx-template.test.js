@@ -1,5 +1,6 @@
 import { HathorWallet, SendTransaction } from '@hathor/wallet-lib';
 import TestUtils from './test-utils';
+import { cantSendTxErrorMessage } from '../src/helpers/constants';
 
 const walletId = 'stub_simple_send_tx';
 
@@ -44,6 +45,7 @@ describe('tx-template build api', () => {
       expect(response1.body.txHex).toEqual('tx-hex');
       expect(response2.status).toBe(200);
       expect(response2.body.success).toBe(false);
+      expect(response2.body.error).toBe(cantSendTxErrorMessage);
     } finally {
       spy.mockRestore();
     }
@@ -89,6 +91,7 @@ describe('tx-template run api', () => {
       expect(response1.body.hash).toBeTruthy();
       expect(response2.status).toBe(200);
       expect(response2.body.success).toBe(false);
+      expect(response2.body.error).toBe(cantSendTxErrorMessage);
     } finally {
       spy.mockRestore();
     }
