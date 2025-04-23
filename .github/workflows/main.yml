@@ -14,7 +14,7 @@ on:
       - release
 jobs:
   test:
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-latest
     timeout-minutes: 40 # default is 360
     strategy:
       matrix:
