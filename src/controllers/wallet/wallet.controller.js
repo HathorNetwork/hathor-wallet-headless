@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { txApi, featuresApi, walletApi, WalletType, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, transactionUtils, PartialTx } = require('@hathor/wallet-lib');
+const { txApi, featuresApi, WalletType, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, transactionUtils, PartialTx } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
 // import is used because there is an issue with winston logger when using require ref: #262
 const { JSONBigInt } = require('@hathor/wallet-lib/lib/utils/bigint');
