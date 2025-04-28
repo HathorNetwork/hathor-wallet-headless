@@ -1,0 +1,411 @@
+{
+  "resources": {
+    "@hathor/wallet-lib>bitcore-lib>bip-schnorr>js-sha256": {
+      "globals": {
+        "Array.isArray": true,
+        "ArrayBuffer.isView": true,
+        "Object.prototype": true,
+        "Array.prototype": true,
+        "process": true,
+        "root": true,
+        "window": true,
+        "global": true,
+        "module": true,
+        "exports": true,
+        "__dirname": true,
+        "__filename": true,
+        "require": "write"
+      },
+      "packages": {
+        "js-sha256": true
+      },
+      "builtin": {
+        "crypto": true,
+        "buffer": true,
+        "stream": true,
+        "util": true,
+        "path": true,
+        "fs": true,
+        "module": true,
+        "require": true
+      },
+      "native": true,
+      "environment": "node",
+      "moduleSystem": true
+    },
+    "lavamoat>node-gyp-build": {
+      "builtin": {
+        "path": true,
+        "fs": true,
+        "os": true
+      },
+      "globals": {
+        "process": true,
+        "__filename": true,
+        "__dirname": true,
+        "Buffer": true
+      },
+      "packages": {
+        "@hathor/wallet-lib>level>classic-level": true,
+        "classic-level": true
+      },
+      "native": true
+    },
+    "@hathor/wallet-lib>level>classic-level": {
+      "builtin": {
+        "fs": true,
+        "path": true,
+        "os": true
+      },
+      "globals": {
+        "process": true,
+        "__filename": true,
+        "__dirname": true,
+        "Buffer": true
+      },
+      "native": true
+    },
+    "classic-level": {
+      "builtin": {
+        "fs": true,
+        "path": true,
+        "os": true
+      },
+      "globals": {
+        "process": true,
+        "__filename": true,
+        "__dirname": true,
+        "Buffer": true
+      },
+      "native": true
+    },
+    "@hathor/wallet-lib>level": {
+      "packages": {
+        "@hathor/wallet-lib>level>classic-level": true,
+        "classic-level": true
+      }
+    },
+    "axios": {
+      "type": "commonjs",
+      "environment": "node",
+      "moduleSystem": true,
+      "globals": {
+        "console": true,
+        "URL": true,
+        "URLSearchParams": true,
+        "TextEncoder": true,
+        "TextDecoder": true,
+        "AbortController": true,
+        "FormData": true,
+        "Blob": true,
+        "navigator": true,
+        "process": true,
+        "Buffer": true,
+        "global": true,
+        "require": true,
+        "module": true,
+        "exports": true,
+        "__filename": true,
+        "__dirname": true
+      },
+      "builtin": {
+        "http": true,
+        "https": true,
+        "url": true,
+        "stream": true,
+        "zlib": true,
+        "util": true,
+        "net": true,
+        "tls": true,
+        "buffer": true,
+        "path": true,
+        "fs": true,
+        "module": true,
+        "require": true,
+        "events": true
+      },
+      "packages": {
+        "follow-redirects": true,
+        "form-data": true,
+        "delayed-stream": true,
+        "combined-stream": true,
+        "mime-types": true,
+        "mime-db": true,
+        "asynckit": true,
+        "axios>form-data": true,
+        "proxy-from-env": true,
+        "axios>proxy-from-env": true,
+        "axios>follow-redirects": true,
+        "axios>form-data>combined-stream": true,
+        "axios>form-data>combined-stream>delayed-stream": true,
+        "axios>form-data>mime-types": true,
+        "axios>form-data>mime-types>mime-db": true,
+        "axios>form-data>asynckit": true
+      }
+    },
+    "asynckit": {
+      "builtin": {
+        "stream": true
+      }
+    },
+    "axios>form-data>asynckit": {
+      "builtin": {
+        "stream": true
+      }
+    },
+    "mime-types": {
+      "builtin": {
+        "path": true
+      },
+      "packages": {
+        "mime-db": true
+      }
+    },
+    "axios>form-data>mime-types": {
+      "builtin": {
+        "path": true
+      },
+      "packages": {
+        "mime-db": true,
+        "axios>form-data>mime-types>mime-db": true
+      }
+    },
+    "axios>form-data": {
+      "builtin": {
+        "util": true,
+        "stream": true,
+        "path": true,
+        "http": true,
+        "https": true,
+        "fs": true,
+        "url": true
+      },
+      "packages": {
+        "combined-stream": true,
+        "asynckit": true,
+        "delayed-stream": true,
+        "axios>form-data>combined-stream": true,
+        "mime-types": true,
+        "mime-db": true,
+        "axios>form-data>mime-types": true,
+        "axios>form-data>mime-types>mime-db": true,
+        "axios>form-data>asynckit": true
+      }
+    },
+    "axios>form-data>combined-stream>delayed-stream": {
+      "builtin": {
+        "stream": true,
+        "util": true
+      },
+      "globals": {
+        "process": true,
+        "Buffer": true,
+        "setTimeout": true,
+        "clearTimeout": true
+      }
+    },
+    "axios>form-data>combined-stream": {
+      "builtin": {
+        "util": true,
+        "stream": true
+      },
+      "globals": {
+        "process": true,
+        "Buffer": true
+      },
+      "packages": {
+        "delayed-stream": true,
+        "axios>form-data>combined-stream>delayed-stream": true
+      }
+    },
+    "axios>proxy-from-env": {
+      "builtin": {
+        "url": true
+      },
+      "globals": {
+        "process": true
+      }
+    },
+    "axios>follow-redirects": {
+      "builtin": {
+        "url": true,
+        "http": true,
+        "https": true,
+        "stream": true,
+        "assert": true,
+        "util": true
+      },
+      "globals": {
+        "process": true,
+        "setTimeout": true,
+        "clearTimeout": true
+      }
+    },
+    "@hathor/wallet-lib": {
+      "environment": "node",
+      "moduleSystem": true,
+      "globals": {
+        "AbortController": true,
+        "Buffer": true,
+        "Buffer.alloc": true,
+        "Buffer.concat": true,
+        "Buffer.from": true,
+        "Intl": true,
+        "Intl.NumberFormat": true,
+        "TextEncoder": true,
+        "TextDecoder": true,
+        "clearInterval": true,
+        "clearTimeout": true,
+        "console": true,
+        "process": true,
+        "setInterval": true,
+        "setTimeout": true,
+        "global": true,
+        "require": true,
+        "module": true,
+        "exports": true
+      },
+      "builtin": {
+        "assert": true,
+        "buffer": true,
+        "crypto": true,
+        "events": true,
+        "fs": true,
+        "http": true,
+        "https": true,
+        "net": true,
+        "path": true,
+        "stream": true,
+        "url": true,
+        "util": true,
+        "zlib": true,
+        "module": true,
+        "require": true,
+        "os": true
+      },
+      "packages": {
+        "axios": true,
+        "bitcore-lib": true,
+        "bitcore-mnemonic": true,
+        "crypto-js": true,
+        "isomorphic-ws": true,
+        "level": true,
+        "lodash": true,
+        "queue-microtask": true,
+        "zod": true,
+        "@hathor/wallet-lib>level>classic-level": true,
+        "classic-level": true,
+        "@hathor/wallet-lib>level": true
+      },
+      "native": true
+    },
+    "@dinamonetworks/hsm-dinamo": {
+      "builtin": {
+        "crypto": true,
+        "fs": true,
+        "net": true,
+        "path": true,
+        "tls": true
+      },
+      "globals": {
+        "Buffer.alloc": true,
+        "Buffer.concat": true,
+        "Buffer.from": true,
+        "atob": true,
+        "btoa": true,
+        "process": true
+      },
+      "native": true
+    },
+    "express": {
+      "environment": "node",
+      "moduleSystem": true,
+      "globals": {
+        "process": true,
+        "Buffer": true,
+        "console": true,
+        "setTimeout": true,
+        "clearTimeout": true,
+        "require": true,
+        "module": true,
+        "exports": true
+      },
+      "builtin": {
+        "http": true,
+        "https": true,
+        "url": true,
+        "path": true,
+        "fs": true,
+        "util": true,
+        "events": true,
+        "stream": true,
+        "net": true,
+        "module": true,
+        "require": true
+      }
+    },
+    "$root": {
+      "type": "module",
+      "environment": "node",
+      "moduleSystem": true,
+      "globals": {
+        "process": true,
+        "console": true,
+        "Buffer": true,
+        "URL": true,
+        "setTimeout": true,
+        "clearTimeout": true,
+        "setInterval": true,
+        "clearInterval": true,
+        "require": true,
+        "module": true,
+        "exports": true,
+        "__filename": true,
+        "__dirname": true,
+        "global": true
+      },
+      "builtin": {
+        "path": true,
+        "fs": true,
+        "http": true,
+        "https": true,
+        "stream": true,
+        "util": true,
+        "url": true,
+        "crypto": true,
+        "assert": true,
+        "events": true,
+        "module": true,
+        "require": true,
+        "os": true
+      },
+      "packages": {
+        "axios": true,
+        "@hathor/wallet-lib": true,
+        "@hathor/healthcheck-lib": true,
+        "@dinamonetworks/hsm-dinamo": true,
+        "express": true,
+        "express-validator": true,
+        "jsonwebtoken": true,
+        "lodash": true,
+        "morgan": true,
+        "uuid4": true,
+        "validator": true,
+        "winston": true,
+        "yargs": true,
+        "classic-level": true
+      }
+    }
+  },
+  "packageOverrides": {
+    "axios": {
+      "main": "./dist/node/axios.cjs"
+    }
+  },
+  "nativeModuleOverride": {
+    "@hathor/wallet-lib>level>classic-level": true,
+    "classic-level": true,
+    "lavamoat>node-gyp-build": true,
+    "@hathor/wallet-lib>level": true
+  }
+} 
