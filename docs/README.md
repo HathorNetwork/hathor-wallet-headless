@@ -16,7 +16,6 @@ Hathor headless wallet documentation is distributed over the following locations
 Documents in this directory:
 
 - [Testing](testing.md)
-- [QA](QA.md)
 - [Feature: multi-signature wallets](multisig-wallets.md)
 - [Feature: atomic swaps](atomic-swaps.md)
 - [Feature: plugins](plugins.md)
