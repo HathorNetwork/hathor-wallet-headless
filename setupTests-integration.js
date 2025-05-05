@@ -88,6 +88,7 @@ beforeAll(async () => {
     // The downside of that is that we don't get logs, however is the only
     // way for now. We should stop using jasmine soon (and change for jest-circus)
     // when we do some package upgrades
+    console.error(err);
     process.exit(1);
   }
 });

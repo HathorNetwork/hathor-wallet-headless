@@ -196,6 +196,51 @@ describe('create token', () => {
     expect(tkaBalance.available).toBe(100); // The newly minted TKA tokens
   });
 
+  it('should create a token with large value', async () => {
+    const largeWallet1 = WalletHelper.getPrecalculatedWallet('large-wallet1');
+    await WalletHelper.startMultipleWalletsForTest([largeWallet1]);
+
+    let wallet1balance = await largeWallet1.getBalance();
+    expect(wallet1balance.available).toStrictEqual(0);
+
+    const amount = 2n ** 63n; // This is the maximum output value
+    const depositAmount = tokensUtils.getDepositAmount(amount);
+
+    // The deposit amount contains a slight precision loss, but this is expected and compatible with
+    // the full node, in Python. See the docstring in the `getDepositAmount` function in the
+    // wallet-lib for more info.
+    expect(depositAmount).toStrictEqual(92233720368547760n);
+
+    await largeWallet1.injectFunds(depositAmount.toString());
+    wallet1balance = await largeWallet1.getBalance();
+    expect(wallet1balance.available).toStrictEqual(depositAmount);
+
+    const response = await TestUtils.request
+      .post('/wallet/create-token')
+      .send({
+        name: tokenA.name,
+        symbol: tokenA.symbol,
+        amount: amount.toString(),
+      })
+      .set({ 'x-wallet-id': largeWallet1.walletId });
+
+    expect(response.body.success).toBe(true);
+    expect(response.body.hash).toBeDefined();
+    expect(response.body.configurationString)
+      .toBe(tokensUtils.getConfigurationString(response.body.hash, tokenA.name, tokenA.symbol));
+
+    const configStringResponse = await TestUtils.getConfigurationString(response.body.hash);
+    expect(response.body.success).toBe(true);
+    expect(response.body.configurationString).toBe(configStringResponse.configurationString);
+
+    await TestUtils.waitForTxReceived(largeWallet1.walletId, response.body.hash);
+
+    const htrBalance = await largeWallet1.getBalance();
+    const tkaBalance = await largeWallet1.getBalance(response.body.hash);
+    expect(htrBalance.available).toBe(0);
+    expect(tkaBalance.available).toBe(amount);
+  });
+
   it('should send the created tokens to the correct address', async () => {
     const amountTokens = getRandomInt(100, 200);
     const response = await TestUtils.request

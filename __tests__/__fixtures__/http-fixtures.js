@@ -1038,6 +1038,7 @@ export default {
             address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN',
             timelock: null,
             value: 6400,
+            token_data: 0,
           },
           token: '00',
           spent_by: null,
@@ -1052,6 +1053,7 @@ export default {
             address: 'wgyUgNjqZ18uYr4YfE2ALW6tP5hd8MumH5',
             timelock: null,
             value: 6400,
+            token_data: 0,
           },
           token: '00',
           spent_by: null,
@@ -1117,6 +1119,11 @@ export default {
   '/getmininginfo': {
     success: true,
     blocks: 1242,
+  },
+  '/feature': {
+    block_hash: '00000008707722cde59ac9e7f4d44efbd3a5bd5f244223816ee676d328943b1b',
+    block_height: 1242,
+    features: [],
   },
   '/nano_contract/state': {
     success: true,

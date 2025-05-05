@@ -135,6 +135,7 @@ class TestUtils {
     exitIfClosed = false,
     retries = 3,
     firstAddress = null,
+    pollInterval = 500,
   } = {}) {
     for (let i = 0; i < retries; i++) {
       const res = await TestUtils.walletStatus({ walletId, firstAddress });
@@ -152,7 +153,7 @@ class TestUtils {
         return false;
       }
       await new Promise(resolve => {
-        setTimeout(resolve, 500);
+        setTimeout(resolve, pollInterval);
       });
     }
     TestUtils.logger.debug('[TestUtil:waitReady] too many attempts', { walletId });
@@ -187,8 +188,8 @@ class TestUtils {
     await TestUtils.waitReady({ walletId, retries: 10 });
   }
 
-  static async stopWallet({ walletId = WALLET_ID } = {}) {
-    const isReady = await TestUtils.waitReady({ walletId, exitIfClosed: true });
+  static async stopWallet({ walletId = WALLET_ID, pollInterval = 500 } = {}) {
+    const isReady = await TestUtils.waitReady({ walletId, exitIfClosed: true, pollInterval });
     if (!isReady) {
       TestUtils.logger.debug('[TestUtil:stopWallet] wallet is already stopped', { walletId });
       return;
@@ -217,6 +218,7 @@ class TestUtils {
       return [200, httpFixtures['/transaction']];
     });
     httpMock.onGet('/getmininginfo').reply(200, httpFixtures['/getmininginfo']);
+    httpMock.onGet('/feature').reply(200, httpFixtures['/feature']);
     httpMock.onGet('http://fake.txmining:8084/health').reply(200, httpFixtures['http://fake.txmining:8084/health']);
     httpMock.onGet('/nano_contract/state').reply(200, httpFixtures['/nano_contract/state']);
     httpMock.onGet('/nano_contract/history').reply(200, httpFixtures['/nano_contract/history']);

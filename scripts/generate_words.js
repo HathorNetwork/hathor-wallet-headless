@@ -7,6 +7,16 @@
 
 import { walletUtils } from '@hathor/wallet-lib';
 
-const words = walletUtils.generateWalletWords();
+function main() {
+  const words = walletUtils.generateWalletWords();
 
-console.log(words);
+  console.log(words);
+}
+
+try {
+  main();
+  process.exit(0);
+} catch (err) {
+  console.error(err);
+  process.exit(1);
+}

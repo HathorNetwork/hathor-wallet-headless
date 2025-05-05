@@ -20,6 +20,7 @@ const defaultConfig = {
   tokenUid: '',
   gapLimit: null,
   confirmFirstAddress: null,
+  history_sync_mode: 'polling_http_api',
 };
 
 let config = cloneDeep(defaultConfig);
