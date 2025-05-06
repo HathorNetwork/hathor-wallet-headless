@@ -1120,6 +1120,11 @@ export default {
     success: true,
     blocks: 1242,
   },
+  '/feature': {
+    block_hash: '00000008707722cde59ac9e7f4d44efbd3a5bd5f244223816ee676d328943b1b',
+    block_height: 1242,
+    features: [],
+  },
   '/nano_contract/state': {
     success: true,
     nc_id: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',

@@ -218,6 +218,7 @@ class TestUtils {
       return [200, httpFixtures['/transaction']];
     });
     httpMock.onGet('/getmininginfo').reply(200, httpFixtures['/getmininginfo']);
+    httpMock.onGet('/feature').reply(200, httpFixtures['/feature']);
     httpMock.onGet('http://fake.txmining:8084/health').reply(200, httpFixtures['http://fake.txmining:8084/health']);
     httpMock.onGet('/nano_contract/state').reply(200, httpFixtures['/nano_contract/state']);
     httpMock.onGet('/nano_contract/history').reply(200, httpFixtures['/nano_contract/history']);
