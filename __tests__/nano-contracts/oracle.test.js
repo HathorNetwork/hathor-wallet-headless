@@ -31,7 +31,7 @@ describe('oracle apis', () => {
   it('should return 200 with a valid body for oracle signed result', async () => {
     const response = await TestUtils.request
       .get('/wallet/nano-contracts/oracle-signed-result')
-      .query({ oracle_data: '123456', result: '1x0', type: 'str' })
+      .query({ oracle_data: '123456', contract_id: 'cafecafe', result: '1x0', type: 'str' })
       .set({ 'x-wallet-id': walletId });
     // Will return the fixture data from the http request
     expect(response.status).toBe(200);

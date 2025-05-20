@@ -3990,6 +3990,15 @@ const defaultApiDocs = {
             },
           },
           {
+            name: 'contract_id',
+            in: 'query',
+            description: 'The contract id (hex encoded) being invoked.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
             name: 'result',
             in: 'query',
             description: 'The result to be signed. If the type is bytes, then we expect it in hex.',

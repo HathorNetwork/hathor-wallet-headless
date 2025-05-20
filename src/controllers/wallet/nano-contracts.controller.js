@@ -168,7 +168,7 @@ async function getOracleSignedResult(req, res) {
     return;
   }
 
-  const { result, type, oracle_data: oracleData } = req.query;
+  const { result, contract_id: contractId, type, oracle_data: oracleData } = req.query;
   const { wallet } = req;
 
   try {
@@ -184,6 +184,7 @@ async function getOracleSignedResult(req, res) {
     const oracleDataBuffer = bufferUtils.hexToBuffer(oracleData);
     const inputData = await nanoUtils.getOracleInputData(
       oracleDataBuffer,
+      contractId,
       resultSerialized,
       wallet
     );
