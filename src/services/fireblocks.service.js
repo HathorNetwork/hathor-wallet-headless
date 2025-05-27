@@ -91,14 +91,24 @@ async function getTxSignatures(tx, storage, client) {
     });
   }
 
-  /* istanbul ignore next */
-  if (tx.version === hathorLib.constants.NANO_CONTRACTS_VERSION) {
+  /** @type {hathorLib.Address} */
+  let address = null;
+
+  if (tx.isNanoContract()) {
+    address = hathorLib.transactionUtils.getNanoContractCaller(tx);
+  }
+
+  if (tx.version === hathorLib.constants.ON_CHAIN_BLUEPRINTS_VERSION) {
     const { pubkey } = tx;
-    const address = hathorLib.addressUtils.getAddressFromPubkey(pubkey.toString('hex'), storage.config.getNetwork());
+    address = hathorLib.addressUtils.getAddressFromPubkey(pubkey.toString('hex'), storage.config.getNetwork());
+  }
+
+  if (address) {
     const addressInfo = await storage.getAddressInfo(address.base58);
-    if (addressInfo) {
-      ncCallerIndex = addressInfo.bip32AddressIndex;
+    if (!addressInfo) {
+      throw new Error(`No address info found for ${address.base58}`);
     }
+    ncCallerIndex = addressInfo.bip32AddressIndex;
   }
 
   // Now we sign
@@ -148,7 +158,19 @@ async function getTxSignatures(tx, storage, client) {
     if (!sig) {
       throw new Error(`Fireblocks did not return signature for address index ${ncCallerIndex} in transaction(${fbTxInfo.id}); external-id: (${dataToSignHash.toString('hex')})`);
     }
-    ncCallerSignature = fireblocksSignatureToDER(sig.signature);
+    const pubkeyHex = await storage.getAddressPubkey(ncCallerIndex);
+    if (sig.publicKey !== pubkeyHex) {
+      throw new Error(`Fireblocks signature does not match locally generated public key in transaction(${fbTxInfo.id}); external-id: (${dataToSignHash.toString('hex')})`);
+    }
+
+    if (tx.isNanoContract()) {
+      const signature = fireblocksSignatureToDER(sig.signature);
+      const pubkey = Buffer.from(sig.publicKey, 'hex');
+      ncCallerSignature = hathorLib.transactionUtils.createInputData(signature, pubkey);
+    } else {
+      // On-chain blueprint
+      ncCallerSignature = fireblocksSignatureToDER(sig.signature);
+    }
   }
 
   return {

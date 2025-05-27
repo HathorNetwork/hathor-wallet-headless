@@ -1020,8 +1020,7 @@ export default {
     success: true,
     tx: {
       hash: '00000008707722cde59ac9e7f4d44efbd3a5bd5f244223816ee676d328943b1b',
-      version: 4,
-      nc_blueprint_id: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
+      version: 0,
       nonce: '0',
       timestamp: 1572636346,
       weight: 1,
@@ -1065,7 +1064,7 @@ export default {
     },
     spent_outputs: {},
     meta: {
-      hash: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
+      hash: '00000008707722cde59ac9e7f4d44efbd3a5bd5f244223816ee676d328943b1b',
       spent_outputs: [],
       received_by: [],
       children: [],
@@ -1082,39 +1081,166 @@ export default {
       first_block_height: 1234,
     },
   },
-  '/transaction?id=5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a': {
+  '/transaction?id=000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16': {
     success: true,
     tx: {
-      hash: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
-      version: 4,
-      nc_blueprint_id: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
-      nonce: '0',
-      timestamp: 1572636346,
-      weight: 1,
+      hash: '000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16',
+      nonce: '61170',
+      timestamp: 1748361389,
+      version: 1,
+      weight: 17.441808058055496,
       signal_bits: 0,
-      parents: ['1234', '5678'],
+      parents: [
+        '000002977efa41879690fb304cb03583e5a8b74080401f770633faf9091ef695',
+        '039906854ce6309b3180945f2a23deb9edff369753f7082e19053f5ac11bfbae'
+      ],
       inputs: [],
       outputs: [],
       tokens: [],
-      raw: '',
+      nc_id: '000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16',
+      nc_blueprint_id: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
+      nc_method: 'initialize',
+      nc_args: '03200000298f16599418b0475762c9ce570fe966fd8a62fd933888a96a16c0b893b720000002977efa41879690fb304cb03583e5a8b74080401f770633faf9091ef6957196bd49',
+      nc_address: 'WiGFcSYHhfRqWJ7PXYvhjULXtXCYD1VFdS',
+      nc_context: {
+        actions: [],
+        address: 'WiGFcSYHhfRqWJ7PXYvhjULXtXCYD1VFdS',
+        timestamp: 1748361396
+      },
+      raw: '00010000004031711a553875276835e0ad02000002977efa41879690fb304cb03583e5a8b74080401f770633faf9091ef695039906854ce6309b3180945f2a23deb9edff369753f7082e19053f5ac11bfbae0000eef210013cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e7715950a696e697469616c697a65004703200000298f16599418b0475762c9ce570fe966fd8a62fd933888a96a16c0b893b720000002977efa41879690fb304cb03583e5a8b74080401f770633faf9091ef6957196bd490049d6e3295bdb3fd0b01c626fe3d088499d0511aba4806d6159006a47304502210096279fdcc336040aa9cb517241d968b73738de19102ed5f893891a5131644ab00220424091f8efe7b2413669d034e907215dd0ab7386cf983d22019a922d6b4385692102f327b0e8f23b5a714d14786b81f5bd1254cdd6fd096c8f606f743dc90011c2ac'
     },
-    spent_outputs: {},
     meta: {
-      hash: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
+      hash: '000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16',
       spent_outputs: [],
       received_by: [],
-      children: [],
+      children: [
+        '000000234b8a4d9024fdd8cfa83a8a3c74edbab644c61e81f2d62dbc586ec4af',
+        '0000045a5460cc1d00489c39ae4438c92d26180d996243d2dca8f7c4c62b7b50',
+        '00000027e3066bbae2e00d25b9b00bdfb6930ff6c4bf2fe35ea830f9e9d8ea48',
+        '000000232911c20646ab3608dde21fd93d88414e1ee1a9654e11bc103e6d274d',
+      ],
       conflict_with: [],
       voided_by: [],
       twins: [],
-      accumulated_weight: 1,
-      score: 0,
+      accumulated_weight_raw: '178036',
+      score_raw: '0',
+      min_height: 18,
       height: 0,
-      min_height: 0,
-      feature_activation_bit_counts: null,
-      first_block: null,
-      validation: 'full'
+      feature_activation_bit_counts: [],
+      first_block: '000000234b8a4d9024fdd8cfa83a8a3c74edbab644c61e81f2d62dbc586ec4af',
+      validation: 'full',
+      nc_block_root_id: null,
+      nc_calls: [
+        [
+          '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
+          '000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16',
+          'initialize'
+        ]
+      ],
+      nc_execution: 'success',
+      accumulated_weight: 17.441809467146022,
+      score: 0.0,
+      first_block_height: 19
     },
+    spent_outputs: {}
+  },
+  '/transaction?id=0000045a5460cc1d00489c39ae4438c92d26180d996243d2dca8f7c4c62b7b50': {
+    success: true,
+    tx: {
+      hash: '0000045a5460cc1d00489c39ae4438c92d26180d996243d2dca8f7c4c62b7b50',
+      nonce: '3680606',
+      timestamp: 1748361399,
+      version: 1,
+      weight: 21.77244466692441,
+      signal_bits: 0,
+      parents: ['000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16', '000002977efa41879690fb304cb03583e5a8b74080401f770633faf9091ef695'],
+      inputs: [
+        {
+          value: 50000,
+          token_data: 1,
+          script: 'dqkUlAFxSzjwTo7LN8gk5FC/2SDhz+iIrA==',
+          decoded: {
+            type: 'P2PKH',
+            address: 'WcAccYo8pMZLVJ573KmSHGacKDUeCaYtki',
+            timelock: null,
+            value: 50000,
+            token_data: 1
+          },
+          tx_id: '000002977efa41879690fb304cb03583e5a8b74080401f770633faf9091ef695',
+          index: 1
+        }
+      ],
+      outputs: [
+        {
+          value: 49900,
+          token_data: 1,
+          script: 'dqkU6ymVHxS2pJf/bHDgpHEQp4KlnASIrA==',
+          decoded: {
+            type: 'P2PKH',
+            address: 'Wk7TVDBzd5vg2EmKWTxk4Tt11TXoPB5Woi',
+            timelock: null,
+            value: 49900,
+            token_data: 1
+          }
+        }
+      ],
+      tokens: [
+        {
+          uid: '000002977efa41879690fb304cb03583e5a8b74080401f770633faf9091ef695',
+          name: 'Alice Token',
+          symbol: 'alice'
+        }
+      ],
+      nc_id: '000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16',
+      nc_blueprint_id: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
+      nc_method: 'bet',
+      nc_args: '021949d6e3295bdb3fd0b01c626fe3d088499d0511aba4806d6159175265616c2d4d616472696432783242617263656c6f6e61',
+      nc_address: 'WiGFcSYHhfRqWJ7PXYvhjULXtXCYD1VFdS',
+      nc_context: {
+        actions: [
+          {
+            type: 'deposit',
+            token_uid: '000002977efa41879690fb304cb03583e5a8b74080401f770633faf9091ef695',
+            amount: 100
+          }
+        ],
+        address: 'WiGFcSYHhfRqWJ7PXYvhjULXtXCYD1VFdS',
+        timestamp: 1748361399
+      },
+      raw: '0001010101000002977efa41879690fb304cb03583e5a8b74080401f770633faf9091ef695000002977efa41879690fb304cb03583e5a8b74080401f770633faf9091ef69501006a473045022100a341137acf18c9ac4b42b13d2b8db23a719d2e79510ece61408dffd42cd126e502202f38f44530f990fbb28a3aa9a7a01878dc16e8dcbba341320bb6b9acff5458f5210201917d707d8346ba1daf7225fc4037328085f9291e763e736e26fe74e62d5fd50000c2ec01001976a914eb29951f14b6a497ff6c70e0a47110a782a59c0488ac4035c5beef0668f36835e0b702000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16000002977efa41879690fb304cb03583e5a8b74080401f770633faf9091ef6950038295e1001000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16036265740033021949d6e3295bdb3fd0b01c626fe3d088499d0511aba4806d6159175265616c2d4d616472696432783242617263656c6f6e610101010000006449d6e3295bdb3fd0b01c626fe3d088499d0511aba4806d615900694630440220657cc9e7e362ad20bcf5008d0085943e984f63dc513f5523aaff53d08050a4bb022004c2e32ef271f2544edf48b699456f307b13dd4e468a47e5570f77a5bf4132022102f327b0e8f23b5a714d14786b81f5bd1254cdd6fd096c8f606f743dc90011c2ac'
+    },
+    meta: {
+      hash: '0000045a5460cc1d00489c39ae4438c92d26180d996243d2dca8f7c4c62b7b50',
+      spent_outputs: [[0, []]],
+      received_by: [],
+      children: [
+        '00000027e3066bbae2e00d25b9b00bdfb6930ff6c4bf2fe35ea830f9e9d8ea48',
+        '000000232911c20646ab3608dde21fd93d88414e1ee1a9654e11bc103e6d274d',
+      ],
+      conflict_with: [],
+      voided_by: [],
+      twins: [],
+      accumulated_weight_raw: '3582275',
+      score_raw: '0',
+      min_height: 18,
+      height: 0,
+      feature_activation_bit_counts: [],
+      first_block: '00000027e3066bbae2e00d25b9b00bdfb6930ff6c4bf2fe35ea830f9e9d8ea48',
+      validation: 'full',
+      nc_block_root_id: null,
+      nc_calls: [
+        [
+          '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
+          '000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16',
+          'bet'
+        ]
+      ],
+      nc_execution: 'success',
+      accumulated_weight: 21.772444662066132,
+      score: 0.0,
+      first_block_height: 20
+    },
+    spent_outputs: {}
   },
   '/getmininginfo': {
     success: true,
@@ -1140,39 +1266,99 @@ export default {
   },
   '/nano_contract/history': {
     success: true,
-    count: 100,
-    history: [{
-      hash: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
-      nonce: 0,
-      timestamp: 1572636346,
-      version: 4,
-      weight: 1,
-      signal_bits: 0,
-      parents: ['1234', '5678'],
-      inputs: [],
-      outputs: [],
-      metadata: {
-        hash: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
-        spent_outputs: [],
-        received_by: [],
-        children: [],
-        conflict_with: [],
-        voided_by: [],
-        twins: [],
-        accumulated_weight: 1,
-        score: 0,
-        height: 0,
-        min_height: 0,
-        feature_activation_bit_counts: null,
-        first_block: null,
-        validation: 'full'
+    history: [
+      {
+        hash: '0000045a5460cc1d00489c39ae4438c92d26180d996243d2dca8f7c4c62b7b50',
+        nonce: 3680606,
+        timestamp: 1748361399,
+        version: 1,
+        weight: 21.77244466692441,
+        signal_bits: 0,
+        parents: [
+          '000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16',
+          '000002977efa41879690fb304cb03583e5a8b74080401f770633faf9091ef695'
+        ],
+        inputs: [
+          {
+            value: 50000,
+            token_data: 1,
+            script: 'dqkUlAFxSzjwTo7LN8gk5FC/2SDhz+iIrA==',
+            decoded: {
+              type: 'P2PKH',
+              address: 'WcAccYo8pMZLVJ573KmSHGacKDUeCaYtki',
+              timelock: null
+            },
+            token: '000002977efa41879690fb304cb03583e5a8b74080401f770633faf9091ef695',
+            tx_id: '000002977efa41879690fb304cb03583e5a8b74080401f770633faf9091ef695',
+            index: 1
+          }
+        ],
+        outputs: [
+          {
+            value: 49900,
+            token_data: 1,
+            script: 'dqkU6ymVHxS2pJf/bHDgpHEQp4KlnASIrA==',
+            decoded: {
+              type: 'P2PKH',
+              address: 'Wk7TVDBzd5vg2EmKWTxk4Tt11TXoPB5Woi',
+              timelock: null
+            },
+            token: '000002977efa41879690fb304cb03583e5a8b74080401f770633faf9091ef695',
+            spent_by: null
+          }
+        ],
+        tokens: [
+          '000002977efa41879690fb304cb03583e5a8b74080401f770633faf9091ef695'
+        ],
+        nc_id: '000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16',
+        nc_blueprint_id: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
+        nc_method: 'bet',
+        nc_args: '021949d6e3295bdb3fd0b01c626fe3d088499d0511aba4806d6159175265616c2d4d616472696432783242617263656c6f6e61',
+        nc_address: 'WiGFcSYHhfRqWJ7PXYvhjULXtXCYD1VFdS',
+        nc_context: {
+          actions: [
+            {
+              type: 'deposit',
+              token_uid: '000002977efa41879690fb304cb03583e5a8b74080401f770633faf9091ef695',
+              amount: 100
+            }
+          ],
+          address: 'WiGFcSYHhfRqWJ7PXYvhjULXtXCYD1VFdS',
+          timestamp: 1748361466
+        },
+        tx_id: '0000045a5460cc1d00489c39ae4438c92d26180d996243d2dca8f7c4c62b7b50',
+        is_voided: false,
+        first_block: '00000027e3066bbae2e00d25b9b00bdfb6930ff6c4bf2fe35ea830f9e9d8ea48'
       },
-      tokens: [],
-      nc_id: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
-      nc_method: 'initialize',
-      nc_args: '0004313233340001000004654d8749',
-      nc_pubkey: '033f5d238afaa9e2218d05dd7fa50eb6f9e55431e6359e04b861cd991ae24dc655'
-    }]
+      {
+        hash: '000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16',
+        nonce: 61170,
+        timestamp: 1748361389,
+        version: 1,
+        weight: 17.441808058055496,
+        signal_bits: 0,
+        parents: [
+          '000002977efa41879690fb304cb03583e5a8b74080401f770633faf9091ef695',
+          '039906854ce6309b3180945f2a23deb9edff369753f7082e19053f5ac11bfbae'
+        ],
+        inputs: [],
+        outputs: [],
+        tokens: [],
+        nc_id: '000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16',
+        nc_blueprint_id: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
+        nc_method: 'initialize',
+        nc_args: '03200000298f16599418b0475762c9ce570fe966fd8a62fd933888a96a16c0b893b720000002977efa41879690fb304cb03583e5a8b74080401f770633faf9091ef6957196bd49',
+        nc_address: 'WiGFcSYHhfRqWJ7PXYvhjULXtXCYD1VFdS',
+        nc_context: {
+          actions: [],
+          address: 'WiGFcSYHhfRqWJ7PXYvhjULXtXCYD1VFdS',
+          timestamp: 1748361396
+        },
+        tx_id: '000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16',
+        is_voided: false,
+        first_block: '000000234b8a4d9024fdd8cfa83a8a3c74edbab644c61e81f2d62dbc586ec4af'
+      }
+    ]
   },
   '/nano_contract/blueprint/info': {
     id: '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595',
