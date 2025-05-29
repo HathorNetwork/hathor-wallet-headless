@@ -234,7 +234,7 @@ class HsmSession {
     if (address) {
       const addressInfo = await storage.getAddressInfo(address.base58);
       if (!addressInfo) {
-        throw new Error(`No address info found for ${address.base58}`);
+        return { inputSignatures, ncCallerSignature };
       }
 
       const signature = await this.getSignature(dataToSignHash, addressInfo.bip32AddressIndex);

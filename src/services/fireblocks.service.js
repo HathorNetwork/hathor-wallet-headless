@@ -105,10 +105,9 @@ async function getTxSignatures(tx, storage, client) {
 
   if (address) {
     const addressInfo = await storage.getAddressInfo(address.base58);
-    if (!addressInfo) {
-      throw new Error(`No address info found for ${address.base58}`);
+    if (addressInfo) {
+      ncCallerIndex = addressInfo.bip32AddressIndex;
     }
-    ncCallerIndex = addressInfo.bip32AddressIndex;
   }
 
   // Now we sign
