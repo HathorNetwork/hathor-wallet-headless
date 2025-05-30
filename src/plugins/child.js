@@ -44,6 +44,10 @@ export const hathorPlugins = {
     name: 'rabbitmq',
     file: 'hathor_rabbitmq.js',
   },
+  pubsub: {
+    name: 'pubsub',
+    file: 'hathor_pubsub.js',
+  },
 };
 
 /**
