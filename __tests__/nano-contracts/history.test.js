@@ -18,8 +18,9 @@ describe('history api', () => {
       .set({ 'x-wallet-id': walletId });
     // Will return the fixture data from the http request
     expect(response.status).toBe(200);
-    expect(response.body.history.length).toBe(1);
-    expect(response.body.history[0].hash).toBe('5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a');
+    expect(response.body.history.length).toBe(2);
+    expect(response.body.history[0].hash).toBe('0000045a5460cc1d00489c39ae4438c92d26180d996243d2dca8f7c4c62b7b50');
+    expect(response.body.history[1].hash).toBe('000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16');
   });
 
   it('should fail without required parameter', async () => {

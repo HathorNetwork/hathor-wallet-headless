@@ -177,7 +177,7 @@ describe('nano contract routes', () => {
     // Set result to '1x0'
     const responseOracleSignedResult = await TestUtils.request
       .get('/wallet/nano-contracts/oracle-signed-result')
-      .query({ oracle_data: oracleData, result: '1x0', type: 'str' })
+      .query({ oracle_data: oracleData, contract_id: tx1.hash, result: '1x0', type: 'str' })
       .set({ 'x-wallet-id': wallet.walletId });
 
     const responseSetResult = await TestUtils.request

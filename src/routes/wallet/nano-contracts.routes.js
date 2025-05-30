@@ -57,6 +57,7 @@ nanoContractRouter.get(
 nanoContractRouter.get(
   '/oracle-signed-result',
   query('oracle_data').isString(),
+  query('contract_id').isString(),
   query('result'),
   query('type').isString(),
   getOracleSignedResult

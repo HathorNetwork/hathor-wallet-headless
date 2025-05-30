@@ -210,9 +210,14 @@ class TestUtils {
     httpMock.onGet('job-status').reply(200, httpFixtures['job-status']);
     httpMock.onGet('/thin_wallet/token').reply(200, httpFixtures['/thin_wallet/token']);
     httpMock.onGet('/transaction').reply(conf => {
+      const availableTxs = [
+        '000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16',
+        '0000045a5460cc1d00489c39ae4438c92d26180d996243d2dca8f7c4c62b7b50',
+      ];
       // Depending on the ID parameter, we must return a nano contract transaction
-      if (get(conf, 'params.id') === '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a') {
-        return [200, httpFixtures['/transaction?id=5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a']];
+      const idParam = get(conf, 'params.id');
+      if (availableTxs.includes(idParam)) {
+        return [200, httpFixtures[`/transaction?id=${idParam}`]];
       }
 
       return [200, httpFixtures['/transaction']];

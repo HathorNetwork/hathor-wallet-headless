@@ -219,17 +219,33 @@ class HsmSession {
       });
     }
 
-    /* istanbul ignore next */
-    if (tx.version === hathorLib.constants.NANO_CONTRACTS_VERSION) {
+    /** @type {hathorLib.Address} */
+    let address = null;
+
+    if (tx.isNanoContract()) {
+      address = hathorLib.transactionUtils.getNanoContractCaller(tx);
+    }
+
+    if (tx.version === hathorLib.constants.ON_CHAIN_BLUEPRINTS_VERSION) {
       const { pubkey } = tx;
-      const address = hathorLib.addressUtils.getAddressFromPubkey(pubkey.toString('hex'), storage.config.getNetwork());
+      address = hathorLib.addressUtils.getAddressFromPubkey(pubkey.toString('hex'), storage.config.getNetwork());
+    }
+
+    if (address) {
       const addressInfo = await storage.getAddressInfo(address.base58);
       if (!addressInfo) {
-        // Not a wallet address
-        return { inputSignatures };
+        return { inputSignatures, ncCallerSignature };
       }
-      // Sign the transaction for the caller
-      ncCallerSignature = await this.getSignature(dataToSignHash, addressInfo.bip32AddressIndex);
+
+      const signature = await this.getSignature(dataToSignHash, addressInfo.bip32AddressIndex);
+      if (tx.isNanoContract()) {
+        const pubkeyHex = await storage.getAddressPubkey(addressInfo.bip32AddressIndex);
+        const pubkey = Buffer.from(pubkeyHex, 'hex');
+        ncCallerSignature = hathorLib.transactionUtils.createInputData(signature, pubkey);
+      } else {
+        // On-chain blueprint
+        ncCallerSignature = signature;
+      }
     }
 
     return { inputSignatures, ncCallerSignature };
