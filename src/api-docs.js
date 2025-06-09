@@ -4017,6 +4017,12 @@ const defaultApiDocs = {
                 {
                   type: 'boolean',
                 },
+                {
+                  type: 'object',
+                },
+                {
+                  type: 'list',
+                },
               ],
             },
           },
@@ -4040,7 +4046,11 @@ const defaultApiDocs = {
                     summary: 'Get oracle signed result.',
                     value: {
                       success: true,
-                      oracleData: '12345678:1x0:str',
+                      signedData: {
+                        type: 'str',
+                        signature: '12345678',
+                        value: '1x0',
+                      },
                     }
                   },
                   error: {

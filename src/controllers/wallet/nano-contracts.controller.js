@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { ncApi, nanoUtils, bufferUtils, NanoContractSerializer } = require('@hathor/wallet-lib');
+const { ncApi, nanoUtils, bufferUtils } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { mapTxReturn, runSendTransaction } = require('../../helpers/tx.helper');
 const { lockSendTx } = require('../../helpers/lock.helper');
@@ -172,28 +172,17 @@ async function getOracleSignedResult(req, res) {
   const { wallet } = req;
 
   try {
-    let resultToSerialize = result;
-    if (type === 'bytes') {
-      // If type is bytes, then the result comes in hex
-      resultToSerialize = bufferUtils.hexToBuffer(result);
-    }
-
-    const nanoSerializer = new NanoContractSerializer();
-    const resultSerialized = nanoSerializer.serializeFromType(resultToSerialize, type);
-
-    const oracleDataBuffer = bufferUtils.hexToBuffer(oracleData);
-    const inputData = await nanoUtils.getOracleInputData(
-      oracleDataBuffer,
+    const signedData = await nanoUtils.getOracleSignedDataFromUser(
+      oracleData,
       contractId,
-      resultSerialized,
+      type,
+      result,
       wallet
     );
 
-    const signedResult = `${bufferUtils.bufferToHex(inputData)},${result},${type}`;
-
     res.send({
       success: true,
-      signedResult,
+      signedData,
     });
   } catch (err) {
     res.send({ success: false, error: err.message });
