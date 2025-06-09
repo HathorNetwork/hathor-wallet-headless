@@ -4021,7 +4021,7 @@ const defaultApiDocs = {
                   type: 'object',
                 },
                 {
-                  type: 'list',
+                  type: 'array',
                 },
               ],
             },
