@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { txApi, featuresApi, WalletType, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, transactionUtils, PartialTx } = require('@hathor/wallet-lib');
+const { txApi, featuresApi, WalletType, constants: hathorLibConstants, helpersUtils, errors, tokensUtils, transactionUtils, PartialTx, TokenInfoVersion } = require('@hathor/wallet-lib');
 const { matchedData } = require('express-validator');
 // import is used because there is an issue with winston logger when using require ref: #262
 const { JSONBigInt } = require('@hathor/wallet-lib/lib/utils/bigint');
@@ -23,6 +23,7 @@ const { lockSendTx } = require('../../helpers/lock.helper');
  * @typedef {import('express').Request} ExpressRequest
  * @typedef {ExpressRequest & HathorRequestExtras} Request
  * @typedef {import('express').Response} Response
+ * @typedef {import('@hathor/wallet-lib').TokenInfoVersion}
  */
 
 /**
@@ -523,6 +524,28 @@ async function sendTx(req, res) {
   }
 }
 
+/**
+ * @typedef {Object} CreateTokenRequest
+ * @property {string} name - Name of the token.
+ * @property {string} symbol - Symbol representing the token.
+ * @property {bigint} amount - Amount to be created, must be a bigint >= 1.
+ * @property {import('@hathor/wallet-lib').TokenInfoVersion} [version]
+ *  - Optional version number (default: TokenInfoVersion.DEPOSIT).
+ * @property {string} [address] - Optional target address.
+ * @property {string} [change_address] - Optional change address.
+ * @property {boolean} [create_mint] - Whether to create a mint authority (default: false).
+ * @property {string} [mint_authority_address] - Optional mint authority address.
+ * @property {boolean} [allow_external_mint_authority_address]
+ * - Whether to allow external mint authority (default: false).
+ * @property {boolean} [create_melt] - Whether to create a melt authority (default: false).
+ * @property {string} [melt_authority_address] - Optional melt authority address.
+ * @property {boolean} [allow_external_melt_authority_address]
+ * - Whether to allow external melt authority (default: false).
+ * @property {string[]} [data]
+ * - Optional array of strings, each with a maximum length of MAX_DATA_SCRIPT_LENGTH.
+ * @param {import('express').Request<{}, {}, CreateTokenRequest>} req
+ * @param {import('express').Response} res
+ */
 async function createToken(req, res) {
   // TODO: Unify common code with create-nft
   const validationResult = parametersValidation(req);
@@ -539,6 +562,7 @@ async function createToken(req, res) {
 
   const { wallet } = req;
   const { name, symbol, amount } = req.body;
+  const version = req.body.version || TokenInfoVersion.DEPOSIT;
   const address = req.body.address || null;
   const changeAddress = req.body.change_address || null;
   const createMint = req.body.create_mint ?? true;
@@ -568,6 +592,7 @@ async function createToken(req, res) {
         meltAuthorityAddress,
         allowExternalMeltAuthorityAddress,
         data,
+        tokenInfoVersion: version,
       }
     );
     const tx = await runSendTransaction(sendTransaction, unlock);
@@ -575,7 +600,8 @@ async function createToken(req, res) {
     const configurationString = tokensUtils.getConfigurationString(
       tx.hash,
       tx.name,
-      tx.symbol
+      tx.symbol,
+      version
     );
     res.send({ success: true, configurationString, ...mapTxReturn(tx) });
   } catch (err) {
