@@ -363,6 +363,7 @@ walletRouter.post(
   body('name').isString(),
   body('symbol').isString(),
   body('amount').custom(bigIntValidator({ min: 1 })).customSanitizer(bigIntSanitizer),
+  body('version').isNumeric().optional(),
   body('address').isString().optional(),
   body('change_address').isString().optional(),
   body('create_mint').isBoolean().optional().toBoolean(),
