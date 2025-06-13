@@ -106,7 +106,13 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
   }
 
   const { wallet } = req;
-  const { blueprint_id: blueprintId, nc_id: ncId, address, data } = req.body;
+  const {
+    blueprint_id: blueprintId,
+    nc_id: ncId,
+    address,
+    data,
+    create_token_options: createTokenOptions
+  } = req.body;
   const method = isInitialize ? 'initialize' : req.body.method;
 
   // Set blueprint id or nc id to the data execution
@@ -118,11 +124,40 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
 
   try {
     /** @type {import('@hathor/wallet-lib').SendTransaction} */
-    const sendTransaction = await wallet.createNanoContractTransaction(
-      method,
-      address,
-      data
-    );
+    let sendTransaction;
+    if (createTokenOptions) {
+      const createTokenData = {
+        name: createTokenOptions.name,
+        symbol: createTokenOptions.symbol,
+        amount: createTokenOptions.amount,
+        contractPaysDeposit: createTokenOptions.contract_pays_deposit,
+        mintAddress: createTokenOptions.mint_address || null,
+        changeAddress: createTokenOptions.change_address || null,
+        createMint: createTokenOptions.create_mint ?? true,
+        mintAuthorityAddress: createTokenOptions.mint_authority_address || null,
+        allowExternalMintAuthorityAddress: createTokenOptions.allow_external_mint_authority_address
+                                           || false,
+        createMelt: createTokenOptions.create_melt ?? true,
+        meltAuthorityAddress: createTokenOptions.melt_authority_address || null,
+        allowExternalmeltAuthorityAddress: createTokenOptions.allow_external_melt_authority_address
+                                           || false,
+        data: createTokenOptions.data || null,
+        isCreateNFT: createTokenOptions.is_create_nft || null,
+
+      };
+      sendTransaction = await wallet.createNanoContractCreateTokenTransaction(
+        method,
+        address,
+        data,
+        createTokenData
+      );
+    } else {
+      sendTransaction = await wallet.createNanoContractTransaction(
+        method,
+        address,
+        data
+      );
+    }
     const tx = await runSendTransaction(sendTransaction, unlock);
     res.send({ success: true, ...mapTxReturn(tx) });
   } catch (err) {
