@@ -1384,6 +1384,10 @@ export default {
   },
   '/nano_contract/oracle-signed-result': {
     success: true,
-    signedResult: '123456,1x0,str'
+    signedData: {
+      type: 'str',
+      signature: '123456',
+      value: '1x0',
+    },
   },
 };
