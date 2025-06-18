@@ -557,6 +557,18 @@ export const nanoContractData = {
   },
 };
 
+const handleCamelCaseField = (field, value, req, path, defaultValue) => {
+  // If this field must have a default value in case it's undefined
+  if (typeof defaultValue !== 'undefined' && typeof value === 'undefined') {
+    req.body[path] = defaultValue;
+    req.body[field] = defaultValue;
+    return defaultValue;
+  }
+  // Copy to camel case. We could delete the other key but it's not required
+  req.body[field] = value;
+  return value;
+};
+
 const createTokenBase = {
   name: {
     in: ['body'],
@@ -583,42 +595,63 @@ const createTokenBase = {
     errorMessage: 'Invalid change address.',
     isString: true,
     optional: true,
+    customSanitizer: {
+      options: (value, { req, path }) => handleCamelCaseField('changeAddress', value, req, path, null),
+    },
   },
   create_mint: {
     in: ['body'],
     errorMessage: 'Invalid create mint argument.',
     isBoolean: true,
     optional: true,
+    customSanitizer: {
+      options: (value, { req, path }) => handleCamelCaseField('createMint', value, req, path, true),
+    },
   },
   mint_authority_address: {
     in: ['body'],
     errorMessage: 'Invalid mint authority address.',
     isString: true,
     optional: true,
+    customSanitizer: {
+      options: (value, { req, path }) => handleCamelCaseField('mintAuthorityAddress', value, req, path, null),
+    },
   },
   allow_external_mint_authority_address: {
     in: ['body'],
     errorMessage: 'Invalid allow external mint address argument.',
     isBoolean: true,
     optional: true,
+    customSanitizer: {
+      options: (value, { req, path }) => handleCamelCaseField('allowExternalMintAuthorityAddress', value, req, path, false),
+    },
   },
   create_melt: {
     in: ['body'],
     errorMessage: 'Invalid create melt argument.',
     isBoolean: true,
     optional: true,
+    customSanitizer: {
+      options: (value, { req, path }) => handleCamelCaseField('createMelt', value, req, path, true),
+    },
   },
   melt_authority_address: {
     in: ['body'],
     errorMessage: 'Invalid melt authority address.',
     isString: true,
     optional: true,
+    customSanitizer: {
+      options: (value, { req, path }) => handleCamelCaseField('meltAuthorityAddress', value, req, path, null),
+    },
   },
   allow_external_melt_authority_address: {
     in: ['body'],
     errorMessage: 'Invalid allow external melt address argument.',
     isBoolean: true,
     optional: true,
+    customSanitizer: {
+      options: (value, { req, path }) => handleCamelCaseField('allowExternalMeltAuthorityAddress', value, req, path, false),
+    },
   },
   data: {
     in: ['body'],
@@ -626,6 +659,15 @@ const createTokenBase = {
     isArray: true,
     notEmpty: true,
     optional: true,
+    customSanitizer: {
+      options: (value, { req, path }) => {
+        if (typeof value === 'undefined') {
+          req.body[path] = null;
+          return null;
+        }
+        return value;
+      }
+    },
   },
   'data.*': {
     in: ['body'],
@@ -646,6 +688,15 @@ export const createTokenOptions = {
     errorMessage: 'Invalid address.',
     isString: true,
     optional: true,
+    customSanitizer: {
+      options: (value, { req, path }) => {
+        if (typeof value === 'undefined') {
+          req.body[path] = null;
+          return null;
+        }
+        return value;
+      }
+    },
   },
 };
 
@@ -664,18 +715,27 @@ export const nanoCreateTokenOptions = {
     errorMessage: 'Invalid contract pays deposit argument.',
     isBoolean: true,
     optional: true,
+    customSanitizer: {
+      options: (value, { req, path }) => handleCamelCaseField('contractPaysDeposit', value, req, path),
+    },
   },
   'create_token_options.mint_address': {
     in: ['body'],
     errorMessage: 'Invalid address.',
     isString: true,
     optional: true,
+    customSanitizer: {
+      options: (value, { req, path }) => handleCamelCaseField('mintAddress', value, req, path, null),
+    },
   },
   'create_token_options.is_create_nft': {
     in: ['body'],
     errorMessage: 'Invalid is create NFT argument.',
     isBoolean: true,
     optional: true,
+    customSanitizer: {
+      options: (value, { req, path }) => handleCamelCaseField('isCreateNFT', value, req, path, null),
+    },
   },
 };
 

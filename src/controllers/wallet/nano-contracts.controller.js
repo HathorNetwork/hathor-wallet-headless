@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { ncApi, nanoUtils, bufferUtils, NanoContractSerializer } = require('@hathor/wallet-lib');
+const { ncApi, nanoUtils, bufferUtils } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { mapTxReturn, runSendTransaction } = require('../../helpers/tx.helper');
 const { lockSendTx } = require('../../helpers/lock.helper');
@@ -126,30 +126,11 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
     /** @type {import('@hathor/wallet-lib').SendTransaction} */
     let sendTransaction;
     if (createTokenOptions) {
-      const createTokenData = {
-        name: createTokenOptions.name,
-        symbol: createTokenOptions.symbol,
-        amount: createTokenOptions.amount,
-        contractPaysDeposit: createTokenOptions.contract_pays_deposit,
-        mintAddress: createTokenOptions.mint_address || null,
-        changeAddress: createTokenOptions.change_address || null,
-        createMint: createTokenOptions.create_mint ?? true,
-        mintAuthorityAddress: createTokenOptions.mint_authority_address || null,
-        allowExternalMintAuthorityAddress: createTokenOptions.allow_external_mint_authority_address
-                                           || false,
-        createMelt: createTokenOptions.create_melt ?? true,
-        meltAuthorityAddress: createTokenOptions.melt_authority_address || null,
-        allowExternalmeltAuthorityAddress: createTokenOptions.allow_external_melt_authority_address
-                                           || false,
-        data: createTokenOptions.data || null,
-        isCreateNFT: createTokenOptions.is_create_nft || null,
-
-      };
       sendTransaction = await wallet.createNanoContractCreateTokenTransaction(
         method,
         address,
         data,
-        createTokenData
+        createTokenOptions
       );
     } else {
       sendTransaction = await wallet.createNanoContractTransaction(
@@ -207,28 +188,24 @@ async function getOracleSignedResult(req, res) {
   const { wallet } = req;
 
   try {
-    let resultToSerialize = result;
+    let resultPreSerialized = result;
     if (type === 'bytes') {
       // If type is bytes, then the result comes in hex
-      resultToSerialize = bufferUtils.hexToBuffer(result);
+      resultPreSerialized = bufferUtils.hexToBuffer(result);
     }
 
-    const nanoSerializer = new NanoContractSerializer();
-    const resultSerialized = nanoSerializer.serializeFromType(resultToSerialize, type);
-
     const oracleDataBuffer = bufferUtils.hexToBuffer(oracleData);
-    const inputData = await nanoUtils.getOracleInputData(
+    const inputData = await nanoUtils.getOracleSignedDataFromUser(
       oracleDataBuffer,
       contractId,
-      resultSerialized,
+      `SignedData[${type}]`,
+      resultPreSerialized,
       wallet
     );
 
-    const signedResult = `${bufferUtils.bufferToHex(inputData)},${result},${type}`;
-
     res.send({
       success: true,
-      signedResult,
+      signedResult: inputData,
     });
   } catch (err) {
     res.send({ success: false, error: err.message });
