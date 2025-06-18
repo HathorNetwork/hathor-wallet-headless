@@ -35,7 +35,9 @@ describe('oracle apis', () => {
       .set({ 'x-wallet-id': walletId });
     // Will return the fixture data from the http request
     expect(response.status).toBe(200);
-    expect(response.body.signedResult).toBe('123456,1x0,str');
+    expect(response.body.signedResult.signature).toBe('123456');
+    expect(response.body.signedResult.value).toBe('1x0');
+    expect(response.body.signedResult.type).toBe('str');
   });
 
   it('should fail without required parameter for oracle signed result', async () => {
