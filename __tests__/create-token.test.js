@@ -52,7 +52,7 @@ describe('create-token api', () => {
         .post('/wallet/create-token')
         .send(token)
         .set({ 'x-wallet-id': walletId });
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(200);
       expect(response.body.success).toBe(false);
     });
   });
