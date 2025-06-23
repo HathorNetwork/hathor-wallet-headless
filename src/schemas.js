@@ -7,6 +7,7 @@
 
 import { NanoContractActionType, walletUtils } from '@hathor/wallet-lib';
 import { bigIntCoercibleSchema, parseSchema } from '@hathor/wallet-lib/lib/utils/bigint';
+import { z } from 'zod';
 
 const validator = require('validator');
 const { MAX_DATA_SCRIPT_LENGTH } = require('./constants');
@@ -483,261 +484,90 @@ export const p2shSignature = {
   },
 };
 
-export const nanoContractData = {
-  data: {
-    in: ['body'],
-    errorMessage: 'Invalid data',
-    isObject: true,
-  },
-  'data.args': { // the element of this array can be anything
-    in: ['body'],
-    errorMessage: 'Invalid arguments.',
-    isArray: true,
-    optional: true
-  },
-  'data.actions': {
-    in: ['body'],
-    errorMessage: 'Invalid actions.',
-    isArray: true,
-    optional: true
-  },
-  'data.actions.*.token': {
-    in: ['body'],
-    errorMessage: 'Invalid action token.',
-    isString: true,
-  },
-  'data.actions.*.type': {
-    in: ['body'],
-    errorMessage: 'Invalid action type.',
-    isString: true,
-    custom: {
-      options: value => {
-        if (
-          value !== NanoContractActionType.DEPOSIT
-          && value !== NanoContractActionType.WITHDRAWAL
-          && value !== NanoContractActionType.GRANT_AUTHORITY
-          && value !== NanoContractActionType.ACQUIRE_AUTHORITY
-        ) {
-          return false;
-        }
-        return true;
-      }
-    },
-  },
-  'data.actions.*.amount': {
-    in: ['body'],
-    errorMessage: 'Invalid action amount.',
-    customSanitizer: {
-      options: bigIntSanitizer,
-    },
-  },
-  'data.actions.*.address': {
-    in: ['body'],
-    errorMessage: 'Invalid action address.',
-    isString: true,
-    optional: true, // required for withdrawal
-  },
-  'data.actions.*.change_address': {
-    in: ['body'],
-    errorMessage: 'Invalid action change address.',
-    isString: true,
-    optional: true,
-  },
-  'data.actions.*.authority': {
-    in: ['body'],
-    errorMessage: 'Invalid action authority.',
-    isString: true,
-    optional: true,
-  },
-  'data.actions.*.authority_address': {
-    in: ['body'],
-    errorMessage: 'Invalid action authority address.',
-    isString: true,
-    optional: true,
-  },
-};
+export const createTokenBaseRaw = z.object({
+  name: z.string(),
+  symbol: z.string(),
+  amount: bigIntCoercibleSchema,
+  change_address: z.string().nullable().optional().default(null),
+  create_mint: z.boolean().optional().default(true),
+  mint_authority_address: z.string().nullable().optional().default(null),
+  allow_external_mint_authority_address: z.boolean().optional().default(false),
+  create_melt: z.boolean().optional().default(true),
+  melt_authority_address: z.string().nullable().optional().default(null),
+  allow_external_melt_authority_address: z.boolean().optional().default(false),
+  data: z.array(z.string().max(MAX_DATA_SCRIPT_LENGTH)).nullable().optional().default(null),
+});
 
-const handleCamelCaseField = (field, value, req, path, defaultValue) => {
-  // If this field must have a default value in case it's undefined
-  if (typeof defaultValue !== 'undefined' && typeof value === 'undefined') {
-    req.body[path] = defaultValue;
-    req.body[field] = defaultValue;
-    return defaultValue;
-  }
-  // Copy to camel case. We could delete the other key but it's not required
-  req.body[field] = value;
-  return value;
-};
+const transformCreateTokenBase = data => ({
+  ...data,
+  changeAddress: data.change_address,
+  createMint: data.create_mint,
+  mintAuthorityAddress: data.mint_authority_address,
+  allowExternalMintAuthorityAddress: data.allow_external_mint_authority_address,
+  createMelt: data.create_melt,
+  meltAuthorityAddress: data.melt_authority_address,
+  allowExternalMeltAuthorityAddress: data.allow_external_melt_authority_address,
+});
 
-const createTokenBase = {
-  name: {
-    in: ['body'],
-    errorMessage: 'Invalid token name.',
-    isString: true,
-    optional: true,
-  },
-  symbol: {
-    in: ['body'],
-    errorMessage: 'Invalid token symbol.',
-    isString: true,
-    optional: true,
-  },
-  amount: {
-    in: ['body'],
-    errorMessage: 'Invalid token amount.',
-    optional: true,
-    customSanitizer: {
-      options: bigIntSanitizer,
-    },
-  },
-  change_address: {
-    in: ['body'],
-    errorMessage: 'Invalid change address.',
-    isString: true,
-    optional: true,
-    customSanitizer: {
-      options: (value, { req, path }) => handleCamelCaseField('changeAddress', value, req, path, null),
-    },
-  },
-  create_mint: {
-    in: ['body'],
-    errorMessage: 'Invalid create mint argument.',
-    isBoolean: true,
-    optional: true,
-    customSanitizer: {
-      options: (value, { req, path }) => handleCamelCaseField('createMint', value, req, path, true),
-    },
-  },
-  mint_authority_address: {
-    in: ['body'],
-    errorMessage: 'Invalid mint authority address.',
-    isString: true,
-    optional: true,
-    customSanitizer: {
-      options: (value, { req, path }) => handleCamelCaseField('mintAuthorityAddress', value, req, path, null),
-    },
-  },
-  allow_external_mint_authority_address: {
-    in: ['body'],
-    errorMessage: 'Invalid allow external mint address argument.',
-    isBoolean: true,
-    optional: true,
-    customSanitizer: {
-      options: (value, { req, path }) => handleCamelCaseField('allowExternalMintAuthorityAddress', value, req, path, false),
-    },
-  },
-  create_melt: {
-    in: ['body'],
-    errorMessage: 'Invalid create melt argument.',
-    isBoolean: true,
-    optional: true,
-    customSanitizer: {
-      options: (value, { req, path }) => handleCamelCaseField('createMelt', value, req, path, true),
-    },
-  },
-  melt_authority_address: {
-    in: ['body'],
-    errorMessage: 'Invalid melt authority address.',
-    isString: true,
-    optional: true,
-    customSanitizer: {
-      options: (value, { req, path }) => handleCamelCaseField('meltAuthorityAddress', value, req, path, null),
-    },
-  },
-  allow_external_melt_authority_address: {
-    in: ['body'],
-    errorMessage: 'Invalid allow external melt address argument.',
-    isBoolean: true,
-    optional: true,
-    customSanitizer: {
-      options: (value, { req, path }) => handleCamelCaseField('allowExternalMeltAuthorityAddress', value, req, path, false),
-    },
-  },
-  data: {
-    in: ['body'],
-    errorMessage: 'Invalid data array',
-    isArray: true,
-    notEmpty: true,
-    optional: true,
-    customSanitizer: {
-      options: (value, { req, path }) => {
-        if (typeof value === 'undefined') {
-          req.body[path] = null;
-          return null;
-        }
-        return value;
-      }
-    },
-  },
-  'data.*': {
-    in: ['body'],
-    errorMessage: 'Invalid data value',
-    isString: true,
-    isLength: {
-      options: {
-        max: MAX_DATA_SCRIPT_LENGTH
-      }
-    },
-  },
-};
+export const createTokenOptions = createTokenBaseRaw.extend({
+  address: z.string().nullable().optional().default(null),
+}).transform(data => {
+  if (!data || typeof data !== 'object') return {};
 
-export const createTokenOptions = {
-  ...createTokenBase,
-  address: {
-    in: ['body'],
-    errorMessage: 'Invalid address.',
-    isString: true,
-    optional: true,
-    customSanitizer: {
-      options: (value, { req, path }) => {
-        if (typeof value === 'undefined') {
-          req.body[path] = null;
-          return null;
-        }
-        return value;
-      }
-    },
-  },
-};
+  const base = transformCreateTokenBase(data);
+  return {
+    ...base,
+    address: data.address,
+  };
+});
 
-export const nanoCreateTokenOptions = {
-  create_token_options: {
-    in: ['body'],
-    errorMessage: 'Invalid create token options object.',
-    optional: true,
-    isObject: true,
-  },
-  ...Object.fromEntries(
-    Object.entries(createTokenBase).map(([k, v], i) => [`create_token_options.${k}`, v])
-  ),
-  'create_token_options.contract_pays_deposit': {
-    in: ['body'],
-    errorMessage: 'Invalid contract pays deposit argument.',
-    isBoolean: true,
-    optional: true,
-    customSanitizer: {
-      options: (value, { req, path }) => handleCamelCaseField('contractPaysDeposit', value, req, path),
-    },
-  },
-  'create_token_options.mint_address': {
-    in: ['body'],
-    errorMessage: 'Invalid address.',
-    isString: true,
-    optional: true,
-    customSanitizer: {
-      options: (value, { req, path }) => handleCamelCaseField('mintAddress', value, req, path, null),
-    },
-  },
-  'create_token_options.is_create_nft': {
-    in: ['body'],
-    errorMessage: 'Invalid is create NFT argument.',
-    isBoolean: true,
-    optional: true,
-    customSanitizer: {
-      options: (value, { req, path }) => handleCamelCaseField('isCreateNFT', value, req, path, null),
-    },
-  },
-};
+export const nanoCreateTokenOptions = z.object({
+  create_token_options: createTokenBaseRaw.extend({
+    contract_pays_deposit: z.boolean(),
+    mint_address: z.string().nullable().optional().default(null),
+    is_create_nft: z.boolean().optional().default(false),
+  }).optional().transform(data => {
+    if (!data || typeof data !== 'object') return undefined;
+    const base = transformCreateTokenBase(data);
+    return {
+      ...base,
+      contractPaysTokenDeposit: data.contract_pays_deposit,
+      mintAddress: data.mint_address,
+      isCreateNFT: data.is_create_nft,
+    };
+  }),
+});
+
+export const nanoContractData = z.object({
+  data: z.object({
+    args: z.array(z.any()).optional(),
+    actions: z.array(z.object({
+      token: z.string(),
+      type: z.enum([
+        NanoContractActionType.DEPOSIT,
+        NanoContractActionType.WITHDRAWAL,
+        NanoContractActionType.GRANT_AUTHORITY,
+        NanoContractActionType.ACQUIRE_AUTHORITY
+      ]),
+      amount: bigIntCoercibleSchema.optional(),
+      address: z.string().optional(),
+      change_address: z.string().optional(),
+      authority: z.string().optional(),
+      authority_address: z.string().optional(),
+    })).optional(),
+  }),
+});
+
+export const nanoContractCreateData = z.object({
+  blueprint_id: z.string(),
+  address: z.string(),
+}).merge(nanoContractData).merge(nanoCreateTokenOptions);
+
+export const nanoContractExecuteData = z.object({
+  nc_id: z.string(),
+  method: z.string(),
+  address: z.string(),
+}).merge(nanoContractData).merge(nanoCreateTokenOptions);
 
 export function bigIntSanitizer(value) {
   try {

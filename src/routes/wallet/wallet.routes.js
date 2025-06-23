@@ -27,6 +27,7 @@ const nanoContractRouter = require('./nano-contracts.routes');
 const txTemplateRouter = require('./tx-template/tx-template.routes');
 const { MAX_DATA_SCRIPT_LENGTH } = require('../../constants');
 const { patchExpressRouter } = require('../../patch');
+const { validateZodSchema } = require('../../helpers/validations.helper');
 
 const walletRouter = patchExpressRouter(Router({ mergeParams: true }));
 walletRouter.use(walletMiddleware);
@@ -360,7 +361,7 @@ walletRouter.post(
  */
 walletRouter.post(
   '/create-token',
-  checkSchema(createTokenOptions),
+  validateZodSchema(createTokenOptions),
   createToken
 );
 

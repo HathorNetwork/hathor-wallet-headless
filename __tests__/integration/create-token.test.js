@@ -40,7 +40,7 @@ describe('create token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
   });
 
@@ -53,7 +53,7 @@ describe('create token', () => {
       })
       .set({ 'x-wallet-id': wallet1.walletId });
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
   });
 
