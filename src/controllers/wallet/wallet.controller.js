@@ -554,7 +554,7 @@ async function createToken(req, res) {
   } = req.body;
 
   try {
-    if (req.body.changeAddress && !await wallet.isAddressMine(req.body.changeAddress)) {
+    if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
       throw new Error('Change address is not from this wallet');
     }
 
