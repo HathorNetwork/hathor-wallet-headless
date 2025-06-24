@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { NanoContractActionType, walletUtils } from '@hathor/wallet-lib';
+import { INanoContractActionSchema, walletUtils } from '@hathor/wallet-lib';
 import { bigIntCoercibleSchema, parseSchema } from '@hathor/wallet-lib/lib/utils/bigint';
 import { z } from 'zod';
 
@@ -488,14 +488,14 @@ export const createTokenBaseRaw = z.object({
   name: z.string(),
   symbol: z.string(),
   amount: bigIntCoercibleSchema,
-  change_address: z.string().nullable().optional().default(null),
-  create_mint: z.boolean().optional().default(true),
-  mint_authority_address: z.string().nullable().optional().default(null),
-  allow_external_mint_authority_address: z.boolean().optional().default(false),
-  create_melt: z.boolean().optional().default(true),
-  melt_authority_address: z.string().nullable().optional().default(null),
-  allow_external_melt_authority_address: z.boolean().optional().default(false),
-  data: z.array(z.string().max(MAX_DATA_SCRIPT_LENGTH)).nullable().optional().default(null),
+  change_address: z.string().nullable().default(null),
+  create_mint: z.boolean().default(true),
+  mint_authority_address: z.string().nullable().default(null),
+  allow_external_mint_authority_address: z.boolean().default(false),
+  create_melt: z.boolean().default(true),
+  melt_authority_address: z.string().nullable().default(null),
+  allow_external_melt_authority_address: z.boolean().default(false),
+  data: z.array(z.string().max(MAX_DATA_SCRIPT_LENGTH)).nullable().default(null),
 });
 
 const transformCreateTokenBase = data => ({
@@ -510,22 +510,18 @@ const transformCreateTokenBase = data => ({
 });
 
 export const createTokenOptions = createTokenBaseRaw.extend({
-  address: z.string().nullable().optional().default(null),
+  address: z.string().nullable().default(null),
 }).transform(data => {
   if (!data || typeof data !== 'object') return {};
 
-  const base = transformCreateTokenBase(data);
-  return {
-    ...base,
-    address: data.address,
-  };
+  return transformCreateTokenBase(data);
 });
 
 export const nanoCreateTokenOptions = z.object({
   create_token_options: createTokenBaseRaw.extend({
     contract_pays_deposit: z.boolean(),
-    mint_address: z.string().nullable().optional().default(null),
-    is_create_nft: z.boolean().optional().default(false),
+    mint_address: z.string().nullable().default(null),
+    is_create_nft: z.boolean().default(false),
   }).optional().transform(data => {
     if (!data || typeof data !== 'object') return undefined;
     const base = transformCreateTokenBase(data);
@@ -541,20 +537,7 @@ export const nanoCreateTokenOptions = z.object({
 export const nanoContractData = z.object({
   data: z.object({
     args: z.array(z.any()).optional(),
-    actions: z.array(z.object({
-      token: z.string(),
-      type: z.enum([
-        NanoContractActionType.DEPOSIT,
-        NanoContractActionType.WITHDRAWAL,
-        NanoContractActionType.GRANT_AUTHORITY,
-        NanoContractActionType.ACQUIRE_AUTHORITY
-      ]),
-      amount: bigIntCoercibleSchema.optional(),
-      address: z.string().optional(),
-      change_address: z.string().optional(),
-      authority: z.string().optional(),
-      authority_address: z.string().optional(),
-    })).optional(),
+    actions: INanoContractActionSchema.array().default([]),
   }),
 });
 
