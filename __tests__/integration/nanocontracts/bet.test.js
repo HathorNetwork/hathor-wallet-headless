@@ -324,7 +324,7 @@ describe('nano contract routes', () => {
 
   it('built in bet methods', async () => {
     await executeTests(walletNano, builtInBlueprintId);
-  }, 600*1000);
+  }, 600 * 1000);
 
   it('on chain bet methods', async () => {
     // For now the on chain blueprints needs a signature from a specific address
