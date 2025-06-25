@@ -360,5 +360,5 @@ describe('authority blueprint', () => {
     await TestUtils.waitTxConfirmed(walletNano.walletId, ocbHash);
     // Execute the tests
     await executeTests(walletNano, ocbHash);
-  });
+  }, 600 * 1000);
 });
