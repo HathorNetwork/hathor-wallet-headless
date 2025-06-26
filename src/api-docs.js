@@ -74,19 +74,23 @@ const createTokenProperties = {
 };
 
 const createTokenNanoProperties = {
-  ...createTokenPropertiesBase,
-  contract_pays_deposit: {
-    type: 'boolean',
-    description: 'If the contract will pay the deposit fee of the token creation.'
-  },
-  mint_address: {
-    type: 'string',
-    description: 'Address to send the minted tokens'
-  },
-  is_create_nft: {
-    type: 'boolean',
-    description: 'If this token is an NFT creation.'
-  },
+  type: 'object',
+  description: 'Data of the token creation parameters.',
+  properties: {
+    ...createTokenPropertiesBase,
+    contract_pays_deposit: {
+      type: 'boolean',
+      description: 'If the contract will pay the deposit fee of the token creation.'
+    },
+    mint_address: {
+      type: 'string',
+      description: 'Address to send the minted tokens'
+    },
+    is_create_nft: {
+      type: 'boolean',
+      description: 'If this token is an NFT creation.'
+    },
+  }
 };
 
 const nanoContractsDataParameter = {
