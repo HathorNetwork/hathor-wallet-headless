@@ -8,7 +8,6 @@ import { initializedWallets } from '../../../src/services/wallets.service';
 
 describe('nano contract routes', () => {
   let walletNano;
-  const builtInBlueprintId = '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595';
 
   beforeAll(async () => {
     try {
