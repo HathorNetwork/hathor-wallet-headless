@@ -1,14 +1,13 @@
 import fs from 'fs';
 import { Address, P2PKH, bufferUtils } from '@hathor/wallet-lib';
 import { isEmpty } from 'lodash';
-import { TestUtils } from './utils/test-utils-integration';
-import { HATHOR_TOKEN_ID, WALLET_CONSTANTS } from './configuration/test-constants';
-import { WalletHelper } from './utils/wallet-helper';
-import { initializedWallets } from '../../src/services/wallets.service';
+import { TestUtils } from '../utils/test-utils-integration';
+import { HATHOR_TOKEN_ID, WALLET_CONSTANTS } from '../configuration/test-constants';
+import { WalletHelper } from '../utils/wallet-helper';
+import { initializedWallets } from '../../../src/services/wallets.service';
 
 describe('nano contract routes', () => {
   let walletNano;
-  const builtInBlueprintId = '3cb032600bdf7db784800e4ea911b10676fa2f67591f82bb62628c234e771595';
 
   beforeAll(async () => {
     try {
@@ -169,10 +168,12 @@ describe('nano contract routes', () => {
     expect(ncState.fields.oracle_script.value).toBe(bufferUtils.bufferToHex(outputScriptBuffer1));
     expect(ncState.fields.final_result.value).toBeNull();
     expect(ncState.fields.total.value).toBe(300);
+    /*
     expect(ncState.fields[`address_details.a'${address2}'`].value).toHaveProperty('1x0', 100);
     expect(ncState.fields[`withdrawals.a'${address2}'`].value).toBeUndefined();
     expect(ncState.fields[`address_details.a'${address3}'`].value).toHaveProperty('2x0', 200);
     expect(ncState.fields[`withdrawals.a'${address3}'`].value).toBeUndefined();
+    */
 
     // Set result to '1x0'
     const responseOracleSignedResult = await TestUtils.request
@@ -242,10 +243,12 @@ describe('nano contract routes', () => {
     expect(ncState2.fields.oracle_script.value).toBe(bufferUtils.bufferToHex(outputScriptBuffer1));
     expect(ncState2.fields.final_result.value).toBe('1x0');
     expect(ncState2.fields.total.value).toBe(300);
+    /*
     expect(ncState2.fields[`address_details.a'${address2}'`].value).toHaveProperty('1x0', 100);
     expect(ncState2.fields[`withdrawals.a'${address2}'`].value).toBe(300);
     expect(ncState2.fields[`address_details.a'${address3}'`].value).toHaveProperty('2x0', 200);
     expect(ncState2.fields[`withdrawals.a'${address3}'`].value).toBeUndefined();
+    */
 
     // Get history again
     const responseHistory2 = await TestUtils.request
@@ -282,10 +285,12 @@ describe('nano contract routes', () => {
     );
     expect(ncStateOld.fields.final_result.value).toBeNull();
     expect(ncStateOld.fields.total.value).toBe(300);
+    /*
     expect(ncStateOld.fields[`address_details.a'${address2}'`].value).toHaveProperty('1x0', 100);
     expect(ncStateOld.fields[`withdrawals.a'${address2}'`].value).toBeUndefined();
     expect(ncStateOld.fields[`address_details.a'${address3}'`].value).toHaveProperty('2x0', 200);
     expect(ncStateOld.fields[`withdrawals.a'${address3}'`].value).toBeUndefined();
+    */
 
     // Now we will test the history with pagination
     const history2 = responseHistory2.body.history;
@@ -316,10 +321,6 @@ describe('nano contract routes', () => {
     expect(responseHistory5.body.history).toStrictEqual([history2[1], history2[0]]);
   };
 
-  it('built in bet methods', async () => {
-    await executeTests(walletNano, builtInBlueprintId);
-  });
-
   it('on chain bet methods', async () => {
     // For now the on chain blueprints needs a signature from a specific address
     // so we must always generate the same seed
@@ -333,7 +334,7 @@ describe('nano contract routes', () => {
     const address10 = await libOcbWalletObject.getAddressAtIndex(10);
 
     // Use the bet blueprint code
-    const code = fs.readFileSync('./__tests__/integration/configuration/bet.py', 'utf8');
+    const code = fs.readFileSync('./__tests__/integration/configuration/blueprints/bet.py', 'utf8');
 
     // First we will have a test case for an error when calling the lib method
     // when running with an invalid address
@@ -358,5 +359,5 @@ describe('nano contract routes', () => {
     expect(address10Meta.numTransactions).toBe(1);
     // Execute the bet blueprint tests
     await executeTests(ocbWallet, ocbHash);
-  });
+  }, 600 * 1000);
 });

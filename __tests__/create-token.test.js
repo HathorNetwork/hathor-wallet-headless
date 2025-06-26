@@ -41,7 +41,7 @@ describe('create-token api', () => {
   });
 
   it('should not create a token without the required parameters', async () => {
-    ['name', 'symbol', 'amount'].forEach(async field => {
+    for (const field of ['name', 'symbol', 'amount']) {
       const token = {
         name: 'stub_token',
         symbol: '03',
@@ -54,7 +54,7 @@ describe('create-token api', () => {
         .set({ 'x-wallet-id': walletId });
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
-    });
+    }
   });
 
   it('should not create a token without the required funds to cover it', async () => {
