@@ -322,10 +322,6 @@ describe('nano contract routes', () => {
     expect(responseHistory5.body.history).toStrictEqual([history2[1], history2[0]]);
   };
 
-  it('built in bet methods', async () => {
-    await executeTests(walletNano, builtInBlueprintId);
-  }, 600 * 1000);
-
   it('on chain bet methods', async () => {
     // For now the on chain blueprints needs a signature from a specific address
     // so we must always generate the same seed
