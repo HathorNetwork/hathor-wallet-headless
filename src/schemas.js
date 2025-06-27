@@ -5,10 +5,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { walletUtils } from '@hathor/wallet-lib';
+import { INanoContractActionSchema, walletUtils } from '@hathor/wallet-lib';
 import { bigIntCoercibleSchema, parseSchema } from '@hathor/wallet-lib/lib/utils/bigint';
+import { z } from 'zod';
 
 const validator = require('validator');
+const { MAX_DATA_SCRIPT_LENGTH } = require('./constants');
 
 export const txHexSchema = {
   txHex: {
@@ -482,62 +484,73 @@ export const p2shSignature = {
   },
 };
 
-export const nanoContractData = {
-  data: {
-    in: ['body'],
-    errorMessage: 'Invalid data',
-    isObject: true,
-  },
-  'data.args': { // the element of this array can be anything
-    in: ['body'],
-    errorMessage: 'Invalid arguments.',
-    isArray: true,
-    optional: true
-  },
-  'data.actions': {
-    in: ['body'],
-    errorMessage: 'Invalid actions.',
-    isArray: true,
-    optional: true
-  },
-  'data.actions.*.token': {
-    in: ['body'],
-    errorMessage: 'Invalid action token.',
-    isString: true,
-  },
-  'data.actions.*.type': {
-    in: ['body'],
-    errorMessage: 'Invalid action type.',
-    isString: true,
-    custom: {
-      options: value => {
-        if (value !== 'deposit' && value !== 'withdrawal') {
-          return false;
-        }
-        return true;
-      }
-    },
-  },
-  'data.actions.*.amount': {
-    in: ['body'],
-    errorMessage: 'Invalid action amount.',
-    customSanitizer: {
-      options: bigIntSanitizer,
-    },
-  },
-  'data.actions.*.address': {
-    in: ['body'],
-    errorMessage: 'Invalid action address.',
-    isString: true,
-    optional: true, // required for withdrawal
-  },
-  'data.actions.*.change_address': {
-    in: ['body'],
-    errorMessage: 'Invalid action change address.',
-    isString: true,
-    optional: true,
-  },
-};
+export const createTokenBaseRaw = z.object({
+  name: z.string(),
+  symbol: z.string(),
+  amount: bigIntCoercibleSchema,
+  change_address: z.string().nullable().default(null),
+  create_mint: z.boolean().default(true),
+  mint_authority_address: z.string().nullable().default(null),
+  allow_external_mint_authority_address: z.boolean().default(false),
+  create_melt: z.boolean().default(true),
+  melt_authority_address: z.string().nullable().default(null),
+  allow_external_melt_authority_address: z.boolean().default(false),
+  data: z.array(z.string().max(MAX_DATA_SCRIPT_LENGTH)).nullable().default(null),
+});
+
+const transformCreateTokenBase = data => ({
+  ...data,
+  changeAddress: data.change_address,
+  createMint: data.create_mint,
+  mintAuthorityAddress: data.mint_authority_address,
+  allowExternalMintAuthorityAddress: data.allow_external_mint_authority_address,
+  createMelt: data.create_melt,
+  meltAuthorityAddress: data.melt_authority_address,
+  allowExternalMeltAuthorityAddress: data.allow_external_melt_authority_address,
+});
+
+export const createTokenOptions = createTokenBaseRaw.extend({
+  address: z.string().nullable().default(null),
+}).transform(data => {
+  if (!data || typeof data !== 'object') return {};
+
+  return transformCreateTokenBase(data);
+});
+
+export const nanoCreateTokenOptions = z.object({
+  create_token_options: createTokenBaseRaw.extend({
+    contract_pays_deposit: z.boolean(),
+    mint_address: z.string().nullable().default(null),
+    is_create_nft: z.boolean().default(false),
+  }).optional().transform(data => {
+    if (!data || typeof data !== 'object') return undefined;
+    const base = transformCreateTokenBase(data);
+    return {
+      ...base,
+      contractPaysTokenDeposit: data.contract_pays_deposit,
+      mintAddress: data.mint_address,
+      isCreateNFT: data.is_create_nft,
+    };
+  }),
+});
+
+export const nanoContractData = z.object({
+  data: z.object({
+    args: z.array(z.any()).optional(),
+    actions: INanoContractActionSchema.array().default([]),
+  }),
+});
+
+export const nanoContractCreateData = z.object({
+  blueprint_id: z.string(),
+  address: z.string(),
+}).merge(nanoContractData).merge(nanoCreateTokenOptions);
+
+export const nanoContractExecuteData = z.object({
+  nc_id: z.string(),
+  method: z.string(),
+  address: z.string(),
+}).merge(nanoContractData).merge(nanoCreateTokenOptions);
 
 export function bigIntSanitizer(value) {
   try {

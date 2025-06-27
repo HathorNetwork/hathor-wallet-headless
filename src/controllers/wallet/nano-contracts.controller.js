@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { ncApi, nanoUtils, bufferUtils, NanoContractSerializer } = require('@hathor/wallet-lib');
+const { ncApi, nanoUtils, bufferUtils } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { mapTxReturn, runSendTransaction } = require('../../helpers/tx.helper');
 const { lockSendTx } = require('../../helpers/lock.helper');
@@ -106,7 +106,13 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
   }
 
   const { wallet } = req;
-  const { blueprint_id: blueprintId, nc_id: ncId, address, data } = req.body;
+  const {
+    blueprint_id: blueprintId,
+    nc_id: ncId,
+    address,
+    data,
+    create_token_options: createTokenOptions
+  } = req.body;
   const method = isInitialize ? 'initialize' : req.body.method;
 
   // Set blueprint id or nc id to the data execution
@@ -118,11 +124,21 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
 
   try {
     /** @type {import('@hathor/wallet-lib').SendTransaction} */
-    const sendTransaction = await wallet.createNanoContractTransaction(
-      method,
-      address,
-      data
-    );
+    let sendTransaction;
+    if (createTokenOptions) {
+      sendTransaction = await wallet.createNanoContractCreateTokenTransaction(
+        method,
+        address,
+        data,
+        createTokenOptions
+      );
+    } else {
+      sendTransaction = await wallet.createNanoContractTransaction(
+        method,
+        address,
+        data
+      );
+    }
     const tx = await runSendTransaction(sendTransaction, unlock);
     res.send({ success: true, ...mapTxReturn(tx) });
   } catch (err) {
@@ -168,31 +184,28 @@ async function getOracleSignedResult(req, res) {
     return;
   }
 
-  const { result, type, oracle_data: oracleData } = req.query;
+  const { result, contract_id: contractId, type, oracle_data: oracleData } = req.query;
   const { wallet } = req;
 
   try {
-    let resultToSerialize = result;
+    let resultPreSerialized = result;
     if (type === 'bytes') {
       // If type is bytes, then the result comes in hex
-      resultToSerialize = bufferUtils.hexToBuffer(result);
+      resultPreSerialized = bufferUtils.hexToBuffer(result);
     }
 
-    const nanoSerializer = new NanoContractSerializer();
-    const resultSerialized = nanoSerializer.serializeFromType(resultToSerialize, type);
-
     const oracleDataBuffer = bufferUtils.hexToBuffer(oracleData);
-    const inputData = await nanoUtils.getOracleInputData(
+    const inputData = await nanoUtils.getOracleSignedDataFromUser(
       oracleDataBuffer,
-      resultSerialized,
+      contractId,
+      `SignedData[${type}]`,
+      resultPreSerialized,
       wallet
     );
 
-    const signedResult = `${bufferUtils.bufferToHex(inputData)},${result},${type}`;
-
     res.send({
       success: true,
-      signedResult,
+      signedResult: inputData,
     });
   } catch (err) {
     res.send({ success: false, error: err.message });

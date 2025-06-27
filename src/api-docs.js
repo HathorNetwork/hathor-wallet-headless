@@ -15,6 +15,84 @@ const commonExamples = {
   },
 };
 
+const createTokenPropertiesBase = {
+  name: {
+    type: 'string',
+    description: 'Name of the token.'
+  },
+  symbol: {
+    type: 'string',
+    description: 'Symbol of the token.'
+  },
+  amount: {
+    type: 'integer',
+    description: 'The amount of tokens to mint. It must be an integer with the value in cents, i.e., 123 means 1.23.'
+  },
+  change_address: {
+    type: 'string',
+    description: 'Optional address to send the change amount.'
+  },
+  create_mint: {
+    type: 'boolean',
+    description: 'If should create mint authority for the created token. Default is true.'
+  },
+  mint_authority_address: {
+    type: 'string',
+    description: 'Optional address to send the mint authority output created.'
+  },
+  allow_external_mint_authority_address: {
+    type: 'boolean',
+    description: 'If the mint authority address is allowed to be from another wallet. Default is false.'
+  },
+  create_melt: {
+    type: 'boolean',
+    description: 'If should create melt authority for the created token. Default is true.'
+  },
+  melt_authority_address: {
+    type: 'string',
+    description: 'Optional address to send the melt authority output created.'
+  },
+  allow_external_melt_authority_address: {
+    type: 'boolean',
+    description: 'If the melt authority address is allowed to be from another wallet. Default is false.'
+  },
+  data: {
+    type: 'array',
+    items: {
+      type: 'string'
+    },
+    description: 'List of utf-8 encoded strings to create a data output for each.'
+  }
+};
+
+const createTokenProperties = {
+  ...createTokenPropertiesBase,
+  address: {
+    type: 'string',
+    description: 'Destination address of the minted tokens.'
+  },
+};
+
+const createTokenNanoProperties = {
+  type: 'object',
+  description: 'Data of the token creation parameters.',
+  properties: {
+    ...createTokenPropertiesBase,
+    contract_pays_deposit: {
+      type: 'boolean',
+      description: 'If the contract will pay the deposit fee of the token creation.'
+    },
+    mint_address: {
+      type: 'string',
+      description: 'Address to send the minted tokens'
+    },
+    is_create_nft: {
+      type: 'boolean',
+      description: 'If this token is an NFT creation.'
+    },
+  }
+};
+
 const nanoContractsDataParameter = {
   type: 'object',
   description: 'Data of the method for the nano contract.',
@@ -23,11 +101,11 @@ const nanoContractsDataParameter = {
       type: 'array',
       items: {
         type: 'object',
-        required: ['type', 'token', 'amount'],
+        required: ['type', 'token'],
         properties: {
           type: {
             type: 'string',
-            description: 'Type of action: \'deposit\' or \'withdrawal\'.'
+            description: 'Type of action: \'deposit\', \'withdrawal\', \'grant_authority\', or \'acquire_authority\'.'
           },
           token: {
             type: 'string',
@@ -39,11 +117,19 @@ const nanoContractsDataParameter = {
           },
           address: {
             type: 'string',
-            description: 'Required for withdrawal, and it\'s the address to send the token to. For deposit is optional and it\'s the address to get the utxo from.'
+            description: 'Required for withdrawal and acquire_authority, and it\'s the address to send the token to. For deposit is optional and it\'s the address to get the utxo from.'
           },
           changeAddress: {
             type: 'string',
-            description: 'Address to send the change amount. Only used for deposit and it\'s optional.'
+            description: 'Address to send the change amount. Only used for deposit and grant_authority, and it\'s optional.'
+          },
+          authority: {
+            type: 'string',
+            description: 'It is the authority to execute the action. mint or melt.'
+          },
+          authorityAddress: {
+            type: 'string',
+            description: 'Only used by grant_authority action and it is the address to create another authority output.'
           },
         }
       },
@@ -2910,59 +2996,7 @@ const defaultApiDocs = {
               schema: {
                 type: 'object',
                 required: ['name', 'symbol', 'amount'],
-                properties: {
-                  name: {
-                    type: 'string',
-                    description: 'Name of the token.'
-                  },
-                  symbol: {
-                    type: 'string',
-                    description: 'Symbol of the token.'
-                  },
-                  amount: {
-                    type: 'integer',
-                    description: 'The amount of tokens to mint. It must be an integer with the value in cents, i.e., 123 means 1.23.'
-                  },
-                  address: {
-                    type: 'string',
-                    description: 'Destination address of the minted tokens.'
-                  },
-                  change_address: {
-                    type: 'string',
-                    description: 'Optional address to send the change amount.'
-                  },
-                  create_mint: {
-                    type: 'boolean',
-                    description: 'If should create mint authority for the created token. Default is true.'
-                  },
-                  mint_authority_address: {
-                    type: 'string',
-                    description: 'Optional address to send the mint authority output created.'
-                  },
-                  allow_external_mint_authority_address: {
-                    type: 'boolean',
-                    description: 'If the mint authority address is allowed to be from another wallet. Default is false.'
-                  },
-                  create_melt: {
-                    type: 'boolean',
-                    description: 'If should create melt authority for the created token. Default is true.'
-                  },
-                  melt_authority_address: {
-                    type: 'string',
-                    description: 'Optional address to send the melt authority output created.'
-                  },
-                  allow_external_melt_authority_address: {
-                    type: 'boolean',
-                    description: 'If the melt authority address is allowed to be from another wallet. Default is false.'
-                  },
-                  data: {
-                    type: 'array',
-                    items: {
-                      type: 'string'
-                    },
-                    description: 'List of utf-8 encoded strings to create a data output for each.'
-                  }
-                }
+                properties: createTokenProperties,
               },
               examples: {
                 data: {
@@ -3990,6 +4024,15 @@ const defaultApiDocs = {
             },
           },
           {
+            name: 'contract_id',
+            in: 'query',
+            description: 'The contract id (hex encoded) being invoked.',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+          {
             name: 'result',
             in: 'query',
             description: 'The result to be signed. If the type is bytes, then we expect it in hex.',
@@ -4081,6 +4124,7 @@ const defaultApiDocs = {
                     description: 'Address caller that will sign the nano contract creation transaction.'
                   },
                   data: nanoContractsDataParameter,
+                  create_token_options: createTokenNanoProperties,
                 },
               },
               examples: {
@@ -4212,6 +4256,7 @@ const defaultApiDocs = {
                     description: 'Address caller that will sign the nano contract transaction.'
                   },
                   data: nanoContractsDataParameter,
+                  create_token_options: createTokenNanoProperties,
                 }
               },
               examples: {

@@ -15,7 +15,7 @@ describe('execute api', () => {
     const response = await TestUtils.request
       .post('/wallet/nano-contracts/execute')
       .send({
-        nc_id: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
+        nc_id: '000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16',
         method: 'bet',
         address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN',
         data: { args: [1234, '1234'] },
@@ -30,7 +30,7 @@ describe('execute api', () => {
     const response = await TestUtils.request
       .post('/wallet/nano-contracts/execute')
       .send({
-        nc_id: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
+        nc_id: '000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16',
         method: 'bet',
         address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN',
       })
@@ -40,7 +40,7 @@ describe('execute api', () => {
     const response2 = await TestUtils.request
       .post('/wallet/nano-contracts/execute')
       .send({
-        nc_id: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
+        nc_id: '000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16',
         method: 'bet',
         data: { args: [1234, '1234'] },
       })
@@ -60,7 +60,7 @@ describe('execute api', () => {
     const response4 = await TestUtils.request
       .post('/wallet/nano-contracts/execute')
       .send({
-        nc_id: '5c02adea056d7b43e83171a0e2d226d564c791d583b32e9a404ef53a2e1b363a',
+        nc_id: '000033ef9affbd741d477ff62450253a60b5a082c6cf803340ad1a6369ab9f16',
         address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN',
         data: { args: [1234, '1234'] },
       })

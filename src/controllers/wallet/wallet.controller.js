@@ -538,16 +538,21 @@ async function createToken(req, res) {
   }
 
   const { wallet } = req;
-  const { name, symbol, amount } = req.body;
-  const address = req.body.address || null;
-  const changeAddress = req.body.change_address || null;
-  const createMint = req.body.create_mint ?? true;
-  const mintAuthorityAddress = req.body.mint_authority_address || null;
-  const allowExternalMintAuthorityAddress = req.body.allow_external_mint_authority_address || false;
-  const createMelt = req.body.create_melt ?? true;
-  const meltAuthorityAddress = req.body.melt_authority_address || null;
-  const allowExternalMeltAuthorityAddress = req.body.allow_external_melt_authority_address || false;
-  const data = req.body.data || null;
+  const {
+    name,
+    symbol,
+    amount,
+    changeAddress,
+    address,
+    createMint,
+    mintAuthorityAddress,
+    allowExternalMintAuthorityAddress,
+    createMelt,
+    meltAuthorityAddress,
+    allowExternalMeltAuthorityAddress,
+    data
+  } = req.body;
+
   try {
     if (changeAddress && !await wallet.isAddressMine(changeAddress)) {
       throw new Error('Change address is not from this wallet');
@@ -567,7 +572,7 @@ async function createToken(req, res) {
         createMelt,
         meltAuthorityAddress,
         allowExternalMeltAuthorityAddress,
-        data,
+        data
       }
     );
     const tx = await runSendTransaction(sendTransaction, unlock);

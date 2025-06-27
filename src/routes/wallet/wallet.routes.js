@@ -16,7 +16,7 @@ const {
   utxosSelectedAsInput,
 } = require('../../controllers/wallet/wallet.controller');
 const {
-  txHexSchema, partialTxSchema, bigIntSanitizer,
+  createTokenOptions, txHexSchema, partialTxSchema, bigIntSanitizer,
   bigIntValidator
 } = require('../../schemas');
 const p2shRouter = require('./p2sh/p2sh.routes');
@@ -27,6 +27,7 @@ const nanoContractRouter = require('./nano-contracts.routes');
 const txTemplateRouter = require('./tx-template/tx-template.routes');
 const { MAX_DATA_SCRIPT_LENGTH } = require('../../constants');
 const { patchExpressRouter } = require('../../patch');
+const { validateZodSchema } = require('../../helpers/validations.helper');
 
 const walletRouter = patchExpressRouter(Router({ mergeParams: true }));
 walletRouter.use(walletMiddleware);
@@ -360,19 +361,7 @@ walletRouter.post(
  */
 walletRouter.post(
   '/create-token',
-  body('name').isString(),
-  body('symbol').isString(),
-  body('amount').custom(bigIntValidator({ min: 1 })).customSanitizer(bigIntSanitizer),
-  body('address').isString().optional(),
-  body('change_address').isString().optional(),
-  body('create_mint').isBoolean().optional().toBoolean(),
-  body('mint_authority_address').isString().optional(),
-  body('allow_external_mint_authority_address').isBoolean().optional().toBoolean(),
-  body('create_melt').isBoolean().optional().toBoolean(),
-  body('melt_authority_address').isString().optional(),
-  body('allow_external_melt_authority_address').isBoolean().optional().toBoolean(),
-  body('data').isArray().optional(),
-  body('data.*').isString().isLength({ max: MAX_DATA_SCRIPT_LENGTH }),
+  validateZodSchema(createTokenOptions),
   createToken
 );
 
