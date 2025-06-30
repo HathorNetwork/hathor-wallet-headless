@@ -1,9 +1,16 @@
+# Copyright 2023 Hathor Labs
 #
-# Copyright (c) Hathor Labs and its affiliates.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# This source code is licensed under the MIT license found in the
-# LICENSE file in the root directory of this source tree.
+#    http://www.apache.org/licenses/LICENSE-2.0
 #
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 from math import floor
 from typing import Optional, TypeAlias
@@ -14,7 +21,8 @@ from hathor.nanocontracts.exception import NCFail
 from hathor.nanocontracts.types import (
     Address,
     NCAction,
-    NCActionType,
+    NCDepositAction,
+    NCWithdrawalAction,
     SignedData,
     Timestamp,
     TokenUid,
@@ -36,14 +44,6 @@ class ResultAlreadySet(NCFail):
 
 
 class ResultNotAvailable(NCFail):
-    pass
-
-
-class WithdrawalNotAllowed(NCFail):
-    pass
-
-
-class DepositNotAllowed(NCFail):
     pass
 
 
@@ -142,17 +142,16 @@ class Bet(Blueprint):
     def _get_action(self, ctx: Context) -> NCAction:
         """Return the only action available; fails otherwise."""
         if len(ctx.actions) != 1:
-            raise TooManyActions('only one action supported')
+            raise TooManyActions('only one token supported')
         if self.token_uid not in ctx.actions:
             raise InvalidToken(f'token different from {self.token_uid.hex()}')
-        return ctx.actions[self.token_uid]
+        return ctx.get_single_action(self.token_uid)
 
-    @public
+    @public(allow_deposit=True)
     def bet(self, ctx: Context, address: Address, score: str) -> None:
         """Make a bet."""
         action = self._get_action(ctx)
-        if action.type != NCActionType.DEPOSIT:
-            raise WithdrawalNotAllowed('must be deposit')
+        assert isinstance(action, NCDepositAction)
         self.fail_if_result_is_available()
         self.fail_if_invalid_token(action)
         if ctx.timestamp > self.date_last_bet:
@@ -181,16 +180,15 @@ class Bet(Blueprint):
     def set_result(self, ctx: Context, result: SignedData[Result]) -> None:
         """Set final result. This method is called by the oracle."""
         self.fail_if_result_is_available()
-        if not result.checksig(self.oracle_script):
+        if not result.checksig(self.syscall.get_contract_id(), self.oracle_script):
             raise InvalidOracleSignature
         self.final_result = result.data
 
-    @public
+    @public(allow_withdrawal=True)
     def withdraw(self, ctx: Context) -> None:
         """Withdraw tokens after the final result is set."""
         action = self._get_action(ctx)
-        if action.type != NCActionType.WITHDRAWAL:
-            raise DepositNotAllowed('action must be withdrawal')
+        assert isinstance(action, NCWithdrawalAction)
         self.fail_if_result_is_not_available()
         self.fail_if_invalid_token(action)
         address = Address(ctx.address)

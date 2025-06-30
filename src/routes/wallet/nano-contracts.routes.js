@@ -6,7 +6,7 @@
  */
 
 const { Router } = require('express');
-const { checkSchema, query, body } = require('express-validator');
+const { query, body } = require('express-validator');
 const {
   getState,
   getHistory,
@@ -17,7 +17,8 @@ const {
   getOracleSignedResult
 } = require('../../controllers/wallet/nano-contracts.controller');
 const { patchExpressRouter } = require('../../patch');
-const { nanoContractData } = require('../../schemas');
+const { nanoContractCreateData, nanoContractExecuteData } = require('../../schemas');
+const { validateZodSchema } = require('../../helpers/validations.helper');
 
 const nanoContractRouter = patchExpressRouter(Router({ mergeParams: true }));
 
@@ -57,6 +58,7 @@ nanoContractRouter.get(
 nanoContractRouter.get(
   '/oracle-signed-result',
   query('oracle_data').isString(),
+  query('contract_id').isString(),
   query('result'),
   query('type').isString(),
   getOracleSignedResult
@@ -81,9 +83,7 @@ nanoContractRouter.get(
  */
 nanoContractRouter.post(
   '/create',
-  body('blueprint_id').isString(),
-  body('address').isString(),
-  checkSchema(nanoContractData),
+  validateZodSchema(nanoContractCreateData),
   createNanoContract,
 );
 
@@ -93,10 +93,7 @@ nanoContractRouter.post(
  */
 nanoContractRouter.post(
   '/execute',
-  body('nc_id').isString(),
-  body('method').isString(),
-  body('address').isString(),
-  checkSchema(nanoContractData),
+  validateZodSchema(nanoContractExecuteData),
   executeNanoContractMethod,
 );
 
