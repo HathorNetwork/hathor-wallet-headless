@@ -46,6 +46,11 @@ endif
 .run_words:
 	node dist-scripts/generate_words.js
 
+# Internal target to run generate_words command.
+.PHONY: .run_generate_wallets
+.run_generate_wallets:
+	node dist-scripts/generate_wallets.js
+
 # Internal target to run create_hsm_key command.
 .PHONY: .run_create_hsm_key
 .run_create_hsm_key:
@@ -77,6 +82,10 @@ endif
 # Command: generate words
 .PHONY: words
 words: .script-build-dirs .run_words .script-clean-dirs
+
+# Command: generate wallets
+.PHONY: generate_wallets
+generate_wallets: .script-build-dirs .run_generate_wallets .script-clean-dirs
 
 # Command: create HSM key
 .PHONY: create_hsm_key

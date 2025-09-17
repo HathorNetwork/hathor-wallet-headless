@@ -1,4 +1,4 @@
-const { cloneDeep } = require('lodash');
+import _ from 'lodash';
 
 const defaultConfig = {
   http_bind_address: 'localhost',
@@ -37,18 +37,19 @@ const defaultConfig = {
   history_sync_mode: 'polling_http_api',
 };
 
-let config = cloneDeep(defaultConfig);
+let config = _.cloneDeep(defaultConfig);
+const isTestEnvironment = typeof jest !== 'undefined';
 
 export default {
-  setupConfig: jest.fn().mockImplementation(() => Promise.resolve()),
-  reloadConfig: jest.fn().mockImplementation(() => Promise.resolve()),
+  setupConfig: isTestEnvironment && jest.fn().mockImplementation(() => Promise.resolve()),
+  reloadConfig: isTestEnvironment && jest.fn().mockImplementation(() => Promise.resolve()),
   getConfig: () => config,
   // utilities to change the configuration at runtime
-  _getDefaultConfig: () => cloneDeep(defaultConfig),
+  _getDefaultConfig: () => _.cloneDeep(defaultConfig),
   _setConfig: c => {
     config = c;
   },
   _resetConfig: () => {
-    config = cloneDeep(defaultConfig);
+    config = _.cloneDeep(defaultConfig);
   },
 };
