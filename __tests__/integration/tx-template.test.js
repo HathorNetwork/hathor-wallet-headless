@@ -80,7 +80,7 @@ describe('tx-template build', () => {
       .post('/wallet/tx-template/build')
       .send([
         { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' } },
-        { type: 'action/config', tokenName: 'Test Token', tokenSymbol: 'TT' },
+        { type: 'action/config', tokenName: 'Test Token', tokenSymbol: 'TT', createToken: true },
         { type: 'input/utxo', fill: 1 },
         { type: 'output/token', amount: 100, address: '{addr}', useCreatedToken: true },
       ])
@@ -176,7 +176,7 @@ describe('tx-template run', () => {
       .post('/wallet/tx-template/run')
       .send([
         { type: 'action/setvar', name: 'addr', call: { method: 'get_wallet_address' } },
-        { type: 'action/config', tokenName: 'Test Token', tokenSymbol: 'TT' },
+        { type: 'action/config', tokenName: 'Test Token', tokenSymbol: 'TT', createToken: true },
         { type: 'input/utxo', fill: 1 },
         { type: 'output/token', amount: 100, address: '{addr}', useCreatedToken: true },
         { type: 'output/authority', authority: 'mint', address: '{addr}', useCreatedToken: true },
