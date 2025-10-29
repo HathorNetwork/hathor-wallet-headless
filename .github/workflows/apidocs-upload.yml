@@ -103,7 +103,5 @@ jobs:
         run: |
           if [[ "${{ env.release_status }}" == "isRelease" ]]; then
             aws s3 cp index.html s3://${{ secrets.AWS_APIDOCS_BUCKET_NAME_PROD }}
-          else
-            aws s3 cp index.html s3://${{ secrets.AWS_APIDOCS_BUCKET_NAME_DEV }}
           fi
       
