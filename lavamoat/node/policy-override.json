@@ -6,6 +6,36 @@
         "Error.captureStackTrace": true,
         "Error.stackTraceLimit": "write"
       }
+    },
+
+    "axios": {
+      "globals": {
+        "document": false,
+        "importScripts": false,
+        "location.href": false,
+        "navigator": false,
+        "WorkerGlobalScope": false,
+        "XMLHttpRequest": false
+      }
+    },
+
+    "morgan>debug": {
+      "globals": {
+        "chrome": false,
+        "document": false,
+        "localStorage": false,
+        "navigator": false
+      }
+    },
+
+    "winston": {
+      "builtin": {
+        "http": false,
+        "https": false
+      },
+      "globals": {
+        "process.exit": false
+      }
     }
   }
 }
