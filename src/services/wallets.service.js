@@ -8,7 +8,7 @@
 const { Connection, HathorWallet, HistorySyncMode } = require('@hathor/wallet-lib');
 const { removeAllWalletProposals } = require('./atomic-swap.service');
 const { notificationBus } = require('./notification.service');
-const { sanitizeLogInput } = require('../logger');
+const { sanitizeLogInput, buildAppLogger } = require('../logger');
 const { lock } = require('../lock');
 const { walletLoggers, initializeWalletLogger, setupWalletStateLogs } = require('./logger.service');
 
@@ -122,8 +122,8 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
     // XXX: currently only gap-limit can use streaming modes
     mode = HistorySyncMode.POLLING_HTTP_API;
   }
-  // eslint-disable-next-line no-console
-  console.log(`Configuring wallet ${sanitizeLogInput(walletId)} for history sync mode: ${mode}`);
+  const appLogger = buildAppLogger();
+  appLogger.info(`Configuring wallet ${sanitizeLogInput(walletId)} for history sync mode: ${mode}`);
   wallet.setHistorySyncMode(mode);
 
   if (config.gapLimit) {
@@ -139,8 +139,7 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
 
   const info = await wallet.start();
   // The replace avoids Log Injection
-  // eslint-disable-next-line no-console
-  console.log(`Wallet started with wallet id ${sanitizeLogInput(walletId)}. \
+  appLogger.info(`Wallet started with wallet id ${sanitizeLogInput(walletId)}. \
 Full-node info: ${JSON.stringify(info, null, 2)}`);
 
   initializedWallets.set(walletId, wallet);

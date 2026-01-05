@@ -1,0 +1,11 @@
+{
+  "resources": {
+    "depd": {
+      "globals": {
+        "Error.prepareStackTrace": "write",
+        "Error.captureStackTrace": true,
+        "Error.stackTraceLimit": "write"
+      }
+    }
+  }
+}

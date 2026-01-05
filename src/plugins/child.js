@@ -8,6 +8,7 @@
 import path from 'path';
 import { bigIntUtils } from '@hathor/wallet-lib';
 import settings from '../settings';
+import { buildAppLogger } from '../logger';
 
 import { notificationBus, EVENTBUS_EVENT_NAME } from '../services/notification.service';
 
@@ -90,7 +91,8 @@ export const loadPlugins = async (enabled, customConfig) => {
   for (const pluginId of enabledPlugins) {
     const pluginConfig = hathorPlugins[pluginId] || customPlugins[pluginId];
     if (!pluginConfig) {
-      console.log(`Unable to find plugin ${pluginId}, skipping.`);
+      const logger = buildAppLogger();
+      logger.warn(`Unable to find plugin ${pluginId}, skipping.`);
       continue;
     }
     promises.push(importPlugin(pluginConfig));
@@ -128,12 +130,14 @@ export const handleMessage = serializedData => {
 if (process.env.NODE_ENV !== 'test') {
   process.on('disconnect', () => {
     // If parent disconnects, we must exit to avoid running indefinetly
-    console.log('[child_process] parent disconnected');
+    const logger = buildAppLogger();
+    logger.info('[child_process] parent disconnected');
     process.exit(127);
   });
 
   process.on('message', handleMessage);
 
-  console.log('[child_process] startup');
+  const logger = buildAppLogger();
+  logger.info('[child_process] startup');
   main();
 }

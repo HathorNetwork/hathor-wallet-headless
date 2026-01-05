@@ -93,13 +93,6 @@ function buildAppLogger(config) {
       });
     },
   };
-  /* eslint-disable no-console */
-  console.log = (...args) => appLogger.info.call(appLogger, ...args);
-  console.info = (...args) => appLogger.info.call(appLogger, ...args);
-  console.warn = (...args) => appLogger.warn.call(appLogger, ...args);
-  console.error = (...args) => appLogger.error.call(appLogger, ...args);
-  console.debug = (...args) => appLogger.debug.call(appLogger, ...args);
-  /* eslint-enable no-console */
 
   return appLogger;
 }

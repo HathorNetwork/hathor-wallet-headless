@@ -1,0 +1,60 @@
+diff --git a/index.js b/index.js
+index 1234567..abcdefg 100644
+--- a/index.js
++++ b/index.js
+@@ -264,18 +264,26 @@ function callSiteFileLocation (callSite) {
+  */
+
+ function callSiteLocation (callSite) {
+-  var file = callSite.getFileName() || '<anonymous>'
+-  var line = callSite.getLineNumber()
+-  var colm = callSite.getColumnNumber()
++  // Handle sandboxed environments (like LavaMoat) where CallSite methods may not exist
++  if (!callSite || typeof callSite.getFileName !== 'function') {
++    var site = ['<unknown>', 0, 0]
++    site.callSite = callSite
++    site.name = '<unknown>'
++    return site
++  }
+
+-  if (callSite.isEval()) {
++  var file = callSite.getFileName() || '<anonymous>'
++  var line = callSite.getLineNumber()
++  var colm = callSite.getColumnNumber()
++
++  if (typeof callSite.isEval === 'function' && callSite.isEval()) {
+     file = callSite.getEvalOrigin() + ', ' + file
+   }
+
+   var site = [file, line, colm]
+
+   site.callSite = callSite
+-  site.name = callSite.getFunctionName()
++  site.name = typeof callSite.getFunctionName === 'function' ? callSite.getFunctionName() : '<unknown>'
+
+   return site
+ }
+@@ -292,8 +300,13 @@ function defaultMessage (site) {
+     funcName = '<anonymous@' + formatLocation(site) + '>'
+   }
+
++  // Handle sandboxed environments where CallSite methods may not exist
++  if (!callSite || typeof callSite.getThis !== 'function') {
++    return funcName
++  }
++
+   var context = callSite.getThis()
+-  var typeName = context && callSite.getTypeName()
++  var typeName = context && typeof callSite.getTypeName === 'function' && callSite.getTypeName()
+
+   // ignore useless type name
+   if (typeName === 'Object') {
+@@ -305,7 +318,7 @@ function defaultMessage (site) {
+     typeName = context.name || typeName
+   }
+
+-  return typeName && callSite.getMethodName()
++  return typeName && typeof callSite.getMethodName === 'function' && callSite.getMethodName()
+     ? typeName + '.' + funcName
+     : funcName
+ }

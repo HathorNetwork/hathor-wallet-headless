@@ -1,0 +1,22 @@
+diff --git a/package.json b/package.json
+index 1234567..abcdefg 100644
+--- a/package.json
++++ b/package.json
+@@ -2,7 +2,7 @@
+   "name": "axios",
+   "version": "1.7.7",
+   "description": "Promise based HTTP client for the browser and node.js",
+-  "main": "index.js",
++  "main": "./dist/node/axios.cjs",
+   "exports": {
+     ".": {
+       "types": {
+@@ -31,7 +31,7 @@
+     "./unsafe/utils.js": "./lib/utils.js",
+     "./package.json": "./package.json"
+   },
+-  "type": "module",
++  "type": "commonjs",
+   "types": "index.d.ts",
+   "scripts": {
+     "test": "npm run test:eslint && npm run test:mocha && npm run test:karma && npm run test:dtslint && npm run test:exports",

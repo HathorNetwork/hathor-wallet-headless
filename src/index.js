@@ -13,11 +13,12 @@ import createApp from './app';
 import { EVENTBUS_EVENT_NAME, notificationBus } from './services/notification.service';
 import version from './version';
 import settings from './settings';
+import { buildAppLogger } from './logger';
 
-/* eslint-disable no-console */
 async function startHeadless() {
   await settings.setupConfig();
   const config = settings.getConfig();
+  const logger = buildAppLogger(config);
   if (config.enabled_plugins && config.enabled_plugins.length > 0) {
     // There are configured plugins, we should start the child process
 
@@ -29,37 +30,37 @@ async function startHeadless() {
       process.argv.slice(2),
       { silent: true, env: process.env },
     );
-    console.log(`child process started with pid ${child.pid}`);
+    logger.info(`child process started with pid ${child.pid}`);
 
     process.on('exit', () => {
       if (child.connected || !child.killed) {
-        console.log('disconnecting from child.');
+        logger.info('disconnecting from child.');
         child.disconnect();
       }
     });
 
     // This is to unify logs from child and main process.
     child.stdout.on('data', data => {
-      console.log(data.toString());
+      logger.info(data.toString().trim());
     });
 
     // Pipe child stderr to stdout.
     child.stderr.on('data', data => {
-      console.error(data.toString());
+      logger.error(data.toString().trim());
     });
 
     child.on('error', err => {
-      console.error(`child process error: ${err.message}`);
+      logger.error(`child process error: ${err.message}`);
     });
 
     child.on('disconnect', (code, signal) => {
-      console.log(`child process disconnected from IPC channel with (${code} and ${signal})`);
+      logger.info(`child process disconnected from IPC channel with (${code} and ${signal})`);
       // Killing child just in case it has not yet died.
       child.kill(); // SIGTERM
     });
 
     child.on('exit', (code, signal) => {
-      console.log(`child process exited with code ${code} or due to signal ${signal}.`);
+      logger.info(`child process exited with code ${code} or due to signal ${signal}.`);
       // Try to exit with the same signal as the child process.
       process.exit(code || 127); // Have a default to indicate it was not a normal termination
     });
@@ -79,15 +80,15 @@ async function startHeadless() {
 
   const app = createApp(config);
 
-  // Logging relevant variables on the console
-  console.log('Starting Hathor Wallet...', {
+  // Logging relevant variables
+  logger.info('Starting Hathor Wallet...', {
     wallet: version,
     version: process.version,
     platform: process.platform,
     pid: process.pid,
   });
 
-  console.log('Configuration...', {
+  logger.info('Configuration...', {
     network: config.network,
     server: config.server,
     txMiningUrl: hathorLibConfig.getTxMiningUrl(),
@@ -99,9 +100,8 @@ async function startHeadless() {
   });
 
   app.listen(config.http_port, config.http_bind_address, () => {
-    console.log(`Listening on ${config.http_bind_address}:${config.http_port}...`);
+    logger.info(`Listening on ${config.http_bind_address}:${config.http_port}...`);
   });
 }
-/* eslint-enable no-console */
 
 startHeadless();
