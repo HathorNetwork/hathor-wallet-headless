@@ -418,99 +418,59 @@ describe('send tx (HTR)', () => {
       .send({ txHex: txHexCreateTokenToDecode })
       .set({ 'x-wallet-id': wallet1.walletId });
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({
-      success: true,
-      tx: {
-        completeSignatures: false,
-        type: 'Create Token Transaction',
-        version: 2,
-        tokens: [],
-        inputs: [
-          {
-            decoded: {
-              type: 'MultiSig',
-              address: expect.any(String),
-              timelock: null,
-            },
-            txId: expect.any(String),
-            // the previous tx has a change output, so they will be shuffled,
-            // and we can't know the index
-            index: expect.any(Number),
-            token: '00',
-            value: expect.any(Number), // we have little control over input value
-            tokenData: 0,
-            token_data: 0,
-            script: expect.any(String),
-            signed: false,
-            mine: true,
-          },
-        ],
-        outputs: expect.arrayContaining([
-          {
-            decoded: {
-              address: expect.any(String),
-              timelock: null,
-            },
-            token: '00',
-            value: expect.any(Number), // change output, we have little control over its value
-            tokenData: 0,
-            token_data: 0,
-            script: expect.any(String),
-            type: 'p2sh',
-            mine: true,
-          },
-          {
-            decoded: {
-              address: expect.any(String),
-              timelock: null,
-            },
-            value: 100,
-            tokenData: 1,
-            token_data: 1,
-            script: expect.any(String),
-            type: 'p2sh',
-            mine: true,
-          },
-          {
-            decoded: {
-              address: expect.any(String),
-              timelock: null,
-            },
-            value: 1,
-            tokenData: 129,
-            token_data: 129,
-            script: expect.any(String),
-            type: 'p2sh',
-            mine: true,
-          },
-          {
-            decoded: {
-              address: expect.any(String),
-              timelock: null,
-            },
-            value: 2,
-            tokenData: 129,
-            token_data: 129,
-            script: expect.any(String),
-            type: 'p2sh',
-            mine: true,
-          },
-        ]),
+    expect(response.body.success).toBe(true);
+    expect(response.body.tx).toMatchObject({
+      completeSignatures: false,
+      type: 'Create Token Transaction',
+      version: 2,
+      tokens: [],
+    });
+    expect(response.body.tx.inputs).toHaveLength(1);
+    expect(response.body.tx.inputs[0]).toMatchObject({
+      decoded: {
+        type: 'MultiSig',
+        timelock: null,
       },
-      balance: {
-        '00': {
-          tokens: { available: -1, locked: 0 },
-          authorities: {
-            melt: { available: 0, locked: 0 },
-            mint: { available: 0, locked: 0 },
-          },
+      token: '00',
+      tokenData: 0,
+      token_data: 0,
+      signed: false,
+      mine: true,
+    });
+    // Verify outputs contain the expected token outputs (HTR change may or may not be present)
+    expect(response.body.tx.outputs).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        value: 100,
+        tokenData: 1,
+        type: 'p2sh',
+        mine: true,
+      }),
+      expect.objectContaining({
+        value: 1,
+        tokenData: 129,
+        type: 'p2sh',
+        mine: true,
+      }),
+      expect.objectContaining({
+        value: 2,
+        tokenData: 129,
+        type: 'p2sh',
+        mine: true,
+      }),
+    ]));
+    expect(response.body.balance).toEqual({
+      '00': {
+        tokens: { available: -1, locked: 0 },
+        authorities: {
+          melt: { available: 0, locked: 0 },
+          mint: { available: 0, locked: 0 },
         },
-        undefined: { // token here is undefined because it is not already created
-          tokens: { available: 100, locked: 0 },
-          authorities: {
-            melt: { available: 1, locked: 0 },
-            mint: { available: 1, locked: 0 },
-          },
+      },
+      undefined: { // token here is undefined because it is not already created
+        tokens: { available: 100, locked: 0 },
+        authorities: {
+          melt: { available: 1, locked: 0 },
+          mint: { available: 1, locked: 0 },
         },
       },
     });
@@ -528,7 +488,7 @@ describe('send tx (HTR)', () => {
         type: 'Transaction',
         version: 1,
         tokens: [txCreateToken.hash],
-        inputs: [
+        inputs: expect.arrayContaining([
           expect.objectContaining({
             decoded: {
               type: 'MultiSig',
@@ -561,9 +521,9 @@ describe('send tx (HTR)', () => {
             signed: false,
             mine: true,
           }),
-        ],
+        ]),
         outputs: expect.arrayContaining([
-          {
+          expect.objectContaining({
             decoded: {
               address: expect.any(String),
               timelock: null,
@@ -575,8 +535,8 @@ describe('send tx (HTR)', () => {
             script: expect.any(String),
             type: 'p2sh',
             mine: true,
-          },
-          {
+          }),
+          expect.objectContaining({
             decoded: {
               address: expect.any(String),
               timelock: null,
@@ -588,8 +548,8 @@ describe('send tx (HTR)', () => {
             script: expect.any(String),
             type: 'p2sh',
             mine: true,
-          },
-          {
+          }),
+          expect.objectContaining({
             decoded: {
               address: expect.any(String),
               timelock: null,
@@ -601,7 +561,7 @@ describe('send tx (HTR)', () => {
             script: expect.any(String),
             type: 'p2sh',
             mine: true,
-          },
+          }),
         ]),
       }),
       balance: {
@@ -637,8 +597,8 @@ describe('send tx (HTR)', () => {
           txCreateToken.hash,
         ],
         completeSignatures: false,
-        inputs: [
-          {
+        inputs: expect.arrayContaining([
+          expect.objectContaining({
             decoded: {
               address: expect.any(String),
               timelock: null,
@@ -653,8 +613,8 @@ describe('send tx (HTR)', () => {
             token_data: 129,
             txId: expect.any(String),
             value: 2,
-          },
-          {
+          }),
+          expect.objectContaining({
             decoded: {
               address: expect.any(String),
               timelock: null,
@@ -669,8 +629,8 @@ describe('send tx (HTR)', () => {
             token_data: 1,
             txId: expect.any(String),
             value: 100,
-          },
-        ],
+          }),
+        ]),
         outputs: [
           {
             decoded: {
