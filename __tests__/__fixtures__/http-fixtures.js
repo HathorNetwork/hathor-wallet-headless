@@ -1001,6 +1001,7 @@ export default {
     name: 'Test 1',
     symbol: 'TST1',
     success: true,
+    version: 1,
     mint: [
       {
         tx_id: '007c9d497135e10dcba984f0b893804d7cb06721c800064cfbe05fafc138faca',

@@ -62,6 +62,11 @@ const createTokenPropertiesBase = {
       type: 'string'
     },
     description: 'List of utf-8 encoded strings to create a data output for each.'
+  },
+  version: {
+    type: 'integer',
+    enum: [0, 1, 2],
+    description: 'Version of the token to be created. 0 = NATIVE (reserved), 1 = DEPOSIT (default, requires HTR deposit), 2 = FEE (charges fee per output instead of deposit).'
   }
 };
 

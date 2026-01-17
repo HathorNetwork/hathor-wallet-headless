@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { INanoContractActionSchema, walletUtils } from '@hathor/wallet-lib';
+import { INanoContractActionSchema, walletUtils, TokenVersion } from '@hathor/wallet-lib';
 import { bigIntCoercibleSchema, parseSchema } from '@hathor/wallet-lib/lib/utils/bigint';
 import { z } from 'zod';
 
@@ -496,6 +496,7 @@ export const createTokenBaseRaw = z.object({
   melt_authority_address: z.string().nullable().default(null),
   allow_external_melt_authority_address: z.boolean().default(false),
   data: z.array(z.string().max(MAX_DATA_SCRIPT_LENGTH)).nullable().default(null),
+  version: z.nativeEnum(TokenVersion).default(TokenVersion.DEPOSIT),
 });
 
 const transformCreateTokenBase = data => ({
@@ -507,6 +508,7 @@ const transformCreateTokenBase = data => ({
   createMelt: data.create_melt,
   meltAuthorityAddress: data.melt_authority_address,
   allowExternalMeltAuthorityAddress: data.allow_external_melt_authority_address,
+  tokenVersion: data.version,
 });
 
 export const createTokenOptions = createTokenBaseRaw.extend({
