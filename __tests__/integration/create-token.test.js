@@ -556,8 +556,8 @@ describe('create token', () => {
     expect(outputBeforeLastScript.data).toBe('test1');
   });
 
-  // Fee token tests (version = 2)
-  describe('fee token (version = 2)', () => {
+  // Fee-based token tests (version = 2)
+  describe('fee-based token (version = 2)', () => {
     let feeTokenWallet;
 
     beforeAll(async () => {
@@ -570,14 +570,14 @@ describe('create token', () => {
       await feeTokenWallet.stop();
     });
 
-    it('should create a fee token with only required parameters', async () => {
+    it('should create a fee-based token with only required parameters', async () => {
       const htrBalanceBefore = await feeTokenWallet.getBalance(constants.NATIVE_TOKEN_UID);
 
       const response = await TestUtils.request
         .post('/wallet/create-token')
         .send({
-          name: 'Fee Token A',
-          symbol: 'FTA',
+          name: 'FeeBasedToken A',
+          symbol: 'FBTA',
           amount: 1000,
           version: 2
         })
@@ -586,28 +586,27 @@ describe('create token', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.hash).toBeDefined();
       expect(response.body.configurationString)
-        .toBe(tokensUtils.getConfigurationString(response.body.hash, 'Fee Token A', 'FTA'));
+        .toBe(tokensUtils.getConfigurationString(response.body.hash, 'FeeBasedToken A', 'FBTA'));
 
       await TestUtils.waitForTxReceived(feeTokenWallet.walletId, response.body.hash);
 
       const htrBalanceAfter = await feeTokenWallet.getBalance(constants.NATIVE_TOKEN_UID);
-      const ftaBalance = await feeTokenWallet.getBalance(response.body.hash);
+      const fbtaBalance = await feeTokenWallet.getBalance(response.body.hash);
 
-      // Fee tokens do not require HTR deposit, only fee per output
-      // The cost should be much less than deposit tokens (which require 1% deposit)
-      // For 1000 tokens with deposit, it would cost 10 HTR. Fee token should cost much less.
       const htrSpent = htrBalanceBefore.available - htrBalanceAfter.available;
-      expect(htrSpent).toBeLessThan(10); // Should be significantly less than deposit cost
+      expect(htrSpent).toBe(1);
 
-      expect(ftaBalance.available).toBe(1000); // The newly minted fee tokens
+      expect(fbtaBalance.available).toBe(1000);
     });
 
-    it('should create fee token with mint and melt authorities', async () => {
+    it('should create fee-based token with mint and melt authorities', async () => {
+      const htrBalanceBefore = await feeTokenWallet.getBalance(constants.NATIVE_TOKEN_UID);
+
       const response = await TestUtils.request
         .post('/wallet/create-token')
         .send({
-          name: 'Fee Token B',
-          symbol: 'FTB',
+          name: 'FeeBasedToken B',
+          symbol: 'FBTB',
           amount: 500,
           version: 2,
           create_mint: true,
@@ -631,17 +630,22 @@ describe('create token', () => {
       expect(authorityOutputs.find(o => BigInt(o.value) === constants.TOKEN_MELT_MASK))
         .toBeTruthy();
 
-      // Verify tokens were minted
-      const ftbBalance = await feeTokenWallet.getBalance(response.body.hash);
-      expect(ftbBalance.available).toBe(500);
+      const htrBalanceAfter = await feeTokenWallet.getBalance(constants.NATIVE_TOKEN_UID);
+      const htrSpent = htrBalanceBefore.available - htrBalanceAfter.available;
+      expect(htrSpent).toBe(1);
+
+      const fbtbBalance = await feeTokenWallet.getBalance(response.body.hash);
+      expect(fbtbBalance.available).toBe(500);
     });
 
-    it('should create fee token without authorities', async () => {
+    it('should create fee-based token without authorities', async () => {
+      const htrBalanceBefore = await feeTokenWallet.getBalance(constants.NATIVE_TOKEN_UID);
+
       const response = await TestUtils.request
         .post('/wallet/create-token')
         .send({
-          name: 'Fee Token C',
-          symbol: 'FTC',
+          name: 'FeeBasedToken C',
+          symbol: 'FBTC',
           amount: 100,
           version: 2,
           create_mint: false,
@@ -662,18 +666,24 @@ describe('create token', () => {
       expect(authorityOutputs.length).toBe(0);
 
       // Verify tokens were minted
-      const ftcBalance = await feeTokenWallet.getBalance(response.body.hash);
-      expect(ftcBalance.available).toBe(100);
+
+      const htrBalanceAfter = await feeTokenWallet.getBalance(constants.NATIVE_TOKEN_UID);
+      const htrSpent = htrBalanceBefore.available - htrBalanceAfter.available;
+      expect(htrSpent).toBe(1);
+
+      const fbtcBalance = await feeTokenWallet.getBalance(response.body.hash);
+      expect(fbtcBalance.available).toBe(100);
     });
 
-    it('should create fee token and send to specific address', async () => {
+    it('should create fee-based token and send to specific address', async () => {
+      const htrBalanceBefore = await feeTokenWallet.getBalance(constants.NATIVE_TOKEN_UID);
       const destAddress = await feeTokenWallet.getAddressAt(5);
 
       const response = await TestUtils.request
         .post('/wallet/create-token')
         .send({
-          name: 'Fee Token D',
-          symbol: 'FTD',
+          name: 'FeeBasedToken D',
+          symbol: 'FBTD',
           amount: 200,
           version: 2,
           address: destAddress
@@ -685,6 +695,10 @@ describe('create token', () => {
       await TestUtils.waitForTxReceived(feeTokenWallet.walletId, response.body.hash);
 
       // Verify tokens were sent to the correct address
+      const htrBalanceAfter = await feeTokenWallet.getBalance(constants.NATIVE_TOKEN_UID);
+      const htrSpent = htrBalanceBefore.available - htrBalanceAfter.available;
+      expect(htrSpent).toBe(1);
+
       const addr5Info = await feeTokenWallet.getAddressInfo(5, response.body.hash);
       expect(addr5Info.total_amount_received).toBe(200);
     });
@@ -711,7 +725,7 @@ describe('create token', () => {
           name: 'Native Token',
           symbol: 'NAT',
           amount: 100,
-          version: 0 // NATIVE is reserved
+          version: 0
         })
         .set({ 'x-wallet-id': feeTokenWallet.walletId });
 
