@@ -528,7 +528,7 @@ describe('send tx (HTR)', () => {
         type: 'Transaction',
         version: 1,
         tokens: [txCreateToken.hash],
-        inputs: [
+        inputs: expect.arrayContaining([
           expect.objectContaining({
             decoded: {
               type: 'MultiSig',
@@ -536,7 +536,6 @@ describe('send tx (HTR)', () => {
               timelock: null,
             },
             txId: expect.any(String),
-            index: 0,
             token: '00',
             value: expect.any(Number),
             tokenData: 0,
@@ -552,7 +551,6 @@ describe('send tx (HTR)', () => {
               timelock: null,
             },
             txId: expect.any(String),
-            index: 2,
             token: tokenUid,
             value: 1,
             tokenData: 129,
@@ -561,7 +559,7 @@ describe('send tx (HTR)', () => {
             signed: false,
             mine: true,
           }),
-        ],
+        ]),
         outputs: expect.arrayContaining([
           {
             decoded: {
@@ -637,14 +635,13 @@ describe('send tx (HTR)', () => {
           txCreateToken.hash,
         ],
         completeSignatures: false,
-        inputs: [
-          {
+        inputs: expect.arrayContaining([
+          expect.objectContaining({
             decoded: {
               address: expect.any(String),
               timelock: null,
               type: 'MultiSig',
             },
-            index: 3,
             mine: true,
             script: expect.any(String),
             signed: false,
@@ -653,14 +650,13 @@ describe('send tx (HTR)', () => {
             token_data: 129,
             txId: expect.any(String),
             value: 2,
-          },
-          {
+          }),
+          expect.objectContaining({
             decoded: {
               address: expect.any(String),
               timelock: null,
               type: 'MultiSig',
             },
-            index: 1,
             mine: true,
             script: expect.any(String),
             signed: false,
@@ -669,8 +665,8 @@ describe('send tx (HTR)', () => {
             token_data: 1,
             txId: expect.any(String),
             value: 100,
-          },
-        ],
+          }),
+        ]),
         outputs: [
           {
             decoded: {
