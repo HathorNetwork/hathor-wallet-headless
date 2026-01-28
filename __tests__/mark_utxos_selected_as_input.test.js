@@ -109,7 +109,7 @@ describe('mark utxos selected_as_input api', () => {
     expect(selectSpy).toHaveBeenCalledWith(
       { index: 0, txId: '5db0a8c77f818c51cb107532fc1a36785adfa700d81d973fd1f23438b2f3dd74' },
       true,
-      null,
+      undefined,
     );
   });
 
@@ -141,7 +141,7 @@ describe('mark utxos selected_as_input api', () => {
     expect(selectSpy).toHaveBeenCalledWith(
       { index: 0, txId: '5db0a8c77f818c51cb107532fc1a36785adfa700d81d973fd1f23438b2f3dd74' },
       false,
-      null,
+      undefined,
     );
   });
 
@@ -157,7 +157,7 @@ describe('mark utxos selected_as_input api', () => {
     expect(selectSpy).toHaveBeenCalledWith(
       { index: 0, txId: '5db0a8c77f818c51cb107532fc1a36785adfa700d81d973fd1f23438b2f3dd74' },
       true,
-      null,
+      undefined,
     );
   });
 
