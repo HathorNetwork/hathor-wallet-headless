@@ -1,7 +1,6 @@
-diff --git a/package.json b/package.json
-index 1234567..abcdefg 100644
---- a/package.json
-+++ b/package.json
+diff --git a/node_modules/axios/package.json b/node_modules/axios/package.json
+--- a/node_modules/axios/package.json
++++ b/node_modules/axios/package.json
 @@ -2,7 +2,7 @@
    "name": "axios",
    "version": "1.7.7",
