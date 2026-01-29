@@ -127,6 +127,7 @@ export const handleMessage = serializedData => {
   }
 };
 
+/* istanbul ignore next -- @preserve entry point for child process, not testable */
 if (process.env.NODE_ENV !== 'test') {
   process.on('disconnect', () => {
     // If parent disconnects, we must exit to avoid running indefinetly
