@@ -7,8 +7,11 @@ module.exports = {
   // On CI, should match .github/workflows/integration-test.yml -> upload-artifact
   logOutputFolder: process.env.TEST_LOG_OUTPUT_FOLDER || 'tmp/',
 
-  // Console level used on winston
-  consoleLevel: process.env.TEST_CONSOLE_LEVEL || 'silly',
+  // Console level used on winston (defaults to 'warn' for quieter CI output)
+  consoleLevel: process.env.TEST_CONSOLE_LEVEL || 'warn',
+
+  // File level used on winston (defaults to 'silly' for complete debugging in artifacts)
+  fileLevel: process.env.TEST_FILE_LEVEL || 'silly',
 
   // Defines how long tests should wait before consulting balances after transactions
   wsUpdateDelay: process.env.TEST_WS_UPDATE_DELAY || 2000,

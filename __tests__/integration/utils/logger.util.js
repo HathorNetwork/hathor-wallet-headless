@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 import winston from 'winston';
 import testConfig from '../configuration/test.config';
 
@@ -73,7 +71,7 @@ export class LoggerUtil {
         winston.format.timestamp(),
         winston.format.colorize(),
       ),
-      level: testConfig.consoleLevel || 'silly',
+      level: testConfig.consoleLevel,
     };
     const fileOptions = {
       format: options.filePrettyPrint
@@ -86,7 +84,7 @@ export class LoggerUtil {
           winston.format.json(),
         ),
       filename: `${testConfig.logOutputFolder}${this.#instanceFilename}`,
-      level: testConfig.consoleLevel || 'silly',
+      level: testConfig.fileLevel,
     };
 
     this.#logger = winston.createLogger({
