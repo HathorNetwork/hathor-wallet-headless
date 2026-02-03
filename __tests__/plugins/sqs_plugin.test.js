@@ -56,3 +56,22 @@ test('event handler', () => {
     MessageBody: bigIntUtils.JSONBigInt.stringify(data),
   }, expect.anything());
 });
+
+test('event handler logs error on SQS failure', () => {
+  const mockError = jest.fn();
+  // eslint-disable-next-line global-require
+  const loggerModule = require('../../src/logger');
+  jest.spyOn(loggerModule, 'buildAppLogger').mockReturnValue({ error: mockError });
+
+  const sqsMock = {
+    sendMessage: jest.fn((params, cb) => cb(new Error('SQS send failed'))),
+  };
+  const mockedSettings = { queueUrl: 'test-queue' };
+  const evHandler = eventHandlerFactory(sqsMock, mockedSettings);
+
+  evHandler({ test: 'event' });
+
+  expect(mockError).toHaveBeenCalledWith(
+    expect.stringContaining('plugin[sqs] error sending to sqs:')
+  );
+});

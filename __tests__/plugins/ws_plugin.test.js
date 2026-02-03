@@ -7,6 +7,20 @@
 
 import { bigIntUtils } from '@hathor/wallet-lib';
 import { getSockets, eventHandler, connectionHandler, getSettings } from '../../src/plugins/hathor_websocket';
+import * as loggerModule from '../../src/logger';
+
+beforeEach(() => {
+  jest.spyOn(loggerModule, 'buildAppLogger').mockReturnValue({
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  });
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
+});
 
 test('settings', () => {
   const oldArgs = process.argv;
