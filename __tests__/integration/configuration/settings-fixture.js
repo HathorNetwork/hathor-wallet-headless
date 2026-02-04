@@ -29,7 +29,7 @@ const defaultConfig = {
 
   httpLogFormat: null,
   // Use TEST_CONSOLE_LEVEL=silly for verbose debugging
-  consoleLevel: process.env.TEST_CONSOLE_LEVEL,
+  consoleLevel: process.env.TEST_CONSOLE_LEVEL || 'warn',
   tokenUid: '',
   gapLimit: null,
 
