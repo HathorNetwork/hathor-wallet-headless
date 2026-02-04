@@ -86,8 +86,8 @@ function buildAppLogger(config) {
   // create a stream object with a 'write' function that will be used by `morgan`
   appLogger.stream = {
     write(message, _encoding) {
-      // use the 'info' log level so the output will be picked up by
-      // both transports (file + console)
+      // Log HTTP requests at 'info' level. These will appear on transports
+      // configured with level 'info' or more verbose (debug, silly, etc.)
       appLogger.info(message.trim(), {
         service: 'http',
       });
