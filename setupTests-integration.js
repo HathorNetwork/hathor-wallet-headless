@@ -2,9 +2,6 @@
 import { loggers, LoggerUtil } from './__tests__/integration/utils/logger.util';
 import { WalletBenchmarkUtil } from './__tests__/integration/utils/benchmark/wallet-benchmark.util';
 import { TxBenchmarkUtil } from './__tests__/integration/utils/benchmark/tx-benchmark.util';
-import {
-  precalculationHelpers, WalletPrecalculationHelper,
-} from './scripts/helpers/wallet-precalculation.helper';
 import { TestUtils } from './__tests__/integration/utils/test-utils-integration';
 
 expect.extend({
@@ -70,10 +67,6 @@ beforeAll(async () => {
   txBenchmarkLog.init();
   loggers.txBenchmark = txBenchmarkLog;
 
-  // Loading pre-calculated wallets
-  precalculationHelpers.test = new WalletPrecalculationHelper('./tmp/wallets.json');
-  await precalculationHelpers.test.initWithWalletsFile();
-
   await TestUtils.startServer();
 
   // Await first block to be mined to release genesis reward lock
@@ -101,9 +94,6 @@ afterAll(async () => {
   const txSummary = TxBenchmarkUtil.calculateSummary();
   loggers.test.insertLineToLog('Transaction summary', { txSummary });
   await TxBenchmarkUtil.logResults();
-
-  // Storing data about used precalculated wallets for the next test suites
-  await precalculationHelpers.test.storeDbIntoWalletsFile();
 
   TestUtils.stopServer();
 });

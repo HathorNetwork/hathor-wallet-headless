@@ -11,13 +11,6 @@ import settings from '../../__tests__/integration/configuration/settings-fixture
 
 const config = settings._getDefaultConfig();
 
-export const precalculationHelpers = {
-  /**
-   * @type {WalletPrecalculationHelper|null}
-   */
-  test: null
-};
-
 export const multisigWalletsData = {
   words: [
     'upon tennis increase embark dismiss diamond monitor face magnet jungle scout salute rural master shoulder cry juice jeans radar present close meat antenna mind',
