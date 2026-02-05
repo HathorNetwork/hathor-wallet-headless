@@ -24,9 +24,9 @@ describe('utxo-filter routes', () => {
   beforeAll(async () => {
     try {
       // First wallet, no balance
-      wallet1 = WalletHelper.getPrecalculatedWallet('utxo-filter-1');
+      wallet1 = await WalletHelper.getPrecalculatedWallet('utxo-filter-1');
       // Second wallet, with custom token
-      wallet2 = WalletHelper.getPrecalculatedWallet('utxo-filter-2');
+      wallet2 = await WalletHelper.getPrecalculatedWallet('utxo-filter-2');
 
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
 

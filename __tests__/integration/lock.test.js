@@ -17,8 +17,8 @@ describe('Wallet lock behavior', () => {
       });
     });
     try {
-      wallet1 = WalletHelper.getPrecalculatedWallet('lock-wallet-tx-1');
-      wallet2 = WalletHelper.getPrecalculatedWallet('lock-wallet-tx-2');
+      wallet1 = await WalletHelper.getPrecalculatedWallet('lock-wallet-tx-1');
+      wallet2 = await WalletHelper.getPrecalculatedWallet('lock-wallet-tx-2');
 
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
       await wallet1.injectFunds(1000);

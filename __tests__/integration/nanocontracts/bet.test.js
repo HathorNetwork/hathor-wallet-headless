@@ -12,7 +12,7 @@ describe('nano contract routes', () => {
   beforeAll(async () => {
     try {
       // A random HTR value for the first wallet
-      walletNano = WalletHelper.getPrecalculatedWallet('nano-contracts');
+      walletNano = await WalletHelper.getPrecalculatedWallet('nano-contracts');
       await WalletHelper.startMultipleWalletsForTest([walletNano]);
       await walletNano.injectFunds(1000);
     } catch (err) {

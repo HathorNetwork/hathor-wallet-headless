@@ -25,8 +25,8 @@ describe('send tx (HTR)', () => {
     config.multisig = { multisig: multisigWalletConfig };
     settings._setConfig(config);
     try {
-      wallet1 = WalletHelper.getPrecalculatedWallet('atomic-swap-1');
-      wallet2 = WalletHelper.getPrecalculatedWallet('atomic-swap-2');
+      wallet1 = await WalletHelper.getPrecalculatedWallet('atomic-swap-1');
+      wallet2 = await WalletHelper.getPrecalculatedWallet('atomic-swap-2');
       walletMultisig = new WalletHelper('multisig', { seedKey: 'multisig', multisig: true });
 
       await WalletHelper.startMultipleWalletsForTest([

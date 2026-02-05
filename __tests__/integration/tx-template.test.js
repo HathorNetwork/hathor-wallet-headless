@@ -7,7 +7,7 @@ describe('tx-template build', () => {
   beforeAll(async () => {
     try {
       // Wallet with initial funds to send a transaction
-      wallet = WalletHelper.getPrecalculatedWallet('tx-template');
+      wallet = await WalletHelper.getPrecalculatedWallet('tx-template');
 
       await WalletHelper.startMultipleWalletsForTest([wallet]);
       await wallet.injectFunds(100);
@@ -99,7 +99,7 @@ describe('tx-template run', () => {
   beforeAll(async () => {
     try {
       // Wallet with initial funds to send a transaction
-      wallet = WalletHelper.getPrecalculatedWallet('tx-template');
+      wallet = await WalletHelper.getPrecalculatedWallet('tx-template');
 
       await WalletHelper.startMultipleWalletsForTest([wallet]);
       await wallet.injectFunds(100);

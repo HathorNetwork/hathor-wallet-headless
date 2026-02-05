@@ -5,10 +5,10 @@ import { loggers } from './utils/logger.util';
 import { WalletHelper } from './utils/wallet-helper';
 import settings from '../../src/settings';
 
-function newReadOnlyWallet() {
+async function newReadOnlyWallet() {
   const config = settings.getConfig();
   const accountDerivationIndex = '0\'/0';
-  const { words, addresses } = precalculationHelpers.test.getPrecalculatedWallet();
+  const { words, addresses } = await precalculationHelpers.test.getPrecalculatedWallet();
   const xpubkey = walletUtils.getXPubKeyFromSeed(words, {
     networkName: config.network,
     accountDerivationIndex,
@@ -33,7 +33,7 @@ describe('Readonly wallet', () => {
 
   it('should start readonly wallets', async () => {
     const walletId = 'readonlyWalletStart';
-    const { xpubkey, addresses } = newReadOnlyWallet();
+    const { xpubkey, addresses } = await newReadOnlyWallet();
     // We will not use precalculated addresses here
     // so we can test the wallet was started correctly
     let response = await TestUtils.request
@@ -64,7 +64,7 @@ describe('Readonly wallet', () => {
 
   it('should start readonly multisig wallets', async () => {
     const walletId = 'readonlyMultisigWalletStart';
-    const { xpubkey, addresses } = newReadOnlyWallet();
+    const { xpubkey, addresses } = await newReadOnlyWallet();
     // We will not use precalculated addresses here
     // so we can test the wallet was started correctly
     let response = await TestUtils.request
@@ -96,7 +96,7 @@ describe('Readonly wallet', () => {
 
   it('should create a transaction to be signed offline', async () => {
     const walletId = 'readonlyCreateTx';
-    const { xpubkey, addresses, words } = newReadOnlyWallet();
+    const { xpubkey, addresses, words } = await newReadOnlyWallet();
 
     let response = await TestUtils.request
       .post('/start')

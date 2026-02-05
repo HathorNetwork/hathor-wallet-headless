@@ -15,8 +15,8 @@ describe('create token', () => {
   };
 
   beforeAll(async () => {
-    wallet1 = WalletHelper.getPrecalculatedWallet('create-token-1');
-    wallet2 = WalletHelper.getPrecalculatedWallet('create-token-2');
+    wallet1 = await WalletHelper.getPrecalculatedWallet('create-token-1');
+    wallet2 = await WalletHelper.getPrecalculatedWallet('create-token-2');
 
     await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
     await wallet1.injectFunds(10, 0);
@@ -197,7 +197,7 @@ describe('create token', () => {
   });
 
   it('should create a token with large value', async () => {
-    const largeWallet1 = WalletHelper.getPrecalculatedWallet('large-wallet1');
+    const largeWallet1 = await WalletHelper.getPrecalculatedWallet('large-wallet1');
     await WalletHelper.startMultipleWalletsForTest([largeWallet1]);
 
     let wallet1balance = await largeWallet1.getBalance();

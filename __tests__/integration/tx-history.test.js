@@ -23,9 +23,9 @@ describe('tx-history routes', () => {
   beforeAll(async () => {
     try {
       // An empty wallet
-      wallet1 = WalletHelper.getPrecalculatedWallet('txHistory1');
+      wallet1 = await WalletHelper.getPrecalculatedWallet('txHistory1');
       // A wallet with 5 transactions containing 10, 20, 30, 40 and 50 HTR each
-      wallet2 = WalletHelper.getPrecalculatedWallet('txHistory2');
+      wallet2 = await WalletHelper.getPrecalculatedWallet('txHistory2');
 
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
 

@@ -10,7 +10,7 @@ describe('authority blueprint', () => {
     address0;
   beforeAll(async () => {
     try {
-      walletNano = WalletHelper.getPrecalculatedWallet('nano-authority');
+      walletNano = await WalletHelper.getPrecalculatedWallet('nano-authority');
       await WalletHelper.startMultipleWalletsForTest([walletNano]);
       await walletNano.injectFunds(1000);
       address0 = await walletNano.getAddressAt(0);

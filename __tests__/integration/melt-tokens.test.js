@@ -17,7 +17,7 @@ describe('melt tokens', () => {
   };
 
   beforeAll(async () => {
-    wallet1 = WalletHelper.getPrecalculatedWallet('melt-token-1');
+    wallet1 = await WalletHelper.getPrecalculatedWallet('melt-token-1');
 
     // Starting the wallets
     await WalletHelper.startMultipleWalletsForTest([wallet1]);

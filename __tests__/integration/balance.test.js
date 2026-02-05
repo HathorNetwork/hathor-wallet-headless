@@ -14,11 +14,11 @@ describe('balance routes', () => {
   beforeAll(async () => {
     try {
       // First wallet, no balance
-      wallet1 = WalletHelper.getPrecalculatedWallet('balance1');
+      wallet1 = await WalletHelper.getPrecalculatedWallet('balance1');
       // Second wallet, random balance
-      wallet2 = WalletHelper.getPrecalculatedWallet('balance2');
+      wallet2 = await WalletHelper.getPrecalculatedWallet('balance2');
       // Third wallet, balance to be used for custom tokens
-      wallet3 = WalletHelper.getPrecalculatedWallet('custom3');
+      wallet3 = await WalletHelper.getPrecalculatedWallet('custom3');
       minerWallet = new WalletHelper(
         WALLET_CONSTANTS.miner.walletId,
         {

@@ -28,7 +28,7 @@ describe('test the plugin event handler', () => {
 
     try {
       // Initialize an empty wallet
-      wallet1 = WalletHelper.getPrecalculatedWallet(pluginWalletId);
+      wallet1 = await WalletHelper.getPrecalculatedWallet(pluginWalletId);
       await WalletHelper.startMultipleWalletsForTest([wallet1]);
     } catch (err) {
       TestUtils.logError(err.stack);

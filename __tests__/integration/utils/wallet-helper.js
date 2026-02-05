@@ -121,12 +121,12 @@ export class WalletHelper {
   }
 
   /**
-   * Creates a WalletHelper instance with precalculated addresses from a local storage.
+   * Creates a WalletHelper instance with precalculated addresses from the seed generator service.
    * @param {string} walletId Mandatory identification for the headless app
-   * @returns {WalletHelper}
+   * @returns {Promise<WalletHelper>}
    */
-  static getPrecalculatedWallet(walletId) {
-    const precalculatedWallet = precalculationHelpers.test.getPrecalculatedWallet();
+  static async getPrecalculatedWallet(walletId) {
+    const precalculatedWallet = await precalculationHelpers.test.getPrecalculatedWallet();
     return new WalletHelper(walletId, {
       words: precalculatedWallet.words,
       preCalculatedAddresses: precalculatedWallet.addresses

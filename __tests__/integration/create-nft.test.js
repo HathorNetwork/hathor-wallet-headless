@@ -15,8 +15,8 @@ describe('create-nft routes', () => {
   };
 
   beforeAll(async () => {
-    wallet1 = WalletHelper.getPrecalculatedWallet('create-nft-1');
-    wallet2 = WalletHelper.getPrecalculatedWallet('create-nft-2');
+    wallet1 = await WalletHelper.getPrecalculatedWallet('create-nft-1');
+    wallet2 = await WalletHelper.getPrecalculatedWallet('create-nft-2');
 
     await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
 

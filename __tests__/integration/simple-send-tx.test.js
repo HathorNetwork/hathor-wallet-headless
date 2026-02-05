@@ -8,9 +8,9 @@ describe('simple-send-tx (HTR)', () => {
   beforeAll(async () => {
     try {
       // Wallet with initial funds to send a transaction
-      wallet1 = WalletHelper.getPrecalculatedWallet('simple-tx-1');
+      wallet1 = await WalletHelper.getPrecalculatedWallet('simple-tx-1');
       // Empty wallet to receive transactions and validate tests
-      wallet2 = WalletHelper.getPrecalculatedWallet('simple-tx-2');
+      wallet2 = await WalletHelper.getPrecalculatedWallet('simple-tx-2');
 
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
       await wallet1.injectFunds(1000);
@@ -142,8 +142,8 @@ describe('simple-send-tx (HTR)', () => {
   });
 
   it('should make a successful transaction with large value', async () => {
-    const largeWallet1 = WalletHelper.getPrecalculatedWallet('large-wallet1');
-    const largeWallet2 = WalletHelper.getPrecalculatedWallet('large-wallet2');
+    const largeWallet1 = await WalletHelper.getPrecalculatedWallet('large-wallet1');
+    const largeWallet2 = await WalletHelper.getPrecalculatedWallet('large-wallet2');
     await WalletHelper.startMultipleWalletsForTest([largeWallet1, largeWallet2]);
 
     let wallet1balance = await largeWallet1.getBalance();
@@ -225,9 +225,9 @@ describe('simple-send-tx (custom token)', () => {
   beforeAll(async () => {
     try {
       // Wallet with initial 1000 Custom Token funds
-      wallet3 = WalletHelper.getPrecalculatedWallet('simple-tx-3');
+      wallet3 = await WalletHelper.getPrecalculatedWallet('simple-tx-3');
       // Empty wallet to receive transactions and validate tests
-      wallet4 = WalletHelper.getPrecalculatedWallet('simple-tx-4');
+      wallet4 = await WalletHelper.getPrecalculatedWallet('simple-tx-4');
 
       await WalletHelper.startMultipleWalletsForTest([wallet3, wallet4]);
       await wallet3.injectFunds(10);

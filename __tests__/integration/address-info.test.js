@@ -13,9 +13,9 @@ describe('address-info routes', () => {
   beforeAll(async () => {
     try {
       // A random HTR value for the first wallet
-      wallet1 = WalletHelper.getPrecalculatedWallet('addinfo-1');
+      wallet1 = await WalletHelper.getPrecalculatedWallet('addinfo-1');
       // A fixed custom token amount for the second wallet
-      wallet2 = WalletHelper.getPrecalculatedWallet('addinfo-2');
+      wallet2 = await WalletHelper.getPrecalculatedWallet('addinfo-2');
       minerWallet = new WalletHelper(
         WALLET_CONSTANTS.miner.walletId,
         {

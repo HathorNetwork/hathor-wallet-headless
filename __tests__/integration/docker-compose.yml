@@ -52,10 +52,23 @@ services:
     networks:
       - hathor-privnet
 
+  hathor-seed-generator:
+    image: hathor-seed-generator
+    ports:
+      - "3020:3020"
+    networks:
+      - hathor-privnet
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3020/simpleWallet"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
   cpuminer:
     image: hathornetwork/cpuminer
     depends_on:
       - tx-mining-service
+      - hathor-seed-generator
     command: [
       "-a", "sha256d",
       "--coinbase-addr", "WTjhJXzQJETVx7BVXdyZmvk396DRRsubdw", # Refer to test-utils-integration.js, WALLET_CONSTANTS

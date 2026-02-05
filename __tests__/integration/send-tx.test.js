@@ -29,9 +29,9 @@ describe('send tx (HTR)', () => {
 
   beforeAll(async () => {
     try {
-      wallet1 = WalletHelper.getPrecalculatedWallet('send-tx-1');
-      wallet2 = WalletHelper.getPrecalculatedWallet('send-tx-2');
-      wallet3 = WalletHelper.getPrecalculatedWallet('send-tx-3');
+      wallet1 = await WalletHelper.getPrecalculatedWallet('send-tx-1');
+      wallet2 = await WalletHelper.getPrecalculatedWallet('send-tx-2');
+      wallet3 = await WalletHelper.getPrecalculatedWallet('send-tx-3');
 
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2, wallet3]);
 
@@ -645,11 +645,11 @@ describe('send tx (custom tokens)', () => {
   const tkaTx1 = { hash: null }; // Token A transaction to have two inputs
 
   beforeAll(async () => {
-    wallet1 = WalletHelper.getPrecalculatedWallet('custom-tx-1');
-    wallet2 = WalletHelper.getPrecalculatedWallet('custom-tx-2');
-    wallet3 = WalletHelper.getPrecalculatedWallet('custom-tx-3');
-    wallet4 = WalletHelper.getPrecalculatedWallet('custom-tx-4');
-    wallet5 = WalletHelper.getPrecalculatedWallet('custom-tx-5');
+    wallet1 = await WalletHelper.getPrecalculatedWallet('custom-tx-1');
+    wallet2 = await WalletHelper.getPrecalculatedWallet('custom-tx-2');
+    wallet3 = await WalletHelper.getPrecalculatedWallet('custom-tx-3');
+    wallet4 = await WalletHelper.getPrecalculatedWallet('custom-tx-4');
+    wallet5 = await WalletHelper.getPrecalculatedWallet('custom-tx-5');
 
     await WalletHelper.startMultipleWalletsForTest(
       [wallet1, wallet2, wallet3, wallet4, wallet5]
@@ -1302,7 +1302,7 @@ describe('filter query + custom tokens', () => {
   };
 
   beforeAll(async () => {
-    wallet1 = WalletHelper.getPrecalculatedWallet('filter-custom-1');
+    wallet1 = await WalletHelper.getPrecalculatedWallet('filter-custom-1');
 
     await WalletHelper.startMultipleWalletsForTest([wallet1]);
 
@@ -1586,8 +1586,8 @@ describe('transaction with data script output', () => {
 
   beforeAll(async () => {
     try {
-      wallet1 = WalletHelper.getPrecalculatedWallet('send-tx-data-output-1');
-      wallet2 = WalletHelper.getPrecalculatedWallet('send-tx-data-output-2');
+      wallet1 = await WalletHelper.getPrecalculatedWallet('send-tx-data-output-1');
+      wallet2 = await WalletHelper.getPrecalculatedWallet('send-tx-data-output-2');
 
       await WalletHelper.startMultipleWalletsForTest([wallet1, wallet2]);
 

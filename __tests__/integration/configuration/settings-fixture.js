@@ -11,6 +11,9 @@ const defaultConfig = {
   // Tx Mining Service
   txMiningUrl: 'http://localhost:8035',
 
+  // Seed Generator Service (for integration tests)
+  seedGeneratorUrl: 'http://localhost:3020',
+
   // Wallet seeds
   seeds: {
     default: '',
