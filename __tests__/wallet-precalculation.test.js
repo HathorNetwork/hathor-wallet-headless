@@ -113,48 +113,24 @@ describe('wallet addresses precalculation', () => {
   });
 });
 
-describe('seed generator service integration', () => {
-  const mockSeedGeneratorUrl = 'http://localhost:3020';
+describe('pre-generated wallet storage management', () => {
+  it('can flag a used wallet', () => {
+    const helper = new WalletPrecalculationHelper();
+    helper.walletsDb.push({ ...fakeWallet });
+    expect(helper.walletsDb[0]).toHaveProperty('isUsed', false);
 
-  beforeEach(() => {
-    global.fetch = jest.fn();
+    const pregenWallet = helper.getPrecalculatedWallet();
+    expect(pregenWallet).toEqual(helper.walletsDb[0]);
+    expect(helper.walletsDb[0]).toHaveProperty('isUsed', true);
   });
 
-  afterEach(() => {
-    jest.resetAllMocks();
-  });
+  it('does not fetch used wallets', () => {
+    const helper = new WalletPrecalculationHelper();
+    helper.walletsDb.push({ ...fakeWallet, isUsed: true });
+    helper.walletsDb.push({ ...fakeWallet, words: 'my fake words' });
 
-  it('fetches wallet from seed generator service', async () => {
-    const mockResponse = {
-      words: fakeWallet.words,
-      addresses: fakeWallet.addresses,
-      genTime: 0.42
-    };
-
-    global.fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockResponse
-    });
-
-    const helper = new WalletPrecalculationHelper(null, mockSeedGeneratorUrl);
-    const pregenWallet = await helper.getPrecalculatedWallet();
-
-    expect(global.fetch).toHaveBeenCalledWith(`${mockSeedGeneratorUrl}/simpleWallet`);
-    expect(pregenWallet.words).toEqual(fakeWallet.words);
-    expect(pregenWallet.addresses).toEqual(fakeWallet.addresses);
-  });
-
-  it('throws error on failed request', async () => {
-    global.fetch.mockResolvedValueOnce({
-      ok: false,
-      status: 500,
-      statusText: 'Internal Server Error'
-    });
-
-    const helper = new WalletPrecalculationHelper(null, mockSeedGeneratorUrl);
-
-    await expect(helper.getPrecalculatedWallet())
-      .rejects.toThrow('Seed generator request failed: 500 Internal Server Error');
+    const pregenWallet = helper.getPrecalculatedWallet();
+    expect(pregenWallet.words).toEqual('my fake words');
   });
 });
 

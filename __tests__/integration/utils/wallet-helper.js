@@ -1,9 +1,58 @@
+import axios from 'axios';
 import { loggers } from './logger.util';
 import { TestUtils } from './test-utils-integration';
 import { WALLET_CONSTANTS } from '../configuration/test-constants';
 import { WalletBenchmarkUtil } from './benchmark/wallet-benchmark.util';
 import { TxTimeHelper } from './benchmark/tx-time.helper';
-import { precalculationHelpers } from '../../../scripts/helpers/wallet-precalculation.helper';
+import config from '../configuration/settings-fixture';
+
+/**
+ * Fetches a new wallet from the seed generator service.
+ * See https://github.com/HathorNetwork/hathor-seed-generator for more details.
+ * @returns {Promise<{words: string, addresses: string[]}>}
+ * @throws {Error} If the seed generator service is unavailable or returns invalid data
+ */
+export async function getPrecalculatedWallet() {
+  const { seedGeneratorUrl } = config.getConfig();
+  const url = `${seedGeneratorUrl}/simpleWallet`;
+
+  try {
+    const response = await axios.get(url, {
+      timeout: 2000, // 2 second timeout
+      validateStatus: status => status === 200,
+    });
+
+    const wallet = response.data;
+
+    if (!wallet || !wallet.words || !Array.isArray(wallet.addresses)) {
+      throw new Error(
+        `Seed generator returned invalid wallet data. Expected {words, addresses[]}, got: ${JSON.stringify(wallet)}`
+      );
+    }
+
+    return {
+      words: wallet.words,
+      addresses: wallet.addresses,
+    };
+  } catch (error) {
+    // Re-throw validation errors as-is
+    if (error.message.includes('invalid wallet data')) {
+      throw error;
+    }
+
+    // Enhance axios errors with actionable context
+    let errorMessage;
+    if (error.response) {
+      errorMessage = `Seed generator returned HTTP ${error.response.status}: ${JSON.stringify(error.response.data)}`;
+    } else if (error.code === 'ECONNREFUSED') {
+      errorMessage = `Seed generator unavailable at ${url}. Ensure the service is running.`;
+    } else {
+      errorMessage = `Seed generator request failed: ${error.message}`;
+    }
+
+    throw new Error(`[CRITICAL] Cannot initialize test wallets. ${errorMessage}`);
+  }
+}
 
 /**
  * A helper for testing the wallet
@@ -126,7 +175,7 @@ export class WalletHelper {
    * @returns {Promise<WalletHelper>}
    */
   static async getPrecalculatedWallet(walletId) {
-    const precalculatedWallet = await precalculationHelpers.test.getPrecalculatedWallet();
+    const precalculatedWallet = await getPrecalculatedWallet();
     return new WalletHelper(walletId, {
       words: precalculatedWallet.words,
       preCalculatedAddresses: precalculatedWallet.addresses

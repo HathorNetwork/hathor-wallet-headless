@@ -61,16 +61,12 @@ export class WalletPrecalculationHelper {
 
   walletsDb = [];
 
-  seedGeneratorUrl = '';
-
   /**
    * Initializes the helper with a filename to sync the local wallet storage with.
-   * @param {string} [walletsFilename] Path for local wallet file storage
-   * @param {string} [seedGeneratorUrl] URL of the seed generator service
+   * @param walletsFilename
    */
-  constructor(walletsFilename, seedGeneratorUrl) {
+  constructor(walletsFilename) {
     this.WALLETS_FILENAME = walletsFilename || './tmp/wallets.txt';
-    this.seedGeneratorUrl = seedGeneratorUrl || config.seedGeneratorUrl;
   }
 
   /**
@@ -250,18 +246,12 @@ export class WalletPrecalculationHelper {
   }
 
   /**
-   * Fetches a new wallet from the seed generator service.
-   * @returns {Promise<{words: string, addresses: string[]}>}
+   * Fetches the first unused precalculated wallet from the in-memory storage and marks it as used.
+   * @returns {*}
    */
-  async getPrecalculatedWallet() {
-    const response = await fetch(`${this.seedGeneratorUrl}/simpleWallet`);
-    if (!response.ok) {
-      throw new Error(`Seed generator request failed: ${response.status} ${response.statusText}`);
-    }
-    const wallet = await response.json();
-    return {
-      words: wallet.words,
-      addresses: wallet.addresses,
-    };
+  getPrecalculatedWallet() {
+    const unusedWallet = this.walletsDb.find(w => !w.isUsed);
+    unusedWallet.isUsed = true; // We are using it right now. Marking it.
+    return unusedWallet;
   }
 }

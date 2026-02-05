@@ -1,14 +1,14 @@
 import { walletUtils, transactionUtils } from '@hathor/wallet-lib';
-import { precalculationHelpers, singleMultisigWalletData } from '../../scripts/helpers/wallet-precalculation.helper';
+import { singleMultisigWalletData } from '../../scripts/helpers/wallet-precalculation.helper';
 import { TestUtils } from './utils/test-utils-integration';
 import { loggers } from './utils/logger.util';
-import { WalletHelper } from './utils/wallet-helper';
+import { getPrecalculatedWallet, WalletHelper } from './utils/wallet-helper';
 import settings from '../../src/settings';
 
 async function newReadOnlyWallet() {
   const config = settings.getConfig();
   const accountDerivationIndex = '0\'/0';
-  const { words, addresses } = await precalculationHelpers.test.getPrecalculatedWallet();
+  const { words, addresses } = await getPrecalculatedWallet();
   const xpubkey = walletUtils.getXPubKeyFromSeed(words, {
     networkName: config.network,
     accountDerivationIndex,
