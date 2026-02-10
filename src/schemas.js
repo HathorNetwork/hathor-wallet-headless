@@ -543,16 +543,24 @@ export const nanoContractData = z.object({
   }),
 });
 
+export const nanoContractOptions = z.object({
+  max_fee: bigIntCoercibleSchema.optional(),
+  contract_pays_fees: z.boolean().optional().default(false),
+}).transform(data => ({
+  maxFee: data.max_fee,
+  contractPaysFees: data.contract_pays_fees,
+}));
+
 export const nanoContractCreateData = z.object({
   blueprint_id: z.string(),
   address: z.string(),
-}).merge(nanoContractData).merge(nanoCreateTokenOptions);
+}).merge(nanoContractData).merge(nanoCreateTokenOptions).and(nanoContractOptions);
 
 export const nanoContractExecuteData = z.object({
   nc_id: z.string(),
   method: z.string(),
   address: z.string(),
-}).merge(nanoContractData).merge(nanoCreateTokenOptions);
+}).merge(nanoContractData).merge(nanoCreateTokenOptions).and(nanoContractOptions);
 
 export function bigIntSanitizer(value) {
   try {
