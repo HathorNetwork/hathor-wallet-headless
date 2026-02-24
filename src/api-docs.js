@@ -65,8 +65,8 @@ const createTokenPropertiesBase = {
   },
   version: {
     type: 'integer',
-    enum: [0, 1, 2],
-    description: 'Version of the token to be created. 0 = NATIVE (reserved), 1 = DEPOSIT (default, requires HTR deposit), 2 = FEE (charges fee per output instead of deposit).'
+    enum: [1, 2],
+    description: 'Version of the token to be created. 1 = DEPOSIT (default, requires HTR deposit), 2 = FEE (charges fee per output instead of deposit).'
   }
 };
 
