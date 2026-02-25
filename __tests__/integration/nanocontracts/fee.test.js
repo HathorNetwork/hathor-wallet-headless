@@ -42,6 +42,17 @@ describe('nano contract fee tokens', () => {
     return BigInt(response.body.state.balances[HATHOR_TOKEN_ID].value);
   };
 
+  // Helper to check if a transaction is valid
+  const checkTxValid = async (txId, walletObj) => {
+    expect(txId).toBeDefined();
+    await TestUtils.waitForTxReceived(walletObj.walletId, txId);
+    await TestUtils.waitTxConfirmed(walletObj.walletId, txId);
+    const libWalletObject = initializedWallets.get(walletObj.walletId);
+    const txAfterExecution = await libWalletObject.getFullTxById(txId);
+    expect(isEmpty(txAfterExecution.meta.voided_by)).toBe(true);
+    expect(txAfterExecution.meta.first_block).not.toBeNull();
+  };
+
   beforeAll(async () => {
     try {
       wallet = WalletHelper.getPrecalculatedWallet('nano-fee-1');
@@ -71,16 +82,6 @@ describe('nano contract fee tokens', () => {
   afterAll(async () => {
     await wallet.stop();
   });
-
-  const checkTxValid = async (txId, walletObj) => {
-    expect(txId).toBeDefined();
-    await TestUtils.waitForTxReceived(walletObj.walletId, txId);
-    await TestUtils.waitTxConfirmed(walletObj.walletId, txId);
-    const libWalletObject = initializedWallets.get(walletObj.walletId);
-    const txAfterExecution = await libWalletObject.getFullTxById(txId);
-    expect(isEmpty(txAfterExecution.meta.voided_by)).toBe(true);
-    expect(txAfterExecution.meta.first_block).not.toBeNull();
-  };
 
   it('should initialize a nano contract with FeeBlueprint', async () => {
     // Get wallet balance before
