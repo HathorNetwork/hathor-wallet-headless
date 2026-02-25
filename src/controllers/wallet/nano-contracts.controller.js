@@ -112,8 +112,9 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
     address,
     data,
     create_token_options: createTokenOptions,
-    maxFee,
-    contractPaysFees,
+    // the validation middleware converts snake_case to camelCase
+    maxFee, // max_fee
+    contractPaysFees, // contract_pays_fees
   } = req.body;
   const method = isInitialize ? 'initialize' : req.body.method;
 

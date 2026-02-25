@@ -83,7 +83,7 @@ describe('nano contract fee tokens', () => {
     await wallet.stop();
   });
 
-  it('should initialize a nano contract with FeeBlueprint', async () => {
+  it('should initialize a nano contract with FeeBlueprint with deposit token', async () => {
     // Get wallet balance before
     const walletHtrBefore = await getWalletHtrBalance();
 
