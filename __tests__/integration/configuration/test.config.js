@@ -26,4 +26,8 @@ module.exports = {
   // so we decided to increase this timeout to 600s, so
   // we don't have this error anymore
   waitNewBlockTimeout: process.env.TEST_WAIT_NEW_BLOCK_TIMEOUT || 600000,
+
+  // Timeout for individual fullnode API calls (e.g., getMiningInfo)
+  // This prevents hanging indefinitely if the fullnode becomes unresponsive
+  fullnodeApiTimeout: process.env.TEST_FULLNODE_API_TIMEOUT || 30000,
 };

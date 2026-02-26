@@ -287,9 +287,11 @@ export class TestUtils {
    * @returns {Promise<boolean>} `true` if the wallet is ready
    */
   static async isWalletReady(walletId) {
+    const apiTimeout = testConfig.fullnodeApiTimeout;
     const res = await request
       .get('/wallet/status')
       .set(TestUtils.generateHeader(walletId))
+      .timeout(apiTimeout)
       .catch(err => {
         TestUtils.log('Status error.', { message: err.message, stack: err.stack }, 'error');
         throw err;
@@ -303,12 +305,65 @@ export class TestUtils {
   }
 
   static async poolUntilWalletReady(walletId) {
-    while (true) {
-      const walletReady = await TestUtils.isWalletReady(walletId);
-      if (walletReady) {
-        return;
+    const timeout = testConfig.walletStartTimeout;
+    const startTime = Date.now();
+    let timeoutReached = false;
+    let pollCount = 0;
+
+    loggers.test.insertLineToLog('poolUntilWalletReady started', {
+      walletId,
+      timeout,
+    });
+
+    const timeoutHandler = setTimeout(() => {
+      timeoutReached = true;
+    }, timeout);
+
+    try {
+      while (true) {
+        if (timeoutReached) {
+          break;
+        }
+
+        pollCount += 1;
+        const walletReady = await TestUtils.isWalletReady(walletId);
+        if (walletReady) {
+          clearTimeout(timeoutHandler);
+          const elapsed = Date.now() - startTime;
+          loggers.test.insertLineToLog('poolUntilWalletReady completed', {
+            walletId,
+            elapsedMs: elapsed,
+            pollCount,
+          });
+          return;
+        }
+
+        // Log every 30 polls (~30 seconds) to track progress
+        if (pollCount % 30 === 0) {
+          const elapsed = Date.now() - startTime;
+          loggers.test.insertLineToLog('poolUntilWalletReady: still waiting', {
+            walletId,
+            pollCount,
+            elapsedMs: elapsed,
+          });
+        }
+
+        await delay(1000);
       }
-      await delay(1000);
+
+      // Timeout reached
+      clearTimeout(timeoutHandler);
+      const elapsed = Date.now() - startTime;
+      const errorMsg = `Timeout waiting for wallet ${walletId} to be ready after ${elapsed}ms (${pollCount} polls)`;
+      loggers.test.insertErrorToLog(errorMsg);
+      throw new Error(errorMsg);
+    } catch (error) {
+      clearTimeout(timeoutHandler);
+      if (!timeoutReached) {
+        const elapsed = Date.now() - startTime;
+        loggers.test.insertErrorToLog(`poolUntilWalletReady failed for ${walletId} after ${elapsed}ms: ${error.message}`);
+      }
+      throw error;
     }
   }
 
@@ -793,16 +848,26 @@ export class TestUtils {
    */
   static async getFullNodeNetworkHeight() {
     const errorMessage = 'Failed to get network height from full node.';
+    const apiTimeout = testConfig.fullnodeApiTimeout;
     let response;
 
     try {
-      // Disabling this eslint rule because of the way API call is done in the lib
-      // otherwise the code would need to be more complex
-      // We should change this when we refactor the way we call APIs in the lib
-      // eslint-disable-next-line no-promise-executor-return
-      response = await new Promise(resolve => walletApi.getMiningInfo(resolve));
+      // Wrap the API call with a timeout to prevent hanging indefinitely
+      // if the fullnode becomes unresponsive
+      response = await Promise.race([
+        new Promise(resolve => {
+          walletApi.getMiningInfo(resolve);
+        }),
+        new Promise((_, reject) => {
+          setTimeout(() => {
+            reject(new Error(`Fullnode API timeout after ${apiTimeout}ms`));
+          }, apiTimeout);
+        }),
+      ]);
     } catch (e) {
-      throw new Error(errorMessage);
+      const error = new Error(`${errorMessage} ${e.message}`);
+      loggers.test.insertErrorToLog(error.message);
+      throw error;
     }
 
     if (!response.success) {
@@ -824,34 +889,80 @@ export class TestUtils {
     let baseHeight = currentHeight;
 
     const timeout = testConfig.waitNewBlockTimeout;
+    const startTime = Date.now();
     let timeoutReached = false;
+    let pollCount = 0;
+
+    loggers.test.insertLineToLog('waitNewBlock started', {
+      currentHeight,
+      timeout,
+      startTime: new Date(startTime).toISOString(),
+    });
+
     const timeoutHandler = setTimeout(() => {
       timeoutReached = true;
+      loggers.test.insertErrorToLog(`waitNewBlock timeout flag set after ${timeout}ms`);
     }, timeout);
 
-    if (!baseHeight) {
-      baseHeight = await TestUtils.getFullNodeNetworkHeight();
-    }
-
-    let networkHeight = baseHeight;
-
-    while (networkHeight === baseHeight) {
-      if (timeoutReached) {
-        break;
+    try {
+      if (!baseHeight) {
+        loggers.test.insertLineToLog('waitNewBlock: fetching initial height from fullnode');
+        baseHeight = await TestUtils.getFullNodeNetworkHeight();
+        loggers.test.insertLineToLog('waitNewBlock: initial height fetched', { baseHeight });
       }
 
-      networkHeight = await TestUtils.getFullNodeNetworkHeight();
+      let networkHeight = baseHeight;
 
-      await delay(1000);
+      while (networkHeight === baseHeight) {
+        if (timeoutReached) {
+          break;
+        }
+
+        pollCount += 1;
+        // Log every 10 polls (every ~10 seconds) to track progress without flooding logs
+        if (pollCount % 10 === 0) {
+          const elapsed = Date.now() - startTime;
+          loggers.test.insertLineToLog('waitNewBlock: still waiting for new block', {
+            pollCount,
+            elapsedMs: elapsed,
+            baseHeight,
+            networkHeight,
+          });
+        }
+
+        networkHeight = await TestUtils.getFullNodeNetworkHeight();
+
+        if (networkHeight !== baseHeight) {
+          break;
+        }
+
+        await delay(1000);
+      }
+
+      clearTimeout(timeoutHandler);
+
+      if (timeoutReached) {
+        const elapsed = Date.now() - startTime;
+        const errorMsg = `Timeout reached when waiting for the next block after ${elapsed}ms (${pollCount} polls). Base height: ${baseHeight}`;
+        loggers.test.insertErrorToLog(errorMsg);
+        throw new Error(errorMsg);
+      }
+
+      const elapsed = Date.now() - startTime;
+      loggers.test.insertLineToLog('waitNewBlock completed', {
+        baseHeight,
+        newHeight: networkHeight,
+        elapsedMs: elapsed,
+        pollCount,
+      });
+
+      return networkHeight;
+    } catch (error) {
+      clearTimeout(timeoutHandler);
+      const elapsed = Date.now() - startTime;
+      loggers.test.insertErrorToLog(`waitNewBlock failed after ${elapsed}ms: ${error.message}`);
+      throw error;
     }
-
-    clearTimeout(timeoutHandler);
-
-    if (timeoutReached) {
-      throw new Error('Timeout reached when waiting for the next block.');
-    }
-
-    return networkHeight;
   }
 
   /**
@@ -872,26 +983,25 @@ export class TestUtils {
   }
 
   /**
-   * Waits until the transaction arrives in the wallet ws, or a timeout (optional)
-   * is reached
+   * Waits until the transaction arrives in the wallet ws, or a timeout is reached
    *
    * @param {string} walletId ID of the wallet to get the transaction from
    * @param {string} txId ID of the transaction to get
    * @param {number | undefined} timeout The timeout to stop waiting for the tx to arrive
-   *                             if not present, it will wait forever
+   *                             defaults to waitNewBlockTimeout if not specified
    *
    * @returns {Promise<Object>} Resolves with the tx data when the tx is found in the wallet's
    *                            storage or rejects if timeout is reached
    */
   static async waitForTxReceived(walletId, txId, timeout) {
-    let timeoutHandler;
+    // Use default timeout if not specified to prevent infinite waiting
+    const effectiveTimeout = timeout || testConfig.waitNewBlockTimeout;
     let timeoutReached = false;
-    if (timeout) {
-      // Timeout handler
-      timeoutHandler = setTimeout(() => {
-        timeoutReached = true;
-      }, timeout);
-    }
+
+    // Timeout handler
+    const timeoutHandler = setTimeout(() => {
+      timeoutReached = true;
+    }, effectiveTimeout);
 
     let result = await TestUtils.getTransaction(walletId, txId);
 
@@ -905,14 +1015,12 @@ export class TestUtils {
       result = await TestUtils.getTransaction(walletId, txId);
     }
 
-    if (timeoutHandler) {
-      clearTimeout(timeoutHandler);
-    }
+    clearTimeout(timeoutHandler);
 
     if (timeoutReached) {
       // We must do the timeout handling like this because if I reject the promise directly
       // inside the setTimeout block, this while block will continue running forever.
-      throw new Error(`Timeout of ${timeout}ms without receiving the tx with id ${txId}`);
+      throw new Error(`Timeout of ${effectiveTimeout}ms without receiving the tx with id ${txId}`);
     }
 
     if (result.is_voided === false) {
@@ -943,18 +1051,18 @@ export class TestUtils {
    *
    * @param {string} walletId ID of the wallet to get the transaction from
    * @param {String} txId ID of the tx to wait confirmation
-   * @param {number | null | undefined} timeout
+   * @param {number | null | undefined} timeout defaults to waitNewBlockTimeout if not specified
    * @returns {Promise<void>}
    */
   static async waitTxConfirmed(walletId, txId, timeout) {
-    let timeoutHandler;
+    // Use default timeout if not specified to prevent infinite waiting
+    const effectiveTimeout = timeout || testConfig.waitNewBlockTimeout;
     let timeoutReached = false;
-    if (timeout) {
-      // Timeout handler
-      timeoutHandler = setTimeout(() => {
-        timeoutReached = true;
-      }, timeout);
-    }
+
+    // Timeout handler
+    const timeoutHandler = setTimeout(() => {
+      timeoutReached = true;
+    }, effectiveTimeout);
 
     let number = await TestUtils.getTransactionConfirmationNumber(walletId, txId);
 
@@ -968,14 +1076,12 @@ export class TestUtils {
       number = await TestUtils.getTransactionConfirmationNumber(walletId, txId);
     }
 
-    if (timeoutHandler) {
-      clearTimeout(timeoutHandler);
-    }
+    clearTimeout(timeoutHandler);
 
     if (timeoutReached) {
       // We must do the timeout handling like this because if I reject the promise directly
       // inside the setTimeout block, this while block will continue running forever.
-      throw new Error(`Timeout of ${timeout}ms without confirming the tx with id ${txId}`);
+      throw new Error(`Timeout of ${effectiveTimeout}ms without confirming the tx with id ${txId}`);
     }
   }
 
