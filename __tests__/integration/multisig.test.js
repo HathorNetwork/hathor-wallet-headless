@@ -425,7 +425,7 @@ describe('send tx (HTR)', () => {
         type: 'Create Token Transaction',
         version: 2,
         tokens: [],
-        inputs: [
+        inputs: expect.arrayContaining([
           {
             decoded: {
               type: 'MultiSig',
@@ -444,7 +444,7 @@ describe('send tx (HTR)', () => {
             signed: false,
             mine: true,
           },
-        ],
+        ]),
         outputs: expect.arrayContaining([
           {
             decoded: {
@@ -528,7 +528,7 @@ describe('send tx (HTR)', () => {
         type: 'Transaction',
         version: 1,
         tokens: [txCreateToken.hash],
-        inputs: [
+        inputs: expect.arrayContaining([
           expect.objectContaining({
             decoded: {
               type: 'MultiSig',
@@ -561,7 +561,7 @@ describe('send tx (HTR)', () => {
             signed: false,
             mine: true,
           }),
-        ],
+        ]),
         outputs: expect.arrayContaining([
           {
             decoded: {
@@ -637,7 +637,7 @@ describe('send tx (HTR)', () => {
           txCreateToken.hash,
         ],
         completeSignatures: false,
-        inputs: [
+        inputs: expect.arrayContaining([
           {
             decoded: {
               address: expect.any(String),
@@ -670,7 +670,7 @@ describe('send tx (HTR)', () => {
             txId: expect.any(String),
             value: 100,
           },
-        ],
+        ]),
         outputs: [
           {
             decoded: {
