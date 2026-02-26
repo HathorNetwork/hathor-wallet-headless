@@ -544,7 +544,7 @@ export const nanoContractData = z.object({
 });
 
 export const nanoContractOptions = z.object({
-  max_fee: bigIntCoercibleSchema.optional(),
+  max_fee: bigIntCoercibleSchema.pipe(z.bigint().nonnegative()).optional(),
   contract_pays_fees: z.boolean().optional().default(false),
 }).transform(data => ({
   maxFee: data.max_fee,

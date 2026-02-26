@@ -12,25 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, TypeAlias
+from typing import Optional
 
 from hathor import (
-    Address,
     Blueprint,
     ContractId,
     Context,
-    NCAction,
     NCDepositAction,
     NCFee,
     NCWithdrawalAction,
-    NCFail,
-    SignedData,
-    Timestamp,
     TokenUid,
-    TxOutputScript,
     public,
     export,
-    view,
 )
 
 @export
