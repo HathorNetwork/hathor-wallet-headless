@@ -12,7 +12,7 @@ module.exports = {
   collectCoverageFrom: ['<rootDir>/src/**/*.js'],
   testMatch: [mainTestMatch],
   coverageReporters: ['text-summary', 'lcov', 'clover'],
-  // 30 minutes - increased due to large test files like create-token.test.js
+  // 60 minutes - increased due to large test files like create-token.test.js
   testTimeout: 60 * 60 * 1000,
   setupFilesAfterEnv: ['<rootDir>/setupTests-integration.js'],
 };
