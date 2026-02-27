@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 import supertest from 'supertest';
 import superagent from 'superagent';
 import { txApi, walletApi, HathorWallet, walletUtils, bigIntUtils } from '@hathor/wallet-lib';
@@ -186,7 +184,7 @@ export class TestUtils {
    * @param {string} message Custom error message
    */
   static logError(message) {
-    console.error(message);
+    loggers.test.insertErrorToLog(message);
   }
 
   /**
@@ -257,7 +255,7 @@ export class TestUtils {
       throw new Error(`Unable to start the wallet: ${walletObj.walletId}`);
     }
     if (!response.body.success) {
-      console.error(`Failure starting the wallet: ${response.body.message}`);
+      loggers.test.insertErrorToLog(`Failure starting the wallet: ${response.body.message}`);
       throw new Error(response.body.message);
     }
     const start = response.body;

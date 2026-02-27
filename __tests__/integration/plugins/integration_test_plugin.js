@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 import _ from 'lodash';
+import { loggers } from '../utils/logger.util';
 
 /**
  * This plugin is used for testing purposes, storing all events received and allowing their easy
@@ -32,12 +33,15 @@ export const init = async bus => {
   busObject = bus;
 
   messageListener = data => {
-    console.log(`[${receivedEvents.length}] ${data.type} message added on ${data.walletId}.`);
+    loggers.test?.insertLineToLog(
+      `[${receivedEvents.length}] ${data.type} message added`,
+      { walletId: data.walletId }
+    );
     receivedEvents.push(data);
   };
   busObject.on('message', messageListener);
 
-  console.log('plugin[test custom]: loaded');
+  loggers.test?.insertLineToLog('plugin[test custom]: loaded');
 };
 
 /**
@@ -46,7 +50,7 @@ export const init = async bus => {
 export const close = () => {
   busObject.off('message', messageListener);
   busObject = null;
-  console.log('plugin[test custom]: closed');
+  loggers.test?.insertLineToLog('plugin[test custom]: closed');
 };
 
 /**

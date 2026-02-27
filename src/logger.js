@@ -86,20 +86,13 @@ function buildAppLogger(config) {
   // create a stream object with a 'write' function that will be used by `morgan`
   appLogger.stream = {
     write(message, _encoding) {
-      // use the 'info' log level so the output will be picked up by
-      // both transports (file + console)
+      // Log HTTP requests at 'info' level. These will appear on transports
+      // configured with level 'info' or more verbose (debug, silly, etc.)
       appLogger.info(message.trim(), {
         service: 'http',
       });
     },
   };
-  /* eslint-disable no-console */
-  console.log = (...args) => appLogger.info.call(appLogger, ...args);
-  console.info = (...args) => appLogger.info.call(appLogger, ...args);
-  console.warn = (...args) => appLogger.warn.call(appLogger, ...args);
-  console.error = (...args) => appLogger.error.call(appLogger, ...args);
-  console.debug = (...args) => appLogger.debug.call(appLogger, ...args);
-  /* eslint-enable no-console */
 
   return appLogger;
 }

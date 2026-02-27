@@ -8,6 +8,7 @@
 import { config as hathorLibConfig, errors, walletUtils } from '@hathor/wallet-lib';
 import { WalletStartError } from '../errors';
 import version from '../version';
+import { buildAppLogger } from '../logger';
 import {
   DEFAULT_PASSWORD, DEFAULT_PIN, SWAP_SERVICE_MAINNET_BASE_URL, SWAP_SERVICE_TESTNET_BASE_URL,
 } from '../constants';
@@ -112,8 +113,8 @@ export function getWalletConfigFromSeed({
     if (!allowPassphrase) {
       // To use a passphrase on /start POST request
       // the configuration of the headless must explicitly allow it
-      // eslint-disable-next-line no-console
-      console.error('Failed to start wallet because using a passphrase is not allowed by the current config. See allowPassphrase.');
+      const logger = buildAppLogger();
+      logger.error('Failed to start wallet because using a passphrase is not allowed by the current config. See allowPassphrase.');
       throw new WalletStartError('Failed to start wallet. To use a passphrase you must explicitly allow it in the configuration file. Using a passphrase completely changes the addresses of your wallet, only use it if you know what you are doing.');
     }
     walletConfig.passphrase = passphrase;
