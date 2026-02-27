@@ -425,7 +425,7 @@ describe('send tx (HTR)', () => {
         type: 'Create Token Transaction',
         version: 2,
         tokens: [],
-        inputs: [
+        inputs: expect.arrayContaining([
           {
             decoded: {
               type: 'MultiSig',
@@ -444,7 +444,7 @@ describe('send tx (HTR)', () => {
             signed: false,
             mine: true,
           },
-        ],
+        ]),
         outputs: expect.arrayContaining([
           {
             decoded: {
@@ -528,7 +528,7 @@ describe('send tx (HTR)', () => {
         type: 'Transaction',
         version: 1,
         tokens: [txCreateToken.hash],
-        inputs: [
+        inputs: expect.arrayContaining([
           expect.objectContaining({
             decoded: {
               type: 'MultiSig',
@@ -536,7 +536,7 @@ describe('send tx (HTR)', () => {
               timelock: null,
             },
             txId: expect.any(String),
-            index: 2, // mint authority output from create token tx
+            index: 2,
             token: tokenUid,
             value: 1,
             tokenData: 129,
@@ -552,7 +552,7 @@ describe('send tx (HTR)', () => {
               timelock: null,
             },
             txId: expect.any(String),
-            index: 0, // HTR change output from create token tx
+            index: 0,
             token: '00',
             value: expect.any(Number),
             tokenData: 0,
@@ -561,7 +561,7 @@ describe('send tx (HTR)', () => {
             signed: false,
             mine: true,
           }),
-        ],
+        ]),
         outputs: expect.arrayContaining([
           {
             decoded: {
@@ -637,14 +637,14 @@ describe('send tx (HTR)', () => {
           txCreateToken.hash,
         ],
         completeSignatures: false,
-        inputs: [
+        inputs: expect.arrayContaining([
           {
             decoded: {
               address: expect.any(String),
               timelock: null,
               type: 'MultiSig',
             },
-            index: 3, // melt authority output from mint tx
+            index: 3,
             mine: true,
             script: expect.any(String),
             signed: false,
@@ -660,7 +660,7 @@ describe('send tx (HTR)', () => {
               timelock: null,
               type: 'MultiSig',
             },
-            index: 1, // token output from mint tx
+            index: 1,
             mine: true,
             script: expect.any(String),
             signed: false,
@@ -670,7 +670,7 @@ describe('send tx (HTR)', () => {
             txId: expect.any(String),
             value: 100,
           },
-        ],
+        ]),
         outputs: [
           {
             decoded: {

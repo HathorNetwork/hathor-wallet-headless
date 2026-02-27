@@ -550,7 +550,8 @@ async function createToken(req, res) {
     createMelt,
     meltAuthorityAddress,
     allowExternalMeltAuthorityAddress,
-    data
+    data,
+    tokenVersion,
   } = req.body;
 
   try {
@@ -572,7 +573,8 @@ async function createToken(req, res) {
         createMelt,
         meltAuthorityAddress,
         allowExternalMeltAuthorityAddress,
-        data
+        data,
+        tokenVersion,
       }
     );
     const tx = await runSendTransaction(sendTransaction, unlock);

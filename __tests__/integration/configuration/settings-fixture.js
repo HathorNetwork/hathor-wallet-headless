@@ -18,8 +18,18 @@ const defaultConfig = {
 
   multisig: {},
 
+  // File logging for tests - captures verbose app logs for CI artifacts
+  // This uses the existing config.logging mechanism in src/logger.js
+  logging: {
+    app: {
+      filename: 'tmp/app.log',
+      level: 'silly',
+    },
+  },
+
   httpLogFormat: null,
-  consoleLevel: 'silly',
+  // Use TEST_CONSOLE_LEVEL=silly for verbose debugging
+  consoleLevel: process.env.TEST_CONSOLE_LEVEL || 'warn',
   tokenUid: '',
   gapLimit: null,
 

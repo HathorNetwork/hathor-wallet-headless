@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { INanoContractActionSchema, walletUtils } from '@hathor/wallet-lib';
+import { INanoContractActionSchema, walletUtils, TokenVersion } from '@hathor/wallet-lib';
 import { bigIntCoercibleSchema, parseSchema } from '@hathor/wallet-lib/lib/utils/bigint';
 import { z } from 'zod';
 
@@ -496,6 +496,7 @@ export const createTokenBaseRaw = z.object({
   melt_authority_address: z.string().nullable().default(null),
   allow_external_melt_authority_address: z.boolean().default(false),
   data: z.array(z.string().max(MAX_DATA_SCRIPT_LENGTH)).nullable().default(null),
+  version: z.nativeEnum(TokenVersion).default(TokenVersion.DEPOSIT),
 });
 
 const transformCreateTokenBase = data => ({
@@ -507,6 +508,7 @@ const transformCreateTokenBase = data => ({
   createMelt: data.create_melt,
   meltAuthorityAddress: data.melt_authority_address,
   allowExternalMeltAuthorityAddress: data.allow_external_melt_authority_address,
+  tokenVersion: data.version,
 });
 
 export const createTokenOptions = createTokenBaseRaw.extend({
@@ -541,16 +543,24 @@ export const nanoContractData = z.object({
   }),
 });
 
+export const nanoContractOptions = z.object({
+  max_fee: bigIntCoercibleSchema.pipe(z.bigint().nonnegative()).optional(),
+  contract_pays_fees: z.boolean().optional().default(false),
+}).transform(data => ({
+  maxFee: data.max_fee,
+  contractPaysFees: data.contract_pays_fees,
+}));
+
 export const nanoContractCreateData = z.object({
   blueprint_id: z.string(),
   address: z.string(),
-}).merge(nanoContractData).merge(nanoCreateTokenOptions);
+}).merge(nanoContractData).merge(nanoCreateTokenOptions).and(nanoContractOptions);
 
 export const nanoContractExecuteData = z.object({
   nc_id: z.string(),
   method: z.string(),
   address: z.string(),
-}).merge(nanoContractData).merge(nanoCreateTokenOptions);
+}).merge(nanoContractData).merge(nanoCreateTokenOptions).and(nanoContractOptions);
 
 export function bigIntSanitizer(value) {
   try {
