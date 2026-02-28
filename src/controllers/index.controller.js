@@ -217,7 +217,7 @@ async function start(req, res) {
     }
   }
 
-  const preCalculatedAddresses = 'precalculatedAddresses' in req.body ? req.body.preCalculatedAddresses : [];
+  const preCalculatedAddresses = 'preCalculatedAddresses' in req.body ? req.body.preCalculatedAddresses : [];
   if (preCalculatedAddresses && preCalculatedAddresses.length) {
     logger.info(`Received pre-calculated addresses`, sanitizeLogInput(preCalculatedAddresses));
     walletConfig.preCalculatedAddresses = preCalculatedAddresses;
