@@ -6,6 +6,7 @@
  */
 
 import { bigIntUtils } from '@hathor/wallet-lib';
+import { buildAppLogger } from '../logger';
 
 /* istanbul ignore next */
 async function checkDeps() {
@@ -21,7 +22,8 @@ async function checkDeps() {
       $ npm install ${Object.entries(requiredDeps).map(x => [x[0], x[1]].join('@')).join(' ')}`);
     }
   })).catch(e => {
-    console.error(e.message);
+    const logger = buildAppLogger();
+    logger.error(e.message);
     process.exit(127);
   });
 }
@@ -52,7 +54,8 @@ export const getSettings = () => {
 
 export function connectionHandler(socket) {
   sockets.push(socket);
-  console.log('New websocket connection!');
+  const logger = buildAppLogger();
+  logger.info('New websocket connection!');
   socket.on('close', () => {
     // Remove from connections
     sockets = sockets.filter(s => s !== socket);
@@ -77,5 +80,6 @@ export const init = async bus => {
 
   const server = new WebSocket.Server({ port });
   server.on('connection', connectionHandler);
-  console.log('plugin[ws]: loaded');
+  const logger = buildAppLogger();
+  logger.info('plugin[ws]: loaded');
 };

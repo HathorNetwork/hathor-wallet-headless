@@ -62,6 +62,11 @@ const createTokenPropertiesBase = {
       type: 'string'
     },
     description: 'List of utf-8 encoded strings to create a data output for each.'
+  },
+  version: {
+    type: 'integer',
+    enum: [1, 2],
+    description: 'Version of the token to be created. 1 = DEPOSIT (default, requires HTR deposit), 2 = FEE (charges fee per output instead of deposit).'
   }
 };
 
@@ -4125,6 +4130,15 @@ const defaultApiDocs = {
                   },
                   data: nanoContractsDataParameter,
                   create_token_options: createTokenNanoProperties,
+                  max_fee: {
+                    type: 'integer',
+                    description: 'Optional maximum fee in HTR (smallest unit). Transaction fails if calculated fee exceeds this limit. Only applies to fee-based tokens.'
+                  },
+                  contract_pays_fees: {
+                    type: 'boolean',
+                    description: 'If true, the contract pays transaction fees from its HTR withdrawal instead of the wallet. Requires an HTR withdrawal action.',
+                    default: false
+                  },
                 },
               },
               examples: {
@@ -4257,6 +4271,15 @@ const defaultApiDocs = {
                   },
                   data: nanoContractsDataParameter,
                   create_token_options: createTokenNanoProperties,
+                  max_fee: {
+                    type: 'integer',
+                    description: 'Optional maximum fee in HTR (smallest unit). Transaction fails if calculated fee exceeds this limit. Only applies to fee-based tokens.'
+                  },
+                  contract_pays_fees: {
+                    type: 'boolean',
+                    description: 'If true, the contract pays transaction fees from its HTR withdrawal instead of the wallet. Requires an HTR withdrawal action.',
+                    default: false
+                  },
                 }
               },
               examples: {

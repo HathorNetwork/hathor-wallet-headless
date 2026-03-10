@@ -6,6 +6,7 @@
  */
 
 import { bigIntUtils } from '@hathor/wallet-lib';
+import { buildAppLogger } from '../logger';
 
 /* istanbul ignore next */
 async function checkDeps() {
@@ -21,7 +22,8 @@ async function checkDeps() {
       $ npm install ${Object.entries(requiredDeps).map(x => [x[0], x[1]].join('@')).join(' ')}`);
     }
   })).catch(e => {
-    console.error(e.message);
+    const logger = buildAppLogger();
+    logger.error(e.message);
     process.exit(127);
   });
 }
@@ -59,7 +61,8 @@ export function eventHandlerFactory(sqs, settings) {
     };
     sqs.sendMessage(params, err => {
       if (err) {
-        console.log(`plugin[sqs] error sending to sqs: ${err}`);
+        const logger = buildAppLogger();
+        logger.error(`plugin[sqs] error sending to sqs: ${err}`);
       }
     });
   };
@@ -75,5 +78,6 @@ export const init = async bus => {
 
   bus.on('message', eventHandlerFactory(sqs, settings));
 
-  console.log('plugin[sqs] loaded');
+  const logger = buildAppLogger();
+  logger.info('plugin[sqs] loaded');
 };

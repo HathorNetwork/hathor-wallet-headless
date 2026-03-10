@@ -26,6 +26,7 @@ ENV NODE_ENV=production
 # We will only use the node_modules folder from this step
 
 COPY package.json package-lock.json ./
+COPY patches/ ./patches/
 RUN apk add --no-cache --virtual .gyp python3 make g++ &&\
     npm ci --only=production
 
@@ -50,6 +51,7 @@ COPY --from=builder /usr/src/app/dist/ ./dist/
 COPY --from=builder /usr/src/app/dist-scripts/ ./dist-scripts/
 COPY --from=deps /usr/src/app/node_modules/ ./node_modules/
 COPY --from=deps /usr/src/app/package.json ./
+COPY lavamoat/ ./lavamoat/
 COPY Makefile ./
 
 # Install the process supervisor
@@ -57,4 +59,4 @@ RUN apk add --no-cache dumb-init make &&\
     rm -rf /tmp/* /var/cache/apk/*
 
 EXPOSE 8000
-ENTRYPOINT ["dumb-init", "node", "dist/index.js"]
+ENTRYPOINT ["dumb-init", "./node_modules/.bin/lavamoat", "dist/index.js"]

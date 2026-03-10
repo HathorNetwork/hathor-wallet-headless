@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 import { bigIntUtils } from '@hathor/wallet-lib';
+import { buildAppLogger } from '../logger';
 
 let debugLong;
 
@@ -21,7 +22,8 @@ async function checkDeps() {
       $ npm install ${Object.entries(requiredDeps).map(x => [x[0], x[1]].join('@')).join(' ')}`);
     }
   })).catch(e => {
-    console.error(e.message);
+    const logger = buildAppLogger();
+    logger.error(e.message);
     process.exit(127);
   });
 }
@@ -36,7 +38,8 @@ export const getSettings = () => {
 };
 
 function debugLog(data) {
-  console.log(`plugin[debug]: ${data}`);
+  const logger = buildAppLogger();
+  logger.info(`plugin[debug]: ${data}`);
 }
 
 export function eventHandler(data) {
@@ -66,5 +69,6 @@ export const init = async bus => {
 
   bus.on('message', eventHandler);
 
-  console.log('plugin[debug]: loaded');
+  const logger = buildAppLogger();
+  logger.info('plugin[debug]: loaded');
 };

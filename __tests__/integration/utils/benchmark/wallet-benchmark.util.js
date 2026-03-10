@@ -95,7 +95,7 @@ export class WalletBenchmarkUtil {
         walletObj.hasFailed = true;
         break;
       default:
-        console.warn(`Unknown wallet event: ${event}`);
+        loggers.walletBenchmark?.insertWarnToLog(`Unknown wallet event: ${event}`);
     }
   }
 

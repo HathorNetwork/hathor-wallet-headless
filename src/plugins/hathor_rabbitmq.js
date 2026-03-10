@@ -8,6 +8,7 @@
 /* istanbul ignore next */
 
 import { bigIntUtils } from '@hathor/wallet-lib';
+import { buildAppLogger } from '../logger';
 
 async function checkDeps() {
   const requiredDeps = {
@@ -22,7 +23,8 @@ async function checkDeps() {
       $ npm install ${Object.entries(requiredDeps).map(x => [x[0], x[1]].join('@')).join(' ')}`);
     }
   })).catch(e => {
-    console.error(e.message);
+    const logger = buildAppLogger();
+    logger.error(e.message);
     process.exit(127);
   });
 }
@@ -100,5 +102,6 @@ export const init = async bus => {
     });
   });
 
-  console.log('plugin[rabbitmq] loaded');
+  const logger = buildAppLogger();
+  logger.info('plugin[rabbitmq] loaded');
 };

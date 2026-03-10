@@ -23,7 +23,7 @@ If you observe an incorrect behavior while using Hathor headless wallet, see [th
 The Hathor headless wallet is tested automatically with unit tests and integration tests. See the following documentation for more information:
 - [Testing guidelines](/docs/testing.md)
 
-Eventually, some changes to plugins or scripts may require specific testing not covered by those automated tests, but those should be analysed case by case on each PR.
+Eventually, some changes to plugins or scripts may require specific testing not covered by those automated tests, but those should be analyzed case by case on each PR.
 
 ## Contributing
 

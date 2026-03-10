@@ -111,7 +111,10 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
     nc_id: ncId,
     address,
     data,
-    create_token_options: createTokenOptions
+    create_token_options: createTokenOptions,
+    // the validation middleware converts snake_case to camelCase
+    maxFee, // max_fee
+    contractPaysFees, // contract_pays_fees
   } = req.body;
   const method = isInitialize ? 'initialize' : req.body.method;
 
@@ -122,6 +125,15 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
     data.ncId = ncId;
   }
 
+  // Build options object for fee-based token support
+  const options = {};
+  if (maxFee !== undefined) {
+    options.maxFee = maxFee;
+  }
+  if (contractPaysFees !== undefined) {
+    options.contractPaysFees = contractPaysFees;
+  }
+
   try {
     /** @type {import('@hathor/wallet-lib').SendTransaction} */
     let sendTransaction;
@@ -130,13 +142,15 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
         method,
         address,
         data,
-        createTokenOptions
+        createTokenOptions,
+        options
       );
     } else {
       sendTransaction = await wallet.createNanoContractTransaction(
         method,
         address,
-        data
+        data,
+        options
       );
     }
     const tx = await runSendTransaction(sendTransaction, unlock);

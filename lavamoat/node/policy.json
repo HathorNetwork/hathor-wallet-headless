@@ -1,0 +1,1154 @@
+{
+  "resources": {
+    "winston>@colors/colors": {
+      "builtin": {
+        "os.release": true,
+        "util.inspect": true
+      },
+      "globals": {
+        "console.log": true,
+        "process.argv": true,
+        "process.env": true,
+        "process.platform": true,
+        "process.stderr": true,
+        "process.stdout": true,
+        "process.versions.node.split": true
+      }
+    },
+    "winston>@dabh/diagnostics": {
+      "builtin": {
+        "tty.isatty": true
+      },
+      "globals": {
+        "console": true,
+        "process.env.DEBUG": true,
+        "process.env.DIAGNOSTICS": true,
+        "process.env.NODE_ENV": true
+      },
+      "packages": {
+        "winston>@dabh/diagnostics>colorspace": true,
+        "winston>@dabh/diagnostics>enabled": true,
+        "winston>@dabh/diagnostics>kuler": true
+      }
+    },
+    "@dinamonetworks/hsm-dinamo": {
+      "builtin": {
+        "crypto": true,
+        "fs": true,
+        "net": true,
+        "path": true,
+        "process": true,
+        "tls": true
+      },
+      "globals": {
+        "Buffer.alloc": true,
+        "Buffer.concat": true,
+        "Buffer.from": true,
+        "atob": true,
+        "btoa": true
+      },
+      "packages": {
+        "@dinamonetworks/hsm-dinamo>node-aes-cmac": true
+      }
+    },
+    "@hathor/wallet-lib": {
+      "builtin": {
+        "assert": true,
+        "buffer": true,
+        "crypto": true,
+        "events": true,
+        "path": true,
+        "zlib": true
+      },
+      "globals": {
+        "AbortController": true,
+        "Buffer.alloc": true,
+        "Buffer.concat": true,
+        "Buffer.from": true,
+        "Intl.NumberFormat": true,
+        "clearInterval": true,
+        "clearTimeout": true,
+        "console": true,
+        "setInterval": true,
+        "setTimeout": true
+      },
+      "packages": {
+        "axios": true,
+        "@hathor/wallet-lib>bitcore-lib": true,
+        "@hathor/wallet-lib>bitcore-mnemonic": true,
+        "@hathor/wallet-lib>crypto-js": true,
+        "@hathor/wallet-lib>isomorphic-ws": true,
+        "lodash": true,
+        "@hathor/wallet-lib>queue-microtask": true,
+        "zod": true
+      }
+    },
+    "express>accepts": {
+      "packages": {
+        "axios>form-data>mime-types": true,
+        "express>accepts>negotiator": true
+      }
+    },
+    "winston>async": {
+      "globals": {
+        "process": true,
+        "queueMicrotask": true,
+        "setImmediate": true,
+        "setTimeout": true
+      }
+    },
+    "axios>form-data>asynckit": {
+      "globals": {
+        "process": true,
+        "setImmediate": true,
+        "setTimeout": true
+      }
+    },
+    "axios": {
+      "builtin": {
+        "events.EventEmitter": true,
+        "http": true,
+        "https": true,
+        "stream": true,
+        "url": true,
+        "util": true,
+        "zlib": true
+      },
+      "globals": {
+        "AbortController": true,
+        "Blob": true,
+        "Buffer.alloc": true,
+        "Buffer.byteLength": true,
+        "Buffer.concat": true,
+        "Buffer.from": true,
+        "Buffer.isBuffer": true,
+        "FormData": true,
+        "ReadableStream": true,
+        "Request": true,
+        "Response": true,
+        "TextEncoder": true,
+        "URL": true,
+        "WorkerGlobalScope": true,
+        "XMLHttpRequest": true,
+        "btoa": true,
+        "clearTimeout": true,
+        "console.warn": true,
+        "document": true,
+        "fetch": true,
+        "importScripts": true,
+        "location.href": true,
+        "navigator": true,
+        "process": true,
+        "queueMicrotask": true,
+        "setImmediate": true,
+        "setTimeout": true
+      },
+      "packages": {
+        "axios>follow-redirects": true,
+        "axios>form-data": true,
+        "axios>proxy-from-env": true
+      }
+    },
+    "@hathor/wallet-lib>bitcore-lib>bs58>base-x": {
+      "packages": {
+        "morgan>basic-auth>safe-buffer": true
+      }
+    },
+    "morgan>basic-auth": {
+      "packages": {
+        "morgan>basic-auth>safe-buffer": true
+      }
+    },
+    "@hathor/wallet-lib>bitcore-lib": {
+      "builtin": {
+        "assert": true,
+        "buffer": true,
+        "crypto.createHash": true,
+        "crypto.randomBytes": true,
+        "url.format": true,
+        "url.parse": true
+      },
+      "globals": {
+        "Buffer": true,
+        "SEQUENCE_LOCKTIME_DISABLE_FLAG": true,
+        "_bitcore": "write",
+        "console.error": true,
+        "crypto": true,
+        "msCrypto": true,
+        "process.browser": true
+      },
+      "packages": {
+        "@hathor/wallet-lib>bitcore-lib>bech32": true,
+        "@hathor/wallet-lib>bitcore-lib>bn.js": true,
+        "@hathor/wallet-lib>bitcore-lib>bs58": true,
+        "@hathor/wallet-lib>bitcore-lib>buffer-compare": true,
+        "@hathor/wallet-lib>bitcore-lib>elliptic": true,
+        "@hathor/wallet-lib>bitcore-lib>inherits": true,
+        "lodash": true
+      }
+    },
+    "@hathor/wallet-lib>bitcore-mnemonic": {
+      "builtin": {
+        "crypto.createHmac": true
+      },
+      "globals": {
+        "Buffer.alloc": true,
+        "Buffer.from": true,
+        "Buffer.isBuffer": true
+      },
+      "packages": {
+        "@hathor/wallet-lib>bitcore-lib": true,
+        "@hathor/wallet-lib>bitcore-mnemonic>unorm": true
+      }
+    },
+    "@hathor/wallet-lib>bitcore-lib>bn.js": {
+      "builtin": {
+        "buffer.Buffer": true
+      }
+    },
+    "@hathor/wallet-lib>bitcore-lib>elliptic>bn.js": {
+      "builtin": {
+        "buffer.Buffer": true
+      },
+      "globals": {
+        "Buffer": true
+      }
+    },
+    "express>body-parser": {
+      "builtin": {
+        "querystring": true,
+        "zlib.createGunzip": true,
+        "zlib.createInflate": true
+      },
+      "packages": {
+        "express>body-parser>bytes": true,
+        "express>content-type": true,
+        "morgan>debug": true,
+        "morgan>depd": true,
+        "express>send>destroy": true,
+        "express>http-errors": true,
+        "express>body-parser>iconv-lite": true,
+        "express>body-parser>on-finished": true,
+        "express>qs": true,
+        "express>body-parser>raw-body": true,
+        "express>type-is": true,
+        "express>body-parser>unpipe": true
+      }
+    },
+    "@hathor/wallet-lib>bitcore-lib>elliptic>brorand": {
+      "builtin": {
+        "crypto.randomBytes": true
+      },
+      "globals": {
+        "crypto": true,
+        "msCrypto": true
+      }
+    },
+    "@hathor/wallet-lib>bitcore-lib>bs58": {
+      "packages": {
+        "@hathor/wallet-lib>bitcore-lib>bs58>base-x": true
+      }
+    },
+    "jsonwebtoken>jws>jwa>buffer-equal-constant-time": {
+      "builtin": {
+        "buffer.Buffer.isBuffer": true,
+        "buffer.Buffer.prototype.equal": true,
+        "buffer.SlowBuffer.prototype.equal": true
+      }
+    },
+    "eslint-plugin-import>object.values>call-bind>call-bind-apply-helpers": {
+      "packages": {
+        "eslint-plugin-import>array.prototype.findlastindex>es-errors": true,
+        "eslint-plugin-import>hasown>function-bind": true
+      }
+    },
+    "eslint-plugin-import>object.values>call-bind": {
+      "packages": {
+        "eslint-plugin-import>object.values>call-bind>call-bind-apply-helpers": true,
+        "eslint-plugin-import>object.values>call-bind>es-define-property": true,
+        "eslint-plugin-import>array-includes>get-intrinsic": true,
+        "eslint-plugin-import>object.values>call-bind>set-function-length": true
+      }
+    },
+    "winston>@dabh/diagnostics>colorspace>color>color-convert": {
+      "packages": {
+        "winston>@dabh/diagnostics>colorspace>color>color-string>color-name": true
+      }
+    },
+    "winston>@dabh/diagnostics>colorspace>color>color-string": {
+      "packages": {
+        "winston>@dabh/diagnostics>colorspace>color>color-string>color-name": true,
+        "winston>@dabh/diagnostics>colorspace>color>color-string>simple-swizzle": true
+      }
+    },
+    "winston>@dabh/diagnostics>colorspace>color": {
+      "packages": {
+        "winston>@dabh/diagnostics>colorspace>color>color-convert": true,
+        "winston>@dabh/diagnostics>colorspace>color>color-string": true
+      }
+    },
+    "winston>@dabh/diagnostics>colorspace": {
+      "packages": {
+        "winston>@dabh/diagnostics>colorspace>color": true,
+        "winston>@dabh/diagnostics>colorspace>text-hex": true
+      }
+    },
+    "axios>form-data>combined-stream": {
+      "builtin": {
+        "stream.Stream": true,
+        "util.inherits": true
+      },
+      "globals": {
+        "Buffer.isBuffer": true
+      },
+      "packages": {
+        "axios>form-data>combined-stream>delayed-stream": true
+      }
+    },
+    "express>content-disposition": {
+      "builtin": {
+        "path.basename": true
+      },
+      "packages": {
+        "express>content-disposition>safe-buffer": true
+      }
+    },
+    "express>cookie-signature": {
+      "builtin": {
+        "crypto.createHash": true,
+        "crypto.createHmac": true
+      }
+    },
+    "@hathor/wallet-lib>crypto-js": {
+      "builtin": {
+        "crypto": true
+      },
+      "globals": {
+        "crypto": true,
+        "define": true,
+        "msCrypto": true
+      }
+    },
+    "morgan>debug": {
+      "builtin": {
+        "fs.SyncWriteStream": true,
+        "net.Socket": true,
+        "tty.WriteStream": true,
+        "tty.isatty": true,
+        "util": true
+      },
+      "globals": {
+        "chrome": true,
+        "console": true,
+        "document": true,
+        "localStorage": true,
+        "navigator": true,
+        "process": true
+      },
+      "packages": {
+        "morgan>debug>ms": true
+      }
+    },
+    "eslint-plugin-import>object.values>define-properties>define-data-property": {
+      "packages": {
+        "eslint-plugin-import>object.values>call-bind>es-define-property": true,
+        "eslint-plugin-import>array.prototype.findlastindex>es-errors": true,
+        "eslint-plugin-import>array-includes>es-abstract>gopd": true
+      }
+    },
+    "axios>form-data>combined-stream>delayed-stream": {
+      "builtin": {
+        "stream.Stream": true,
+        "util.inherits": true
+      }
+    },
+    "depd": {
+      "globals": {
+        "Error.captureStackTrace": true,
+        "Error.prepareStackTrace": "write",
+        "Error.stackTraceLimit": "write"
+      }
+    },
+    "morgan>depd": {
+      "builtin": {
+        "path.relative": true
+      },
+      "globals": {
+        "process": true
+      }
+    },
+    "express>send>destroy": {
+      "builtin": {
+        "events.EventEmitter": true,
+        "fs.ReadStream": true,
+        "stream": true,
+        "zlib.Deflate": true,
+        "zlib.DeflateRaw": true,
+        "zlib.Gunzip": true,
+        "zlib.Gzip": true,
+        "zlib.Inflate": true,
+        "zlib.InflateRaw": true,
+        "zlib.Unzip": true
+      }
+    },
+    "eslint-plugin-import>array-includes>get-intrinsic>get-proto>dunder-proto": {
+      "packages": {
+        "eslint-plugin-import>object.values>call-bind>call-bind-apply-helpers": true,
+        "eslint-plugin-import>array-includes>es-abstract>gopd": true
+      }
+    },
+    "jsonwebtoken>jws>jwa>ecdsa-sig-formatter": {
+      "packages": {
+        "morgan>basic-auth>safe-buffer": true
+      }
+    },
+    "@hathor/wallet-lib>bitcore-lib>elliptic": {
+      "packages": {
+        "@hathor/wallet-lib>bitcore-lib>elliptic>bn.js": true,
+        "@hathor/wallet-lib>bitcore-lib>elliptic>brorand": true,
+        "@hathor/wallet-lib>bitcore-lib>elliptic>hash.js": true,
+        "@hathor/wallet-lib>bitcore-lib>elliptic>hmac-drbg": true,
+        "express>http-errors>inherits": true,
+        "@hathor/wallet-lib>bitcore-lib>elliptic>minimalistic-assert": true,
+        "@hathor/wallet-lib>bitcore-lib>elliptic>minimalistic-crypto-utils": true
+      }
+    },
+    "express>etag": {
+      "builtin": {
+        "crypto.createHash": true,
+        "fs.Stats": true
+      },
+      "globals": {
+        "Buffer.byteLength": true,
+        "Buffer.isBuffer": true
+      }
+    },
+    "express": {
+      "builtin": {
+        "events.EventEmitter.prototype": true,
+        "fs.statSync": true,
+        "http.IncomingMessage.prototype": true,
+        "http.ServerResponse.prototype": true,
+        "http.createServer": true,
+        "net.isIP": true,
+        "path.basename": true,
+        "path.dirname": true,
+        "path.extname": true,
+        "path.join": true,
+        "path.resolve": true,
+        "querystring.parse": true
+      },
+      "globals": {
+        "console.error": true,
+        "process.env.NODE_ENV": true,
+        "setImmediate": true
+      },
+      "packages": {
+        "express>accepts": true,
+        "express>array-flatten": true,
+        "express>body-parser": true,
+        "express>content-disposition": true,
+        "express>content-type": true,
+        "express>cookie-signature": true,
+        "express>cookie": true,
+        "morgan>debug": true,
+        "morgan>depd": true,
+        "express>encodeurl": true,
+        "express>escape-html": true,
+        "express>etag": true,
+        "express>finalhandler": true,
+        "express>fresh": true,
+        "express>http-errors": true,
+        "express>merge-descriptors": true,
+        "express>methods": true,
+        "express>on-finished": true,
+        "express>parseurl": true,
+        "express>path-to-regexp": true,
+        "express>proxy-addr": true,
+        "express>qs": true,
+        "express>range-parser": true,
+        "express>safe-buffer": true,
+        "express>send": true,
+        "express>serve-static": true,
+        "express>setprototypeof": true,
+        "express>statuses": true,
+        "express>type-is": true,
+        "express>utils-merge": true,
+        "express>vary": true
+      }
+    },
+    "express-validator": {
+      "globals": {
+        "console.warn": true
+      },
+      "packages": {
+        "lodash": true,
+        "validator": true
+      }
+    },
+    "winston>logform>fecha": {
+      "globals": {
+        "define": true
+      }
+    },
+    "express>finalhandler": {
+      "globals": {
+        "Buffer.byteLength": true,
+        "process.env.NODE_ENV": true,
+        "process.nextTick": true,
+        "setImmediate": true
+      },
+      "packages": {
+        "morgan>debug": true,
+        "express>encodeurl": true,
+        "express>escape-html": true,
+        "express>finalhandler>on-finished": true,
+        "express>parseurl": true,
+        "express>statuses": true,
+        "express>body-parser>unpipe": true
+      }
+    },
+    "axios>follow-redirects": {
+      "builtin": {
+        "assert": true,
+        "http": true,
+        "https": true,
+        "stream.Writable.call": true,
+        "stream.Writable.prototype": true,
+        "url.URL": true,
+        "url.format": true,
+        "url.parse": true,
+        "url.resolve": true
+      },
+      "globals": {
+        "clearTimeout": true,
+        "setTimeout": true
+      },
+      "packages": {
+        "morgan>debug": true
+      }
+    },
+    "axios>form-data": {
+      "builtin": {
+        "fs.stat": true,
+        "http.request": true,
+        "https.request": true,
+        "path.basename": true,
+        "path.normalize": true,
+        "stream.Stream": true,
+        "url.parse": true,
+        "util.inherits": true,
+        "util.isArray": true
+      },
+      "globals": {
+        "Buffer.alloc": true,
+        "Buffer.byteLength": true,
+        "Buffer.concat": true,
+        "Buffer.from": true,
+        "Buffer.isBuffer": true,
+        "process.nextTick": true
+      },
+      "packages": {
+        "axios>form-data>asynckit": true,
+        "axios>form-data>combined-stream": true,
+        "axios>form-data>mime-types": true
+      }
+    },
+    "eslint-plugin-import>array-includes>get-intrinsic": {
+      "globals": {
+        "AggregateError": true,
+        "FinalizationRegistry": true,
+        "Float16Array": true,
+        "WeakRef": true
+      },
+      "packages": {
+        "eslint-plugin-import>object.values>call-bind>call-bind-apply-helpers": true,
+        "eslint-plugin-import>object.values>call-bind>es-define-property": true,
+        "eslint-plugin-import>array.prototype.findlastindex>es-errors": true,
+        "eslint-plugin-import>object.values>es-object-atoms": true,
+        "eslint-plugin-import>hasown>function-bind": true,
+        "eslint-plugin-import>array-includes>get-intrinsic>get-proto": true,
+        "eslint-plugin-import>array-includes>es-abstract>gopd": true,
+        "eslint-config-airbnb-base>object.assign>has-symbols": true,
+        "eslint-plugin-import>hasown": true,
+        "eslint-plugin-import>array-includes>get-intrinsic>math-intrinsics": true
+      }
+    },
+    "eslint-plugin-import>array-includes>get-intrinsic>get-proto": {
+      "packages": {
+        "eslint-plugin-import>array-includes>get-intrinsic>get-proto>dunder-proto": true,
+        "eslint-plugin-import>object.values>es-object-atoms": true
+      }
+    },
+    "eslint-plugin-import>object.values>define-properties>has-property-descriptors": {
+      "packages": {
+        "eslint-plugin-import>object.values>call-bind>es-define-property": true
+      }
+    },
+    "@hathor/wallet-lib>bitcore-lib>elliptic>hash.js": {
+      "packages": {
+        "express>http-errors>inherits": true,
+        "@hathor/wallet-lib>bitcore-lib>elliptic>minimalistic-assert": true
+      }
+    },
+    "eslint-plugin-import>hasown": {
+      "packages": {
+        "eslint-plugin-import>hasown>function-bind": true
+      }
+    },
+    "@hathor/wallet-lib>bitcore-lib>elliptic>hmac-drbg": {
+      "packages": {
+        "@hathor/wallet-lib>bitcore-lib>elliptic>hash.js": true,
+        "@hathor/wallet-lib>bitcore-lib>elliptic>minimalistic-assert": true,
+        "@hathor/wallet-lib>bitcore-lib>elliptic>minimalistic-crypto-utils": true
+      }
+    },
+    "express>http-errors": {
+      "packages": {
+        "morgan>depd": true,
+        "express>http-errors>inherits": true,
+        "express>setprototypeof": true,
+        "express>statuses": true,
+        "express>http-errors>toidentifier": true
+      }
+    },
+    "express>body-parser>iconv-lite": {
+      "builtin": {
+        "buffer.Buffer": true,
+        "buffer.SlowBuffer.byteLength": true,
+        "buffer.SlowBuffer.prototype.toString": true,
+        "buffer.SlowBuffer.prototype.write": true,
+        "stream.Readable.prototype.collect": true,
+        "stream.Readable.prototype.setEncoding": true,
+        "stream.Transform.call": true,
+        "stream.Transform.prototype": true,
+        "string_decoder.StringDecoder.call": true,
+        "string_decoder.StringDecoder.prototype": true
+      },
+      "globals": {
+        "console.error": true,
+        "process": true
+      },
+      "packages": {
+        "express>body-parser>iconv-lite>safer-buffer": true
+      }
+    },
+    "@hathor/wallet-lib>bitcore-lib>inherits": {
+      "builtin": {
+        "util.inherits": true
+      }
+    },
+    "express>http-errors>inherits": {
+      "builtin": {
+        "util.inherits": true
+      }
+    },
+    "@hathor/wallet-lib>isomorphic-ws": {
+      "packages": {
+        "@hathor/wallet-lib>ws": true
+      }
+    },
+    "jsonwebtoken": {
+      "builtin": {
+        "crypto.KeyObject": true,
+        "crypto.createPrivateKey": true,
+        "crypto.createPublicKey": true,
+        "crypto.createSecretKey": true
+      },
+      "globals": {
+        "Buffer.from": true,
+        "Buffer.isBuffer": true,
+        "process.version": true
+      },
+      "packages": {
+        "jsonwebtoken>jws": true,
+        "jsonwebtoken>lodash.includes": true,
+        "jsonwebtoken>lodash.isboolean": true,
+        "jsonwebtoken>lodash.isinteger": true,
+        "jsonwebtoken>lodash.isnumber": true,
+        "jsonwebtoken>lodash.isplainobject": true,
+        "jsonwebtoken>lodash.isstring": true,
+        "jsonwebtoken>lodash.once": true,
+        "jsonwebtoken>ms": true,
+        "jsonwebtoken>semver": true
+      }
+    },
+    "jsonwebtoken>jws>jwa": {
+      "builtin": {
+        "crypto.constants.RSA_PKCS1_PSS_PADDING": true,
+        "crypto.constants.RSA_PSS_SALTLEN_DIGEST": true,
+        "crypto.createHmac": true,
+        "crypto.createPublicKey": true,
+        "crypto.createSign": true,
+        "crypto.createVerify": true,
+        "util": true
+      },
+      "packages": {
+        "jsonwebtoken>jws>jwa>buffer-equal-constant-time": true,
+        "jsonwebtoken>jws>jwa>ecdsa-sig-formatter": true,
+        "morgan>basic-auth>safe-buffer": true
+      }
+    },
+    "jsonwebtoken>jws": {
+      "builtin": {
+        "buffer.Buffer.isBuffer": true,
+        "stream": true,
+        "util.format": true,
+        "util.inherits": true
+      },
+      "globals": {
+        "process.nextTick": true
+      },
+      "packages": {
+        "jsonwebtoken>jws>jwa": true,
+        "morgan>basic-auth>safe-buffer": true
+      }
+    },
+    "lodash": {
+      "globals": {
+        "define": true
+      }
+    },
+    "winston>logform": {
+      "builtin": {
+        "util.format": true,
+        "util.inspect": true
+      },
+      "packages": {
+        "winston>@colors/colors": true,
+        "winston>logform>fecha": true,
+        "winston>logform>ms": true,
+        "winston>safe-stable-stringify": true,
+        "winston>triple-beam": true
+      }
+    },
+    "nodemon>semver>lru-cache": {
+      "packages": {
+        "nodemon>semver>lru-cache>yallist": true
+      }
+    },
+    "express>methods": {
+      "builtin": {
+        "http.METHODS": true
+      }
+    },
+    "axios>form-data>mime-types": {
+      "builtin": {
+        "path.extname": true
+      },
+      "packages": {
+        "axios>form-data>mime-types>mime-db": true
+      }
+    },
+    "express>send>mime": {
+      "builtin": {
+        "fs.readFileSync": true,
+        "path": true
+      },
+      "globals": {
+        "console.warn": true,
+        "process.env.DEBUG_MIME": true
+      }
+    },
+    "morgan": {
+      "globals": {
+        "process.hrtime": true,
+        "process.stdout": true,
+        "setTimeout": true
+      },
+      "packages": {
+        "morgan>basic-auth": true,
+        "morgan>debug": true,
+        "morgan>depd": true,
+        "morgan>on-finished": true,
+        "morgan>on-headers": true
+      }
+    },
+    "@dinamonetworks/hsm-dinamo>node-aes-cmac": {
+      "builtin": {
+        "crypto.createCipheriv": true
+      },
+      "globals": {
+        "Buffer": true
+      }
+    },
+    "express>qs>side-channel>object-inspect": {
+      "builtin": {
+        "util.inspect": true
+      },
+      "globals": {
+        "HTMLElement": true,
+        "WeakRef": true
+      }
+    },
+    "express>body-parser>on-finished": {
+      "builtin": {
+        "async_hooks": true
+      },
+      "globals": {
+        "process.nextTick": true,
+        "setImmediate": true
+      },
+      "packages": {
+        "morgan>on-finished>ee-first": true
+      }
+    },
+    "express>on-finished": {
+      "builtin": {
+        "async_hooks": true
+      },
+      "globals": {
+        "process.nextTick": true,
+        "setImmediate": true
+      },
+      "packages": {
+        "morgan>on-finished>ee-first": true
+      }
+    },
+    "express>finalhandler>on-finished": {
+      "builtin": {
+        "async_hooks": true
+      },
+      "globals": {
+        "process.nextTick": true,
+        "setImmediate": true
+      },
+      "packages": {
+        "morgan>on-finished>ee-first": true
+      }
+    },
+    "morgan>on-finished": {
+      "globals": {
+        "process.nextTick": true,
+        "setImmediate": true
+      },
+      "packages": {
+        "morgan>on-finished>ee-first": true
+      }
+    },
+    "express>send>on-finished": {
+      "builtin": {
+        "async_hooks": true
+      },
+      "globals": {
+        "process.nextTick": true,
+        "setImmediate": true
+      },
+      "packages": {
+        "morgan>on-finished>ee-first": true
+      }
+    },
+    "winston>one-time": {
+      "packages": {
+        "winston>one-time>fn.name": true
+      }
+    },
+    "express>parseurl": {
+      "builtin": {
+        "url.Url": true,
+        "url.parse": true
+      }
+    },
+    "express>proxy-addr": {
+      "packages": {
+        "express>proxy-addr>forwarded": true,
+        "express>proxy-addr>ipaddr.js": true
+      }
+    },
+    "axios>proxy-from-env": {
+      "builtin": {
+        "url.parse": true
+      },
+      "globals": {
+        "process.env": true
+      }
+    },
+    "express>qs": {
+      "packages": {
+        "express>qs>side-channel": true
+      }
+    },
+    "@hathor/wallet-lib>queue-microtask": {
+      "globals": {
+        "queueMicrotask": true,
+        "setTimeout": true
+      }
+    },
+    "express>body-parser>raw-body": {
+      "builtin": {
+        "async_hooks": true
+      },
+      "globals": {
+        "Buffer.concat": true,
+        "process.nextTick": true
+      },
+      "packages": {
+        "express>body-parser>bytes": true,
+        "express>http-errors": true,
+        "express>body-parser>iconv-lite": true,
+        "express>body-parser>unpipe": true
+      }
+    },
+    "winston>readable-stream": {
+      "builtin": {
+        "buffer.Buffer": true,
+        "events.EventEmitter": true,
+        "stream": true,
+        "util": true
+      },
+      "globals": {
+        "process.env.READABLE_STREAM": true,
+        "process.nextTick": true,
+        "process.stderr": true,
+        "process.stdout": true
+      },
+      "packages": {
+        "express>http-errors>inherits": true,
+        "winston>readable-stream>string_decoder": true,
+        "winston>readable-stream>util-deprecate": true
+      }
+    },
+    "morgan>basic-auth>safe-buffer": {
+      "builtin": {
+        "buffer": true
+      }
+    },
+    "express>content-disposition>safe-buffer": {
+      "builtin": {
+        "buffer": true
+      }
+    },
+    "express>safe-buffer": {
+      "builtin": {
+        "buffer": true
+      }
+    },
+    "express>body-parser>iconv-lite>safer-buffer": {
+      "builtin": {
+        "buffer": true
+      },
+      "globals": {
+        "process.binding": true
+      }
+    },
+    "jsonwebtoken>semver": {
+      "globals": {
+        "console.error": true,
+        "process": true
+      },
+      "packages": {
+        "nodemon>semver>lru-cache": true
+      }
+    },
+    "express>send": {
+      "builtin": {
+        "fs.createReadStream": true,
+        "fs.stat": true,
+        "path.extname": true,
+        "path.join": true,
+        "path.normalize": true,
+        "path.resolve": true,
+        "path.sep": true,
+        "stream": true,
+        "util.inherits": true
+      },
+      "globals": {
+        "Buffer.byteLength": true
+      },
+      "packages": {
+        "morgan>debug": true,
+        "morgan>depd": true,
+        "express>send>destroy": true,
+        "express>encodeurl": true,
+        "express>escape-html": true,
+        "express>etag": true,
+        "express>fresh": true,
+        "express>http-errors": true,
+        "express>send>mime": true,
+        "express>send>ms": true,
+        "express>send>on-finished": true,
+        "express>range-parser": true,
+        "express>statuses": true
+      }
+    },
+    "express>serve-static": {
+      "builtin": {
+        "path.resolve": true,
+        "url.format": true
+      },
+      "globals": {
+        "Buffer.byteLength": true
+      },
+      "packages": {
+        "express>encodeurl": true,
+        "express>escape-html": true,
+        "express>parseurl": true,
+        "express>send": true
+      }
+    },
+    "eslint-plugin-import>object.values>call-bind>set-function-length": {
+      "packages": {
+        "eslint-plugin-import>object.values>define-properties>define-data-property": true,
+        "eslint-plugin-import>array.prototype.findlastindex>es-errors": true,
+        "eslint-plugin-import>array-includes>get-intrinsic": true,
+        "eslint-plugin-import>array-includes>es-abstract>gopd": true,
+        "eslint-plugin-import>object.values>define-properties>has-property-descriptors": true
+      }
+    },
+    "express>qs>side-channel": {
+      "packages": {
+        "eslint-plugin-import>object.values>call-bind": true,
+        "eslint-plugin-import>array-includes>get-intrinsic": true,
+        "express>qs>side-channel>object-inspect": true
+      }
+    },
+    "winston>@dabh/diagnostics>colorspace>color>color-string>simple-swizzle": {
+      "packages": {
+        "winston>@dabh/diagnostics>colorspace>color>color-string>simple-swizzle>is-arrayish": true
+      }
+    },
+    "winston>readable-stream>string_decoder": {
+      "packages": {
+        "morgan>basic-auth>safe-buffer": true
+      }
+    },
+    "express>type-is": {
+      "packages": {
+        "express>type-is>media-typer": true,
+        "axios>form-data>mime-types": true
+      }
+    },
+    "@hathor/wallet-lib>bitcore-mnemonic>unorm": {
+      "globals": {
+        "define": true
+      }
+    },
+    "winston>readable-stream>util-deprecate": {
+      "builtin": {
+        "util.deprecate": true
+      }
+    },
+    "uuid4": {
+      "builtin": {
+        "crypto.randomBytes": true
+      }
+    },
+    "winston": {
+      "builtin": {
+        "fs.F_OK": true,
+        "fs.access": true,
+        "fs.close": true,
+        "fs.createReadStream": true,
+        "fs.createWriteStream": true,
+        "fs.exists": true,
+        "fs.existsSync": true,
+        "fs.mkdirSync": true,
+        "fs.open": true,
+        "fs.read": true,
+        "fs.rename": true,
+        "fs.stat": true,
+        "fs.unlink": true,
+        "http": true,
+        "https": true,
+        "os.EOL": true,
+        "os.loadavg": true,
+        "os.uptime": true,
+        "path.basename": true,
+        "path.dirname": true,
+        "path.extname": true,
+        "path.join": true,
+        "string_decoder.StringDecoder": true,
+        "util.format": true,
+        "zlib.createGzip": true
+      },
+      "globals": {
+        "Buffer.alloc": true,
+        "Buffer.byteLength": true,
+        "Buffer.from": true,
+        "clearTimeout": true,
+        "console._stderr": true,
+        "console._stdout": true,
+        "console.error": true,
+        "console.log": true,
+        "console.warn": true,
+        "process._exiting": true,
+        "process.argv": true,
+        "process.cwd": true,
+        "process.execPath": true,
+        "process.exit": true,
+        "process.getgid": true,
+        "process.getuid": true,
+        "process.memoryUsage": true,
+        "process.nextTick": true,
+        "process.on": true,
+        "process.pid": true,
+        "process.removeListener": true,
+        "process.version": true,
+        "setImmediate": true,
+        "setTimeout": true
+      },
+      "packages": {
+        "winston>@dabh/diagnostics": true,
+        "winston>async": true,
+        "winston>is-stream": true,
+        "winston>logform": true,
+        "winston>one-time": true,
+        "winston>readable-stream": true,
+        "winston>safe-stable-stringify": true,
+        "winston>stack-trace": true,
+        "winston>triple-beam": true,
+        "winston>winston-transport": true
+      }
+    },
+    "winston>winston-transport": {
+      "builtin": {
+        "util.inherits": true
+      },
+      "globals": {
+        "console.error": true
+      },
+      "packages": {
+        "winston>readable-stream": true,
+        "winston>triple-beam": true
+      }
+    },
+    "@hathor/wallet-lib>ws": {
+      "builtin": {
+        "buffer.isUtf8": true,
+        "crypto.createHash": true,
+        "crypto.randomBytes": true,
+        "crypto.randomFillSync": true,
+        "events": true,
+        "http.STATUS_CODES": true,
+        "http.createServer": true,
+        "http.request": true,
+        "https.request": true,
+        "net.connect": true,
+        "net.isIP": true,
+        "stream.Duplex": true,
+        "stream.Readable": true,
+        "stream.Writable": true,
+        "tls.connect": true,
+        "url.URL": true,
+        "zlib.Z_DEFAULT_WINDOWBITS": true,
+        "zlib.Z_SYNC_FLUSH": true,
+        "zlib.createDeflateRaw": true,
+        "zlib.createInflateRaw": true
+      },
+      "globals": {
+        "Buffer": true,
+        "clearTimeout": true,
+        "process.env.WS_NO_BUFFER_UTIL": true,
+        "process.env.WS_NO_UTF_8_VALIDATE": true,
+        "process.nextTick": true,
+        "setImmediate": true,
+        "setTimeout": true
+      }
+    },
+    "zod": {
+      "globals": {
+        "URL": true
+      }
+    }
+  }
+}
