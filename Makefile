@@ -89,3 +89,8 @@ xpub_from_seed: .script-build-dirs .run_xpub_from_seed .script-clean-dirs
 # Command: Derive multisig xPub from seed
 .PHONY: multisig_xpub_from_seed
 multisig_xpub_from_seed: .script-build-dirs .run_multisig_xpub_from_seed .script-clean-dirs
+
+# Command: Regenerate LavaMoat policy from production dependencies
+.PHONY: lavamoat_policy
+lavamoat_policy:
+	bash scripts/generate-lavamoat-policy.sh
