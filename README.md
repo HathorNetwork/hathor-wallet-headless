@@ -12,6 +12,76 @@ A **headless wallet** is a wallet application whose interface is an API.
 
 To know how to operate and use Hathor headless wallet, see [Hathor headless wallet at Hathor docs — official technical documentation of Hathor](https://docs.hathor.network/pathways/components/headless-wallet).
 
+### Running with Docker
+
+The easiest way to run the headless wallet is with Docker. Pre-built images are available on [Docker Hub](https://hub.docker.com/r/hathornetwork/hathor-wallet-headless):
+
+```bash
+docker run -p 8000:8000 --env-file .env.headless hathornetwork/hathor-wallet-headless
+```
+
+Where `.env.headless` contains your configuration (do not commit this file):
+
+```
+HEADLESS_NETWORK=mainnet
+HEADLESS_SERVER=https://node1.mainnet.hathor.network/v1a/
+HEADLESS_SEED_DEFAULT=your seed words here
+HEADLESS_API_KEY=your_api_key
+```
+
+### Running from source
+
+Requirements: Node.js >= 22.0.0, npm >= 10.0.0.
+
+```bash
+# Install all dependencies (needed for the build step)
+npm ci
+
+# Copy and edit the configuration file
+cp config.js.template config.js
+# Edit config.js with your settings (seed, network, server, etc.)
+
+# Build the project
+npm run build
+
+# Remove dev dependencies so the runtime matches the LavaMoat policy
+rm -rf node_modules
+npm ci --only=production
+
+# Run
+npm run start:lavamoat
+```
+
+> **Note:** The [LavaMoat](https://github.com/LavaMoat/LavaMoat) security policy is generated against production dependencies. Dev dependencies change the dependency resolution paths, causing policy violations at runtime. That's why dev dependencies must be removed after building.
+
+### Development
+
+For local development without LavaMoat:
+
+```bash
+npm ci
+cp config.js.template config.js
+# Edit config.js with your settings
+
+# Run without LavaMoat (uses nodemon for auto-reload)
+npm run dev
+
+# Or build and run without LavaMoat
+npm run start
+```
+
+To test with LavaMoat locally, follow the [Running from source](#running-from-source) steps above.
+
+### Regenerating the LavaMoat policy
+
+When dependencies change, the LavaMoat policy must be regenerated. Use the provided script that generates the policy against production dependencies inside Docker:
+
+```bash
+make lavamoat_policy
+```
+
+This requires Docker to be running. The script builds the project with the Docker config, spins up a container with production-only `node_modules`, and runs `lavamoat --autopolicy` inside it.
+
 ## Support
 
 If after consulting the documentation, you still need **help to operate and use Hathor headless wallet**, [send a message to the `#development` channel on Hathor Discord server for assistance from Hathor team and community members](https://discord.com/channels/566500848570466316/663785995082268713).
