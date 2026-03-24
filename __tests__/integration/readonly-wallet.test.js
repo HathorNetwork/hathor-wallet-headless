@@ -103,7 +103,7 @@ describe('Readonly wallet', () => {
       .send({
         xpubkey,
         'wallet-id': walletId,
-        precalculatedAddresses: addresses,
+        preCalculatedAddresses: addresses,
       });
     expect(response.status).toEqual(200);
     expect(response.body.success).toBe(true);
