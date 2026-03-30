@@ -89,6 +89,11 @@
         "express>accepts>negotiator": true
       }
     },
+    "yargs>cliui>wrap-ansi>ansi-styles": {
+      "packages": {
+        "yargs>cliui>wrap-ansi>ansi-styles>color-convert": true
+      }
+    },
     "winston>async": {
       "globals": {
         "process": true,
@@ -128,16 +133,16 @@
         "Response": true,
         "TextEncoder": true,
         "URL": true,
-        "WorkerGlobalScope": true,
-        "XMLHttpRequest": true,
+        "WorkerGlobalScope": false,
+        "XMLHttpRequest": false,
         "btoa": true,
         "clearTimeout": true,
         "console.warn": true,
-        "document": true,
+        "document": false,
         "fetch": true,
-        "importScripts": true,
-        "location.href": true,
-        "navigator": true,
+        "importScripts": false,
+        "location.href": false,
+        "navigator": false,
         "process": true,
         "queueMicrotask": true,
         "setImmediate": true,
@@ -256,18 +261,33 @@
         "buffer.SlowBuffer.prototype.equal": true
       }
     },
-    "eslint-plugin-import>object.values>call-bind>call-bind-apply-helpers": {
+    "express>qs>side-channel>call-bind>call-bind-apply-helpers": {
       "packages": {
-        "eslint-plugin-import>array.prototype.findlastindex>es-errors": true,
-        "eslint-plugin-import>hasown>function-bind": true
+        "express>qs>side-channel>get-intrinsic>es-errors": true,
+        "express>qs>side-channel>get-intrinsic>function-bind": true
       }
     },
-    "eslint-plugin-import>object.values>call-bind": {
+    "express>qs>side-channel>call-bind": {
       "packages": {
-        "eslint-plugin-import>object.values>call-bind>call-bind-apply-helpers": true,
-        "eslint-plugin-import>object.values>call-bind>es-define-property": true,
-        "eslint-plugin-import>array-includes>get-intrinsic": true,
-        "eslint-plugin-import>object.values>call-bind>set-function-length": true
+        "express>qs>side-channel>call-bind>call-bind-apply-helpers": true,
+        "express>qs>side-channel>call-bind>es-define-property": true,
+        "express>qs>side-channel>get-intrinsic": true,
+        "express>qs>side-channel>call-bind>set-function-length": true
+      }
+    },
+    "yargs>cliui": {
+      "globals": {
+        "process": true
+      },
+      "packages": {
+        "yargs>string-width": true,
+        "yargs>cliui>strip-ansi": true,
+        "yargs>cliui>wrap-ansi": true
+      }
+    },
+    "yargs>cliui>wrap-ansi>ansi-styles>color-convert": {
+      "packages": {
+        "yargs>cliui>wrap-ansi>ansi-styles>color-convert>color-name": true
       }
     },
     "winston>@dabh/diagnostics>colorspace>color>color-convert": {
@@ -338,22 +358,22 @@
         "util": true
       },
       "globals": {
-        "chrome": true,
+        "chrome": false,
         "console": true,
-        "document": true,
-        "localStorage": true,
-        "navigator": true,
+        "document": false,
+        "localStorage": false,
+        "navigator": false,
         "process": true
       },
       "packages": {
         "morgan>debug>ms": true
       }
     },
-    "eslint-plugin-import>object.values>define-properties>define-data-property": {
+    "express>qs>side-channel>call-bind>set-function-length>define-data-property": {
       "packages": {
-        "eslint-plugin-import>object.values>call-bind>es-define-property": true,
-        "eslint-plugin-import>array.prototype.findlastindex>es-errors": true,
-        "eslint-plugin-import>array-includes>es-abstract>gopd": true
+        "express>qs>side-channel>call-bind>es-define-property": true,
+        "express>qs>side-channel>get-intrinsic>es-errors": true,
+        "express>qs>side-channel>get-intrinsic>gopd": true
       }
     },
     "axios>form-data>combined-stream>delayed-stream": {
@@ -391,10 +411,10 @@
         "zlib.Unzip": true
       }
     },
-    "eslint-plugin-import>array-includes>get-intrinsic>get-proto>dunder-proto": {
+    "express>qs>side-channel>get-intrinsic>get-proto>dunder-proto": {
       "packages": {
-        "eslint-plugin-import>object.values>call-bind>call-bind-apply-helpers": true,
-        "eslint-plugin-import>array-includes>es-abstract>gopd": true
+        "express>qs>side-channel>call-bind>call-bind-apply-helpers": true,
+        "express>qs>side-channel>get-intrinsic>gopd": true
       }
     },
     "jsonwebtoken>jws>jwa>ecdsa-sig-formatter": {
@@ -411,6 +431,14 @@
         "express>http-errors>inherits": true,
         "@hathor/wallet-lib>bitcore-lib>elliptic>minimalistic-assert": true,
         "@hathor/wallet-lib>bitcore-lib>elliptic>minimalistic-crypto-utils": true
+      }
+    },
+    "yargs>escalade": {
+      "builtin": {
+        "fs.readdirSync": true,
+        "fs.statSync": true,
+        "path.dirname": true,
+        "path.resolve": true
       }
     },
     "express>etag": {
@@ -554,7 +582,7 @@
         "axios>form-data>mime-types": true
       }
     },
-    "eslint-plugin-import>array-includes>get-intrinsic": {
+    "express>qs>side-channel>get-intrinsic": {
       "globals": {
         "AggregateError": true,
         "FinalizationRegistry": true,
@@ -562,27 +590,27 @@
         "WeakRef": true
       },
       "packages": {
-        "eslint-plugin-import>object.values>call-bind>call-bind-apply-helpers": true,
-        "eslint-plugin-import>object.values>call-bind>es-define-property": true,
-        "eslint-plugin-import>array.prototype.findlastindex>es-errors": true,
-        "eslint-plugin-import>object.values>es-object-atoms": true,
-        "eslint-plugin-import>hasown>function-bind": true,
-        "eslint-plugin-import>array-includes>get-intrinsic>get-proto": true,
-        "eslint-plugin-import>array-includes>es-abstract>gopd": true,
-        "eslint-config-airbnb-base>object.assign>has-symbols": true,
-        "eslint-plugin-import>hasown": true,
-        "eslint-plugin-import>array-includes>get-intrinsic>math-intrinsics": true
+        "express>qs>side-channel>call-bind>call-bind-apply-helpers": true,
+        "express>qs>side-channel>call-bind>es-define-property": true,
+        "express>qs>side-channel>get-intrinsic>es-errors": true,
+        "express>qs>side-channel>get-intrinsic>es-object-atoms": true,
+        "express>qs>side-channel>get-intrinsic>function-bind": true,
+        "express>qs>side-channel>get-intrinsic>get-proto": true,
+        "express>qs>side-channel>get-intrinsic>gopd": true,
+        "express>qs>side-channel>get-intrinsic>has-symbols": true,
+        "lavamoat>resolve>is-core-module>hasown": true,
+        "express>qs>side-channel>get-intrinsic>math-intrinsics": true
       }
     },
-    "eslint-plugin-import>array-includes>get-intrinsic>get-proto": {
+    "express>qs>side-channel>get-intrinsic>get-proto": {
       "packages": {
-        "eslint-plugin-import>array-includes>get-intrinsic>get-proto>dunder-proto": true,
-        "eslint-plugin-import>object.values>es-object-atoms": true
+        "express>qs>side-channel>get-intrinsic>get-proto>dunder-proto": true,
+        "express>qs>side-channel>get-intrinsic>es-object-atoms": true
       }
     },
-    "eslint-plugin-import>object.values>define-properties>has-property-descriptors": {
+    "express>qs>side-channel>call-bind>set-function-length>has-property-descriptors": {
       "packages": {
-        "eslint-plugin-import>object.values>call-bind>es-define-property": true
+        "express>qs>side-channel>call-bind>es-define-property": true
       }
     },
     "@hathor/wallet-lib>bitcore-lib>elliptic>hash.js": {
@@ -591,9 +619,9 @@
         "@hathor/wallet-lib>bitcore-lib>elliptic>minimalistic-assert": true
       }
     },
-    "eslint-plugin-import>hasown": {
+    "lavamoat>resolve>is-core-module>hasown": {
       "packages": {
-        "eslint-plugin-import>hasown>function-bind": true
+        "express>qs>side-channel>get-intrinsic>function-bind": true
       }
     },
     "@hathor/wallet-lib>bitcore-lib>elliptic>hmac-drbg": {
@@ -645,7 +673,7 @@
     },
     "@hathor/wallet-lib>isomorphic-ws": {
       "packages": {
-        "@hathor/wallet-lib>ws": true
+        "ws": true
       }
     },
     "jsonwebtoken": {
@@ -722,9 +750,9 @@
         "winston>triple-beam": true
       }
     },
-    "nodemon>semver>lru-cache": {
+    "jsonwebtoken>semver>lru-cache": {
       "packages": {
-        "nodemon>semver>lru-cache>yallist": true
+        "jsonwebtoken>semver>lru-cache>yallist": true
       }
     },
     "express>methods": {
@@ -908,6 +936,15 @@
         "winston>readable-stream>util-deprecate": true
       }
     },
+    "yargs>require-directory": {
+      "builtin": {
+        "fs.readdirSync": true,
+        "fs.statSync": true,
+        "path.dirname": true,
+        "path.join": true,
+        "path.resolve": true
+      }
+    },
     "morgan>basic-auth>safe-buffer": {
       "builtin": {
         "buffer": true
@@ -937,7 +974,7 @@
         "process": true
       },
       "packages": {
-        "nodemon>semver>lru-cache": true
+        "jsonwebtoken>semver>lru-cache": true
       }
     },
     "express>send": {
@@ -986,19 +1023,19 @@
         "express>send": true
       }
     },
-    "eslint-plugin-import>object.values>call-bind>set-function-length": {
+    "express>qs>side-channel>call-bind>set-function-length": {
       "packages": {
-        "eslint-plugin-import>object.values>define-properties>define-data-property": true,
-        "eslint-plugin-import>array.prototype.findlastindex>es-errors": true,
-        "eslint-plugin-import>array-includes>get-intrinsic": true,
-        "eslint-plugin-import>array-includes>es-abstract>gopd": true,
-        "eslint-plugin-import>object.values>define-properties>has-property-descriptors": true
+        "express>qs>side-channel>call-bind>set-function-length>define-data-property": true,
+        "express>qs>side-channel>get-intrinsic>es-errors": true,
+        "express>qs>side-channel>get-intrinsic": true,
+        "express>qs>side-channel>get-intrinsic>gopd": true,
+        "express>qs>side-channel>call-bind>set-function-length>has-property-descriptors": true
       }
     },
     "express>qs>side-channel": {
       "packages": {
-        "eslint-plugin-import>object.values>call-bind": true,
-        "eslint-plugin-import>array-includes>get-intrinsic": true,
+        "express>qs>side-channel>call-bind": true,
+        "express>qs>side-channel>get-intrinsic": true,
         "express>qs>side-channel>object-inspect": true
       }
     },
@@ -1007,9 +1044,31 @@
         "winston>@dabh/diagnostics>colorspace>color>color-string>simple-swizzle>is-arrayish": true
       }
     },
+    "yargs>string-width": {
+      "packages": {
+        "yargs>string-width>emoji-regex": true,
+        "yargs>string-width>is-fullwidth-code-point": true,
+        "yargs>string-width>strip-ansi": true
+      }
+    },
     "winston>readable-stream>string_decoder": {
       "packages": {
         "morgan>basic-auth>safe-buffer": true
+      }
+    },
+    "yargs>cliui>strip-ansi": {
+      "packages": {
+        "yargs>cliui>strip-ansi>ansi-regex": true
+      }
+    },
+    "yargs>string-width>strip-ansi": {
+      "packages": {
+        "yargs>string-width>strip-ansi>ansi-regex": true
+      }
+    },
+    "yargs>cliui>wrap-ansi>strip-ansi": {
+      "packages": {
+        "yargs>cliui>wrap-ansi>strip-ansi>ansi-regex": true
       }
     },
     "express>type-is": {
@@ -1048,8 +1107,8 @@
         "fs.rename": true,
         "fs.stat": true,
         "fs.unlink": true,
-        "http": true,
-        "https": true,
+        "http": false,
+        "https": false,
         "os.EOL": true,
         "os.loadavg": true,
         "os.uptime": true,
@@ -1075,7 +1134,7 @@
         "process.argv": true,
         "process.cwd": true,
         "process.execPath": true,
-        "process.exit": true,
+        "process.exit": false,
         "process.getgid": true,
         "process.getuid": true,
         "process.memoryUsage": true,
@@ -1112,7 +1171,14 @@
         "winston>triple-beam": true
       }
     },
-    "@hathor/wallet-lib>ws": {
+    "yargs>cliui>wrap-ansi": {
+      "packages": {
+        "yargs>cliui>wrap-ansi>ansi-styles": true,
+        "yargs>string-width": true,
+        "yargs>cliui>wrap-ansi>strip-ansi": true
+      }
+    },
+    "ws": {
       "builtin": {
         "buffer.isUtf8": true,
         "crypto.createHash": true,
@@ -1136,6 +1202,7 @@
         "zlib.createInflateRaw": true
       },
       "globals": {
+        "Blob": true,
         "Buffer": true,
         "clearTimeout": true,
         "process.env.WS_NO_BUFFER_UTIL": true,
@@ -1143,6 +1210,51 @@
         "process.nextTick": true,
         "setImmediate": true,
         "setTimeout": true
+      }
+    },
+    "yargs>y18n": {
+      "builtin": {
+        "fs.readFileSync": true,
+        "fs.statSync": true,
+        "fs.writeFile": true,
+        "path.resolve": true,
+        "util.format": true
+      }
+    },
+    "yargs": {
+      "builtin": {
+        "assert.notStrictEqual": true,
+        "assert.strictEqual": true,
+        "fs.readFileSync": true,
+        "path": true,
+        "util.inspect": true
+      },
+      "globals": {
+        "__dirname": true,
+        "console.error": true,
+        "console.log": true,
+        "console.warn": true,
+        "process": true
+      },
+      "packages": {
+        "yargs>cliui": true,
+        "yargs>escalade": true,
+        "yargs>get-caller-file": true,
+        "yargs>require-directory": true,
+        "yargs>string-width": true,
+        "yargs>y18n": true,
+        "yargs>yargs-parser": true
+      }
+    },
+    "yargs>yargs-parser": {
+      "builtin": {
+        "fs.readFileSync": true,
+        "path.normalize": true,
+        "path.resolve": true,
+        "util.format": true
+      },
+      "globals": {
+        "process": true
       }
     },
     "zod": {
