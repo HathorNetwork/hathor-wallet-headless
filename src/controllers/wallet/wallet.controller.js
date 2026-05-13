@@ -79,10 +79,12 @@ async function getAddress(req, res) {
    */
   const { wallet } = req;
   const { index } = req.query;
+  // legacy defaults to true; pass false to get a shielded address
+  const legacy = req.query.legacy !== false;
   let address;
   if (index !== undefined) {
     // Because of isInt and toInt, it's safe to assume that index is now an integer >= 0
-    address = await wallet.getAddressAtIndex(index);
+    address = await wallet.getAddressAtIndex(index, { legacy });
   } else {
     const markAsUsed = req.query.mark_as_used || false;
     const addressInfo = await wallet.getCurrentAddress({ markAsUsed });

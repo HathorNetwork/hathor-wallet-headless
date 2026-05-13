@@ -274,6 +274,10 @@ async function runSendTransaction(sendTx, unlock) {
     if (!sendTx.transaction) {
       await sendTx.prepareTx();
     }
+    // Sign the transaction (sets input data, timestamp, and weight)
+    if (sendTx._currentStep === 'prepared') {
+      await sendTx.signTx();
+    }
     await sendTx.updateOutputSelected(true);
   } finally {
     // If an error happens or things go as planned we release the lock

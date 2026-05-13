@@ -2828,6 +2828,11 @@ const defaultApiDocs = {
                           type: 'integer',
                           description: 'Timelock value for the output. Used only for P2PKH or P2SH.'
                         },
+                        shielded: {
+                          type: 'integer',
+                          enum: [1, 2],
+                          description: 'Shielded output mode. 1 = AmountShielded (value hidden, token visible), 2 = FullShielded (value and token hidden). The recipient is identified by the shielded `address` itself — no separate pubkey field is required, the wallet derives the scan and spend pubkeys from the encoded shielded address. Each transaction MUST contain at least 2 shielded outputs (the protocol-level rule that keeps the blinding-factor balancing solvable).'
+                        },
                       }
                     },
                     description: 'Outputs to create the transaction.'

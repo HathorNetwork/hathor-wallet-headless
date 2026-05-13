@@ -62,6 +62,7 @@ walletRouter.get(
   '/address',
   query('index').isInt({ min: 0 }).optional().toInt(),
   query('mark_as_used').isBoolean().optional().toBoolean(),
+  query('legacy').isBoolean().optional().toBoolean(),
   getAddress
 );
 
@@ -247,6 +248,17 @@ walletRouter.post(
       isInt: {
         options: {
           min: 1
+        }
+      },
+      toInt: true,
+      optional: true
+    },
+    'outputs.*.shielded': {
+      in: ['body'],
+      isInt: {
+        options: {
+          min: 1,
+          max: 2
         }
       },
       toInt: true,

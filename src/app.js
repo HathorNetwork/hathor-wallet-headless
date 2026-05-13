@@ -37,6 +37,7 @@ const createApp = config => {
   // We configure a custom JSON reviver that Express will use to parse API requests.
   app.use(express.json({
     reviver: bigIntUtils.JSONBigInt.bigIntReviver,
+    limit: '10mb'
   }));
 
   app.use(express.urlencoded({ extended: true }));
@@ -51,7 +52,9 @@ const createApp = config => {
   app.use(ConfigErrorHandler);
   app.use(ReadonlyErrorHandler);
   app.use((err, req, res, next) => {
-    req.logger.error(err.stack);
+    if (req.logger) {
+      req.logger.error(err.stack);
+    }
     res.status(err.statusCode || 500).json({ message: err.message, stack: err.stack });
   });
 
