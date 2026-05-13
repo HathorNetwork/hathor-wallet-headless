@@ -9,8 +9,9 @@
   },
   "dependencies": {
     "@dinamonetworks/hsm-dinamo": "4.9.1",
+    "@hathor/ct-crypto-node": "0.4.0",
     "@hathor/healthcheck-lib": "0.1.0",
-    "@hathor/wallet-lib": "2.15.0",
+    "@hathor/wallet-lib": "0.0.10-shielded",
     "axios": "1.7.7",
     "express": "4.18.2",
     "express-validator": "6.10.0",
@@ -37,6 +38,10 @@
     "test_network_up": "docker compose -f ./__tests__/integration/docker-compose.yml up -d && mkdir -p tmp && cp ./__tests__/integration/configuration/precalculated-wallets.json ./tmp/wallets.json",
     "test_network_integration": "jest --config jest-integration.config.js --runInBand --forceExit",
     "test_network_down": "docker compose -f ./__tests__/integration/docker-compose.yml down && rm ./tmp/wallets.json",
+    "test_shielded_integration": "npm run test_shielded_network_up && npm run test_shielded_network_integration && npm run test_shielded_network_down",
+    "test_shielded_network_up": "docker compose -f ./__tests__/integration/docker-compose-shielded.yml up -d && mkdir -p tmp && cp ./__tests__/integration/configuration/precalculated-wallets.json ./tmp/wallets.json",
+    "test_shielded_network_integration": "SPECIFIC_INTEGRATION_TEST_FILE='shielded-*' jest --config jest-integration.config.js --runInBand --forceExit",
+    "test_shielded_network_down": "docker compose -f ./__tests__/integration/docker-compose-shielded.yml down && rm -f ./tmp/wallets.json",
     "lint": "eslint .",
     "lint_fix": "eslint . --fix",
     "generate_wallets": "babel-node scripts/generate_wallets.js",
@@ -73,6 +78,7 @@
     "jest": "29.7.0",
     "mock-socket": "9.3.1",
     "nodemon": "3.1.0",
+    "patch-package": "8.0.1",
     "superagent": "9.0.2",
     "supertest": "7.0.0"
   }
