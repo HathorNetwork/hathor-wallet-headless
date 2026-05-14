@@ -571,16 +571,34 @@ const defaultApiDocs = {
               type: 'string',
             },
           },
+          {
+            name: 'split',
+            in: 'query',
+            description: 'Return the balance partitioned into transparent and shielded buckets in addition to the aggregate `available` / `locked` totals. When omitted (default), the response shape is the legacy single-bucket form for backward compatibility.',
+            required: false,
+            schema: {
+              type: 'boolean',
+            },
+          },
         ],
         responses: {
           200: {
-            description: 'Balance of tokens available and locked. To get the total, you must sum them up.',
+            description: 'Balance of tokens available and locked. To get the total, you must sum them up. When `split=true` is passed, the response additionally exposes per-bucket breakdowns under `transparent` and `shielded`.',
             content: {
               'application/json': {
                 examples: {
                   success: {
-                    summary: 'Success',
+                    summary: 'Success (default — aggregate only)',
                     value: { available: 2, locked: 0 }
+                  },
+                  'success-split': {
+                    summary: 'Success (split=true)',
+                    value: {
+                      available: 500,
+                      locked: 0,
+                      transparent: { available: 200, locked: 0 },
+                      shielded: { available: 300, locked: 0 }
+                    }
                   },
                   'wallet-not-ready': {
                     summary: 'Wallet is not ready yet',
@@ -616,6 +634,16 @@ const defaultApiDocs = {
             required: false,
             schema: {
               type: 'integer',
+            },
+          },
+          {
+            name: 'legacy',
+            in: 'query',
+            description: 'Which derivation chain to read from. Defaults to `true` — the legacy P2PKH chain at `m/44\'/280\'/0\'/0/index`, identical to the address `/wallet/address` always returned before shielded outputs existed. Pass `false` to derive on the shielded chain instead (`m/44\'/280\'/{1\',2\'}/0/index`), which returns the user-facing 71-byte shielded base58 address (scan + spend pubkeys) used as the destination for shielded outputs. The shielded chain is only meaningful when the wallet has shielded keys provisioned (any seed-based wallet created or migrated on a shielded-capable wallet-lib version).',
+            required: false,
+            schema: {
+              type: 'boolean',
+              default: true,
             },
           },
         ],

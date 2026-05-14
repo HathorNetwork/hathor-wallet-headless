@@ -65,7 +65,31 @@ async function getBalance(req, res) {
   // Expects token uid
   const token = req.query.token || hathorLibConstants.NATIVE_TOKEN_UID;
   const balanceObj = await wallet.getBalance(token);
-  res.send({ available: balanceObj[0].balance.unlocked, locked: balanceObj[0].balance.locked });
+  const { unlocked: available, locked } = balanceObj[0].balance;
+
+  // Default shape (no `split` query): preserve the legacy single-bucket
+  // response byte-for-byte so existing clients are unaffected.
+  if (!req.query.split) {
+    res.send({ available, locked });
+    return;
+  }
+
+  // Opt-in split: walk owned UTXOs once and partition by the shielded
+  // flag. We intentionally compute this on the fly instead of caching —
+  // wallets in this code-path have a small enough UTXO count that one
+  // pass is in the microsecond range, and avoiding cached state keeps
+  // the source of truth firmly in storage.
+  const shielded = { available: 0n, locked: 0n };
+  const transparent = { available: 0n, locked: 0n };
+  for await (const utxo of wallet.storage.getAllUtxos()) {
+    if (utxo.token !== token) continue;
+    const bucket = utxo.shielded ? shielded : transparent;
+    // `locked: true` on the UTXO means a timelock/heightlock hasn't
+    // expired yet — same semantics as the aggregated balance.
+    if (utxo.locked) bucket.locked += utxo.value;
+    else bucket.available += utxo.value;
+  }
+  res.send({ available, locked, transparent, shielded });
 }
 
 async function getAddress(req, res) {
@@ -87,7 +111,11 @@ async function getAddress(req, res) {
     address = await wallet.getAddressAtIndex(index, { legacy });
   } else {
     const markAsUsed = req.query.mark_as_used || false;
-    const addressInfo = await wallet.getCurrentAddress({ markAsUsed });
+    // Thread the chain selection into getCurrentAddress too so that a bare
+    // `/wallet/address?legacy=false` (no index) returns the shielded
+    // chain's current address. Without `{ legacy }` here, both legacy and
+    // shielded callers would silently get the legacy current address.
+    const addressInfo = await wallet.getCurrentAddress({ markAsUsed }, { legacy });
     address = addressInfo.address;
   }
   res.send({ address });

@@ -51,6 +51,7 @@ walletRouter.get('/status', getStatus);
 walletRouter.get(
   '/balance',
   query('token').isString().optional(),
+  query('split').isBoolean().optional().toBoolean(),
   getBalance
 );
 
