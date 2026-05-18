@@ -272,7 +272,11 @@ async function markUtxosSelectedAsInput(wallet, utxos, markAs, ttl) {
 async function runSendTransaction(sendTx, unlock) {
   try {
     if (!sendTx.transaction) {
+      // wallet-lib v3 split prepare and sign: prepareTx() builds the tx data but
+      // no longer signs or sets timestamp/weight/parents. signTx() does the
+      // signing plus prepareToSend with the network's weight constants.
       await sendTx.prepareTx();
+      await sendTx.signTx();
     }
     await sendTx.updateOutputSelected(true);
   } finally {
