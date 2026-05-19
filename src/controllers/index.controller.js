@@ -115,8 +115,18 @@ async function start(req, res) {
                 + `and ${multisigData.numSignatures} numSignatures`);
   }
 
-  // Validate address scanning policy
-  let scanPolicyData = null;
+  // Validate address scanning policy.
+  // wallet-lib v3 changed the default to 'single-address'; we keep the v2 default
+  // of 'gap-limit' here so existing headless users see no behavior change unless
+  // they explicitly request a different policy. A body-level `gapLimit` field is
+  // intentionally *not* applied to this default — callers must also pass
+  // `scanPolicy: 'gap-limit'` to override the configured gap-limit value (this
+  // avoids surprising behavior where a stray `gapLimit` field would silently
+  // change scanning width).
+  let scanPolicyData = {
+    policy: 'gap-limit',
+    gapLimit: config.gapLimit || GAP_LIMIT,
+  };
   if ('scanPolicy' in req.body) {
     const policy = req.body.scanPolicy;
     switch (policy) {

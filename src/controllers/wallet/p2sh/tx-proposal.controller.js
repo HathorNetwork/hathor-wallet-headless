@@ -263,7 +263,10 @@ Expected ${multisigData.numSignatures} Received ${signatures.length}`
     );
   }
   const tx = await wallet.assemblePartialTransaction(txHex, signatures);
-  tx.prepareToSend();
+  // wallet-lib v3: prepareToSend now accepts optional weight constants. Without
+  // them it falls back to hardcoded mainnet values, which would produce wrong
+  // weights on non-mainnet networks.
+  tx.prepareToSend(transactionUtils.getWeightConstantsFromStorage(wallet.storage));
   return tx;
 }
 
