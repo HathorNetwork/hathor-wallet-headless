@@ -169,24 +169,25 @@ async function getAddressInfo(req, res) {
 }
 
 async function getAddresses(req, res) {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    res.status(400).json(validationResult);
+    return;
+  }
   /**
    * @type {HathorWallet} wallet - Wallet object
    */
   const { wallet } = req;
-  // TODO Add pagination
+  // legacy defaults to true; pass false to list the wallet's
+  // user-facing shielded receive addresses (the 71-byte encoded
+  // form). Matches the `legacy` semantics on the singular
+  // `/wallet/address` endpoint. Chain-selection happens in wallet-lib
+  // (`HathorWallet.getAllAddresses` → `Storage.getAllAddresses` →
+  // `IStore.addressIter`); the headless just threads the param.
+  const legacy = req.query.legacy !== false;
   const addresses = [];
-  const iterator = await wallet.getAllAddresses();
-
-  // TODO: Refactor with a `while`?
-  for (;;) {
-    const addressObj = await iterator.next();
-    const { value, done } = addressObj;
-
-    if (done) {
-      break;
-    }
-
-    addresses.push(value.address);
+  for await (const entry of wallet.getAllAddresses({ legacy })) {
+    addresses.push(entry.address);
   }
   res.send({ addresses });
 }

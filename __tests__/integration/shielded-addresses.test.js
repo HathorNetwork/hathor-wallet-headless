@@ -114,4 +114,137 @@ describe('shielded addresses', () => {
       expect(a.length).toBeGreaterThanOrEqual(50);
     }
   });
+
+  /**
+   * Integration coverage for the new `legacy` query parameter on
+   * `/wallet/addresses` (plural) — mirrors the same param on the
+   * singular `/wallet/address` endpoint so a caller can list either
+   * chain's addresses without merging-and-filtering on the client.
+   *
+   * Setup primes each chain: deriving address-at-index 0 (already
+   * done in the earlier tests for legacy) and pinning a few shielded
+   * indexes ensures both chains have entries to enumerate.
+   */
+  describe('/wallet/addresses ?legacy=', () => {
+    // Shielded-shaped base58: 71-byte payload → ~97-99 chars. The
+    // 50-char floor (used elsewhere in this file) cleanly excludes
+    // any legacy P2PKH on this privnet (~34 chars, W-prefixed).
+    const isShieldedShape = a => a.length >= 50;
+    const isLegacyShape = a => a.length < 50;
+
+    beforeAll(async () => {
+      // Make sure the wallet has at least a handful of derived
+      // shielded indexes — the test wallet started fresh in
+      // beforeAll above, so the shielded chain might only have
+      // index 0 if no one's queried higher. Touch indexes 0-2 to
+      // give the `/addresses?legacy=false` response something
+      // non-trivial to assert against.
+      for (let i = 0; i < 3; i += 1) {
+        // eslint-disable-next-line no-await-in-loop
+        await wallet.getShieldedAddressAt(i);
+      }
+    });
+
+    it('returns only legacy addresses by default (legacy param omitted)', async () => {
+      // Matches the existing `/wallet/address` default of legacy=true.
+      // A caller that pre-dates the shielded feature must get the
+      // exact same response shape they were getting before — only
+      // P2PKH / P2SH addresses, none of the shielded receive
+      // (71-byte) entries and none of the internal `shielded-spend`
+      // P2PKHs.
+      const res = await TestUtils.request
+        .get('/wallet/addresses')
+        .set(TestUtils.generateHeader(wallet.walletId));
+
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body.addresses)).toBe(true);
+      expect(res.body.addresses.length).toBeGreaterThan(0);
+      for (const a of res.body.addresses) {
+        expect(isLegacyShape(a)).toBe(true);
+      }
+    });
+
+    it('returns only legacy addresses when legacy=true is explicit', async () => {
+      // Same response as the omitted-param case — `legacy=true` is
+      // the documented default. Pin both shapes match so future
+      // refactors can't drift the default.
+      const omitted = await TestUtils.request
+        .get('/wallet/addresses')
+        .set(TestUtils.generateHeader(wallet.walletId));
+      const explicit = await TestUtils.request
+        .get('/wallet/addresses?legacy=true')
+        .set(TestUtils.generateHeader(wallet.walletId));
+
+      expect(explicit.body.addresses).toEqual(omitted.body.addresses);
+    });
+
+    it('returns only shielded receive addresses when legacy=false', async () => {
+      // Critical contract: legacy=false MUST return the user-facing
+      // 71-byte shielded receive addresses (the same shape
+      // `/wallet/address?legacy=false` returns), and MUST NOT
+      // include the internal `shielded-spend` P2PKHs the receive
+      // pipeline uses to match on-chain outputs. The internal ones
+      // share base58 prefix with legacy P2PKHs — leaking them here
+      // would let a caller try to send to them as if they were
+      // user-facing shielded targets.
+      const res = await TestUtils.request
+        .get('/wallet/addresses?legacy=false')
+        .set(TestUtils.generateHeader(wallet.walletId));
+
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body.addresses)).toBe(true);
+      expect(res.body.addresses.length).toBeGreaterThan(0);
+      for (const a of res.body.addresses) {
+        expect(isShieldedShape(a)).toBe(true);
+      }
+    });
+
+    it('produces disjoint address sets for legacy=true and legacy=false', async () => {
+      // Neither response should contain entries from the other
+      // chain. This is the cross-chain isolation invariant that
+      // makes the param useful — a caller asking for one chain
+      // never has to filter out the other.
+      const legacyRes = await TestUtils.request
+        .get('/wallet/addresses?legacy=true')
+        .set(TestUtils.generateHeader(wallet.walletId));
+      const shieldedRes = await TestUtils.request
+        .get('/wallet/addresses?legacy=false')
+        .set(TestUtils.generateHeader(wallet.walletId));
+
+      const legacySet = new Set(legacyRes.body.addresses);
+      const shieldedSet = new Set(shieldedRes.body.addresses);
+
+      // No address appears in both lists.
+      for (const a of legacySet) {
+        expect(shieldedSet.has(a)).toBe(false);
+      }
+    });
+
+    it('the legacy=false response matches the singular /wallet/address?legacy=false derivation', async () => {
+      // End-to-end consistency: pulling index 0 via
+      // `/wallet/address?legacy=false` and pulling the full list via
+      // `/wallet/addresses?legacy=false` must produce the SAME
+      // index-0 entry. Anything else would mean the two endpoints
+      // are walking different chains.
+      const singularRes = await TestUtils.request
+        .get('/wallet/address?index=0&legacy=false')
+        .set(TestUtils.generateHeader(wallet.walletId));
+      const pluralRes = await TestUtils.request
+        .get('/wallet/addresses?legacy=false')
+        .set(TestUtils.generateHeader(wallet.walletId));
+
+      expect(pluralRes.body.addresses).toContain(singularRes.body.address);
+    });
+
+    it('rejects a non-boolean legacy value at the route validator', async () => {
+      // `query("legacy").isBoolean()` must run before the
+      // controller, so a clearly-bogus value like `legacy=foo`
+      // surfaces a 400 rather than silently coercing to `true` and
+      // returning the wrong chain.
+      const res = await TestUtils.request
+        .get('/wallet/addresses?legacy=not-a-bool')
+        .set(TestUtils.generateHeader(wallet.walletId));
+      expect(res.status).toBe(400);
+    });
+  });
 });

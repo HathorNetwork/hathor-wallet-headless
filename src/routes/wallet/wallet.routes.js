@@ -108,7 +108,11 @@ walletRouter.get(
  * GET request to get all addresses of a wallet
  * For the docs, see api-docs.js
  */
-walletRouter.get('/addresses', getAddresses);
+walletRouter.get(
+  '/addresses',
+  query('legacy').isBoolean().optional().toBoolean(),
+  getAddresses
+);
 
 /**
  * GET request to obtain adress information
