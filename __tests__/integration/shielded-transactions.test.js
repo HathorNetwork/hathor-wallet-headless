@@ -417,4 +417,69 @@ describe('shielded transactions', () => {
       await restartReceiver.stop();
     }
   });
+
+  /**
+   * Regression coverage for the send-tx `filter_address` query that
+   * was previously rejecting every shielded UTXO: callers passed the
+   * user-facing shielded address (the 71-byte encoded form), but the
+   * storage compared it directly against `utxo.address` (the
+   * spend-derived P2PKH that labels the on-chain output) so the
+   * filter never matched. The fix in wallet-lib resolves a shielded
+   * filter to the sibling spend P2PKH at the same BIP32 index.
+   */
+  describe('/wallet/send-tx filter_address shielded acceptance', () => {
+    it('selects a shielded UTXO when the user passes the shielded receive address', async () => {
+      // walletB receives at two distinct shielded indices so we can
+      // tell the filter is actually picking the right one — not just
+      // returning everything by accident.
+      const aRecipient0 = await wallet1.getShieldedAddressAt(30);
+      const aRecipient1 = await wallet1.getShieldedAddressAt(31);
+      await wallet1.injectFunds(500, 0);
+      await wallet1.sendTx({
+        outputs: [
+          { address: aRecipient0, value: 110, shielded: 1 },
+          { address: aRecipient1, value: 90, shielded: 1 },
+        ],
+      });
+
+      // Spend 60 HTR using the SHIELDED form of the index-30 address
+      // as the filter. The fix must surface the 110 UTXO at that
+      // index and pick it; without the fix the response is
+      // "No utxos available for the query filter for this amount."
+      const response = await TestUtils.request
+        .post('/wallet/send-tx')
+        .send({
+          inputs: [{ type: 'query', filter_address: aRecipient0 }],
+          outputs: [
+            { address: await wallet2.getAddressAt(7), value: 60 },
+          ],
+        })
+        .set({ 'x-wallet-id': wallet1.walletId });
+
+      expect(response.status).toBe(200);
+      expect(response.body.hash).toBeDefined();
+      expect(response.body.success).not.toBe(false);
+    });
+
+    it('returns no-utxos when the shielded filter_address has no funds at that index', async () => {
+      // Symmetric negative case: passing a shielded address whose
+      // index has no UTXO (we never sent funds to it) must still
+      // surface the standard "no utxos available" failure — NOT
+      // accidentally pick UTXOs from a different index.
+      const unfundedShielded = await wallet1.getShieldedAddressAt(99);
+      const response = await TestUtils.request
+        .post('/wallet/send-tx')
+        .send({
+          inputs: [{ type: 'query', filter_address: unfundedShielded }],
+          outputs: [
+            { address: await wallet2.getAddressAt(8), value: 10 },
+          ],
+        })
+        .set({ 'x-wallet-id': wallet1.walletId });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toMatch(/no utxos available/i);
+    });
+  });
 });
