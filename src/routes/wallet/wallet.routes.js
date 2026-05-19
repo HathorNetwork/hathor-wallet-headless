@@ -16,6 +16,10 @@ const {
   utxosSelectedAsInput,
 } = require('../../controllers/wallet/wallet.controller');
 const {
+  exportShieldedAuditKeys,
+  getShieldedUnblindingPayload,
+} = require('../../controllers/wallet/shielded.controller');
+const {
   createTokenOptions, txHexSchema, partialTxSchema, bigIntSanitizer,
   bigIntValidator
 } = require('../../schemas');
@@ -37,6 +41,29 @@ walletRouter.use('/tx-proposal', txProposalRouter);
 walletRouter.use('/tx-template', txTemplateRouter);
 walletRouter.use('/config', configRouter);
 walletRouter.use('/nano-contracts', nanoContractRouter);
+
+/**
+ * GET the wallet's shielded audit-key pair (spend xpub + scan xpriv).
+ * Together these grant a read-only audit tool full visibility into the
+ * wallet's shielded history without enabling spends. Matches the
+ * mobile "Export Privacy Keys" screen — see
+ * src/controllers/wallet/shielded.controller.js for the rationale and
+ * the response shape.
+ */
+walletRouter.get('/shielded/audit-keys', exportShieldedAuditKeys);
+
+/**
+ * GET the explorer-unblinding payload for a tx the wallet owns
+ * shielded openings of. Pass the tx id via `?id=<txId>`. The response
+ * carries the base64url envelope and a ready-to-append
+ * `#unblind=<envelope>` fragment so the caller can compose
+ * `<EXPLORER_BASE>/transaction/<txId><unblindFragment>` directly.
+ */
+walletRouter.get(
+  '/shielded/unblinding',
+  query('id').isString().isLength({ min: 64, max: 64 }),
+  getShieldedUnblindingPayload
+);
 
 /**
  * GET request to get the status of a wallet
