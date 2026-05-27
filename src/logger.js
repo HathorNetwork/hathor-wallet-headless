@@ -21,6 +21,9 @@ let logger = null;
  * @return {winston.Logger}
  */
 function buildLogger(config, defaultService) {
+  if (!config) {
+    throw new Error('buildLogger requires an initialized config; call settings.setupConfig() before building the logger.');
+  }
   const myFormat = winston.format.printf(({ level, message, service, timestamp, ...args }) => {
     let argsStr = '';
     if (Object.keys(args).length > 0) {
