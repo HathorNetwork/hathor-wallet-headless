@@ -482,4 +482,60 @@ describe('shielded transactions', () => {
       expect(response.body.error).toMatch(/no utxos available/i);
     });
   });
+
+  /**
+   * `/wallet/utxo-filter` routes through the same
+   * `storage.selectUtxos` as the send-tx `filter_address` query, so
+   * the shielded-resolution fix applies here too — without a
+   * separate code change. This block pins the contract end-to-end.
+   */
+  describe('/wallet/utxo-filter filter_address shielded acceptance', () => {
+    it('lists a shielded UTXO when filter_address is the user-facing shielded address', async () => {
+      // Two shielded outputs at distinct indices so we can tell the
+      // filter is actually picking by index, not just returning
+      // everything.
+      const aRecipient0 = await wallet1.getShieldedAddressAt(40);
+      const aRecipient1 = await wallet1.getShieldedAddressAt(41);
+      await wallet1.injectFunds(500, 0);
+      await wallet1.sendTx({
+        outputs: [
+          { address: aRecipient0, value: 70, shielded: 1 },
+          { address: aRecipient1, value: 30, shielded: 1 },
+        ],
+      });
+
+      // utxo-filter with the SHIELDED form of index-40 must surface
+      // the 70-HTR UTXO at that index. Before the wallet-lib fix
+      // this returned an empty utxos array because the comparison
+      // was against the on-chain spend-P2PKH that labels the output.
+      const response = await TestUtils.request
+        .get(`/wallet/utxo-filter?filter_address=${encodeURIComponent(aRecipient0)}`)
+        .set({ 'x-wallet-id': wallet1.walletId });
+
+      expect(response.status).toBe(200);
+      const utxos = response.body.utxos || [];
+      expect(utxos.length).toBe(1);
+      expect(utxos[0].amount).toBe(70);
+      // The returned utxo.address is the on-chain spend-P2PKH, NOT
+      // the user-facing shielded form the caller passed. Same
+      // shape selectUtxos exposes everywhere — pin it here so a
+      // future "translate the address back on output" change
+      // doesn't silently break clients that key off this field.
+      expect(utxos[0].address).not.toBe(aRecipient0);
+    });
+
+    it('returns an empty utxo list when the shielded filter_address has no funds at that index', async () => {
+      const unfundedShielded = await wallet1.getShieldedAddressAt(98);
+      const response = await TestUtils.request
+        .get(`/wallet/utxo-filter?filter_address=${encodeURIComponent(unfundedShielded)}`)
+        .set({ 'x-wallet-id': wallet1.walletId });
+
+      expect(response.status).toBe(200);
+      // utxo-filter returns 200 with an empty list on no-match — it
+      // doesn't have the "no utxos available" error message that
+      // send-tx surfaces, because listing zero UTXOs at an address
+      // is a valid query result.
+      expect(response.body.utxos || []).toHaveLength(0);
+    });
+  });
 });
