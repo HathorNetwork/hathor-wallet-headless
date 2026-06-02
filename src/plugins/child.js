@@ -104,6 +104,8 @@ export const loadPlugins = async (enabled, customConfig) => {
 export const main = async () => {
   await settings.setupConfig();
   const config = settings.getConfig();
+  const logger = buildAppLogger(config);
+  logger.info('[child_process] startup');
   const plugins = await loadPlugins(config.enabled_plugins, config.plugin_config);
 
   // Start plugins
@@ -138,7 +140,5 @@ if (process.env.NODE_ENV !== 'test') {
 
   process.on('message', handleMessage);
 
-  const logger = buildAppLogger();
-  logger.info('[child_process] startup');
   main();
 }
