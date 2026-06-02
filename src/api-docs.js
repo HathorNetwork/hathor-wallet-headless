@@ -699,10 +699,18 @@ const defaultApiDocs = {
               schema: {
                 type: 'object',
                 required: ['message'],
+                // `message` is always required; in addition, at least one of
+                // `address_index` or `address` must be present. If both are
+                // sent, `address_index` wins.
+                anyOf: [
+                  { required: ['address_index'] },
+                  { required: ['address'] },
+                ],
                 properties: {
                   message: {
                     type: 'string',
-                    description: 'The payload to sign. Any UTF-8 string.',
+                    minLength: 1,
+                    description: 'The payload to sign. Any non-empty UTF-8 string.',
                   },
                   address_index: {
                     type: 'integer',
@@ -746,6 +754,33 @@ const defaultApiDocs = {
                     value: { success: false, message: 'Wallet is not ready.', state: 1 },
                   },
                   ...commonExamples.xWalletIdErrResponseExamples,
+                },
+              },
+            },
+          },
+          400: {
+            description: 'Request body failed validation (e.g. empty `message` or negative `address_index`).',
+            content: {
+              'application/json': {
+                examples: {
+                  'empty-message': {
+                    summary: 'Empty message',
+                    value: {
+                      success: false,
+                      error: [{
+                        type: 'field', value: '', msg: 'Invalid value', path: 'message', location: 'body',
+                      }],
+                    },
+                  },
+                  'negative-address-index': {
+                    summary: 'Negative address_index',
+                    value: {
+                      success: false,
+                      error: [{
+                        type: 'field', value: -1, msg: 'Invalid value', path: 'address_index', location: 'body',
+                      }],
+                    },
+                  },
                 },
               },
             },

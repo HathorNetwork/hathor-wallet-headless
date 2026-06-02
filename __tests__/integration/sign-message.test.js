@@ -15,16 +15,16 @@ describe('sign-message route', () => {
   let wallet;
 
   beforeAll(async () => {
-    try {
-      wallet = WalletHelper.getPrecalculatedWallet('sign-message-1');
-      await WalletHelper.startMultipleWalletsForTest([wallet]);
-    } catch (err) {
-      TestUtils.logError(err.stack);
-    }
+    // Let a startup failure surface — swallowing it leaves `wallet` unset and
+    // produces a confusing secondary error in afterAll that masks the real cause.
+    wallet = WalletHelper.getPrecalculatedWallet('sign-message-1');
+    await WalletHelper.startMultipleWalletsForTest([wallet]);
   });
 
   afterAll(async () => {
-    await wallet.stop();
+    if (wallet) {
+      await wallet.stop();
+    }
   });
 
   it('signs a message using address_index and returns a verifiable signature', async () => {
