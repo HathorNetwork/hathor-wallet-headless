@@ -683,6 +683,76 @@ const defaultApiDocs = {
         },
       },
     },
+    '/wallet/sign-message': {
+      post: {
+        operationId: 'signMessage',
+        summary: 'Sign an arbitrary message with one of the wallet\'s address keys.',
+        description: 'Returns a Bitcoin-compatible signed-message signature (bitcore.Message). Useful for off-chain proofs of address ownership — e.g., the x402 payment protocol requires signing a server-issued challenge with the payer\'s key. Either `address_index` or `address` must be provided; if both are given, `address_index` wins.',
+        parameters: [
+          { $ref: '#/components/parameters/XWalletIdParameter' },
+        ],
+        requestBody: {
+          description: 'Message and key to sign with.',
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['message'],
+                properties: {
+                  message: {
+                    type: 'string',
+                    description: 'The payload to sign. Any UTF-8 string.',
+                  },
+                  address_index: {
+                    type: 'integer',
+                    minimum: 0,
+                    description: 'Derivation index of the wallet address that will sign.',
+                  },
+                  address: {
+                    type: 'string',
+                    description: 'Alternative to `address_index` — wallet resolves it via getAddressIndex.',
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Returns the signature.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: {
+                      success: true,
+                      signature: 'H2Wf3GntZdrZsR4N6vLm8Zr5e4D1KH...=',
+                      address: 'H8bt9nYhUNJHg7szF32CWWi1eB8PyYZnbt',
+                      index: 5,
+                    },
+                  },
+                  'missing-key': {
+                    summary: 'Neither address_index nor address provided',
+                    value: { success: false, error: 'one of address_index or address is required' },
+                  },
+                  'address-not-in-wallet': {
+                    summary: 'The supplied address is not derivable from this wallet',
+                    value: { success: false, error: 'address does not belong to the wallet' },
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 },
+                  },
+                  ...commonExamples.xWalletIdErrResponseExamples,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     '/wallet/addresses': {
       get: {
         operationId: 'getAddresses',
