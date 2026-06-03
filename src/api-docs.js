@@ -237,7 +237,7 @@ const defaultApiDocs = {
                   scanPolicy: {
                     type: 'string',
                     enum: ['gap-limit', 'index-limit', 'single-address'],
-                    description: 'Address scanning policy to use. \'single-address\' loads only address index 0 and never generates more — matches the wallet-lib v3 default; pass it explicitly to opt out of headless\'s gap-limit override. Note: if the wallet already has transactions on any address other than index 0, single-address mode is automatically downgraded to the default gap-limit policy.',
+                    description: 'Address scanning policy to use. \'single-address\' loads and tracks only address index 0; the wallet never automatically generates further addresses — matches the wallet-lib v3 default; pass it explicitly to opt out of headless\'s gap-limit override. Note: if the wallet already has transactions on any address other than index 0, single-address mode is automatically downgraded to the default gap-limit policy.',
                     default: 'gap-limit',
                   },
                   gapLimit: {
