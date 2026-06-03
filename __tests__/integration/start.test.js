@@ -1,5 +1,6 @@
 import { precalculationHelpers } from '../../scripts/helpers/wallet-precalculation.helper';
 import { TestUtils } from './utils/test-utils-integration';
+import { WalletHelper } from './utils/wallet-helper';
 import { initializedWallets } from '../../src/services/wallets.service';
 
 describe('start scanPolicy integration', () => {
@@ -87,40 +88,34 @@ describe('start scanPolicy integration', () => {
     // controller relies on wallet-lib's own fallback to gap-limit. This test
     // proves that fallback survives the headless wrapper.
     const walletId = 'startScanPolicySingleAddressDowngrade';
-    const { words, addresses } = precalculationHelpers.test.getPrecalculatedWallet();
 
-    // 1. Start with the default policy (gap-limit) so address index 1 is loaded
-    //    and can receive on-chain funds.
-    const gapLimitStart = await TestUtils.request
-      .post('/start')
-      .send({ seed: words, 'wallet-id': walletId });
-    expect(gapLimitStart.body.success).toBe(true);
-    await TestUtils.poolUntilWalletReady(walletId);
+    // 1. Start with the default policy (gap-limit) via WalletHelper, which also
+    //    brings up the genesis wallet that injectFunds sends from. Address index
+    //    1 is loaded (gap-limit) so it can receive on-chain funds.
+    const wallet = WalletHelper.getPrecalculatedWallet(walletId);
+    await WalletHelper.startMultipleWalletsForTest([wallet]);
 
-    try {
-      // 2. Put a transaction on address index 1 (not the first address).
-      await TestUtils.injectFundsIntoAddress(addresses[1], 100, walletId);
-    } finally {
-      // 3. Stop the wallet — single-address can only be requested at /start.
-      await TestUtils.stopWallet(walletId);
-    }
+    // 2. Put a transaction on address index 1 (not the first address).
+    await wallet.injectFunds(100, 1);
+    // 3. Stop the wallet — single-address can only be requested at /start.
+    await wallet.stop();
 
     // 4. Restart the same seed asking for single-address. The on-chain tx on
     //    address 1 must force the downgrade.
     const singleAddressStart = await TestUtils.request
       .post('/start')
-      .send({ seed: words, 'wallet-id': walletId, scanPolicy: 'single-address' });
+      .send({ seed: wallet.words, 'wallet-id': walletId, scanPolicy: 'single-address' });
     expect(singleAddressStart.body.success).toBe(true);
 
     try {
       await TestUtils.poolUntilWalletReady(walletId);
 
-      const wallet = initializedWallets.get(walletId);
+      const startedWallet = initializedWallets.get(walletId);
       // Policy was silently downgraded to gap-limit, matching the documented
       // behavior in the /start API docs.
-      await expect(wallet.storage.getScanningPolicy()).resolves.toBe('gap-limit');
+      await expect(startedWallet.storage.getScanningPolicy()).resolves.toBe('gap-limit');
       // And it behaves like a gap-limit wallet: more than one address is loaded.
-      await expect(wallet.storage.store.addressCount()).resolves.toBeGreaterThan(1);
+      await expect(startedWallet.storage.store.addressCount()).resolves.toBeGreaterThan(1);
     } finally {
       await TestUtils.stopWallet(walletId);
     }
