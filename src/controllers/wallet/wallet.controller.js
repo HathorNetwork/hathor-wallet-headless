@@ -187,7 +187,10 @@ async function signMessage(req, res) {
     const resolvedAddress = await wallet.getAddressAtIndex(index);
     res.send({ success: true, signature, address: resolvedAddress, index });
   } catch (err) {
-    res.send({ success: false, error: err.message });
+    // An underlying call (key derivation, signing) may throw an error that has
+    // nothing to do with message signing on its face — prefix it so the HTTP
+    // caller knows which operation failed.
+    res.send({ success: false, error: `failed to sign message: ${err.message}` });
   }
 }
 

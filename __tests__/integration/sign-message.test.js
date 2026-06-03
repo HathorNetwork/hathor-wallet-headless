@@ -1,5 +1,6 @@
 import { cryptoUtils } from '@hathor/wallet-lib';
 import { TestUtils } from './utils/test-utils-integration';
+import { WALLET_CONSTANTS } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
 
 /*
@@ -94,12 +95,10 @@ describe('sign-message route', () => {
   });
 
   it('rejects when the address is not in the wallet', async () => {
-    // A clearly out-of-band address — syntactically valid but not derivable
-    // from this wallet. We borrow another precalculated wallet's address-0 to
-    // avoid hand-constructing one; we don't start the second wallet because we
-    // only need its first cached address.
-    const foreignWallet = WalletHelper.getPrecalculatedWallet('sign-message-other');
-    const foreignAddress = foreignWallet.addresses[0];
+    // A known-valid address from a different seed (the miner wallet), so it is
+    // guaranteed not derivable from this wallet — cheaper than spinning up a
+    // whole second wallet just to borrow an address.
+    const foreignAddress = WALLET_CONSTANTS.miner.addresses[1];
 
     const response = await TestUtils.request
       .post('/wallet/sign-message')
