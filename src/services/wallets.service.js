@@ -114,9 +114,11 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
   // XPUB_STREAM_WS is the default case if nothing was configured.
   let mode = configMode || HistorySyncMode.XPUB_STREAM_WS;
 
-  if (hydratedWalletConfig.multisig) {
-    // XXX: Multisig is not supported on streaming yet
-    mode = HistorySyncMode.POLLING_HTTP_API;
+  // Multisig can't use xpub streaming (the fullnode derives only P2PKH from a single xpub),
+  // so redirect the default/explicit xpub mode to the client-derived manual stream. Explicit
+  // polling_http_api or manual_stream_ws requests pass through unchanged.
+  if (hydratedWalletConfig.multisig && mode === HistorySyncMode.XPUB_STREAM_WS) {
+    mode = HistorySyncMode.MANUAL_STREAM_WS;
   }
   if (hydratedWalletConfig.scanPolicy?.policy && hydratedWalletConfig.scanPolicy?.policy !== 'gap-limit') {
     // XXX: currently only gap-limit can use streaming modes
