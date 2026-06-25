@@ -12,7 +12,7 @@ const {
   getStatus, getBalance, getAddress, getAddresses, getTxHistory, getTransaction,
   simpleSendTx, decodeTx, sendTx, createToken, mintTokens, meltTokens, utxoFilter,
   utxoConsolidation, createNft, getAddressInfo, stop,
-  getAddressIndex, getTxConfirmationBlocks,
+  getAddressIndex, signMessage, getTxConfirmationBlocks,
   utxosSelectedAsInput,
 } = require('../../controllers/wallet/wallet.controller');
 const {
@@ -73,6 +73,19 @@ walletRouter.get(
   '/address-index',
   query('address').isString(),
   getAddressIndex
+);
+
+/**
+ * POST request to sign an arbitrary message with one of the wallet's address
+ * keys. Either `address_index` or `address` must be provided.
+ * For the docs, see api-docs.js
+ */
+walletRouter.post(
+  '/sign-message',
+  body('message').isString().isLength({ min: 1 }),
+  body('address_index').optional().isInt({ min: 0 }).toInt(),
+  body('address').optional().isString(),
+  signMessage,
 );
 
 /**
