@@ -249,4 +249,52 @@ describe('start api', () => {
     // We will load 6 addresses, from 5 to 10 (inclusive)
     await expect(wallet.storage.store.addressCount()).resolves.toBe(6);
   });
+  it('should start a wallet with single-address', async () => {
+    const walletHttpInput = {
+      'wallet-id': walletId,
+      seed: WALLET_CONSTANTS.genesis.words,
+      scanPolicy: 'single-address',
+    };
+
+    const response = await TestUtils.request
+      .post('/start')
+      .send(walletHttpInput);
+
+    expect(response.body).toHaveProperty('success', true);
+
+    // Storage is configured during wallet.start() (which awaits before the HTTP
+    // response). Don't waitReady here: the unit-test http mock returns the same
+    // address_history fixture for every address, which makes wallet-lib's
+    // single-address mode self-downgrade to gap-limit when the connection
+    // becomes READY. The actual single-address behavior is covered by the
+    // integration test in __tests__/integration/start.test.js.
+    const wallet = initializedWallets.get(walletId);
+    await expect(wallet.storage.getScanningPolicy()).resolves.toBe('single-address');
+  });
+  it('should ignore gapLimit / policyStartIndex when scanPolicy is single-address', async () => {
+    const walletHttpInput = {
+      'wallet-id': walletId,
+      seed: WALLET_CONSTANTS.genesis.words,
+      scanPolicy: 'single-address',
+      // These should be ignored — single-address has no tunables, same
+      // as how the gap-limit branch ignores policyStartIndex.
+      gapLimit: 50,
+      policyStartIndex: 7,
+      policyEndIndex: 12,
+    };
+
+    const response = await TestUtils.request
+      .post('/start')
+      .send(walletHttpInput);
+
+    expect(response.body).toHaveProperty('success', true);
+
+    // See note in previous test — no waitReady, otherwise the mock-driven
+    // downgrade would mask the policyData we want to inspect.
+    const wallet = initializedWallets.get(walletId);
+    await expect(wallet.storage.getScanningPolicy()).resolves.toBe('single-address');
+    await expect(wallet.storage.getScanningPolicyData()).resolves.toEqual({
+      policy: 'single-address',
+    });
+  });
 });

@@ -158,6 +158,13 @@ async function start(req, res) {
           gapLimit: parseInt(req.body.gapLimit, 10) || GAP_LIMIT,
         };
         break;
+      case 'single-address':
+        // Match wallet-lib v3's own default: load only address index 0, never
+        // generate more. No tunables — the policy is fully described by its
+        // discriminator. Any body fields like `gapLimit` / `policyStartIndex`
+        // are ignored, same way `gap-limit` ignores `policyStartIndex`.
+        scanPolicyData = { policy };
+        break;
       default:
         // address scanning policy requested is not supported
         res.send({
