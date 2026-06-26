@@ -25,6 +25,13 @@ function getShieldedCryptoProvider() {
     cachedShieldedProvider = createDefaultShieldedCryptoProvider();
   } catch (e) {
     cachedShieldedProvider = null;
+    // Don't swallow silently: a missing/unloadable native addon (e.g. no
+    // prebuild for the host platform, ABI mismatch) disables shielded support,
+    // and shielded receives then decode to nothing with no other signal.
+    buildAppLogger().warn(
+      'Shielded crypto provider failed to load; shielded operations are disabled.',
+      { error: sanitizeLogInput(e instanceof Error ? e.message : String(e)) }
+    );
   }
   return cachedShieldedProvider;
 }

@@ -335,10 +335,16 @@ describe('shielded audit-export endpoints', () => {
       expect(decoded.inputs.length).toBeGreaterThanOrEqual(1);
       expect(decoded.outputs).toBeDefined();
 
-      // walletB's own change appears in outputs (50 HTR). The
-      // recipient's 30 is NOT in walletB's payload — walletB doesn't
-      // have wallet's vbf for that entry. Catches a cross-wallet
-      // leak on the sender side.
+      // walletB's own change appears in outputs (50 HTR). The recipient's 30 is
+      // NOT directly in walletB's payload — walletB doesn't have the recipient's
+      // vbf for that entry — which catches a cross-wallet *direct* leak (a vbf
+      // alias) on the sender side. NOTE: this does NOT mean 30 is secret to a
+      // viewer of the published fragment. Because the tx conserves value, the
+      // recipient amount is still derivable arithmetically as
+      // `Σ(disclosed inputs) − change − fee`; selective opening of all-but-one
+      // output reveals the remaining one. That is an inherent property of
+      // confidential transactions, not a code defect — see the privacy caveat
+      // documented on the /wallet/shielded/unblinding endpoint.
       const ourValues = decoded.outputs.map(o => o.value);
       expect(ourValues).toContain('50');
       expect(ourValues).not.toContain('30');

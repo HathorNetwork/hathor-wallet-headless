@@ -41,6 +41,11 @@ async function getStatus(req, res) {
     network: wallet.getNetwork(),
     serverUrl: wallet.getServerUrl(),
     serverInfo: wallet.storage.version,
+    // Whether the shielded crypto provider loaded and is wired to this wallet.
+    // Lets operators detect a silently-disabled feature (e.g. the native addon
+    // failed to load for the host platform) instead of finding out on the first
+    // shielded operation.
+    shielded: { available: Boolean(wallet.storage.shieldedCryptoProvider) },
   };
 
   if (await wallet.getWalletType() === WalletType.MULTISIG) {
@@ -75,19 +80,31 @@ async function getBalance(req, res) {
     return;
   }
 
-  // Opt-in split: walk owned UTXOs once and partition by the shielded
-  // flag. We intentionally compute this on the fly instead of caching —
-  // wallets in this code-path have a small enough UTXO count that one
-  // pass is in the microsecond range, and avoiding cached state keeps
-  // the source of truth firmly in storage.
+  // Opt-in split. Walk owned UTXOs and partition by the shielded flag. Two
+  // things the previous naive walk got wrong, which made the buckets fail to
+  // reconcile with the top-level totals:
+  //   - lock status: IUtxo persists no `locked` field (lock is derived), so we
+  //     must compute it the same way the aggregated balance does — timelock vs
+  //     now, plus reward/height lock. This mirrors wallet.getUtxos()'s own
+  //     computation (we can't use getUtxos() directly here: it neither exposes
+  //     the shielded flag per UTXO nor filters by it).
+  //   - authority UTXOs: their `value` is the authority bitmask, not a token
+  //     amount, and getBalance() excludes them — so we must skip them too.
+  const nowTs = Math.floor(Date.now() / 1000);
+  const nowHeight = await wallet.storage.getCurrentHeight();
+  const rewardLock = wallet.storage.version?.reward_spend_min_blocks;
+  const isUtxoLocked = utxo => {
+    const timeLocked = Boolean(utxo.timelock) && nowTs < utxo.timelock;
+    return timeLocked || transactionUtils.isHeightLocked(utxo.height, nowHeight, rewardLock);
+  };
+
   const shielded = { available: 0n, locked: 0n };
   const transparent = { available: 0n, locked: 0n };
   for await (const utxo of wallet.storage.getAllUtxos()) {
     if (utxo.token !== token) continue;
+    if ((utxo.authorities ?? 0n) > 0n) continue;
     const bucket = utxo.shielded ? shielded : transparent;
-    // `locked: true` on the UTXO means a timelock/heightlock hasn't
-    // expired yet — same semantics as the aggregated balance.
-    if (utxo.locked) bucket.locked += utxo.value;
+    if (isUtxoLocked(utxo)) bucket.locked += utxo.value;
     else bucket.available += utxo.value;
   }
   res.send({ available, locked, transparent, shielded });

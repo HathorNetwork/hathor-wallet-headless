@@ -593,16 +593,86 @@ const defaultApiDocs = {
                   },
                   'success-split': {
                     summary: 'Success (split=true)',
+                    // Buckets always reconcile with the totals:
+                    // transparent.available + shielded.available === available,
+                    // and the same for locked.
                     value: {
                       available: 500,
-                      locked: 0,
-                      transparent: { available: 200, locked: 0 },
+                      locked: 64,
+                      transparent: { available: 200, locked: 64 },
                       shielded: { available: 300, locked: 0 }
                     }
                   },
                   'wallet-not-ready': {
                     summary: 'Wallet is not ready yet',
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  ...commonExamples.xWalletIdErrResponseExamples,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/shielded/audit-keys': {
+      get: {
+        operationId: 'exportShieldedAuditKeys',
+        summary: 'Export the wallet\'s shielded audit-key pair',
+        description: 'Returns `spendXpub` (the spend-chain xpub — derive every shielded spend address / see incoming activity, but cannot spend) and `scanXpriv` (the scan-chain xpriv — decrypt every incoming shielded output addressed to the wallet). Together they grant full READ access to the wallet\'s shielded history; neither grants spend authority.\n\nSENSITIVITY: `scanXpriv` is a bearer-equivalent, durable read credential. A momentary compromise of the API key yields long-lived read access to all current AND future shielded receives, and that access SURVIVES rotating the API key. Only expose this endpoint in a controlled environment. Wallets created before shielded outputs were enabled have no shielded keys and respond with `success: false`.',
+        parameters: [
+          { $ref: '#/components/parameters/XWalletIdParameter' },
+        ],
+        responses: {
+          200: {
+            description: 'The shielded audit-key pair, or a failure envelope.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, spendXpub: 'xpub6...', scanXpriv: 'xprv9...' }
+                  },
+                  'no-shielded-keys': {
+                    summary: 'Wallet has no shielded keys',
+                    value: { success: false, error: 'This wallet has no shielded keys. They are only present on wallets created after the shielded outputs feature was enabled.' }
+                  },
+                  ...commonExamples.xWalletIdErrResponseExamples,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/shielded/unblinding': {
+      get: {
+        operationId: 'getShieldedUnblindingPayload',
+        summary: 'Get the explorer-unblinding payload for a tx the wallet owns shielded openings of',
+        description: 'Returns the explorer unblinding envelope for a tx the wallet owns shielded openings of (as recipient of shielded outputs, or as spender of shielded inputs whose parent output it owns). `payload` is the bare base64url envelope; `unblindFragment` is the same value prefixed with `#unblind=` for appending to an explorer transaction URL.\n\nPRIVACY CAVEAT: the openings disclosed are only the wallet\'s OWN (received + change) — foreign recipients\' blinding factors are never disclosed. However, because a confidential transaction conserves value, publishing the owned input + change openings lets a viewer of the fragment derive a third-party recipient\'s amount arithmetically (`Σinputs − change − fee`). Treat the fragment as disclosing the amounts of the published transaction.',
+        parameters: [
+          { $ref: '#/components/parameters/XWalletIdParameter' },
+          {
+            name: 'id',
+            in: 'query',
+            description: 'The 64-hex-character transaction id.',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'The unblinding payload, or a failure envelope when the wallet has no openings to share for this tx.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, txId: '00abcd...', payload: '<base64url>', unblindFragment: '#unblind=<base64url>' }
+                  },
+                  'no-openings': {
+                    summary: 'No shielded openings to share',
+                    value: { success: false, error: 'Wallet has no shielded openings for tx 00abcd...' }
                   },
                   ...commonExamples.xWalletIdErrResponseExamples,
                 },

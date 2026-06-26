@@ -61,7 +61,7 @@ walletRouter.get('/shielded/audit-keys', exportShieldedAuditKeys);
  */
 walletRouter.get(
   '/shielded/unblinding',
-  query('id').isString().isLength({ min: 64, max: 64 }),
+  query('id').isString().isLength({ min: 64, max: 64 }).isHexadecimal(),
   getShieldedUnblindingPayload
 );
 
