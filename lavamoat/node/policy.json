@@ -73,6 +73,7 @@
         "setTimeout": true
       },
       "packages": {
+        "@hathor/wallet-lib>@hathor/ct-crypto-provider": true,
         "axios": true,
         "@hathor/wallet-lib>bitcore-lib": true,
         "@hathor/wallet-lib>bitcore-mnemonic": true,

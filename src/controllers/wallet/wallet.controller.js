@@ -14,6 +14,7 @@ const { friendlyWalletState, cantSendTxErrorMessage } = require('../../helpers/c
 const { mapTxReturn, prepareTxFunds, getTx, markUtxosSelectedAsInput, runSendTransaction } = require('../../helpers/tx.helper');
 const { stopWallet } = require('../../services/wallets.service');
 const { lockSendTx } = require('../../helpers/lock.helper');
+const { DEFAULT_PIN } = require('../../constants');
 
 /**
  * @typedef {import('@hathor/wallet-lib').SendTransaction} SendTransaction
@@ -135,6 +136,61 @@ async function getAddressInfo(req, res) {
     } else {
       throw error;
     }
+  }
+}
+
+/**
+ * Sign an arbitrary message with one of the wallet's address keys.
+ *
+ * Body params (at least one of `address_index` or `address` is required):
+ *   - message:       string — the payload to sign
+ *   - address_index: int    — derivation index of the address that will sign
+ *   - address:       string — alternative: resolved to index via wallet.getAddressIndex
+ *
+ * Response (success): { success: true, signature, address, index }
+ * Response (failure): { success: false, error }
+ *
+ * The signature is the wallet-lib's `signMessageWithAddress` output — a
+ * Bitcoin-compatible signed-message string (bitcore.Message). Verification on
+ * the consumer side uses the corresponding `verifyMessage` primitive.
+ */
+async function signMessage(req, res) {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    res.status(400).json(validationResult);
+    return;
+  }
+  /**
+   * @type {HathorWallet} wallet - Wallet object
+   */
+  const { wallet } = req;
+  const { message, address_index: explicitIndex, address } = matchedData(req, { locations: ['body'] });
+
+  try {
+    let index = explicitIndex;
+    if (index == null) {
+      if (address == null) {
+        res.send({ success: false, error: 'one of address_index or address is required' });
+        return;
+      }
+      index = await wallet.getAddressIndex(address);
+      if (index == null) {
+        res.send({ success: false, error: 'address does not belong to the wallet' });
+        return;
+      }
+    }
+    const signature = await wallet.signMessageWithAddress(message, index, DEFAULT_PIN);
+    // Always derive the response address from the index actually used to sign.
+    // If the caller passed both `address` and `address_index`, the index wins
+    // (documented in api-docs.js) — we must not echo back an address whose key
+    // didn't produce the signature, otherwise downstream verifyMessage fails.
+    const resolvedAddress = await wallet.getAddressAtIndex(index);
+    res.send({ success: true, signature, address: resolvedAddress, index });
+  } catch (err) {
+    // An underlying call (key derivation, signing) may throw an error that has
+    // nothing to do with message signing on its face — prefix it so the HTTP
+    // caller knows which operation failed.
+    res.send({ success: false, error: `failed to sign message: ${err.message}` });
   }
 }
 
@@ -857,6 +913,7 @@ module.exports = {
   getBalance,
   getAddress,
   getAddressIndex,
+  signMessage,
   getAddresses,
   getAddressInfo,
   getTxHistory,

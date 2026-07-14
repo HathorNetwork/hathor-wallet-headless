@@ -57,4 +57,65 @@ describe('history sync', () => {
     const wallet = initializedWallets.get(walletId);
     expect(wallet.historySyncMode).toEqual(hathorLib.HistorySyncMode.MANUAL_STREAM_WS);
   });
+
+  it('should default a multisig wallet to manual streaming instead of polling', async () => {
+    const config = settings._getDefaultConfig();
+    delete config.history_sync_mode; // resolves to the xpub default
+    config.multisig = TestUtils.multisigData;
+    settings._setConfig(config);
+    const response = await TestUtils.request
+      .post('/start')
+      .send({ seedKey: TestUtils.seedKey, 'wallet-id': walletId, multisig: true });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    const wallet = initializedWallets.get(walletId);
+    expect(wallet.historySyncMode).toEqual(hathorLib.HistorySyncMode.MANUAL_STREAM_WS);
+  });
+
+  it('should redirect a multisig wallet to manual streaming when xpub streaming is explicitly requested', async () => {
+    const config = settings._getDefaultConfig();
+    config.history_sync_mode = 'polling_http_api';
+    config.multisig = TestUtils.multisigData;
+    settings._setConfig(config);
+    const response = await TestUtils.request
+      .post('/start')
+      .send({
+        seedKey: TestUtils.seedKey,
+        'wallet-id': walletId,
+        multisig: true,
+        history_sync_mode: 'xpub_stream_ws',
+      });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    const wallet = initializedWallets.get(walletId);
+    expect(wallet.historySyncMode).toEqual(hathorLib.HistorySyncMode.MANUAL_STREAM_WS);
+  });
+
+  it('should keep polling for a multisig wallet when polling is explicitly configured', async () => {
+    const config = settings._getDefaultConfig();
+    config.history_sync_mode = 'polling_http_api';
+    config.multisig = TestUtils.multisigData;
+    settings._setConfig(config);
+    const response = await TestUtils.request
+      .post('/start')
+      .send({ seedKey: TestUtils.seedKey, 'wallet-id': walletId, multisig: true });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    const wallet = initializedWallets.get(walletId);
+    expect(wallet.historySyncMode).toEqual(hathorLib.HistorySyncMode.POLLING_HTTP_API);
+  });
+
+  it('should keep manual streaming for a multisig wallet when explicitly configured', async () => {
+    const config = settings._getDefaultConfig();
+    config.history_sync_mode = 'manual_stream_ws';
+    config.multisig = TestUtils.multisigData;
+    settings._setConfig(config);
+    const response = await TestUtils.request
+      .post('/start')
+      .send({ seedKey: TestUtils.seedKey, 'wallet-id': walletId, multisig: true });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    const wallet = initializedWallets.get(walletId);
+    expect(wallet.historySyncMode).toEqual(hathorLib.HistorySyncMode.MANUAL_STREAM_WS);
+  });
 });
