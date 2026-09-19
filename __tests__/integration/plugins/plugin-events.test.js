@@ -51,12 +51,16 @@ describe('test the plugin event handler', () => {
     // There must have been events indicating state change on the wallet
     expect(testWalletHistory.filter(event => event.type === 'wallet:state-change').length).toBeGreaterThanOrEqual(1);
 
-    // There is a wallet load partial update indicating an empty wallet
+    // There are wallet load partial updates indicating an empty wallet. The lib emits one per
+    // chunk of addresses it fetches, and a wallet with shielded keys fetches the legacy and the
+    // shielded-spend addresses of each index, so the number of events is not fixed.
     const walletLoadPartialEvents = testWalletHistory.filter(event => event.type === 'wallet:load-partial-update');
-    expect(walletLoadPartialEvents).toHaveLength(1);
-    expect(walletLoadPartialEvents[0].data).toStrictEqual({
-      addressesFound: 20, historyLength: 0
-    });
+    expect(walletLoadPartialEvents.length).toBeGreaterThanOrEqual(1);
+    for (const event of walletLoadPartialEvents) {
+      expect(event.data).toStrictEqual({
+        addressesFound: 20, historyLength: 0
+      });
+    }
   });
 
   it('should return the events related to a successful transaction', async () => {
@@ -72,10 +76,10 @@ describe('test the plugin event handler', () => {
     expect(walletHistoryEvents.length).toBeGreaterThanOrEqual(1);
     expect(walletHistoryEvents[0].data?.address).toEqual(await wallet1.getAddressAt(0));
 
-    // There is a wallet load partial update
+    // There is a wallet load partial update after the startup ones, loading the next address
     const walletLoadPartialEvents = testWalletHistory.filter(event => event.type === 'wallet:load-partial-update');
-    expect(walletLoadPartialEvents).toHaveLength(2);
-    expect(walletLoadPartialEvents[1].data).toStrictEqual({
+    expect(walletLoadPartialEvents.length).toBeGreaterThanOrEqual(2);
+    expect(walletLoadPartialEvents.at(-1).data).toStrictEqual({
       addressesFound: 21, historyLength: 1
     });
 
