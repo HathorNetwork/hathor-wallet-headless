@@ -5,7 +5,7 @@ const defaultConfig = {
   http_port: 8000,
 
   // Hathor Full-node
-  network: 'testnet',
+  network: 'privatenet',
   server: 'http://localhost:8083/v1a/',
 
   // Tx Mining Service
