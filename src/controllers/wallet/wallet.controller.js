@@ -791,6 +791,11 @@ async function utxoConsolidation(req, res) {
 
   const { wallet } = req;
   const { destination_address: destinationAddress, ...options } = matchedData(req, { locations: ['body'] });
+  // The lib names this option max_amount; the API keeps the old name for
+  // compatibility (same mapping as utxoFilter).
+  if (options.maximum_amount) {
+    options.max_amount = options.maximum_amount;
+  }
 
   try {
     /** @type {SendTransaction} */
