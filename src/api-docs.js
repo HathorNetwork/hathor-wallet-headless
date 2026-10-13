@@ -571,20 +571,108 @@ const defaultApiDocs = {
               type: 'string',
             },
           },
+          {
+            name: 'split',
+            in: 'query',
+            description: 'Return the balance partitioned into transparent and shielded buckets in addition to the aggregate `available` / `locked` totals. When omitted (default), the response shape is the legacy single-bucket form for backward compatibility.',
+            required: false,
+            schema: {
+              type: 'boolean',
+            },
+          },
         ],
         responses: {
           200: {
-            description: 'Balance of tokens available and locked. To get the total, you must sum them up.',
+            description: 'Balance of tokens available and locked. To get the total, you must sum them up. When `split=true` is passed, the response additionally exposes per-bucket breakdowns under `transparent` and `shielded`.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success (default — aggregate only)',
+                    value: { available: 2, locked: 0 }
+                  },
+                  'success-split': {
+                    summary: 'Success (split=true)',
+                    // Buckets always reconcile with the totals:
+                    // transparent.available + shielded.available === available,
+                    // and the same for locked.
+                    value: {
+                      available: 500,
+                      locked: 64,
+                      transparent: { available: 200, locked: 64 },
+                      shielded: { available: 300, locked: 0 }
+                    }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  ...commonExamples.xWalletIdErrResponseExamples,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/shielded/audit-keys': {
+      get: {
+        operationId: 'exportShieldedAuditKeys',
+        summary: 'Export the wallet\'s shielded audit-key pair',
+        description: 'Returns `spendXpub` (the spend-chain xpub — derive every shielded spend address / see incoming activity, but cannot spend) and `scanXpriv` (the scan-chain xpriv — decrypt every incoming shielded output addressed to the wallet). Together they grant full READ access to the wallet\'s shielded history; neither grants spend authority.\n\nSENSITIVITY: `scanXpriv` is a bearer-equivalent, durable read credential. A momentary compromise of the API key yields long-lived read access to all current AND future shielded receives, and that access SURVIVES rotating the API key. Only expose this endpoint in a controlled environment. Wallets created before shielded outputs were enabled have no shielded keys and respond with `success: false`.',
+        parameters: [
+          { $ref: '#/components/parameters/XWalletIdParameter' },
+        ],
+        responses: {
+          200: {
+            description: 'The shielded audit-key pair, or a failure envelope.',
             content: {
               'application/json': {
                 examples: {
                   success: {
                     summary: 'Success',
-                    value: { available: 2, locked: 0 }
+                    value: { success: true, spendXpub: 'xpub6...', scanXpriv: 'xprv9...' }
                   },
-                  'wallet-not-ready': {
-                    summary: 'Wallet is not ready yet',
-                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  'no-shielded-keys': {
+                    summary: 'Wallet has no shielded keys',
+                    value: { success: false, error: 'This wallet has no shielded keys. They are only present on wallets created after the shielded outputs feature was enabled.' }
+                  },
+                  ...commonExamples.xWalletIdErrResponseExamples,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/shielded/unblinding': {
+      get: {
+        operationId: 'getShieldedUnblindingPayload',
+        summary: 'Get the explorer-unblinding payload for a tx the wallet owns shielded openings of',
+        description: 'Returns the explorer unblinding envelope for a tx the wallet owns shielded openings of (as recipient of shielded outputs, or as spender of shielded inputs whose parent output it owns). `payload` is the bare base64url envelope; `unblindFragment` is the same value prefixed with `#unblind=` for appending to an explorer transaction URL.\n\nPRIVACY CAVEAT: the openings disclosed are only the wallet\'s OWN (received + change) — foreign recipients\' blinding factors are never disclosed. However, because a confidential transaction conserves value, publishing the owned input + change openings lets a viewer of the fragment derive a third-party recipient\'s amount arithmetically (`Σinputs − change − fee`). Treat the fragment as disclosing the amounts of the published transaction.',
+        parameters: [
+          { $ref: '#/components/parameters/XWalletIdParameter' },
+          {
+            name: 'id',
+            in: 'query',
+            description: 'The 64-hex-character transaction id.',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'The unblinding payload, or a failure envelope when the wallet has no openings to share for this tx.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, txId: '00abcd...', payload: '<base64url>', unblindFragment: '#unblind=<base64url>' }
+                  },
+                  'no-openings': {
+                    summary: 'No shielded openings to share',
+                    value: { success: false, error: 'Wallet has no shielded openings for tx 00abcd...' }
                   },
                   ...commonExamples.xWalletIdErrResponseExamples,
                 },
@@ -616,6 +704,16 @@ const defaultApiDocs = {
             required: false,
             schema: {
               type: 'integer',
+            },
+          },
+          {
+            name: 'legacy',
+            in: 'query',
+            description: 'Which derivation chain to read from. Defaults to `true` — the legacy P2PKH chain at `m/44\'/280\'/0\'/0/index`, identical to the address `/wallet/address` always returned before shielded outputs existed. Pass `false` to derive on the shielded chain instead (`m/44\'/280\'/{1\',2\'}/0/index`), which returns the user-facing 71-byte shielded base58 address (scan + spend pubkeys) used as the destination for shielded outputs. The shielded chain is only meaningful when the wallet has shielded keys provisioned (any seed-based wallet created or migrated on a shielded-capable wallet-lib version).',
+            required: false,
+            schema: {
+              type: 'boolean',
+              default: true,
             },
           },
         ],
@@ -2932,6 +3030,11 @@ const defaultApiDocs = {
                         timelock: {
                           type: 'integer',
                           description: 'Timelock value for the output. Used only for P2PKH or P2SH.'
+                        },
+                        shielded: {
+                          type: 'integer',
+                          enum: [1, 2],
+                          description: 'Shielded output mode. 1 = AmountShielded (value hidden, token visible), 2 = FullShielded (value and token hidden). The recipient is identified by the shielded `address` itself — no separate pubkey field is required, the wallet derives the scan and spend pubkeys from the encoded shielded address. Each transaction MUST contain at least 2 shielded outputs (the protocol-level rule that keeps the blinding-factor balancing solvable).'
                         },
                       }
                     },

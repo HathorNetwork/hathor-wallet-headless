@@ -218,8 +218,6 @@ export class TestUtils {
    * @returns {Promise<{start:unknown,status:unknown}>}
    */
   static async startWallet(walletObj, options = {}) {
-    let response;
-
     WalletBenchmarkUtil.informWalletEvent(
       walletObj.walletId,
       WALLET_EVENTS.startRequest,
@@ -227,24 +225,38 @@ export class TestUtils {
     );
 
     // Request the Wallet start
-    if (walletObj.words) {
-      response = await request
-        .post('/start')
-        .send({
-          seed: walletObj.words,
-          'wallet-id': walletObj.walletId,
-          preCalculatedAddresses: walletObj.addresses
-        });
-    } else {
-      response = await request
-        .post('/start')
-        .send({
-          seedKey: walletObj.seedKey,
-          'wallet-id': walletObj.walletId,
-          multisig: walletObj.multisig || false,
-          preCalculatedAddresses: walletObj.addresses
-        });
+    //
+    // Scan policy contract:
+    //   - `options.scanPolicy` unset → defaults to 'gap-limit'. wallet-lib's
+    //     own default (when the field is omitted in the request body) is
+    //     SCANNING_POLICY.SINGLE_ADDRESS, which subscribes a websocket push
+    //     only for the current address. Any tx targeting a higher-index
+    //     address would silently never arrive at the wallet — the symptom
+    //     that hung the original integration suite. Forcing 'gap-limit' on
+    //     by default makes the broad cross-wallet send/recv tests reliable.
+    //   - `options.scanPolicy === null` → omit the field entirely so the
+    //     server falls back to wallet-lib's SINGLE_ADDRESS default. Used by
+    //     the default-policy test suite (`shielded-default-policy.test.js`)
+    //     to verify that single-address behaviour itself still works for the
+    //     scenarios where it's a viable choice (self-send, validation,
+    //     address-rotation receives at the current cursor).
+    const scanPolicy = options.scanPolicy === undefined ? 'gap-limit' : options.scanPolicy;
+    const startBody = walletObj.words
+      ? {
+        seed: walletObj.words,
+        'wallet-id': walletObj.walletId,
+        preCalculatedAddresses: walletObj.addresses,
+      }
+      : {
+        seedKey: walletObj.seedKey,
+        'wallet-id': walletObj.walletId,
+        multisig: walletObj.multisig || false,
+        preCalculatedAddresses: walletObj.addresses,
+      };
+    if (scanPolicy !== null) {
+      startBody.scanPolicy = scanPolicy;
     }
+    const response = await request.post('/start').send(startBody);
     WalletBenchmarkUtil.informWalletEvent(
       walletObj.walletId,
       WALLET_EVENTS.startResponse,
@@ -330,10 +342,13 @@ export class TestUtils {
    * @see https://wallet-headless.docs.hathor.network/#/paths/~1wallet~1address/get
    * @returns {Promise<string>}
    */
-  static async getAddressAt(walletId, index, markAsUsed) {
+  static async getAddressAt(walletId, index, markAsUsed, options = {}) {
     const requestParams = { index };
     if (markAsUsed) {
       requestParams.mark_as_used = true;
+    }
+    if (options.legacy === false) {
+      requestParams.legacy = false;
     }
 
     const response = await TestUtils.request
@@ -342,6 +357,13 @@ export class TestUtils {
       .set(TestUtils.generateHeader(walletId));
 
     return response.body.address;
+  }
+
+  /**
+   * Gets a shielded address at a specific index.
+   */
+  static async getShieldedAddressAt(walletId, index) {
+    return TestUtils.getAddressAt(walletId, index, false, { legacy: false });
   }
 
   /**
@@ -995,14 +1017,30 @@ export class TestUtils {
         continue;
       }
 
-      if (input.index > inputTx.outputs.length - 1) {
-        // Invalid output index
-        throw new Error('Try to get output in an index that doesn\'t exist.');
+      // Shielded outputs use a concatenated on-chain index — the i-th
+      // shielded output is at position (transparentCount + i). When a
+      // shielded input spends one of these, `input.index` can legitimately
+      // exceed `inputTx.outputs.length`. Resolve by trying transparent
+      // first, then falling back to shielded_outputs[index - transparentCount].
+      const transparentCount = inputTx.outputs.length;
+      if (input.index < transparentCount) {
+        const output = inputTx.outputs[input.index];
+        output.spent_by = tx.tx_id;
+        await wallet.storage.addTx(inputTx);
+        continue;
       }
 
-      const output = inputTx.outputs[input.index];
-      output.spent_by = tx.tx_id;
-      await wallet.storage.addTx(inputTx);
+      const shieldedOutputs = inputTx.shielded_outputs ?? [];
+      const shieldedIdx = input.index - transparentCount;
+      if (shieldedIdx < shieldedOutputs.length) {
+        shieldedOutputs[shieldedIdx].spent_by = tx.tx_id;
+        await wallet.storage.addTx(inputTx);
+        continue;
+      }
+
+      // Neither transparent nor shielded matches — this is the original
+      // error path (genuinely invalid index, not a shielded-aware miss).
+      throw new Error('Try to get output in an index that doesn\'t exist.');
     }
   }
 
@@ -1031,6 +1069,21 @@ export class TestUtils {
     // We are still within an invalid time to generate a new timestamp. Waiting for some time...
     const timeToWait = nextValidMilliseconds - nowMilliseconds + 10;
     await delay(timeToWait);
+  }
+
+  /**
+   * Returns the compressed public key (hex) for an address at the given index.
+   * Requires the wallet to be started and available in initializedWallets.
+   * @param {string} walletId Wallet identification
+   * @param {number} index Address index
+   * @returns {Promise<string>} 66-char hex compressed public key
+   */
+  static async getAddressPubkey(walletId, index) {
+    const wallet = initializedWallets.get(walletId);
+    if (!wallet) {
+      throw new Error(`Wallet ${walletId} not found in initializedWallets`);
+    }
+    return wallet.storage.getAddressPubkey(index);
   }
 
   /**

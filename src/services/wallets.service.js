@@ -6,6 +6,35 @@
  */
 
 const { Connection, HathorWallet, HistorySyncMode } = require('@hathor/wallet-lib');
+
+/**
+ * Shielded crypto provider — lazily loaded once per process. `@hathor/ct-crypto-node`
+ * is an optional runtime dependency (the native NAPI addon ships prebuilds for
+ * Linux/macOS x64/arm64); install it to enable shielded support. If the
+ * package isn't installed we leave the provider unset and shielded operations
+ * silently degrade.
+ */
+let cachedShieldedProvider;
+let shieldedProviderInitTried = false;
+function getShieldedCryptoProvider() {
+  if (shieldedProviderInitTried) return cachedShieldedProvider;
+  shieldedProviderInitTried = true;
+  try {
+    // eslint-disable-next-line global-require, import/no-unresolved
+    const { createDefaultShieldedCryptoProvider } = require('@hathor/ct-crypto-node/provider');
+    cachedShieldedProvider = createDefaultShieldedCryptoProvider();
+  } catch (e) {
+    cachedShieldedProvider = null;
+    // Don't swallow silently: a missing/unloadable native addon (e.g. no
+    // prebuild for the host platform, ABI mismatch) disables shielded support,
+    // and shielded receives then decode to nothing with no other signal.
+    buildAppLogger().warn(
+      'Shielded crypto provider failed to load; shielded operations are disabled.',
+      { error: sanitizeLogInput(e instanceof Error ? e.message : String(e)) }
+    );
+  }
+  return cachedShieldedProvider;
+}
 const { removeAllWalletProposals } = require('./atomic-swap.service');
 const { notificationBus } = require('./notification.service');
 const { sanitizeLogInput, buildAppLogger } = require('../logger');
@@ -102,6 +131,14 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
   hydratedWalletConfig.logger = libLogger;
 
   const wallet = new HathorWallet(hydratedWalletConfig);
+  // Wire the shielded crypto provider before starting the wallet (wallet-lib
+  // no longer auto-detects). If ct-crypto-node isn't installed, the provider
+  // is null and shielded operations are unavailable but the wallet still works
+  // for transparent flows.
+  const shieldedProvider = getShieldedCryptoProvider();
+  if (shieldedProvider) {
+    wallet.setShieldedCryptoProvider(shieldedProvider);
+  }
   setupWalletStateLogs(wallet, logger);
 
   // Will try to use the options.historySyncMode then config.history_sync_mode

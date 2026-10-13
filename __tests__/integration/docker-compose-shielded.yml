@@ -1,0 +1,76 @@
+services:
+
+  # Fullnode with shielded output support.
+  # alpha-v3 has the in-tree JSON serialization for shielded outputs and the
+  # related-addresses fix baked in, so no source patch / bind-mount is needed
+  # anymore (the prior alpha-v1 setup mounted hathor-core files into the
+  # container; the Dockerfile.fullnode-shielded + patch_fullnode_shielded.py
+  # files were removed alongside this update).
+  fullnode:
+    image:
+      ${HATHOR_HEADLESS_INTEGRATION_TESTS_FULLNODE_IMAGE:-hathornetwork/hathor-core:experimental-shielded-outputs-alpha-v3-python3.11}
+    command: [
+      "run_node",
+      "--listen", "tcp:40404",
+      "--status", "8080",
+      "--test-mode-tx-weight",
+      "--wallet-index",
+      "--allow-mining-without-peers",
+      "--unsafe-mode", "nano-testnet-bravo",
+      "--data", "./tmp",
+      "--nc-indexes",
+      "--enable-event-queue",
+      "--nc-exec-logs", "all",
+    ]
+    environment:
+      HATHOR_CONFIG_YAML: privnet/conf/privnet-shielded.yml
+    ports:
+      - "8083:8080"
+      - "40404:40404"
+    volumes:
+      - type: bind
+        source: ./configuration/
+        target: /privnet/conf
+    networks:
+      - hathor-privnet
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; import json; r = urllib.request.urlopen('http://localhost:8080/v1a/status'); body = json.loads(r.read()); assert body['server']['state'] == 'READY'"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  tx-mining-service:
+    platform: linux/amd64
+    image:
+      ${HATHOR_HEADLESS_INTEGRATION_TESTS_TXMINING_IMAGE:-hathornetwork/tx-mining-service:shielded-outputs-v3}
+    depends_on:
+      fullnode:
+        condition: service_healthy
+    ports:
+      - "8034:8034"
+      - "8035:8035"
+    command: [
+      "http://fullnode:8080",
+      "--stratum-port=8034",
+      "--api-port=8035",
+      "--testnet"
+    ]
+    networks:
+      - hathor-privnet
+
+  cpuminer:
+    image: hathornetwork/cpuminer
+    depends_on:
+      - tx-mining-service
+    command: [
+      "-a", "sha256d",
+      "--coinbase-addr", "WTjhJXzQJETVx7BVXdyZmvk396DRRsubdw",
+      "-o", "stratum+tcp://tx-mining-service:8034",
+      "--retry-pause", "5",
+      "-t", "1"
+    ]
+    networks:
+      - hathor-privnet
+
+networks:
+  hathor-privnet:

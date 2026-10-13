@@ -51,7 +51,9 @@ const createApp = config => {
   app.use(ConfigErrorHandler);
   app.use(ReadonlyErrorHandler);
   app.use((err, req, res, next) => {
-    req.logger.error(err.stack);
+    if (req.logger) {
+      req.logger.error(err.stack);
+    }
     res.status(err.statusCode || 500).json({ message: err.message, stack: err.stack });
   });
 

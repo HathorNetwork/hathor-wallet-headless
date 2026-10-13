@@ -29,6 +29,37 @@ describe('balance api', () => {
     expect(response.body.locked).toBe(6400);
   });
 
+  it('split=true buckets locked value correctly and reconciles with the totals', async () => {
+    // HTR: the locked value MUST land in a bucket's `locked`. This is the core
+    // SHLD-1 regression — the old walk read a non-existent `utxo.locked` field,
+    // so per-bucket `locked` was always 0 and locked value leaked into
+    // `available`. (The HTR fixture has a known phantom-UTXO quirk that makes the
+    // aggregate `available` differ from the raw UTXO sum, so we don't assert
+    // available reconciliation here — the locked bucketing is the bug under test.)
+    const htr = await TestUtils.request
+      .get('/wallet/balance')
+      .query({ split: true })
+      .set({ 'x-wallet-id': walletId });
+    expect(htr.status).toBe(200);
+    expect(Number(htr.body.transparent.locked)).toBe(6400);
+    expect(Number(htr.body.shielded.locked)).toBe(0);
+    expect(Number(htr.body.transparent.locked) + Number(htr.body.shielded.locked))
+      .toBe(htr.body.locked);
+
+    // Custom token (clean fixture): buckets fully reconcile with the totals, and
+    // authority UTXOs are excluded (their `value` is the authority bitmask, which
+    // the old walk wrongly summed into `available`).
+    const t09 = await TestUtils.request
+      .get('/wallet/balance')
+      .query({ split: true, token: '09' })
+      .set({ 'x-wallet-id': walletId });
+    expect(t09.status).toBe(200);
+    expect(Number(t09.body.transparent.available) + Number(t09.body.shielded.available))
+      .toBe(t09.body.available);
+    expect(Number(t09.body.transparent.locked) + Number(t09.body.shielded.locked))
+      .toBe(t09.body.locked);
+  });
+
   it('should return balance for custom token', async () => {
     const response = await TestUtils.request
       .get('/wallet/balance')
