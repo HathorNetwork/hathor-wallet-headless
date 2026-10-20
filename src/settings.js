@@ -85,7 +85,7 @@ const { initHathorLib } = require('./helpers/wallet.helper');
 /** @type {Configuration} */
 let _config = null;
 let started = false;
-const configPath = './config.js';
+const configPath = '../config.js';
 
 /**
  * Import the config and return the contents, removing from the `default` key.
