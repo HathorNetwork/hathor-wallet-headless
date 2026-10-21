@@ -105,6 +105,8 @@ describe('shielded audit-export endpoints', () => {
   describe('GET /wallet/shielded/unblinding', () => {
     /** @type {string} A txId both wallets can resolve openings against. */
     let shieldedTxId;
+    /** @type {string} A transparent tx in the sender's history. */
+    let transparentTxId;
 
     beforeAll(async () => {
       // Fund + send a shielded tx so subsequent tests have at least
@@ -113,7 +115,8 @@ describe('shielded audit-export endpoints', () => {
       // unblinding endpoint can surface — the audit-tool consumer
       // wants to verify these against the explorer.
       const initialFunds = 1000;
-      await wallet.injectFunds(initialFunds, 0);
+      const fundTx = await wallet.injectFunds(initialFunds, 0);
+      transparentTxId = fundTx.hash;
 
       const recipientAddr0 = await walletB.getShieldedAddressAt(0);
       const recipientAddr1 = await walletB.getShieldedAddressAt(1);
@@ -184,13 +187,13 @@ describe('shielded audit-export endpoints', () => {
     });
 
     it('responds with success=false when the wallet has no openings for the tx', async () => {
-      // The sender's wallet doesn't own any shielded output of this
-      // tx (it's the spender, not the recipient — its shielded
-      // change in this scenario is zero). Asking the sender for an
-      // unblinding payload must surface success=false rather than
-      // a stack trace.
+      // The funding tx is transparent: the wallet owns no shielded output
+      // or input of it. (The shielded send above is no use here: its change
+      // is shielded, so the sender owns openings of it too.) Asking for an
+      // unblinding payload must surface success=false rather than a stack
+      // trace.
       const res = await TestUtils.request
-        .get(`/wallet/shielded/unblinding?id=${shieldedTxId}`)
+        .get(`/wallet/shielded/unblinding?id=${transparentTxId}`)
         .set(TestUtils.generateHeader(wallet.walletId));
 
       expect(res.status).toBe(200);
@@ -274,14 +277,16 @@ describe('shielded audit-export endpoints', () => {
       });
       expect(tx.hash).toBeDefined();
 
-      // walletA's view: should see exactly 1 output (its own).
+      // walletA's view: its own output and its change, which is shielded
+      // too since every HTR output is, but never walletB's.
       const resA = await TestUtils.request
         .get(`/wallet/shielded/unblinding?id=${tx.hash}`)
         .set(TestUtils.generateHeader(wallet.walletId));
       expect(resA.body.success).toBe(true);
       const decodedA = decodePayload(resA.body.payload);
-      expect(decodedA.outputs).toHaveLength(1);
-      expect(decodedA.outputs[0].value).toBe('50');
+      const ownA = decodedA.outputs.filter(output => output.value === '50');
+      expect(ownA).toHaveLength(1);
+      expect(decodedA.outputs.map(output => output.value)).not.toContain('75');
 
       // walletB's view: should see exactly 1 output (its own).
       const resB = await TestUtils.request
@@ -294,7 +299,7 @@ describe('shielded audit-export endpoints', () => {
 
       // And neither sees the other's vbf — accidental leak across
       // wallets would let the recipient unblind the sender's change.
-      expect(decodedA.outputs[0].vbf).not.toBe(decodedB.outputs[0].vbf);
+      expect(decodedA.outputs.map(output => output.vbf)).not.toContain(decodedB.outputs[0].vbf);
     });
 
     it('includes input openings when the wallet spends a shielded UTXO', async () => {

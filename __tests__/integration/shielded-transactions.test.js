@@ -452,8 +452,10 @@ describe('shielded transactions', () => {
       // walletB receives at two distinct shielded indices so we can
       // tell the filter is actually picking the right one — not just
       // returning everything by accident.
-      const aRecipient0 = await wallet1.getShieldedAddressAt(30);
-      const aRecipient1 = await wallet1.getShieldedAddressAt(31);
+      // The indices must be inside the wallet's gap window: a receive to a
+      // derived but unloaded index is not seen, as for legacy addresses.
+      const aRecipient0 = await wallet1.getShieldedAddressAt(15);
+      const aRecipient1 = await wallet1.getShieldedAddressAt(16);
       await wallet1.injectFunds(500, 0);
       await wallet1.sendTx({
         outputs: [
@@ -462,7 +464,7 @@ describe('shielded transactions', () => {
         ],
       });
 
-      // Spend 60 HTR using the SHIELDED form of the index-30 address
+      // Spend 60 HTR using the SHIELDED form of the index-15 address
       // as the filter. The fix must surface the 110 UTXO at that
       // index and pick it; without the fix the response is
       // "No utxos available for the query filter for this amount."
@@ -516,8 +518,12 @@ describe('shielded transactions', () => {
       // Two shielded outputs at distinct indices so we can tell the
       // filter is actually picking by index, not just returning
       // everything.
-      const aRecipient0 = await wallet1.getShieldedAddressAt(40);
-      const aRecipient1 = await wallet1.getShieldedAddressAt(41);
+      // The indices must be inside the wallet's gap window: a receive to a
+      // derived but unloaded index is not seen, as for legacy addresses.
+      // They are also clear of the indices the wallet's own shielded changes
+      // land on, so the filter matches only the 70 output.
+      const aRecipient0 = await wallet1.getShieldedAddressAt(25);
+      const aRecipient1 = await wallet1.getShieldedAddressAt(26);
       await wallet1.injectFunds(500, 0);
       await wallet1.sendTx({
         outputs: [
@@ -526,7 +532,7 @@ describe('shielded transactions', () => {
         ],
       });
 
-      // utxo-filter with the SHIELDED form of index-40 must surface
+      // utxo-filter with the SHIELDED form of index-25 must surface
       // the 70-HTR UTXO at that index. Before the wallet-lib fix
       // this returned an empty utxos array because the comparison
       // was against the on-chain spend-P2PKH that labels the output.
