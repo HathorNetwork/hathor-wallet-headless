@@ -11,6 +11,7 @@ import morgan from 'morgan';
 import apiKeyAuth from './middlewares/api-key-auth.middleware';
 import { ConfigErrorHandler } from './middlewares/config-error-handler.middleware';
 import { ReadonlyErrorHandler } from './middlewares/xpub-error-handler.middleware';
+import { ShieldedKeyErrorHandler } from './middlewares/shielded-error-handler.middleware';
 import { buildAppLogger } from './logger';
 import mainRouter from './routes/index.routes';
 import { initHathorLib } from './helpers/wallet.helper';
@@ -50,6 +51,7 @@ const createApp = config => {
   app.use(mainRouter);
   app.use(ConfigErrorHandler);
   app.use(ReadonlyErrorHandler);
+  app.use(ShieldedKeyErrorHandler);
   app.use((err, req, res, next) => {
     if (req.logger) {
       req.logger.error(err.stack);

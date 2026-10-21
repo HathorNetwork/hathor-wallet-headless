@@ -107,6 +107,26 @@ function setupWalletStateLogs(wallet, logger) {
   wallet.conn.on('wallet-load-partial-update', data => {
     logger.debug(`Found ${data.addressesFound} addresses and ${data.historyLength} transactions`);
   });
+  // Emitted once per start and whenever the capability changes. A level below
+  // full is the only signal that shielded receives or spends are off.
+  wallet.on('shielded-capability', capability => {
+    const { level, reason, cause, canReceive, canSpend, historyComplete, undecoded } = capability;
+    // The level goes in the message: winston reads a `level` metadata field as
+    // the log level
+    logger[level === 'full' ? 'info' : 'warn'](`shielded_capability[${level}]`, {
+      reason,
+      cause,
+      canReceive,
+      canSpend,
+      historyComplete,
+      undecoded: {
+        txs: undecoded.txIds.length,
+        locked: undecoded.locked,
+        unreadable: undecoded.unreadable,
+        error: undecoded.error,
+      },
+    });
+  });
 }
 
 export { walletLoggers, initializeWalletLogger, getLogger, setupWalletStateLogs };

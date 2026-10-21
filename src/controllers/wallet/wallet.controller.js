@@ -42,11 +42,11 @@ async function getStatus(req, res) {
     network: wallet.getNetwork(),
     serverUrl: wallet.getServerUrl(),
     serverInfo: wallet.storage.version,
-    // Whether the shielded crypto provider loaded and is wired to this wallet.
-    // Lets operators detect a silently-disabled feature (e.g. the native addon
-    // failed to load for the host platform) instead of finding out on the first
-    // shielded operation.
-    shielded: { available: Boolean(wallet.storage.shieldedCryptoProvider) },
+    // What the wallet can do with shielded outputs: the level (none, watch,
+    // view or full), why it is below full, and whether it receives, spends and
+    // has its whole shielded history. A missing crypto provider shows up here
+    // as reason 'no-provider' instead of on the first shielded operation.
+    shielded: await wallet.getShieldedCapability(),
   };
 
   if (await wallet.getWalletType() === WalletType.MULTISIG) {

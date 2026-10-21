@@ -524,7 +524,7 @@ const defaultApiDocs = {
         ],
         responses: {
           200: {
-            description: 'A JSON with general wallet info',
+            description: 'A JSON with general wallet info. `shielded` is the wallet\'s shielded-output capability: `level` is `none` (no shielded keys, e.g. multisig, read-only, HSM or Fireblocks wallets), `watch`, `view` or `full`; `reason` and `cause` say why it is below `full`; `canReceive`, `canSpend` and `historyComplete` say whether the wallet sees its shielded receives, can spend its shielded outputs and has loaded its whole shielded history; `undecoded` counts the wallet\'s shielded outputs it holds but could not decode.',
             content: {
               'application/json': {
                 examples: {
@@ -542,7 +542,11 @@ const defaultApiDocs = {
                   },
                   ready: {
                     summary: 'Wallet is ready',
-                    value: { statusCode: 3, statusMessage: 'Ready', network: 'mainnet', serverUrl: 'https://node2.mainnet.hathor.network/v1a/', serverInfo: { version: '0.29.0', network: 'mainnet', min_weight: 14, min_tx_weight: 14, min_tx_weight_coefficient: 1.6, min_tx_weight_k: 100, token_deposit_percentage: 0.01 } }
+                    value: { statusCode: 3, statusMessage: 'Ready', network: 'mainnet', serverUrl: 'https://node2.mainnet.hathor.network/v1a/', serverInfo: { version: '0.29.0', network: 'mainnet', min_weight: 14, min_tx_weight: 14, min_tx_weight_coefficient: 1.6, min_tx_weight_k: 100, token_deposit_percentage: 0.01 }, shielded: { level: 'full', reason: null, cause: null, canReceive: true, canSpend: true, historyComplete: true, undecoded: { txIds: [], locked: 0, unreadable: 0, error: 0 } } }
+                  },
+                  'ready-without-shielded': {
+                    summary: 'Wallet is ready, without shielded keys (e.g. read-only)',
+                    value: { statusCode: 3, statusMessage: 'Ready', network: 'mainnet', serverUrl: 'https://node2.mainnet.hathor.network/v1a/', serverInfo: { version: '0.29.0', network: 'mainnet', min_weight: 14, min_tx_weight: 14, min_tx_weight_coefficient: 1.6, min_tx_weight_k: 100, token_deposit_percentage: 0.01 }, shielded: { level: 'none', reason: 'no-shielded-keys', cause: null, canReceive: false, canSpend: false, historyComplete: false, undecoded: { txIds: [], locked: 0, unreadable: 0, error: 0 } } }
                   },
                   'wallet-not-ready': {
                     summary: 'Wallet is not ready yet',
@@ -732,6 +736,19 @@ const defaultApiDocs = {
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
                   ...commonExamples.xWalletIdErrResponseExamples,
+                },
+              },
+            },
+          },
+          403: {
+            description: 'The wallet cannot derive shielded addresses (`legacy=false`). `errorCode` says why, e.g. `shielded-no-keys` (read-only, HSM or Fireblocks wallet), `shielded-multisig` or `shielded-locked`.',
+            content: {
+              'application/json': {
+                examples: {
+                  'no-shielded-keys': {
+                    summary: 'The wallet has no shielded keys',
+                    value: { success: false, error: 'The wallet has no shielded keys.', errorCode: 'shielded-no-keys' }
+                  },
                 },
               },
             },
