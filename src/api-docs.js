@@ -1195,6 +1195,11 @@ const defaultApiDocs = {
                           type: 'string',
                           description: 'Data string of the data script output. Required if it\'s a data script output.'
                         },
+                        shielded: {
+                          type: 'integer',
+                          enum: [1, 2],
+                          description: 'Shielded output mode. 1 = AmountShielded (value hidden, token visible), 2 = FullShielded (value and token hidden). `address` must be a shielded address; the wallet derives the recipient\'s scan and spend pubkeys from it. The protocol needs at least 2 shielded outputs in a transaction: when only one is requested, the wallet adds a second one, by splitting it or by making the change shielded. Each shielded output pays an extra HTR fee (1 for AmountShielded, 2 for FullShielded).'
+                        },
                       }
                     },
                     description: 'Outputs to create the transaction.'
@@ -1586,6 +1591,10 @@ const defaultApiDocs = {
                   signature: {
                     type: 'string',
                     description: '[P2PKH] The ECDSA signature in little endian, DER encoded in hex format.',
+                  },
+                  shielded: {
+                    type: 'boolean',
+                    description: '[P2PKH] Set when the input spends a shielded output, i.e. its `addressPath` from `/wallet/tx-proposal/get-wallet-inputs` is on the shielded spend chain (`m/44\'/280\'/2\'/0/index`). The input data then carries the spend-chain public key instead of the legacy one at the same index. Defaults to false.',
                   },
                   signatures: {
                     type: 'object',
@@ -3059,7 +3068,7 @@ const defaultApiDocs = {
                         shielded: {
                           type: 'integer',
                           enum: [1, 2],
-                          description: 'Shielded output mode. 1 = AmountShielded (value hidden, token visible), 2 = FullShielded (value and token hidden). The recipient is identified by the shielded `address` itself — no separate pubkey field is required, the wallet derives the scan and spend pubkeys from the encoded shielded address. Each transaction MUST contain at least 2 shielded outputs (the protocol-level rule that keeps the blinding-factor balancing solvable).'
+                          description: 'Shielded output mode. 1 = AmountShielded (value hidden, token visible), 2 = FullShielded (value and token hidden). `address` must be a shielded address; the wallet derives the recipient\'s scan and spend pubkeys from it. The protocol needs at least 2 shielded outputs in a transaction: when only one is requested, the wallet adds a second one, by splitting it or by making the change shielded. Each shielded output pays an extra HTR fee (1 for AmountShielded, 2 for FullShielded).'
                         },
                       }
                     },

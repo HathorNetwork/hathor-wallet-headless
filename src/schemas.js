@@ -275,6 +275,18 @@ export const txBuildSchema = {
       options: value => /^(00|[0-9a-fA-F]{64})$/.test(value),
     },
   },
+  'outputs.*.shielded': {
+    in: ['body'],
+    errorMessage: 'Invalid shielded mode',
+    isInt: {
+      options: {
+        min: 1,
+        max: 2,
+      },
+    },
+    toInt: true,
+    optional: true,
+  },
   'outputs.*': {
     in: ['body'],
     isObject: true,
@@ -451,6 +463,14 @@ export const p2pkhSignature = {
     custom: {
       options: value => /^[0-9a-fA-F]+$/.test(value)
     },
+  },
+  shielded: {
+    in: ['body'],
+    errorMessage: 'Invalid shielded',
+    isBoolean: {
+      options: { strict: true },
+    },
+    optional: true,
   },
   type: {
     customSanitizer: {

@@ -42,7 +42,11 @@ async function buildTxProposal(req, res) {
     res.send(preparedFundsResponse);
     return;
   }
-  const { inputs, outputs } = preparedFundsResponse;
+  const { inputs } = preparedFundsResponse;
+  // SendTransaction takes the shielded mode of an output as shieldedMode
+  const outputs = preparedFundsResponse.outputs.map(({ shielded, ...output }) => (
+    shielded ? { ...output, shieldedMode: shielded } : output
+  ));
   const changeAddress = req.body.change_address || null;
   const network = wallet.getNetworkObject();
 
@@ -117,10 +121,17 @@ async function getInputData(req, res) {
   let inputData;
 
   if (type === 'p2pkh') {
-    const { signature } = req.body;
+    const { signature, shielded } = req.body;
+    // An input that spends a shielded output is signed with the key on the
+    // spend chain (m/44'/280'/2'/0), not the legacy one at the same index
+    const xpubkey = shielded ? accessData.spendXpubkey : accessData.xpubkey;
+    if (!xpubkey) {
+      res.send({ success: false, error: 'wallet has no shielded keys' });
+      return;
+    }
     inputData = transactionUtils.createInputData(
       Buffer.from(signature, 'hex'),
-      walletUtils.getPublicKeyFromXpub(accessData.xpubkey, index).toBuffer(),
+      walletUtils.getPublicKeyFromXpub(xpubkey, index).toBuffer(),
     );
   } else if (type === 'p2sh') {
     // check if the loaded wallet is MultiSig
