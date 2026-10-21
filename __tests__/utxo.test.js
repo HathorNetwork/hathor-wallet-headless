@@ -35,3 +35,51 @@ describe('utxo api', () => {
     expect(response.body.utxos).toHaveLength(13);
   });
 });
+
+describe('utxo-consolidation maximum_amount', () => {
+  // A wallet of its own: consolidation spends the stub UTXOs, so sharing the
+  // wallet above would change what its "consolidate all" test sees.
+  const cappedWalletId = 'stub_utxo_max_amount';
+
+  beforeAll(async () => {
+    await TestUtils.startWallet({
+      walletId: cappedWalletId,
+      preCalculatedAddresses: TestUtils.addresses,
+    });
+  });
+
+  afterAll(async () => {
+    await TestUtils.stopWallet({ walletId: cappedWalletId });
+  });
+
+  it.each([0, -1])('should reject maximum_amount %d', async maximumAmount => {
+    // The lib treats a zero cap as no cap, so 0 would consolidate everything.
+    const response = await TestUtils.request
+      .post('/wallet/utxo-consolidation')
+      .send({
+        destination_address: 'WWbt2ww4W45YLUAumnumZiyWrABYDzCTdN',
+        maximum_amount: maximumAmount,
+      })
+      .set({ 'x-wallet-id': cappedWalletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+  });
+
+  it('should respect maximum_amount', async () => {
+    // Without the cap all 13 available UTXOs (76809) would be consolidated.
+    // Consolidation picks the smallest UTXOs first, so only 10 + 6399 + 6400
+    // (12809) fit under 12810.
+    const response = await TestUtils.request
+      .post('/wallet/utxo-consolidation')
+      .send({
+        destination_address: 'WWbt2ww4W45YLUAumnumZiyWrABYDzCTdN',
+        maximum_amount: 12810,
+      })
+      .set({ 'x-wallet-id': cappedWalletId });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.total_amount).toBeLessThanOrEqual(12810);
+    expect(response.body.total_utxos_consolidated).toBeGreaterThan(0);
+    expect(response.body.total_utxos_consolidated).toBeLessThan(13);
+  });
+});

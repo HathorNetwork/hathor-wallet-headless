@@ -3813,7 +3813,7 @@ const defaultApiDocs = {
                   },
                   maximum_amount: {
                     type: 'integer',
-                    description: 'Limit the maximum total amount to consolidate summing all utxos. Integer representation of decimals, i.e. 100 = 1.00.',
+                    description: 'Limit the maximum total amount to consolidate summing all utxos. Must be at least 1. Integer representation of decimals, i.e. 100 = 1.00.',
                   },
                 }
               },

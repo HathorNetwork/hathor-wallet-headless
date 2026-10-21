@@ -486,7 +486,7 @@ walletRouter.post(
   body('filter_address').isString().optional(),
   body('amount_smaller_than').custom(bigIntValidator()).optional().customSanitizer(bigIntSanitizer),
   body('amount_bigger_than').custom(bigIntValidator()).optional().customSanitizer(bigIntSanitizer),
-  body('maximum_amount').custom(bigIntValidator()).optional().customSanitizer(bigIntSanitizer),
+  body('maximum_amount').custom(bigIntValidator({ min: 1 })).optional().customSanitizer(bigIntSanitizer),
   utxoConsolidation
 );
 

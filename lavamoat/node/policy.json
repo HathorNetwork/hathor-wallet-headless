@@ -51,6 +51,11 @@
         "@dinamonetworks/hsm-dinamo>node-aes-cmac": true
       }
     },
+    "@hathor/wallet-lib>@hathor/ct-crypto-provider": {
+      "globals": {
+        "Buffer.alloc": true
+      }
+    },
     "@hathor/wallet-lib": {
       "builtin": {
         "assert": true,
