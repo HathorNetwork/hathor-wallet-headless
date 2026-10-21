@@ -395,6 +395,14 @@ export const queryInputSchema = {
       options: bigIntSanitizer,
     },
   },
+  'inputs.*.shielded': {
+    in: ['body'],
+    errorMessage: 'Invalid shielded',
+    isBoolean: {
+      options: { strict: true },
+    },
+    optional: true,
+  },
 };
 
 export const txHexInputDataSchema = {

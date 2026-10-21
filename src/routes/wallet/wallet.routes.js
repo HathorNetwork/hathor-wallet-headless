@@ -351,6 +351,9 @@ walletRouter.post(
         options: (value, { req, location, path }) => {
           if ('type' in value && value.type === 'query') {
             // It's a query input and all fields are optionals
+            if ('shielded' in value && typeof value.shielded !== 'boolean') {
+              return false;
+            }
             return true;
           }
           // It's a normal input
@@ -471,6 +474,7 @@ walletRouter.get(
   query('amount_bigger_than').custom(bigIntValidator()).optional().customSanitizer(bigIntSanitizer),
   query('maximum_amount').custom(bigIntValidator()).optional().customSanitizer(bigIntSanitizer),
   query('only_available_utxos').isBoolean().optional().toBoolean(),
+  query('shielded').isBoolean().optional().toBoolean(),
   utxoFilter
 );
 

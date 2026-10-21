@@ -119,6 +119,19 @@ describe('create tx-proposal api', () => {
     expect(response.status).toBe(400);
   });
 
+  it('should not accept a query input with an invalid shielded filter', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/tx-proposal')
+      .send({
+        outputs: [{ address: TestUtils.addresses[0], value: 1 }],
+        inputs: [{ type: 'query', shielded: 'yes' }],
+      })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(spyUtxos).not.toHaveBeenCalled();
+  });
+
   it('should fail if query return insufficient funds', async () => {
     spyUtxos.mockReturnValueOnce({
       total_amount_available: 10,
@@ -146,7 +159,6 @@ describe('create tx-proposal api', () => {
 
     // check spyUtxos with query options
     expect(spyUtxos).toHaveBeenCalledWith({
-      type: 'query',
       token: NATIVE_TOKEN_UID,
       only_available_utxos: true,
     });
@@ -329,22 +341,20 @@ describe('create tx-proposal api', () => {
 
     // check spyUtxos with query options
     expect(spyUtxos).toHaveBeenCalledWith({
-      type: 'query',
       max_utxos: 27,
       filter_address: TestUtils.addresses[2],
       amount_smaller_than: 20n,
       amount_bigger_than: 10n,
-      maximum_amount: 100n,
+      max_amount: 100n,
       token: NATIVE_TOKEN_UID,
       only_available_utxos: true,
     });
     expect(spyUtxos).toHaveBeenCalledWith({
-      type: 'query',
       max_utxos: 27,
       filter_address: TestUtils.addresses[2],
       amount_smaller_than: 20n,
       amount_bigger_than: 10n,
-      maximum_amount: 100n,
+      max_amount: 100n,
       token: TOKEN_UID,
       only_available_utxos: true,
     });
@@ -375,7 +385,6 @@ describe('create tx-proposal api', () => {
     });
 
     expect(spyUtxos).toHaveBeenCalledWith({
-      type: 'query',
       filter_address: TestUtils.addresses[4],
       token: NATIVE_TOKEN_UID,
       only_available_utxos: true,

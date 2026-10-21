@@ -1236,6 +1236,14 @@ const defaultApiDocs = {
                           type: 'integer',
                           description: 'Filter only utxos with value bigger than this. Optional query parameter when using type query.'
                         },
+                        maximum_amount: {
+                          type: 'integer',
+                          description: 'Limit the total amount of the utxos the query selects. Optional query parameter when using type query.'
+                        },
+                        shielded: {
+                          type: 'boolean',
+                          description: 'Select from the wallet\'s shielded utxos instead of its transparent ones. Defaults to false. Optional query parameter when using type query.'
+                        },
                       }
                     },
                     description: 'Inputs to create the transaction.'
@@ -3094,6 +3102,14 @@ const defaultApiDocs = {
                           type: 'integer',
                           description: 'Filter only utxos with value bigger than this. Optional query parameter when using type query.'
                         },
+                        maximum_amount: {
+                          type: 'integer',
+                          description: 'Limit the total amount of the utxos the query selects. Optional query parameter when using type query.'
+                        },
+                        shielded: {
+                          type: 'boolean',
+                          description: 'Select from the wallet\'s shielded utxos instead of its transparent ones. Defaults to false. Optional query parameter when using type query.'
+                        },
                       }
                     },
                     description: 'Inputs to create the transaction.'
@@ -3756,6 +3772,15 @@ const defaultApiDocs = {
             name: 'only_available_utxos',
             in: 'query',
             description: 'Get only available utxos, ignoring locked ones. Defaults to false.',
+            required: false,
+            schema: {
+              type: 'boolean',
+            },
+          },
+          {
+            name: 'shielded',
+            in: 'query',
+            description: 'List the wallet\'s shielded utxos instead of its transparent ones. Defaults to false. The `address` of a shielded utxo is the P2PKH address derived from the spend key of the shielded address it was paid to, not the shielded address itself.',
             required: false,
             schema: {
               type: 'boolean',
