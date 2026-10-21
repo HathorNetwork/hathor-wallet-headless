@@ -14,6 +14,7 @@ const { friendlyWalletState, cantSendTxErrorMessage } = require('../../helpers/c
 const { mapTxReturn, prepareTxFunds, getTx, markUtxosSelectedAsInput, runSendTransaction } = require('../../helpers/tx.helper');
 const { stopWallet } = require('../../services/wallets.service');
 const { lockSendTx } = require('../../helpers/lock.helper');
+const { stripShieldedSecrets } = require('../../helpers/shielded.helper');
 const { DEFAULT_PIN } = require('../../constants');
 
 /**
@@ -278,12 +279,12 @@ async function getTxHistory(req, res) {
   const { wallet } = req;
   const limit = req.query.limit || null;
   const history = await wallet.getFullHistory();
+  const values = Object.values(history);
   if (limit) {
-    const values = Object.values(history);
     const sortedValues = values.sort((a, b) => b.timestamp - a.timestamp);
-    res.send(sortedValues.slice(0, limit));
+    res.send(sortedValues.slice(0, limit).map(stripShieldedSecrets));
   } else {
-    res.send(Object.values(history));
+    res.send(values.map(stripShieldedSecrets));
   }
 }
 
@@ -300,7 +301,7 @@ async function getTransaction(req, res) {
   const { id } = req.query;
   const tx = await wallet.getTx(id);
   if (tx) {
-    res.send(tx);
+    res.send(stripShieldedSecrets(tx));
   } else {
     res.send({ success: false, error: `Wallet does not contain transaction with id ${id}` });
   }
