@@ -50,10 +50,13 @@ describe('shielded transactions', () => {
 
     expect(tx.hash).toBeDefined();
 
+    // Every HTR output is shielded, so the change is shielded too and pays
+    // its own fee: 1 HTR per AmountShielded output, 2 per FullShielded one
+    const fee = await TestUtils.getShieldedOutputsFee(wallet1.walletId, tx.hash);
+    expect(fee).toBeGreaterThanOrEqual(2);
     const balanceAfter = await wallet1.getBalance();
     const spent = balanceBefore.available - balanceAfter.available;
-    // Sender spent the shielded total + fee (1 HTR per AmountShielded output)
-    expect(spent).toBe(shieldedTotal + 2);
+    expect(spent).toBe(shieldedTotal + fee);
   });
 
   it('should send FullShielded outputs', async () => {
@@ -76,10 +79,12 @@ describe('shielded transactions', () => {
 
     expect(tx.hash).toBeDefined();
 
+    // FullShielded fee is 2 HTR per output, and the change is shielded too
+    const fee = await TestUtils.getShieldedOutputsFee(wallet1.walletId, tx.hash);
+    expect(fee).toBeGreaterThanOrEqual(4);
     const balanceAfter = await wallet1.getBalance();
     const spent = balanceBefore.available - balanceAfter.available;
-    // FullShielded fee is 2 HTR per output
-    expect(spent).toBe(shieldedTotal + 4);
+    expect(spent).toBe(shieldedTotal + fee);
   });
 
   it('should send mixed transaction (transparent + shielded)', async () => {
@@ -111,10 +116,13 @@ describe('shielded transactions', () => {
     expect(balanceAfter2.available - balanceBefore2.available)
       .toBeGreaterThanOrEqual(transparentAmount);
 
-    // Sender balance decreased by transparent + shielded + fee
+    // Sender balance decreased by transparent + shielded + fee. wallet-lib may
+    // shield the change too, to hide the shielded outputs' amounts
+    const fee = await TestUtils.getShieldedOutputsFee(wallet1.walletId, tx.hash);
+    expect(fee).toBeGreaterThanOrEqual(2);
     const balanceAfter1 = await wallet1.getBalance();
     const spent = balanceBefore1.available - balanceAfter1.available;
-    expect(spent).toBe(transparentAmount + shieldedTotal + 2);
+    expect(spent).toBe(transparentAmount + shieldedTotal + fee);
   });
 
   it('should send shielded output to self', async () => {
@@ -135,10 +143,13 @@ describe('shielded transactions', () => {
 
     expect(tx.hash).toBeDefined();
 
-    // After sending to self, balance should only decrease by the fee (2 HTR for 2 AmountShielded)
+    // After sending to self, balance should only decrease by the fee of the
+    // shielded outputs, the shielded change included
+    const fee = await TestUtils.getShieldedOutputsFee(wallet1.walletId, tx.hash);
+    expect(fee).toBeGreaterThanOrEqual(2);
     const balanceAfter = await wallet1.getBalance();
     const spent = balanceBefore.available - balanceAfter.available;
-    expect(spent).toBe(2);
+    expect(spent).toBe(fee);
   });
 
   it('should decrypt received shielded outputs and include in receiver balance', async () => {
@@ -188,19 +199,21 @@ describe('shielded transactions', () => {
     expect(response.body.success).toBe(false);
   });
 
-  it('should reject a single shielded output (Rule 4)', async () => {
+  it('should pair a single shielded output (min 2 shielded per tx)', async () => {
+    // wallet-lib adds the second shielded output itself, by splitting the
+    // output or by making the change shielded
     const shieldedAddr = await wallet2.getShieldedAddressAt(6);
 
-    const response = await TestUtils.request
-      .post('/wallet/send-tx')
-      .send({
-        outputs: [
-          { address: shieldedAddr, value: 100, shielded: 1 },
-        ],
-      })
-      .set(TestUtils.generateHeader(wallet1.walletId));
+    const tx = await wallet1.sendTx({
+      outputs: [
+        { address: shieldedAddr, value: 100, shielded: 1 },
+      ],
+      destinationWallet: wallet2.walletId,
+    });
 
-    expect(response.body.success).toBe(false);
+    expect(tx.hash).toBeDefined();
+    const decoded = await TestUtils.getTransaction(wallet1.walletId, tx.hash);
+    expect(decoded.shielded_outputs.length).toBeGreaterThanOrEqual(2);
   });
 
   it('should deduct correct fees for shielded outputs', async () => {
@@ -224,10 +237,14 @@ describe('shielded transactions', () => {
 
     expect(tx.hash).toBeDefined();
 
+    // Every HTR output is shielded, so the change is shielded too, in the most
+    // private mode among them: 1 (AmountShielded) + 2 (FullShielded) + 2
+    // (FullShielded change) = 5
+    const decoded = await TestUtils.getTransaction(wallet1.walletId, tx.hash);
+    expect(decoded.shielded_outputs.map(output => output.mode).sort()).toEqual([1, 2, 2]);
     const balanceAfter = await wallet1.getBalance();
     const spent = balanceBefore.available - balanceAfter.available;
-    // 200 (values) + 1 (AmountShielded fee) + 2 (FullShielded fee) = 203
-    expect(spent).toBe(203);
+    expect(spent).toBe(205);
   });
 
   it('should unshield funds (spend shielded UTXOs as transparent output)', async () => {
@@ -335,10 +352,13 @@ describe('shielded transactions', () => {
 
     expect(tx.hash).toBeDefined();
 
+    // 350 (values) + 1 (AmountShielded fee) + 2 (FullShielded fee), plus the
+    // fee of the shielded change
+    const fee = await TestUtils.getShieldedOutputsFee(wallet1.walletId, tx.hash);
+    expect(fee).toBeGreaterThanOrEqual(3);
     const balanceAfter = await wallet1.getBalance();
     const spent = balanceBefore.available - balanceAfter.available;
-    // 350 (values) + 1 (AmountShielded fee) + 2 (FullShielded fee) = 353
-    expect(spent).toBe(353);
+    expect(spent).toBe(350 + fee);
   });
 
   it('should send shielded outputs with a custom token (AmountShielded)', async () => {
@@ -446,10 +466,12 @@ describe('shielded transactions', () => {
       // as the filter. The fix must surface the 110 UTXO at that
       // index and pick it; without the fix the response is
       // "No utxos available for the query filter for this amount."
+      // `shielded: true` selects from the shielded utxos: wallet-lib 4.x
+      // only selects transparent ones otherwise.
       const response = await TestUtils.request
         .post('/wallet/send-tx')
         .send({
-          inputs: [{ type: 'query', filter_address: aRecipient0 }],
+          inputs: [{ type: 'query', filter_address: aRecipient0, shielded: true }],
           outputs: [
             { address: await wallet2.getAddressAt(7), value: 60 },
           ],
@@ -470,7 +492,7 @@ describe('shielded transactions', () => {
       const response = await TestUtils.request
         .post('/wallet/send-tx')
         .send({
-          inputs: [{ type: 'query', filter_address: unfundedShielded }],
+          inputs: [{ type: 'query', filter_address: unfundedShielded, shielded: true }],
           outputs: [
             { address: await wallet2.getAddressAt(8), value: 10 },
           ],
@@ -509,7 +531,8 @@ describe('shielded transactions', () => {
       // this returned an empty utxos array because the comparison
       // was against the on-chain spend-P2PKH that labels the output.
       const response = await TestUtils.request
-        .get(`/wallet/utxo-filter?filter_address=${encodeURIComponent(aRecipient0)}`)
+        .get('/wallet/utxo-filter')
+        .query({ filter_address: aRecipient0, shielded: true })
         .set({ 'x-wallet-id': wallet1.walletId });
 
       expect(response.status).toBe(200);
@@ -522,12 +545,21 @@ describe('shielded transactions', () => {
       // future "translate the address back on output" change
       // doesn't silently break clients that key off this field.
       expect(utxos[0].address).not.toBe(aRecipient0);
+
+      // Without shielded=true only transparent utxos are listed
+      const transparent = await TestUtils.request
+        .get('/wallet/utxo-filter')
+        .query({ filter_address: aRecipient0 })
+        .set({ 'x-wallet-id': wallet1.walletId });
+      expect(transparent.status).toBe(200);
+      expect(transparent.body.utxos || []).toHaveLength(0);
     });
 
     it('returns an empty utxo list when the shielded filter_address has no funds at that index', async () => {
       const unfundedShielded = await wallet1.getShieldedAddressAt(98);
       const response = await TestUtils.request
-        .get(`/wallet/utxo-filter?filter_address=${encodeURIComponent(unfundedShielded)}`)
+        .get('/wallet/utxo-filter')
+        .query({ filter_address: unfundedShielded, shielded: true })
         .set({ 'x-wallet-id': wallet1.walletId });
 
       expect(response.status).toBe(200);

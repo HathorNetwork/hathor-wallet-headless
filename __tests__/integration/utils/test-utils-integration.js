@@ -894,6 +894,22 @@ export class TestUtils {
   }
 
   /**
+   * The HTR fee the shielded outputs of a transaction pay: 1 per AmountShielded
+   * and 2 per FullShielded output. wallet-lib decides some of those outputs
+   * itself (a shielded change, or the second half of a lone shielded output),
+   * so tests compute the fee from the transaction it built.
+   *
+   * @param {string} walletId A wallet that has the transaction in its history
+   * @param {string} txId
+   * @returns {Promise<number>}
+   */
+  static async getShieldedOutputsFee(walletId, txId) {
+    const tx = await TestUtils.getTransaction(walletId, txId);
+    return (tx.shielded_outputs || [])
+      .reduce((fee, output) => fee + (output.mode === 2 ? 2 : 1), 0);
+  }
+
+  /**
    * Waits until the transaction arrives in the wallet ws, or a timeout (optional)
    * is reached
    *

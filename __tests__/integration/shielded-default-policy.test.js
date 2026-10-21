@@ -22,9 +22,9 @@ import { WalletHelper } from './utils/wallet-helper';
  *   3. Route-level validation under the default policy (no WS receive
  *      needed — purely sender-side checks).
  *   4. Self-send of shielded outputs under the default policy: the wallet
- *      processes its own send via the local in-process enqueue path
- *      (sendTransaction.ts:837), bypassing the WS subscription entirely,
- *      so it works regardless of which addresses are subscribed.
+ *      processes its own send via the local in-process enqueue path,
+ *      bypassing the WS subscription, as long as the outputs go to the
+ *      loaded address (index 0).
  */
 describe('shielded outputs — default scan policy (SINGLE_ADDRESS)', () => {
   /** @type WalletHelper */
@@ -33,11 +33,9 @@ describe('shielded outputs — default scan policy (SINGLE_ADDRESS)', () => {
   beforeAll(async () => {
     try {
       wallet = WalletHelper.getPrecalculatedWallet('shielded-single-addr');
-      // `scanPolicy: null` → no scanPolicy field on POST /start → wallet-lib
-      // falls back to SCANNING_POLICY.SINGLE_ADDRESS. We test the actual
-      // production-default behaviour here, not the test-suite default of
-      // 'gap-limit'.
-      await WalletHelper.startMultipleWalletsForTest([wallet], { scanPolicy: null });
+      // POST /start defaults to 'gap-limit' when no scanPolicy is given, so
+      // the policy is asked for explicitly.
+      await WalletHelper.startMultipleWalletsForTest([wallet], { scanPolicy: 'single-address' });
       // Genesis-funded so validation tests have UTXOs to draw from. Sent to
       // index 0 which is the current/subscribed address — receive works
       // because index 0 IS the loaded slot under SINGLE_ADDRESS.
@@ -51,7 +49,7 @@ describe('shielded outputs — default scan policy (SINGLE_ADDRESS)', () => {
     await wallet.stop();
   });
 
-  it('starts and reaches READY state without a scanPolicy field', async () => {
+  it('starts and reaches READY state with the single-address policy', async () => {
     // Sanity check on the wallet lifecycle — confirms the /start handler
     // accepts a body with no scanPolicy and the wallet completes its
     // initial sync. Failure here would mean we accidentally regressed the
@@ -91,15 +89,14 @@ describe('shielded outputs — default scan policy (SINGLE_ADDRESS)', () => {
     expect(response.body.error || '').toMatch(/shielded address/i);
   });
 
-  it('rejects a single shielded output (protocol Rule 4 still enforced)', async () => {
+  it('pairs a single shielded output (protocol rule still met)', async () => {
     const shieldedAddr = await wallet.getShieldedAddressAt(0);
-    const response = await TestUtils.request
-      .post('/wallet/send-tx')
-      .send({
-        outputs: [{ address: shieldedAddr, value: 100, shielded: 1 }],
-      })
-      .set(TestUtils.generateHeader(wallet.walletId));
-    expect(response.body.success).toBe(false);
+    const tx = await wallet.sendTx({
+      outputs: [{ address: shieldedAddr, value: 100, shielded: 1 }],
+    });
+    expect(tx.hash).toBeDefined();
+    const decoded = await TestUtils.getTransaction(wallet.walletId, tx.hash);
+    expect(decoded.shielded_outputs.length).toBeGreaterThanOrEqual(2);
   });
 
   it('sends shielded outputs to self under SINGLE_ADDRESS', async () => {
@@ -109,22 +106,27 @@ describe('shielded outputs — default scan policy (SINGLE_ADDRESS)', () => {
     // receiver-side path (which is the same wallet here) doesn't depend
     // on a WS push, so the shielded outputs get decoded and credited even
     // under SINGLE_ADDRESS.
+    // Only index 0 is loaded under SINGLE_ADDRESS, so both outputs (and the
+    // shielded change, paid to the current address) go to it: an output to a
+    // derived but unloaded index would not be credited.
     const a0 = await wallet.getShieldedAddressAt(0);
-    const a1 = await wallet.getShieldedAddressAt(1);
 
     const balanceBefore = await wallet.getBalance();
     const tx = await wallet.sendTx({
       outputs: [
         { address: a0, value: 200, shielded: 1 },
-        { address: a1, value: 100, shielded: 1 },
+        { address: a0, value: 100, shielded: 1 },
       ],
     });
     expect(tx.hash).toBeDefined();
 
     // The 300 we sent comes back as decoded shielded outputs to the same
-    // wallet; only the 2-HTR fee (1 per AmountShielded output) is gone.
+    // wallet, and so does the change, which is shielded too since every HTR
+    // output is: only the shielded outputs' fee is gone.
+    const fee = await TestUtils.getShieldedOutputsFee(wallet.walletId, tx.hash);
+    expect(fee).toBeGreaterThanOrEqual(2);
     const balanceAfter = await wallet.getBalance();
     const spent = BigInt(balanceBefore.available) - BigInt(balanceAfter.available);
-    expect(spent).toBe(2n);
+    expect(spent).toBe(BigInt(fee));
   });
 });

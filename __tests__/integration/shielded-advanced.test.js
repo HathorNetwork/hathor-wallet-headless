@@ -51,15 +51,16 @@ describe('shielded API validation', () => {
     expect(response.body.success).toBe(false);
   });
 
-  it('rejects a single shielded output (protocol Rule 4: min 2 shielded per tx)', async () => {
+  it('pairs a single shielded output (protocol rule: min 2 shielded per tx)', async () => {
+    // wallet-lib adds the second shielded output itself, by splitting the
+    // output or by making the change shielded
     const shieldedAddr = await wallet.getShieldedAddressAt(0);
-    const response = await TestUtils.request
-      .post('/wallet/send-tx')
-      .send({
-        outputs: [{ address: shieldedAddr, value: 100, shielded: 1 }],
-      })
-      .set(TestUtils.generateHeader(wallet.walletId));
-    expect(response.body.success).toBe(false);
+    const tx = await wallet.sendTx({
+      outputs: [{ address: shieldedAddr, value: 100, shielded: 1 }],
+    });
+    expect(tx.hash).toBeDefined();
+    const decoded = await TestUtils.getTransaction(wallet.walletId, tx.hash);
+    expect(decoded.shielded_outputs.length).toBeGreaterThanOrEqual(2);
   });
 
   it('rejects shielded output addressed at a legacy transparent address', async () => {
