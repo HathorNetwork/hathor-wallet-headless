@@ -256,8 +256,8 @@ const defaultApiDocs = {
                   historySyncMode: {
                     type: 'string',
                     enum: ['polling_http_api', 'xpub_stream_ws', 'manual_stream_ws'],
-                    description: 'History sync mode for the wallet to use.',
-                    default: 'polling_http_api',
+                    description: 'History sync mode for the wallet to use. If not given the configured default will apply. A wallet that can hold shielded funds (a single-signature wallet started from a seed, when the shielded crypto provider is available) always uses polling_http_api, because only polling watches the addresses shielded outputs are paid to.',
+                    default: 'xpub_stream_ws',
                   },
                 }
               },

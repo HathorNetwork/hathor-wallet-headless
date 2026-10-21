@@ -109,6 +109,9 @@ module.exports = {
 
   // Configure default history sync mode for the wallets
   // Accepted values are: 'polling_http_api', 'xpub_stream_ws', 'manual_stream_ws'
-  // If no value is configured the default of 'polling_http_api' will be used
+  // If no value is configured the default of 'xpub_stream_ws' will be used
+  // Wallets that can hold shielded funds (single-signature wallets started from a seed, when
+  // the shielded crypto provider is available) always use 'polling_http_api', because only
+  // polling watches the addresses shielded outputs are paid to.
   // history_sync_mode: 'polling_http_api|xpub_stream_ws|manual_stream_ws'
 };

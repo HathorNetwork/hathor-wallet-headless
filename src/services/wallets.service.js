@@ -35,6 +35,20 @@ function getShieldedCryptoProvider() {
   }
   return cachedShieldedProvider;
 }
+/**
+ * Whether a wallet can hold shielded funds. Only a single-signature wallet
+ * started from a seed has the shielded scan and spend keys (read-only, HSM,
+ * Fireblocks and multisig wallets have none), and only when the shielded
+ * crypto provider loaded.
+ *
+ * @param {Object} walletConfig Wallet configuration
+ * @param {Object|null} shieldedProvider The loaded shielded crypto provider
+ * @returns {boolean}
+ */
+function isShieldedCapable(walletConfig, shieldedProvider) {
+  return Boolean(shieldedProvider && walletConfig.seed && !walletConfig.multisig);
+}
+
 const { removeAllWalletProposals } = require('./atomic-swap.service');
 const { notificationBus } = require('./notification.service');
 const { sanitizeLogInput, buildAppLogger } = require('../logger');
@@ -162,6 +176,17 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
     mode = HistorySyncMode.POLLING_HTTP_API;
   }
   const appLogger = buildAppLogger();
+  // Only polling discovers and watches the addresses shielded outputs are paid
+  // to: under a streaming mode a shielded wallet reports canReceive=false and
+  // never sees its shielded receives. Until wallet-lib has a shielded stream
+  // sync, a wallet that can hold shielded funds always polls.
+  if (isShieldedCapable(hydratedWalletConfig, shieldedProvider)
+    && mode !== HistorySyncMode.POLLING_HTTP_API) {
+    if (configMode) {
+      appLogger.warn(`Wallet ${sanitizeLogInput(walletId)} can receive shielded outputs, which needs history sync mode ${HistorySyncMode.POLLING_HTTP_API}; ignoring the configured ${configMode}.`);
+    }
+    mode = HistorySyncMode.POLLING_HTTP_API;
+  }
   appLogger.info(`Configuring wallet ${sanitizeLogInput(walletId)} for history sync mode: ${mode}`);
   wallet.setHistorySyncMode(mode);
 
@@ -202,6 +227,7 @@ function isHsmWallet(walletId) {
 
 module.exports = {
   initializedWallets,
+  isShieldedCapable,
   hsmWalletIds,
   isHsmWallet,
   stopWallet,

@@ -1,9 +1,11 @@
 import hathorLib from '@hathor/wallet-lib';
 import TestUtils from './test-utils';
 import settings from '../src/settings';
-import { initializedWallets } from '../src/services/wallets.service';
+import { initializedWallets, isShieldedCapable } from '../src/services/wallets.service';
 
 const walletId = 'stub_history_sync';
+// Read-only wallets have no shielded keys, so they keep the configured sync mode
+const XPUBKEY = 'xpub6C95ufyyhEr2ntyGGfeHjyvxffmNZQ7WugyChhu1Fzor1tMUc4K2MUdwkcJoTzjVkg46hurWWU9gvZoivLiDk6MdsKukz3JiX5Fib2BDa2T';
 
 describe('history sync', () => {
   beforeEach(() => {
@@ -20,7 +22,7 @@ describe('history sync', () => {
     settings._setConfig(config);
     const response = await TestUtils.request
       .post('/start')
-      .send({ seedKey: TestUtils.seedKey, 'wallet-id': walletId });
+      .send({ xpubkey: XPUBKEY, 'wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
     const wallet = initializedWallets.get(walletId);
@@ -33,12 +35,11 @@ describe('history sync', () => {
     settings._setConfig(config);
     const response = await TestUtils.request
       .post('/start')
-      .send({ seedKey: TestUtils.seedKey, 'wallet-id': walletId });
+      .send({ xpubkey: XPUBKEY, 'wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
     const wallet = initializedWallets.get(walletId);
     expect(wallet.historySyncMode).toEqual(hathorLib.HistorySyncMode.MANUAL_STREAM_WS);
-    await TestUtils.stopWallet({ walletId });
   });
 
   it('should use the history sync from the request when provided', async () => {
@@ -48,7 +49,7 @@ describe('history sync', () => {
     const response = await TestUtils.request
       .post('/start')
       .send({
-        seedKey: TestUtils.seedKey,
+        xpubkey: XPUBKEY,
         'wallet-id': walletId,
         history_sync_mode: 'manual_stream_ws',
       });
@@ -56,6 +57,49 @@ describe('history sync', () => {
     expect(response.body.success).toBe(true);
     const wallet = initializedWallets.get(walletId);
     expect(wallet.historySyncMode).toEqual(hathorLib.HistorySyncMode.MANUAL_STREAM_WS);
+  });
+
+  it('should default a shielded-capable seed wallet to polling', async () => {
+    const config = settings._getDefaultConfig();
+    delete config.history_sync_mode; // resolves to the xpub default
+    settings._setConfig(config);
+    const response = await TestUtils.request
+      .post('/start')
+      .send({ seedKey: TestUtils.seedKey, 'wallet-id': walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    const wallet = initializedWallets.get(walletId);
+    expect(wallet.historySyncMode).toEqual(hathorLib.HistorySyncMode.POLLING_HTTP_API);
+  });
+
+  it('should force polling on a shielded-capable seed wallet when streaming is configured', async () => {
+    const config = settings._getDefaultConfig();
+    config.history_sync_mode = 'manual_stream_ws';
+    settings._setConfig(config);
+    const response = await TestUtils.request
+      .post('/start')
+      .send({ seedKey: TestUtils.seedKey, 'wallet-id': walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    const wallet = initializedWallets.get(walletId);
+    expect(wallet.historySyncMode).toEqual(hathorLib.HistorySyncMode.POLLING_HTTP_API);
+  });
+
+  it('should force polling on a shielded-capable seed wallet when streaming is requested', async () => {
+    const config = settings._getDefaultConfig();
+    delete config.history_sync_mode;
+    settings._setConfig(config);
+    const response = await TestUtils.request
+      .post('/start')
+      .send({
+        seedKey: TestUtils.seedKey,
+        'wallet-id': walletId,
+        history_sync_mode: 'xpub_stream_ws',
+      });
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    const wallet = initializedWallets.get(walletId);
+    expect(wallet.historySyncMode).toEqual(hathorLib.HistorySyncMode.POLLING_HTTP_API);
   });
 
   it('should default a multisig wallet to manual streaming instead of polling', async () => {
@@ -117,5 +161,24 @@ describe('history sync', () => {
     expect(response.body.success).toBe(true);
     const wallet = initializedWallets.get(walletId);
     expect(wallet.historySyncMode).toEqual(hathorLib.HistorySyncMode.MANUAL_STREAM_WS);
+  });
+});
+
+describe('isShieldedCapable', () => {
+  const provider = {};
+
+  it('should be true only for a single-signature seed wallet with a provider', () => {
+    expect(isShieldedCapable({ seed: 'words' }, provider)).toBe(true);
+    expect(isShieldedCapable({ seed: 'words', multisig: null }, provider)).toBe(true);
+  });
+
+  it('should be false without the shielded crypto provider', () => {
+    expect(isShieldedCapable({ seed: 'words' }, null)).toBe(false);
+  });
+
+  it('should be false for wallets without shielded keys', () => {
+    expect(isShieldedCapable({ xpub: XPUBKEY }, provider)).toBe(false);
+    expect(isShieldedCapable({ seed: 'words', multisig: TestUtils.multisigData }, provider))
+      .toBe(false);
   });
 });
