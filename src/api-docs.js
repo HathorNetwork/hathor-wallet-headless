@@ -922,6 +922,15 @@ const defaultApiDocs = {
         summary: 'Return all generated addresses of the wallet.',
         parameters: [
           { $ref: '#/components/parameters/XWalletIdParameter' },
+          {
+            name: 'legacy',
+            in: 'query',
+            description: 'Which addresses to list. Defaults to `true`, the legacy P2PKH addresses. Pass `false` to list the wallet\'s shielded receive addresses (the 71-byte base58 form used as the destination of shielded outputs). A wallet without shielded keys (read-only, HSM or Fireblocks) has none, and a multisig wallet answers 403.',
+            required: false,
+            schema: {
+              type: 'boolean',
+            },
+          },
         ],
         responses: {
           200: {
@@ -963,7 +972,7 @@ const defaultApiDocs = {
                 properties: {
                   address: {
                     type: 'string',
-                    description: 'Address to send the tokens.'
+                    description: 'Address to send the tokens. A shielded address given without `shielded` is paid transparently, to the P2PKH address of its spend key, so the amount is public. Use `/wallet/send-tx` with `outputs[].shielded` to send a shielded output.'
                   },
                   value: {
                     type: 'integer',
@@ -994,7 +1003,7 @@ const defaultApiDocs = {
                   },
                   change_address: {
                     type: 'string',
-                    description: 'Optional address to send the change amount.'
+                    description: 'Optional address to send the change amount. It may be a legacy or a shielded address of the wallet. When the change is shielded (wallet-lib shields it when every output of its token is shielded, or when shielded inputs are spent), a legacy change address fails the transaction: pass a shielded one or leave it out.'
                   },
                 }
               },
@@ -3056,7 +3065,7 @@ const defaultApiDocs = {
                       properties: {
                         address: {
                           type: 'string',
-                          description: 'Destination address of the output. Required if P2PKH or P2SH.'
+                          description: 'Destination address of the output. Required if P2PKH or P2SH. A shielded address given without `shielded` is paid transparently, to the P2PKH address of its spend key, so the amount is public.'
                         },
                         value: {
                           type: 'integer',
@@ -3158,7 +3167,7 @@ const defaultApiDocs = {
                   },
                   change_address: {
                     type: 'string',
-                    description: 'Optional address to send the change amount.'
+                    description: 'Optional address to send the change amount. It may be a legacy or a shielded address of the wallet. When the change is shielded (wallet-lib shields it when every output of its token is shielded, or when shielded inputs are spent), a legacy change address fails the transaction: pass a shielded one or leave it out.'
                   },
                 }
               },
@@ -3601,7 +3610,7 @@ const defaultApiDocs = {
         ],
         responses: {
           200: {
-            description: 'Return the transaction data',
+            description: 'Return the transaction data. Shielded outputs are listed in `shielded_outputs`, after the transparent `outputs`: the on-chain index of `shielded_outputs[i]` is `outputs.length + i`. For the wallet\'s own shielded outputs they carry the decoded `value` and `token`; the blinding factors that open them are never returned (see `/wallet/shielded/unblinding`).',
             content: {
               'application/json': {
                 examples: {
@@ -3681,7 +3690,7 @@ const defaultApiDocs = {
         ],
         responses: {
           200: {
-            description: 'Return the transaction history',
+            description: 'Return the transaction history. Shielded outputs are listed in `shielded_outputs`, after the transparent `outputs`: the on-chain index of `shielded_outputs[i]` is `outputs.length + i`. For the wallet\'s own shielded outputs they carry the decoded `value` and `token`; the blinding factors that open them are never returned (see `/wallet/shielded/unblinding`).',
             content: {
               'application/json': {
                 examples: {
