@@ -1,4 +1,5 @@
 import TestUtils from './test-utils';
+import settings from '../src/settings';
 
 const { initializedWallets } = require('../src/services/wallets.service');
 
@@ -37,6 +38,31 @@ describe('shielded api', () => {
   });
 
   describe('GET /wallet/shielded/audit-keys', () => {
+    beforeEach(() => {
+      const config = settings._getDefaultConfig();
+      config.allowShieldedAuditKeys = true;
+      settings._setConfig(config);
+    });
+
+    afterEach(() => {
+      settings._resetConfig();
+    });
+
+    it('is disabled unless allowShieldedAuditKeys is set', async () => {
+      settings._resetConfig();
+      const wallet = patchedWallet();
+      jest.spyOn(wallet.storage, 'getScanXPrivKey');
+
+      const res = await TestUtils.request
+        .get('/wallet/shielded/audit-keys')
+        .set({ 'x-wallet-id': walletId });
+
+      expect(res.status).toBe(403);
+      expect(res.body.success).toBe(false);
+      expect(res.body).not.toHaveProperty('scanXpriv');
+      expect(wallet.storage.getScanXPrivKey).not.toHaveBeenCalled();
+    });
+
     it('returns spendXpub + scanXpriv when the wallet has shielded keys', async () => {
       const wallet = patchedWallet();
       const spendXpub = 'xpub6stubSpendKey1234567890ABCDEF';

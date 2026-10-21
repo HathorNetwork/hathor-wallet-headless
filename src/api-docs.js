@@ -623,7 +623,7 @@ const defaultApiDocs = {
       get: {
         operationId: 'exportShieldedAuditKeys',
         summary: 'Export the wallet\'s shielded audit-key pair',
-        description: 'Returns `spendXpub` (the spend-chain xpub — derive every shielded spend address / see incoming activity, but cannot spend) and `scanXpriv` (the scan-chain xpriv — decrypt every incoming shielded output addressed to the wallet). Together they grant full READ access to the wallet\'s shielded history; neither grants spend authority.\n\nSENSITIVITY: `scanXpriv` is a bearer-equivalent, durable read credential. A momentary compromise of the API key yields long-lived read access to all current AND future shielded receives, and that access SURVIVES rotating the API key. Only expose this endpoint in a controlled environment. Wallets created before shielded outputs were enabled have no shielded keys and respond with `success: false`.',
+        description: 'Returns `spendXpub` (the spend-chain xpub — derive every shielded spend address / see incoming activity, but cannot spend) and `scanXpriv` (the scan-chain xpriv — decrypt every incoming shielded output addressed to the wallet). Together they grant full READ access to the wallet\'s shielded history; neither grants spend authority.\n\nSENSITIVITY: `scanXpriv` is a bearer-equivalent, durable read credential. A momentary compromise of the API key yields long-lived read access to all current AND future shielded receives, and that access SURVIVES rotating the API key. Only expose this endpoint in a controlled environment. It is disabled by default and answers 403 unless the `allowShieldedAuditKeys` configuration is set (`HEADLESS_ALLOW_SHIELDED_AUDIT_KEYS` in the Docker image). Wallets created before shielded outputs were enabled have no shielded keys and respond with `success: false`.',
         parameters: [
           { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
@@ -642,6 +642,19 @@ const defaultApiDocs = {
                     value: { success: false, error: 'This wallet has no shielded keys. They are only present on wallets created after the shielded outputs feature was enabled.' }
                   },
                   ...commonExamples.xWalletIdErrResponseExamples,
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Exporting the audit keys is disabled by the configuration.',
+            content: {
+              'application/json': {
+                examples: {
+                  disabled: {
+                    summary: 'allowShieldedAuditKeys is not set',
+                    value: { success: false, error: 'Exporting the shielded audit keys is disabled. To allow it, set allowShieldedAuditKeys in the configuration.' }
+                  },
                 },
               },
             },

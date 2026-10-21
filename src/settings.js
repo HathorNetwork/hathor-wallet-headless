@@ -65,6 +65,8 @@ const { initHathorLib } = require('./helpers/wallet.helper');
  * @property {number|null} [connectionTimeout] - Websocket connection timeout in ms.
  * @property {boolean} [allowPassphrase] - If we allow the use of passphrases
  * when starting a wallet.
+ * @property {boolean} [allowShieldedAuditKeys] - If we allow
+ * GET /wallet/shielded/audit-keys to export the shielded scan private key.
  * @property {boolean} [confirmFirstAddress] - If true the user will have to
  * provide the address at index 0 of the wallet he is trying to interact with.
  * @property {string[]} [enabled_plugins] - The plugins we should start when

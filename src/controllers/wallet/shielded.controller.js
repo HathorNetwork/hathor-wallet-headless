@@ -9,6 +9,7 @@ const { matchedData } = require('express-validator');
 const { shielded: walletLibShielded } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { DEFAULT_PIN } = require('../../constants');
+const settings = require('../../settings');
 
 /**
  * @typedef {import('@hathor/wallet-lib').HathorWallet} HathorWallet
@@ -43,10 +44,17 @@ const encodeUnblindingPayload = walletLibShielded.encodeShieldedUnblindingPayloa
  * disk), responds with `success: false`.
  *
  * Sensitivity: the scan xpriv is bearer-equivalent for shielded
- * receive privacy. Headless is assumed to run in a controlled
- * environment behind whatever auth the operator wraps it in.
+ * receive privacy, and it does not expire. The endpoint only answers when
+ * the `allowShieldedAuditKeys` config is set.
  */
 async function exportShieldedAuditKeys(req, res) {
+  if (!settings.getConfig().allowShieldedAuditKeys) {
+    res.status(403).send({
+      success: false,
+      error: 'Exporting the shielded audit keys is disabled. To allow it, set allowShieldedAuditKeys in the configuration.',
+    });
+    return;
+  }
   /** @type {HathorWallet} */
   const { wallet } = req;
   try {

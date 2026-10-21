@@ -43,6 +43,8 @@ const defaultConfig = {
    */
   connectionTimeout: 30000,
   allowPassphrase: false,
+  // The shielded audit-export suite reads GET /wallet/shielded/audit-keys
+  allowShieldedAuditKeys: true,
   confirmFirstAddress: false,
   history_sync_mode: 'polling_http_api',
 };

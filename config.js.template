@@ -86,6 +86,12 @@ module.exports = {
   // will only be allowed if it's set to true in the config.js file
   allowPassphrase: false,
 
+  // This allows GET /wallet/shielded/audit-keys, which returns a wallet's shielded scan
+  // private key. That key reads every shielded output the wallet receives, so it is a
+  // long-lived credential. This value is false by default and the endpoint will only answer
+  // if it's set to true in the config.js file
+  allowShieldedAuditKeys: false,
+
   // Enabling this requires all requests to have the X-First-Address header
   // to confirm that the client is connected to the right wallet. The primary
   // purpose of this parameter is to avoid operational mistakes and loss of funds.
