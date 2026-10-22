@@ -377,7 +377,7 @@ async function simpleSendTx(req, res) {
   }
 
   const { wallet, logger } = req;
-  const { address, value, token } = req.body;
+  const { address, value, token, shielded } = req.body;
   let tokenId;
   if (token) {
     if (typeof token === 'string') {
@@ -395,11 +395,12 @@ async function simpleSendTx(req, res) {
       throw new Error('Change address is not from this wallet');
     }
 
+    // sendTransactionInstance takes no shielded mode for its output, so build
+    // the single output the way it does, with the mode when one is given
     /** @type {SendTransaction} */
-    const sendTransaction = await wallet.sendTransactionInstance(
-      address,
-      value,
-      { token: tokenId, changeAddress },
+    const sendTransaction = await wallet.sendManyOutputsSendTransaction(
+      [{ address, value, token: tokenId, ...(shielded ? { shielded } : {}) }],
+      { changeAddress },
     );
     const tx = await runSendTransaction(sendTransaction, unlock);
     res.send({ success: true, ...mapTxReturn(tx) });

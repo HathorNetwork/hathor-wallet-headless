@@ -216,6 +216,31 @@ describe('shielded transactions', () => {
     expect(decoded.shielded_outputs.length).toBeGreaterThanOrEqual(2);
   });
 
+  it('should send a shielded output with simple-send-tx', async () => {
+    await wallet1.injectFunds(1000, 6);
+    const shieldedAddr = await wallet2.getShieldedAddressAt(12);
+    const balanceBefore2 = await wallet2.getBalance();
+
+    const requestBody = { address: shieldedAddr, value: 100, shielded: 1 };
+    const response = await TestUtils.request
+      .post('/wallet/simple-send-tx')
+      .send(requestBody)
+      .set(TestUtils.generateHeader(wallet1.walletId));
+    const tx = await TestUtils.handleTransactionResponse({
+      methodName: 'simpleSendTx',
+      requestBody,
+      txResponse: response,
+      walletIdsToWait: [wallet1.walletId, wallet2.walletId],
+    });
+
+    // The lone shielded output is paired, by splitting it or with a shielded
+    // change, and the receiver gets the whole value either way
+    const decoded = await TestUtils.getTransaction(wallet1.walletId, tx.hash);
+    expect(decoded.shielded_outputs.length).toBeGreaterThanOrEqual(2);
+    const balanceAfter2 = await wallet2.getBalance();
+    expect(balanceAfter2.available - balanceBefore2.available).toBe(100);
+  });
+
   it('should deduct correct fees for shielded outputs', async () => {
     // AmountShielded: 1 HTR per output, FullShielded: 2 HTR per output
     const initialFunds = 1000;

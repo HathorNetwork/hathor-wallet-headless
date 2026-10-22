@@ -972,11 +972,16 @@ const defaultApiDocs = {
                 properties: {
                   address: {
                     type: 'string',
-                    description: 'Address to send the tokens. A shielded address given without `shielded` is paid transparently, to the P2PKH address of its spend key, so the amount is public. Use `/wallet/send-tx` with `outputs[].shielded` to send a shielded output.'
+                    description: 'Address to send the tokens. A shielded address given without `shielded` is paid transparently, to the P2PKH address of its spend key, so the amount is public.'
                   },
                   value: {
                     type: 'integer',
                     description: 'The value parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.'
+                  },
+                  shielded: {
+                    type: 'integer',
+                    enum: [1, 2],
+                    description: 'Send a shielded output. 1 = AmountShielded (value hidden, token visible), 2 = FullShielded (value and token hidden). `address` must be a shielded address. The protocol needs at least 2 shielded outputs in a transaction, so the wallet adds a second one, by splitting the output or by making the change shielded. Each shielded output pays an extra HTR fee (1 for AmountShielded, 2 for FullShielded).'
                   },
                   token: {
                     type: 'string',

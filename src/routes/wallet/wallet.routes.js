@@ -198,6 +198,17 @@ walletRouter.post(
       isString: true,
       optional: true
     },
+    shielded: {
+      in: ['body'],
+      isInt: {
+        options: {
+          min: 1,
+          max: 2
+        }
+      },
+      toInt: true,
+      optional: true
+    },
     token: {
       in: ['body'],
       optional: true,
