@@ -452,7 +452,9 @@ describe('nano contract fee tokens', () => {
     const txChangeAddress = await wallet.getAddressAt(7);
 
     // The deposit action has its own changeAddress for the fee token change,
-    // while change_address receives the change of the HTR selected for the fee
+    // while change_address receives the change of the HTR selected for the fee.
+    // The wallet FTT utxos are 900, 50 and 10 here, so the amount must not
+    // match one of them, otherwise the deposit has no fee token change.
     const response = await TestUtils.request
       .post('/wallet/nano-contracts/execute')
       .send({
@@ -464,7 +466,7 @@ describe('nano contract fee tokens', () => {
             {
               type: 'deposit',
               token: feeTokenUid,
-              amount: 10,
+              amount: 5,
               changeAddress: address0,
             },
           ],
