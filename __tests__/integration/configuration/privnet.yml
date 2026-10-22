@@ -33,6 +33,8 @@ CHECKPOINTS: []
 
 ENABLE_NANO_CONTRACTS: enabled
 ENABLE_FEE_BASED_TOKENS: enabled
+# Needs a fullnode image with shielded outputs (see docker-compose.yml)
+ENABLE_SHIELDED_TRANSACTIONS: enabled
 NC_ON_CHAIN_BLUEPRINT_RESTRICTED: false
 AVG_TIME_BETWEEN_BLOCKS: 5
 FEE_PER_OUTPUT_V1: 1
