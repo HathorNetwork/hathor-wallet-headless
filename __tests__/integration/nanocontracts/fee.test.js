@@ -447,4 +447,71 @@ describe('nano contract fee tokens', () => {
     expect(response.body.success).toBe(false);
     expect(response.body.error).toContain('HTR output');
   });
+
+  it('should send the fee HTR change to change_address', async () => {
+    const txChangeAddress = await wallet.getAddressAt(7);
+
+    // The deposit action has its own changeAddress for the fee token change,
+    // while change_address receives the change of the HTR selected for the fee
+    const response = await TestUtils.request
+      .post('/wallet/nano-contracts/execute')
+      .send({
+        nc_id: contractId,
+        method: 'noop',
+        address: address0,
+        data: {
+          actions: [
+            {
+              type: 'deposit',
+              token: feeTokenUid,
+              amount: 10,
+              changeAddress: address0,
+            },
+          ],
+        },
+        change_address: txChangeAddress,
+      })
+      .set({ 'x-wallet-id': wallet.walletId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    await checkTxValid(response.body.hash, wallet);
+
+    const libWalletObject = initializedWallets.get(wallet.walletId);
+    const { tx } = await libWalletObject.getFullTxById(response.body.hash);
+
+    // The only HTR output is the change of the HTR selected to pay the fee
+    const htrOutputs = tx.outputs.filter(output => output.token_data === 0);
+    expect(htrOutputs).toHaveLength(1);
+    expect(htrOutputs[0].decoded.address).toBe(txChangeAddress);
+
+    // The fee token change still goes to the deposit action's changeAddress
+    const fttOutputs = tx.outputs.filter(output => output.token_data === 1);
+    expect(fttOutputs).toHaveLength(1);
+    expect(fttOutputs[0].decoded.address).toBe(address0);
+  });
+
+  it('should fail when change_address does not belong to the wallet', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/nano-contracts/execute')
+      .send({
+        nc_id: contractId,
+        method: 'noop',
+        address: address0,
+        data: {
+          actions: [
+            {
+              type: 'deposit',
+              token: feeTokenUid,
+              amount: 10,
+            },
+          ],
+        },
+        change_address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN',
+      })
+      .set({ 'x-wallet-id': wallet.walletId });
+
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe('Transaction change address must belong to the same wallet.');
+  });
 }, 600 * 1000); // 10 minute timeout for all tests
