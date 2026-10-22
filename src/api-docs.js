@@ -126,7 +126,7 @@ const nanoContractsDataParameter = {
           },
           changeAddress: {
             type: 'string',
-            description: 'Address to send the change amount. Only used for deposit and grant_authority, and it\'s optional.'
+            description: 'Address to send the change amount. Only used for deposit, and it\'s optional.'
           },
           authority: {
             type: 'string',
@@ -4425,6 +4425,10 @@ const defaultApiDocs = {
                     description: 'If true, the contract pays transaction fees from its HTR withdrawal instead of the wallet. Requires an HTR withdrawal action.',
                     default: false
                   },
+                  change_address: {
+                    type: 'string',
+                    description: 'Optional address of the wallet to receive the change outputs of the transaction itself, e.g. the change of the HTR selected to pay the fee. A deposit action\'s own changeAddress takes precedence for that action\'s change. If not sent, the next available address of the wallet is used. Not supported together with create_token_options, use create_token_options.change_address instead.'
+                  },
                 },
               },
               examples: {
@@ -4565,6 +4569,10 @@ const defaultApiDocs = {
                     type: 'boolean',
                     description: 'If true, the contract pays transaction fees from its HTR withdrawal instead of the wallet. Requires an HTR withdrawal action.',
                     default: false
+                  },
+                  change_address: {
+                    type: 'string',
+                    description: 'Optional address of the wallet to receive the change outputs of the transaction itself, e.g. the change of the HTR selected to pay the fee. A deposit action\'s own changeAddress takes precedence for that action\'s change. If not sent, the next available address of the wallet is used. Not supported together with create_token_options, use create_token_options.change_address instead.'
                   },
                 }
               },
