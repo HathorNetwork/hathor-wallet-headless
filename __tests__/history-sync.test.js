@@ -224,6 +224,26 @@ describe('isShieldedEnabled', () => {
     expect(versionSpy).not.toHaveBeenCalled();
   });
 
+  it('should refuse a value that is not true, false or unset', async () => {
+    for (const enableShieldedOutputs of ['false', 'true', 0, 1]) {
+      // eslint-disable-next-line no-await-in-loop
+      await expect(isShieldedEnabled({ server: 'http://a/', enableShieldedOutputs }))
+        .rejects.toThrow('Invalid enableShieldedOutputs');
+    }
+    expect(versionSpy).not.toHaveBeenCalled();
+  });
+
+  it('should ask again after the check is reset, as on /reload-config', async () => {
+    versionSpy
+      .mockResolvedValueOnce({ network: 'mainnet' })
+      .mockResolvedValueOnce({ network: 'testnet-shielded-outputs' });
+    const config = { server: 'http://a/' };
+    expect(await isShieldedEnabled(config)).toBe(false);
+    resetShieldedNetworkCheck();
+    expect(await isShieldedEnabled(config)).toBe(true);
+    expect(versionSpy).toHaveBeenCalledTimes(2);
+  });
+
   it('should ask once per fullnode, and again after a failed request', async () => {
     versionSpy
       .mockRejectedValueOnce(new Error('fullnode down'))
@@ -295,6 +315,22 @@ describe('shielded outputs switch on /start', () => {
       .set({ 'x-wallet-id': walletId });
     expect(address.status).toBe(403);
     expect(address.body.errorCode).toBe('shielded-no-provider');
+
+    const addresses = await TestUtils.request
+      .get('/wallet/addresses')
+      .query({ legacy: false })
+      .set({ 'x-wallet-id': walletId });
+    expect(addresses.status).toBe(403);
+    expect(addresses.body.errorCode).toBe('shielded-no-provider');
+  });
+
+  it('should ask the fullnode for real when unset', async () => {
+    // No stubbed answer: the request goes through wallet-lib to the stub
+    // fullnode, which reports testnet-foxtrot, a network without shielded outputs
+    const wallet = await startSeedWallet(undefined);
+    expect(versionSpy).toHaveBeenCalledTimes(1);
+    expect(wallet.storage.shieldedCryptoProvider).toBeUndefined();
+    expect(wallet.historySyncMode).toEqual(hathorLib.HistorySyncMode.XPUB_STREAM_WS);
   });
 
   it('should be on when unset and the fullnode network has shielded outputs', async () => {

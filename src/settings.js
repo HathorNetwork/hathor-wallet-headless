@@ -11,7 +11,7 @@ const {
   errors: hathorLibErrors,
 } = require('@hathor/wallet-lib');
 const errors = require('./errors');
-const { stopAllWallets } = require('./services/wallets.service');
+const { stopAllWallets, resetShieldedNetworkCheck } = require('./services/wallets.service');
 const { initHathorLib } = require('./helpers/wallet.helper');
 
 /**
@@ -283,6 +283,10 @@ async function reloadConfig() {
   // Check config changes
   const action = await _analizeConfig(oldConfig, newConfig);
   await _updateConfig(action, newConfig);
+
+  // The next wallet start asks the fullnode whether it has shielded outputs
+  // again: its network may have changed behind the same URL
+  resetShieldedNetworkCheck();
 
   // All checks have passed, settings the singleton
   _config = newConfig;

@@ -46,15 +46,13 @@ describe('shielded capability of a read-only wallet', () => {
     }
   });
 
-  it('should list no shielded addresses', async () => {
-    // wallet-lib only refuses the list for multisig and integrity failures:
-    // a wallet without shielded keys just has no shielded addresses
+  it('should refuse the shielded address list like a single shielded address', async () => {
     const response = await TestUtils.request
       .get('/wallet/addresses')
       .query({ legacy: false })
       .set({ 'x-wallet-id': walletId });
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual({ addresses: [] });
+    expect(response.status).toBe(403);
+    expect(response.body).toMatchObject({ success: false, errorCode: 'shielded-no-keys' });
   });
 
   it('should keep serving legacy addresses', async () => {

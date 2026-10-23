@@ -1,4 +1,5 @@
 import TestUtils from './test-utils';
+import { initializedWallets } from '../src/services/wallets.service';
 
 const walletId = 'stub_address_info';
 
@@ -28,14 +29,20 @@ describe('address-info api', () => {
       .query({ index: 0, legacy: false })
       .set({ 'x-wallet-id': walletId });
 
-    for (const path of ['/wallet/address-info', '/wallet/address-index']) {
-      // eslint-disable-next-line no-await-in-loop
-      const response = await TestUtils.request
-        .get(path)
-        .query({ address: shielded.body.address })
-        .set({ 'x-wallet-id': walletId });
-      expect(response.status).toBe(200);
-      expect(response.body).toMatchObject({ success: true, index: 0, legacy: false });
+    // And the spend-derived P2PKH address its shielded outputs are paid to
+    const { ctMappingAddress: spendAddress } = await initializedWallets.get(walletId).storage
+      .getAddressInfo(shielded.body.address);
+
+    for (const address of [shielded.body.address, spendAddress]) {
+      for (const path of ['/wallet/address-info', '/wallet/address-index']) {
+        // eslint-disable-next-line no-await-in-loop
+        const response = await TestUtils.request
+          .get(path)
+          .query({ address })
+          .set({ 'x-wallet-id': walletId });
+        expect(response.status).toBe(200);
+        expect(response.body).toMatchObject({ success: true, index: 0, legacy: false });
+      }
     }
 
     const legacy = await TestUtils.request
