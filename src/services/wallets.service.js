@@ -45,29 +45,36 @@ function logShieldedDecision(enabled, source) {
  * @param {Object} config Application configuration
  * @returns {Promise<boolean>}
  */
-function isShieldedEnabled(config) {
-  if (typeof config.enableShieldedOutputs === 'boolean') {
-    logShieldedDecision(config.enableShieldedOutputs, 'enableShieldedOutputs');
-    return Promise.resolve(config.enableShieldedOutputs);
+async function isShieldedEnabled(config) {
+  const { enableShieldedOutputs } = config;
+  if (typeof enableShieldedOutputs === 'boolean') {
+    logShieldedDecision(enableShieldedOutputs, 'enableShieldedOutputs');
+    return enableShieldedOutputs;
+  }
+  if (enableShieldedOutputs !== undefined && enableShieldedOutputs !== null) {
+    // e.g. 'false' or 0 in a hand-written config.js: don't read it as unset
+    throw new Error(`Invalid enableShieldedOutputs: ${sanitizeLogInput(String(enableShieldedOutputs))}. Use true, false, or leave it unset.`);
   }
   if (shieldedNetworkCheck?.server !== config.server) {
     const check = {
       server: config.server,
-      promise: versionApi.asyncGetVersion().then(info => {
-        const enabled = SHIELDED_NETWORKS.includes(info.network);
-        logShieldedDecision(enabled, `fullnode network ${sanitizeLogInput(info.network)}`);
-        return enabled;
-      }),
+      promise: versionApi.asyncGetVersion().then(info => info.network),
     };
     check.promise.catch(() => {
       if (shieldedNetworkCheck === check) shieldedNetworkCheck = null;
     });
     shieldedNetworkCheck = check;
   }
-  return shieldedNetworkCheck.promise;
+  const network = await shieldedNetworkCheck.promise;
+  const enabled = SHIELDED_NETWORKS.includes(network);
+  logShieldedDecision(enabled, `fullnode network ${sanitizeLogInput(network)}`);
+  return enabled;
 }
 
-/** Forget the fullnode's answer. For tests. */
+/**
+ * Forget the fullnode's answer, so the next wallet start asks again. Called
+ * on /reload-config, since the fullnode behind the same URL may have changed.
+ */
 function resetShieldedNetworkCheck() {
   shieldedNetworkCheck = null;
   loggedShieldedDecision = null;
@@ -228,7 +235,9 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
   if (shieldedProvider) {
     wallet.setShieldedCryptoProvider(shieldedProvider);
   }
-  setupWalletStateLogs(wallet, logger, { shieldedEnabled: Boolean(shieldedProvider) });
+  // The decision, not whether the provider loaded: with shielded outputs on and
+  // ct-crypto-node unloadable, every wallet warns that it can't use them
+  setupWalletStateLogs(wallet, logger, { shieldedEnabled });
 
   // Will try to use the options.historySyncMode then config.history_sync_mode
   const configMode = {

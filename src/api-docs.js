@@ -819,7 +819,7 @@ const defaultApiDocs = {
       post: {
         operationId: 'signMessage',
         summary: 'Sign an arbitrary message with one of the wallet\'s address keys.',
-        description: 'Returns a Bitcoin-compatible signed-message signature (bitcore.Message). Useful for off-chain proofs of address ownership — e.g., the x402 payment protocol requires signing a server-issued challenge with the payer\'s key. Either `address_index` or `address` must be provided; if both are given, `address_index` wins. The signing key is the legacy key at that index, so a shielded `address` (or the spend-derived P2PKH address of one) is refused: signing with it would link it to the legacy address.',
+        description: 'Returns a Bitcoin-compatible signed-message signature (bitcore.Message). Useful for off-chain proofs of address ownership — e.g., the x402 payment protocol requires signing a server-issued challenge with the payer\'s key. Either `address_index` or `address` must be provided; if both are given, `address_index` wins. The signing key is the legacy key at that index, so when the index comes from `address`, a shielded address (or the spend-derived P2PKH address of one) is refused: signing for it would link it to the legacy address. With `address_index`, the legacy address at that index is signed for.',
         parameters: [
           { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
@@ -929,7 +929,7 @@ const defaultApiDocs = {
           {
             name: 'legacy',
             in: 'query',
-            description: 'Which addresses to list. Defaults to `true`, the legacy P2PKH addresses. Pass `false` to list the wallet\'s shielded receive addresses (the 71-byte base58 form used as the destination of shielded outputs). A wallet without shielded keys (read-only, HSM or Fireblocks) has none, and a multisig wallet answers 403.',
+            description: 'Which addresses to list. Defaults to `true`, the legacy P2PKH addresses. Pass `false` to list the wallet\'s shielded receive addresses (the 71-byte base58 form used as the destination of shielded outputs). A wallet that can\'t derive shielded addresses answers 403 with the same `errorCode` as `/wallet/address?legacy=false`: `shielded-no-provider` (shielded outputs off, or ct-crypto-node didn\'t load), `shielded-no-keys` (read-only, HSM or Fireblocks wallet), `shielded-multisig`.',
             required: false,
             schema: {
               type: 'boolean',

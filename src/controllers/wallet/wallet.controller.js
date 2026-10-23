@@ -72,12 +72,12 @@ async function getBalance(req, res) {
   const { wallet } = req;
   // Expects token uid
   const token = req.query.token || hathorLibConstants.NATIVE_TOKEN_UID;
-  const balanceObj = await wallet.getBalance(token);
-  const { unlocked: available, locked } = balanceObj[0].balance;
 
   // Default shape (no `split` query): preserve the legacy single-bucket
   // response byte-for-byte so existing clients are unaffected.
   if (!req.query.split) {
+    const balanceObj = await wallet.getBalance(token);
+    const { unlocked: available, locked } = balanceObj[0].balance;
     res.send({ available, locked });
     return;
   }
@@ -227,17 +227,18 @@ async function signMessage(req, res) {
   const { message, address_index: explicitIndex, address } = matchedData(req, { locations: ['body'] });
 
   try {
-    // signMessageWithAddress signs with the legacy key at the index: for a
-    // shielded address, that would sign with another address's key and link
-    // the two publicly
-    if (address != null && !await isLegacyAddress(wallet, address)) {
-      res.send({ success: false, error: 'shielded addresses cannot sign messages' });
-      return;
-    }
     let index = explicitIndex;
     if (index == null) {
       if (address == null) {
         res.send({ success: false, error: 'one of address_index or address is required' });
+        return;
+      }
+      // signMessageWithAddress signs with the legacy key at the index: for a
+      // shielded address, that would sign with another address's key and link
+      // the two publicly. (With address_index given, the index wins and the
+      // legacy address is signed for, as documented.)
+      if (!await isLegacyAddress(wallet, address)) {
+        res.send({ success: false, error: 'shielded addresses cannot sign messages' });
         return;
       }
       index = await wallet.getAddressIndex(address);
@@ -278,6 +279,13 @@ async function getAddresses(req, res) {
   // (`HathorWallet.getAllAddresses` → `Storage.getAllAddresses` →
   // `IStore.addressIter`); the headless just threads the param.
   const legacy = req.query.legacy !== false;
+  if (!legacy) {
+    // wallet-lib lists no shielded addresses, without an error, when the
+    // wallet can't derive them (shielded outputs off, no shielded keys). Ask
+    // for the current one first, which throws the same ShieldedKeyError as
+    // /wallet/address?legacy=false, so both routes answer the same 403.
+    await wallet.getCurrentAddress({}, { legacy: false });
+  }
   const addresses = [];
   for await (const entry of wallet.getAllAddresses({ legacy })) {
     addresses.push(entry.address);
