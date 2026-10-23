@@ -224,23 +224,8 @@ export class TestUtils {
       { multisig: walletObj.multisig }
     );
 
-    // Request the Wallet start
-    //
-    // Scan policy contract:
-    //   - `options.scanPolicy` unset → defaults to 'gap-limit'. wallet-lib's
-    //     own default (when the field is omitted in the request body) is
-    //     SCANNING_POLICY.SINGLE_ADDRESS, which subscribes a websocket push
-    //     only for the current address. Any tx targeting a higher-index
-    //     address would silently never arrive at the wallet — the symptom
-    //     that hung the original integration suite. Forcing 'gap-limit' on
-    //     by default makes the broad cross-wallet send/recv tests reliable.
-    //   - `options.scanPolicy === null` → omit the field entirely so the
-    //     server falls back to wallet-lib's SINGLE_ADDRESS default. Used by
-    //     the default-policy test suite (`shielded-default-policy.test.js`)
-    //     to verify that single-address behaviour itself still works for the
-    //     scenarios where it's a viable choice (self-send, validation,
-    //     address-rotation receives at the current cursor).
-    const scanPolicy = options.scanPolicy === undefined ? 'gap-limit' : options.scanPolicy;
+    // Request the Wallet start. POST /start uses the gap-limit policy unless
+    // options.scanPolicy asks for another one.
     const startBody = walletObj.words
       ? {
         seed: walletObj.words,
@@ -253,8 +238,8 @@ export class TestUtils {
         multisig: walletObj.multisig || false,
         preCalculatedAddresses: walletObj.addresses,
       };
-    if (scanPolicy !== null) {
-      startBody.scanPolicy = scanPolicy;
+    if (options.scanPolicy) {
+      startBody.scanPolicy = options.scanPolicy;
     }
     const response = await request.post('/start').send(startBody);
     WalletBenchmarkUtil.informWalletEvent(
@@ -1085,21 +1070,6 @@ export class TestUtils {
     // We are still within an invalid time to generate a new timestamp. Waiting for some time...
     const timeToWait = nextValidMilliseconds - nowMilliseconds + 10;
     await delay(timeToWait);
-  }
-
-  /**
-   * Returns the compressed public key (hex) for an address at the given index.
-   * Requires the wallet to be started and available in initializedWallets.
-   * @param {string} walletId Wallet identification
-   * @param {number} index Address index
-   * @returns {Promise<string>} 66-char hex compressed public key
-   */
-  static async getAddressPubkey(walletId, index) {
-    const wallet = initializedWallets.get(walletId);
-    if (!wallet) {
-      throw new Error(`Wallet ${walletId} not found in initializedWallets`);
-    }
-    return wallet.storage.getAddressPubkey(index);
   }
 
   /**

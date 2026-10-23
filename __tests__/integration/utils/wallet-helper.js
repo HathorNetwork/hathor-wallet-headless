@@ -139,12 +139,9 @@ export class WalletHelper {
    * performance-wise.
    * @param {WalletHelper[]} walletsArr Array of WalletHelpers
    * @param {Object} [options]
-   * @param {string|null} [options.scanPolicy] Forwarded to `TestUtils.startWallet`.
-   *   See that method for the contract — defaults to `'gap-limit'`; pass `null`
-   *   to omit the field and exercise wallet-lib's `SINGLE_ADDRESS` default.
-   *   Genesis is always started with `'gap-limit'` regardless of this option
-   *   so it doesn't matter how a test wants its own wallets configured —
-   *   genesis must always be able to receive change at any index it picks.
+   * @param {string} [options.scanPolicy] Scan policy of the test's wallets, forwarded
+   *   to `TestUtils.startWallet`. POST /start uses gap-limit without it. Genesis
+   *   always uses gap-limit, so it can receive change at any index it picks.
    * @returns {Promise<void>}
    */
   static async startMultipleWalletsForTest(walletsArr, options = {}) {
@@ -228,15 +225,6 @@ export class WalletHelper {
    */
   async getShieldedAddressAt(index) {
     return TestUtils.getShieldedAddressAt(this.#walletId, index);
-  }
-
-  /**
-   * Returns the compressed public key (hex, 66 chars) for an address at the given index.
-   * @param {number} index Address index
-   * @returns {Promise<string>} 66-char hex compressed public key
-   */
-  async getAddressPubkey(index) {
-    return TestUtils.getAddressPubkey(this.#walletId, index);
   }
 
   /**

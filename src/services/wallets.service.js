@@ -8,11 +8,11 @@
 const { Connection, HathorWallet, HistorySyncMode } = require('@hathor/wallet-lib');
 
 /**
- * Shielded crypto provider — lazily loaded once per process. `@hathor/ct-crypto-node`
- * is an optional runtime dependency (the native NAPI addon ships prebuilds for
- * Linux/macOS x64/arm64); install it to enable shielded support. If the
- * package isn't installed we leave the provider unset and shielded operations
- * silently degrade.
+ * Shielded crypto provider, loaded once per process from `@hathor/ct-crypto-node`,
+ * a native addon with prebuilds per platform. If it fails to load (no prebuild
+ * for the platform, ABI mismatch, blocked by LavaMoat), the provider stays unset:
+ * wallets still work for transparent funds, the failure is logged, and
+ * /wallet/status reports the shielded capability reason 'no-provider'.
  */
 let cachedShieldedProvider;
 let shieldedProviderInitTried = false;
@@ -20,7 +20,7 @@ function getShieldedCryptoProvider() {
   if (shieldedProviderInitTried) return cachedShieldedProvider;
   shieldedProviderInitTried = true;
   try {
-    // eslint-disable-next-line global-require, import/no-unresolved
+    // eslint-disable-next-line global-require
     const { createDefaultShieldedCryptoProvider } = require('@hathor/ct-crypto-node/provider');
     cachedShieldedProvider = createDefaultShieldedCryptoProvider();
   } catch (e) {
@@ -146,9 +146,9 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
 
   const wallet = new HathorWallet(hydratedWalletConfig);
   // Wire the shielded crypto provider before starting the wallet (wallet-lib
-  // no longer auto-detects). If ct-crypto-node isn't installed, the provider
-  // is null and shielded operations are unavailable but the wallet still works
-  // for transparent flows.
+  // does not detect it). If it failed to load, the provider is null and
+  // shielded operations are unavailable, but the wallet still works for
+  // transparent flows.
   const shieldedProvider = getShieldedCryptoProvider();
   if (shieldedProvider) {
     wallet.setShieldedCryptoProvider(shieldedProvider);

@@ -197,6 +197,8 @@ describe('shielded transactions', () => {
       .set(TestUtils.generateHeader(wallet1.walletId));
 
     expect(response.body.success).toBe(false);
+    // The error comes from wallet-lib's shielded address check
+    expect(response.body.error || '').toMatch(/shielded address/i);
   });
 
   it('should pair a single shielded output (min 2 shielded per tx)', async () => {

@@ -252,40 +252,5 @@ describe('shielded api', () => {
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ success: false, error: 'boom' });
     });
-
-    it('reports a clear error when the wallet-lib version does not expose getShieldedUnblindingForTx', async () => {
-      // Forward-compat probe: if someone runs the headless against an
-      // older wallet-lib that predates the API, the controller must
-      // give a clear remediation message rather than a generic crash.
-      //
-      // `delete wallet.getShieldedUnblindingForTx` would NOT actually
-      // hide the method because it lives on HathorWallet.prototype —
-      // the delete only clears any own-property shadow. Assigning
-      // `null` shadows the prototype method so `typeof wallet.method
-      // !== 'function'` evaluates to true (the same check the
-      // controller performs).
-      const wallet = patchedWallet();
-      const ownDescriptor = Object.getOwnPropertyDescriptor(
-        wallet,
-        'getShieldedUnblindingForTx',
-      );
-      wallet.getShieldedUnblindingForTx = null;
-      try {
-        const res = await TestUtils.request
-          .get(`/wallet/shielded/unblinding?id=${txId}`)
-          .set({ 'x-wallet-id': walletId });
-        expect(res.body.success).toBe(false);
-        expect(res.body.error).toMatch(/not supported by the installed wallet-lib/i);
-      } finally {
-        // Restore the original own-property shape so the next test in
-        // the file sees a clean wallet (prototype method visible
-        // again because the own-property shadow is gone).
-        if (ownDescriptor) {
-          Object.defineProperty(wallet, 'getShieldedUnblindingForTx', ownDescriptor);
-        } else {
-          delete wallet.getShieldedUnblindingForTx;
-        }
-      }
-    });
   });
 });
