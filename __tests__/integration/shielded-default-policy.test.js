@@ -2,31 +2,24 @@ import { TestUtils } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
 
 /**
- * Default-scanPolicy (SINGLE_ADDRESS) integration tests for the shielded
- * surface.
+ * Shielded outputs on a wallet started with the single-address scan policy.
+ * The rest of the integration suite uses POST /start's default, gap-limit.
  *
- * The rest of the integration suite forces `scanPolicy: 'gap-limit'` so
- * cross-wallet receive tests don't hang — under wallet-lib's default
- * (SCANNING_POLICY.SINGLE_ADDRESS) the wallet only WS-subscribes the
- * current address, so any tx to a higher index is invisible until the
- * cursor rotates to it. That made the original test suite hang at test 2.
+ * A single-address wallet only loads address index 0, so a tx to a higher
+ * index is not seen. The policy is still supported (e.g. single-payment
+ * integrations), so this file covers the scenarios where it works:
  *
- * SINGLE_ADDRESS is still a supported policy though — used by e.g.
- * single-payment-style integrations — so it has to keep working for the
- * scenarios where it's a viable choice. This file covers exactly those:
- *
- *   1. Wallet startup + readiness under the default policy.
+ *   1. Wallet startup + readiness under the policy.
  *   2. Shielded address derivation at arbitrary indices (derivation is
  *      lazy and doesn't depend on subscription — verifies that asking for
  *      `getShieldedAddressAt(N)` still works on a single-address wallet).
- *   3. Route-level validation under the default policy (no WS receive
- *      needed — purely sender-side checks).
- *   4. Self-send of shielded outputs under the default policy: the wallet
+ *   3. Sender-side checks under the policy (no receive needed).
+ *   4. Self-send of shielded outputs under the policy: the wallet
  *      processes its own send via the local in-process enqueue path,
  *      bypassing the WS subscription, as long as the outputs go to the
  *      loaded address (index 0).
  */
-describe('shielded outputs — default scan policy (SINGLE_ADDRESS)', () => {
+describe('shielded outputs — single-address scan policy', () => {
   /** @type WalletHelper */
   let wallet;
 
@@ -50,10 +43,8 @@ describe('shielded outputs — default scan policy (SINGLE_ADDRESS)', () => {
   });
 
   it('starts and reaches READY state with the single-address policy', async () => {
-    // Sanity check on the wallet lifecycle — confirms the /start handler
-    // accepts a body with no scanPolicy and the wallet completes its
-    // initial sync. Failure here would mean we accidentally regressed the
-    // default-policy startup path while making the test suite work.
+    // Sanity check on the wallet lifecycle: /start accepts the single-address
+    // policy and the wallet completes its initial sync.
     const ready = await TestUtils.isWalletReady(wallet.walletId);
     expect(ready).toBe(true);
   });
@@ -74,7 +65,7 @@ describe('shielded outputs — default scan policy (SINGLE_ADDRESS)', () => {
     expect(a0.length).toBeGreaterThanOrEqual(50);
   });
 
-  it('rejects shielded outputs to legacy addresses (validation works under default policy)', async () => {
+  it('rejects shielded outputs to legacy addresses (validation works under single-address)', async () => {
     const legacyAddr = await wallet.getAddressAt(0);
     const response = await TestUtils.request
       .post('/wallet/send-tx')

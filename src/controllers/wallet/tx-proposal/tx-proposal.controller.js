@@ -124,11 +124,11 @@ async function getInputData(req, res) {
     const { signature, shielded } = req.body;
     // An input that spends a shielded output is signed with the key on the
     // spend chain (m/44'/280'/2'/0), not the legacy one at the same index
-    const xpubkey = shielded ? accessData.spendXpubkey : accessData.xpubkey;
-    if (!xpubkey) {
+    if (shielded && !accessData.spendXpubkey) {
       res.send({ success: false, error: 'wallet has no shielded keys' });
       return;
     }
+    const xpubkey = shielded ? accessData.spendXpubkey : accessData.xpubkey;
     inputData = transactionUtils.createInputData(
       Buffer.from(signature, 'hex'),
       walletUtils.getPublicKeyFromXpub(xpubkey, index).toBuffer(),

@@ -24,10 +24,10 @@ describe('shielded funds', () => {
     return response.body;
   }
 
-  async function getShieldedUtxos(wallet, token) {
+  async function getShieldedUtxos(wallet) {
     const response = await TestUtils.request
       .get('/wallet/utxo-filter')
-      .query({ shielded: true, ...(token ? { token } : {}) })
+      .query({ shielded: true })
       .set(TestUtils.generateHeader(wallet.walletId));
     expect(response.status).toBe(200);
     return response.body.utxos;

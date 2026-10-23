@@ -116,20 +116,8 @@ async function getShieldedUnblindingPayload(req, res) {
   const { wallet } = req;
   const { id } = matchedData(req, { locations: ['query'] });
 
-  if (typeof wallet.getShieldedUnblindingForTx !== 'function') {
-    res.send({
-      success: false,
-      error:
-        'Shielded unblinding is not supported by the installed wallet-lib version. '
-        + 'Upgrade @hathor/wallet-lib to a version that exposes getShieldedUnblindingForTx.',
-    });
-    return;
-  }
-
   try {
-    const result = await wallet.getShieldedUnblindingForTx(id);
-    const outputs = (result && result.outputs) || [];
-    const inputs = (result && result.inputs) || [];
+    const { outputs, inputs } = await wallet.getShieldedUnblindingForTx(id);
 
     if (outputs.length === 0 && inputs.length === 0) {
       res.send({

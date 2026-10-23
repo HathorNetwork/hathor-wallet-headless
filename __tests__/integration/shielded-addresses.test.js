@@ -7,13 +7,9 @@ import { WalletHelper } from './utils/wallet-helper';
  * P2PKH and shielded addresses.
  *
  * What these cover that the send-tx flow does not:
- *   - `legacy=false` query param on `GET /wallet/address`
+ *   - `legacy=false` query param on `GET /wallet/address` and `GET /wallet/addresses`
  *   - Distinct addresses returned for the same index on each chain
- *   - Both addresses report `is_mine` against the same wallet
- *   - Gap-limit advance on the shielded chain is independent from legacy
- *   - Transparent sender targeting a shielded address (mode unset on the
- *     output): the wallet-lib auto-converts to the spend-derived P2PKH so
- *     the funds reach the same wallet, just as a regular transparent tx
+ *   - Stable, distinct derivation across consecutive shielded indexes
  */
 describe('shielded addresses', () => {
   /** @type WalletHelper */
@@ -82,20 +78,6 @@ describe('shielded addresses', () => {
       expect(shi).toBeTruthy();
       expect(shi).not.toBe(leg);
     }
-  });
-
-  it('reports shielded derived addresses as wallet-owned via /wallet/address-info', async () => {
-    // The user-facing shielded base58 itself isn't tracked on-chain — the
-    // wallet matches incoming txs against the spend-derived P2PKH. We can
-    // round-trip that by deriving the shielded address (which also persists
-    // the spend P2PKH) and then asking /address-info about it via a follow-up
-    // path; here we just confirm the shielded address derivation persists
-    // (re-fetching returns the same string) which is the storage-side
-    // invariant the receive flow depends on.
-    const a = await wallet.getShieldedAddressAt(7);
-    const b = await wallet.getShieldedAddressAt(7);
-    expect(a).toBe(b);
-    expect(a.length).toBeGreaterThanOrEqual(50);
   });
 
   it('exposes consecutive shielded indexes with stable derivation', async () => {
