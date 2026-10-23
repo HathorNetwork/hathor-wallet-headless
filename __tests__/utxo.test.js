@@ -21,6 +21,33 @@ describe('utxo api', () => {
     expect(response.body.total_amount_locked).toBe(6400);
   });
 
+  it('utxo-filter should list transparent utxos unless shielded is set', async () => {
+    const response = await TestUtils.request
+      .get('/wallet/utxo-filter')
+      .query({ shielded: false })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(200);
+    expect(response.body.utxos).toHaveLength(14);
+
+    // The fixture wallet holds no shielded outputs
+    const shielded = await TestUtils.request
+      .get('/wallet/utxo-filter')
+      .query({ shielded: true })
+      .set({ 'x-wallet-id': walletId });
+    expect(shielded.status).toBe(200);
+    expect(shielded.body.utxos).toHaveLength(0);
+    expect(shielded.body.total_amount_available).toBe(0);
+  });
+
+  it('utxo-filter should reject an invalid shielded filter', async () => {
+    const response = await TestUtils.request
+      .get('/wallet/utxo-filter')
+      .query({ shielded: 'maybe' })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+  });
+
   it('utxo-consolidation should consolidate all utxos', async () => {
     const response = await TestUtils.request
       .post('/wallet/utxo-consolidation')

@@ -1,4 +1,4 @@
-import { SendTransaction } from '@hathor/wallet-lib';
+import { HathorWallet, SendTransaction } from '@hathor/wallet-lib';
 import TestUtils from './test-utils';
 
 const walletId = 'stub_simple_send_tx';
@@ -23,6 +23,47 @@ describe('simple-send-tx api', () => {
     expect(response.status).toBe(200);
     expect(response.body.hash).toBeDefined();
     expect(response.body.success).toBe(true);
+  });
+
+  it('should not accept an invalid shielded mode', async () => {
+    for (const shielded of [0, 3, 'full']) {
+      const response = await TestUtils.request
+        .post('/wallet/simple-send-tx')
+        .send({
+          address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc',
+          value: 1,
+          shielded,
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+    }
+  });
+
+  it('should pass the shielded mode of the output to the wallet', async () => {
+    const spy = jest.spyOn(HathorWallet.prototype, 'sendManyOutputsSendTransaction')
+      .mockRejectedValue(new Error('stop after building the outputs'));
+    try {
+      for (const shielded of [1, 2, undefined]) {
+        const response = await TestUtils.request
+          .post('/wallet/simple-send-tx')
+          .send({
+            address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc',
+            value: 10,
+            ...(shielded ? { shielded } : {}),
+          })
+          .set({ 'x-wallet-id': walletId });
+        expect(response.body).toEqual({ success: false, error: 'stop after building the outputs' });
+
+        const output = { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 10n, token: '00' };
+        expect(spy).toHaveBeenLastCalledWith(
+          [shielded ? { ...output, shielded } : output],
+          { changeAddress: null },
+        );
+      }
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it('should accept value as string', async () => {

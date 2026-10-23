@@ -3,10 +3,15 @@ services:
 
   # For more information on these configs, refer to:
   # https://github.com/HathorNetwork/rfcs/blob/master/text/0033-private-network-guide.md
+  #
+  # The fullnode and tx-mining-service images support shielded outputs, which no
+  # release does yet. They are the images of wallet-lib's integration suite
+  # (HathorNetwork/hathor-wallet-lib#1090); move to the releases once they ship
+  # shielded outputs (#625).
 
   fullnode:
     image:
-      ${HATHOR_LIB_INTEGRATION_TESTS_FULLNODE_IMAGE:-hathornetwork/hathor-core:v0.71.0}
+      ${HATHOR_LIB_INTEGRATION_TESTS_FULLNODE_IMAGE:-hathornetwork/hathor-core:experimental-shielded-outputs-alpha-v4}
     command: [
       "run_node",
       "--listen", "tcp:40404",
@@ -17,6 +22,8 @@ services:
       "--unsafe-mode", "privatenet",
       "--data", "./tmp",
       "--nc-indexes",
+      "--enable-event-queue",
+      "--nc-exec-logs", "all",
     ]
     environment:
       HATHOR_CONFIG_YAML: privnet/conf/privnet.yml
@@ -36,8 +43,9 @@ services:
       retries: 10
 
   tx-mining-service:
+    platform: linux/amd64
     image:
-      ${HATHOR_LIB_INTEGRATION_TESTS_TXMINING_IMAGE:-hathornetwork/tx-mining-service}
+      ${HATHOR_LIB_INTEGRATION_TESTS_TXMINING_IMAGE:-hathornetwork/tx-mining-service:shielded-outputs-v3}
     depends_on:
       fullnode:
         condition: service_healthy
@@ -47,7 +55,8 @@ services:
     command: [
       "http://fullnode:8080",
       "--stratum-port=8034",
-      "--api-port=8035"
+      "--api-port=8035",
+      "--testnet"
     ]
     networks:
       - hathor-privnet

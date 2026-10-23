@@ -253,11 +253,11 @@ const defaultApiDocs = {
                     type: 'number',
                     description: 'Stop loading addresses at this index. Only used when scanPolicy is set to \'index-limit\'. Defaults to policyStartIndex',
                   },
-                  historySyncMode: {
+                  history_sync_mode: {
                     type: 'string',
                     enum: ['polling_http_api', 'xpub_stream_ws', 'manual_stream_ws'],
-                    description: 'History sync mode for the wallet to use.',
-                    default: 'polling_http_api',
+                    description: 'History sync mode for the wallet to use. If not given the configured default will apply. A wallet that can hold shielded funds (a single-signature wallet started from a seed, when shielded outputs are on) always uses polling_http_api, because only polling watches the addresses shielded outputs are paid to.',
+                    default: 'xpub_stream_ws',
                   },
                 }
               },
@@ -524,7 +524,7 @@ const defaultApiDocs = {
         ],
         responses: {
           200: {
-            description: 'A JSON with general wallet info',
+            description: 'A JSON with general wallet info. `shielded` is the wallet\'s shielded-output capability: `level` is `none` (no shielded keys, e.g. multisig, read-only, HSM or Fireblocks wallets), `watch`, `view` or `full`; `reason` and `cause` say why it is below `full`; `canReceive`, `canSpend` and `historyComplete` say whether the wallet sees its shielded receives, can spend its shielded outputs and has loaded its whole shielded history; `undecoded` counts the wallet\'s shielded outputs it holds but could not decode. When shielded outputs are off (the `enableShieldedOutputs` configuration, which by default turns them on only when the fullnode reports a network where they are active), or ct-crypto-node didn\'t load, the wallet has no shielded crypto provider: the level is `none` with reason `no-provider`.',
             content: {
               'application/json': {
                 examples: {
@@ -541,8 +541,16 @@ const defaultApiDocs = {
                     value: { statusCode: 2, statusMessage: 'Syncing', network: 'mainnet', serverUrl: 'https://node2.mainnet.hathor.network/v1a/', serverInfo: { version: '0.29.0', network: 'mainnet', min_weight: 14, min_tx_weight: 14, min_tx_weight_coefficient: 1.6, min_tx_weight_k: 100, token_deposit_percentage: 0.01 } }
                   },
                   ready: {
-                    summary: 'Wallet is ready',
-                    value: { statusCode: 3, statusMessage: 'Ready', network: 'mainnet', serverUrl: 'https://node2.mainnet.hathor.network/v1a/', serverInfo: { version: '0.29.0', network: 'mainnet', min_weight: 14, min_tx_weight: 14, min_tx_weight_coefficient: 1.6, min_tx_weight_k: 100, token_deposit_percentage: 0.01 } }
+                    summary: 'Wallet is ready, with shielded outputs off',
+                    value: { statusCode: 3, statusMessage: 'Ready', network: 'mainnet', serverUrl: 'https://node2.mainnet.hathor.network/v1a/', serverInfo: { version: '0.29.0', network: 'mainnet', min_weight: 14, min_tx_weight: 14, min_tx_weight_coefficient: 1.6, min_tx_weight_k: 100, token_deposit_percentage: 0.01 }, shielded: { level: 'none', reason: 'no-provider', cause: null, canReceive: false, canSpend: false, historyComplete: false, undecoded: { txIds: [], locked: 0, unreadable: 0, error: 0 } } }
+                  },
+                  'ready-shielded': {
+                    summary: 'Wallet is ready, with shielded outputs on',
+                    value: { statusCode: 3, statusMessage: 'Ready', network: 'testnet', serverUrl: 'http://localhost:8080/v1a/', serverInfo: { version: '0.71.0', network: 'testnet-shielded-outputs', min_weight: 8, min_tx_weight: 8, min_tx_weight_coefficient: 0, min_tx_weight_k: 0, token_deposit_percentage: 0.01 }, shielded: { level: 'full', reason: null, cause: null, canReceive: true, canSpend: true, historyComplete: true, undecoded: { txIds: [], locked: 0, unreadable: 0, error: 0 } } }
+                  },
+                  'ready-without-shielded': {
+                    summary: 'Wallet is ready, without shielded keys (e.g. read-only)',
+                    value: { statusCode: 3, statusMessage: 'Ready', network: 'mainnet', serverUrl: 'https://node2.mainnet.hathor.network/v1a/', serverInfo: { version: '0.29.0', network: 'mainnet', min_weight: 14, min_tx_weight: 14, min_tx_weight_coefficient: 1.6, min_tx_weight_k: 100, token_deposit_percentage: 0.01 }, shielded: { level: 'none', reason: 'no-shielded-keys', cause: null, canReceive: false, canSpend: false, historyComplete: false, undecoded: { txIds: [], locked: 0, unreadable: 0, error: 0 } } }
                   },
                   'wallet-not-ready': {
                     summary: 'Wallet is not ready yet',
@@ -571,20 +579,121 @@ const defaultApiDocs = {
               type: 'string',
             },
           },
+          {
+            name: 'split',
+            in: 'query',
+            description: 'Return the balance partitioned into transparent and shielded buckets in addition to the aggregate `available` / `locked` totals. When omitted (default), the response shape is the legacy single-bucket form for backward compatibility.',
+            required: false,
+            schema: {
+              type: 'boolean',
+            },
+          },
         ],
         responses: {
           200: {
-            description: 'Balance of tokens available and locked. To get the total, you must sum them up.',
+            description: 'Balance of tokens available and locked. To get the total, you must sum them up. When `split=true` is passed, the response additionally exposes per-bucket breakdowns under `transparent` and `shielded`, and the totals are their sums. Between a timelock expiring and the next block, the totals then count that output as available while the default response still counts it as locked.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success (default — aggregate only)',
+                    value: { available: 2, locked: 0 }
+                  },
+                  'success-split': {
+                    summary: 'Success (split=true)',
+                    // Buckets always reconcile with the totals:
+                    // transparent.available + shielded.available === available,
+                    // and the same for locked.
+                    value: {
+                      available: 500,
+                      locked: 64,
+                      transparent: { available: 200, locked: 64 },
+                      shielded: { available: 300, locked: 0 }
+                    }
+                  },
+                  'wallet-not-ready': {
+                    summary: 'Wallet is not ready yet',
+                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  },
+                  ...commonExamples.xWalletIdErrResponseExamples,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/shielded/audit-keys': {
+      get: {
+        operationId: 'exportShieldedAuditKeys',
+        summary: 'Export the wallet\'s shielded audit-key pair',
+        description: 'Returns `spendXpub` (the spend-chain xpub — derive every shielded spend address / see incoming activity, but cannot spend) and `scanXpriv` (the scan-chain xpriv — decrypt every incoming shielded output addressed to the wallet). Together they grant full READ access to the wallet\'s shielded history; neither grants spend authority.\n\nSENSITIVITY: `scanXpriv` is a bearer-equivalent, durable read credential. A momentary compromise of the API key yields long-lived read access to all current AND future shielded receives, and that access SURVIVES rotating the API key. Only expose this endpoint in a controlled environment. It is disabled by default and answers 403 unless the `allowShieldedAuditKeys` configuration is set (`HEADLESS_ALLOW_SHIELDED_AUDIT_KEYS` in the Docker image). A wallet without shielded keys (read-only, HSM or Fireblocks) answers 403 with `errorCode` `shielded-no-keys` and the shielded capability `reason`, and a multisig wallet with `shielded-multisig`. The response is sent with `Cache-Control: no-store`.',
+        parameters: [
+          { $ref: '#/components/parameters/XWalletIdParameter' },
+        ],
+        responses: {
+          200: {
+            description: 'The shielded audit-key pair, or a failure envelope.',
             content: {
               'application/json': {
                 examples: {
                   success: {
                     summary: 'Success',
-                    value: { available: 2, locked: 0 }
+                    value: { success: true, spendXpub: 'xpub6...', scanXpriv: 'xprv9...' }
                   },
-                  'wallet-not-ready': {
-                    summary: 'Wallet is not ready yet',
-                    value: { success: false, message: 'Wallet is not ready.', state: 1 }
+                  ...commonExamples.xWalletIdErrResponseExamples,
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Exporting the audit keys is disabled by the configuration, or the wallet has no shielded keys.',
+            content: {
+              'application/json': {
+                examples: {
+                  disabled: {
+                    summary: 'allowShieldedAuditKeys is not set',
+                    value: { success: false, error: 'Exporting the shielded audit keys is disabled. To allow it, set allowShieldedAuditKeys in the configuration.' }
+                  },
+                  'no-shielded-keys': {
+                    summary: 'The wallet has no shielded keys',
+                    value: { success: false, error: 'This wallet has no shielded keys.', errorCode: 'shielded-no-keys', reason: 'no-shielded-keys' }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/wallet/shielded/unblinding': {
+      get: {
+        operationId: 'getShieldedUnblindingPayload',
+        summary: 'Get the explorer-unblinding payload for a tx the wallet owns shielded openings of',
+        description: 'Returns the explorer unblinding envelope for a tx the wallet owns shielded openings of (as recipient of shielded outputs, or as spender of shielded inputs whose parent output it owns). `payload` is the bare base64url envelope; `unblindFragment` is the same value prefixed with `#unblind=` for appending to an explorer transaction URL.\n\nPRIVACY CAVEAT: the openings disclosed are only the wallet\'s OWN (received + change) — foreign recipients\' blinding factors are never disclosed. However, because a confidential transaction conserves value, publishing the owned input + change openings lets a viewer of the fragment derive a third-party recipient\'s amount arithmetically (`Σinputs − change − fee`). Treat the fragment as disclosing the amounts of the published transaction.',
+        parameters: [
+          { $ref: '#/components/parameters/XWalletIdParameter' },
+          {
+            name: 'id',
+            in: 'query',
+            description: 'The 64-hex-character transaction id.',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'The unblinding payload, or a failure envelope when the wallet has no openings to share for this tx.',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    summary: 'Success',
+                    value: { success: true, txId: '00abcd...', payload: '<base64url>', unblindFragment: '#unblind=<base64url>' }
+                  },
+                  'no-openings': {
+                    summary: 'No shielded openings to share',
+                    value: { success: false, error: 'Wallet has no shielded openings for tx 00abcd...' }
                   },
                   ...commonExamples.xWalletIdErrResponseExamples,
                 },
@@ -618,6 +727,16 @@ const defaultApiDocs = {
               type: 'integer',
             },
           },
+          {
+            name: 'legacy',
+            in: 'query',
+            description: 'Which derivation chain to read from. Defaults to `true` — the legacy P2PKH chain at `m/44\'/280\'/0\'/0/index`, identical to the address `/wallet/address` always returned before shielded outputs existed. Pass `false` to derive on the shielded chain instead (`m/44\'/280\'/{1\',2\'}/0/index`), which returns the user-facing 71-byte shielded base58 address (scan + spend pubkeys) used as the destination for shielded outputs. The shielded chain is only meaningful when the wallet has shielded keys provisioned (any seed-based wallet created or migrated on a shielded-capable wallet-lib version).',
+            required: false,
+            schema: {
+              type: 'boolean',
+              default: true,
+            },
+          },
         ],
         responses: {
           200: {
@@ -634,6 +753,19 @@ const defaultApiDocs = {
                     value: { success: false, message: 'Wallet is not ready.', state: 1 }
                   },
                   ...commonExamples.xWalletIdErrResponseExamples,
+                },
+              },
+            },
+          },
+          403: {
+            description: 'The wallet cannot derive shielded addresses (`legacy=false`). `errorCode` says why, e.g. `shielded-no-provider` (shielded outputs are off, or ct-crypto-node didn\'t load), `shielded-no-keys` (read-only, HSM or Fireblocks wallet), `shielded-multisig` or `shielded-locked`.',
+            content: {
+              'application/json': {
+                examples: {
+                  'no-shielded-keys': {
+                    summary: 'The wallet has no shielded keys',
+                    value: { success: false, error: 'The wallet has no shielded keys.', errorCode: 'shielded-no-keys' }
+                  },
                 },
               },
             },
@@ -659,13 +791,13 @@ const defaultApiDocs = {
         ],
         responses: {
           200: {
-            description: 'Return the index of the address.',
+            description: 'Return the index of the address. A shielded address shares its index with a legacy address: `legacy` says which chain it is on, as the `legacy` parameter of `/wallet/address`. It is `false` for a shielded address and for the spend-derived P2PKH address its shielded outputs are paid to.',
             content: {
               'application/json': {
                 examples: {
                   success: {
                     summary: 'Success',
-                    value: { index: 2, success: true },
+                    value: { index: 2, legacy: true, success: true },
                   },
                   error: {
                     summary: 'Address does not belong to the wallet',
@@ -687,7 +819,7 @@ const defaultApiDocs = {
       post: {
         operationId: 'signMessage',
         summary: 'Sign an arbitrary message with one of the wallet\'s address keys.',
-        description: 'Returns a Bitcoin-compatible signed-message signature (bitcore.Message). Useful for off-chain proofs of address ownership — e.g., the x402 payment protocol requires signing a server-issued challenge with the payer\'s key. Either `address_index` or `address` must be provided; if both are given, `address_index` wins.',
+        description: 'Returns a Bitcoin-compatible signed-message signature (bitcore.Message). Useful for off-chain proofs of address ownership — e.g., the x402 payment protocol requires signing a server-issued challenge with the payer\'s key. Either `address_index` or `address` must be provided; if both are given, `address_index` wins. The signing key is the legacy key at that index, so when the index comes from `address`, a shielded address (or the spend-derived P2PKH address of one) is refused: signing for it would link it to the legacy address. With `address_index`, the legacy address at that index is signed for.',
         parameters: [
           { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
@@ -794,6 +926,15 @@ const defaultApiDocs = {
         summary: 'Return all generated addresses of the wallet.',
         parameters: [
           { $ref: '#/components/parameters/XWalletIdParameter' },
+          {
+            name: 'legacy',
+            in: 'query',
+            description: 'Which addresses to list. Defaults to `true`, the legacy P2PKH addresses. Pass `false` to list the wallet\'s shielded receive addresses (the 71-byte base58 form used as the destination of shielded outputs). A wallet that can\'t derive shielded addresses answers 403 with the same `errorCode` as `/wallet/address?legacy=false`: `shielded-no-provider` (shielded outputs off, or ct-crypto-node didn\'t load), `shielded-no-keys` (read-only, HSM or Fireblocks wallet), `shielded-multisig` or `shielded-locked`.',
+            required: false,
+            schema: {
+              type: 'boolean',
+            },
+          },
         ],
         responses: {
           200: {
@@ -835,11 +976,16 @@ const defaultApiDocs = {
                 properties: {
                   address: {
                     type: 'string',
-                    description: 'Address to send the tokens.'
+                    description: 'Address to send the tokens. A shielded address given without `shielded` is paid transparently, to the P2PKH address of its spend key, so the amount is public.'
                   },
                   value: {
                     type: 'integer',
                     description: 'The value parameter must be an integer with the value in cents, i.e., 123 means 1.23 HTR.'
+                  },
+                  shielded: {
+                    type: 'integer',
+                    enum: [1, 2],
+                    description: 'Send a shielded output. 1 = AmountShielded (value hidden, token visible), 2 = FullShielded (value and token hidden). `address` must be a shielded address. The protocol needs at least 2 shielded outputs in a transaction, so the wallet adds a second one, by splitting the output or by making the change shielded. Each shielded output pays an extra HTR fee (1 for AmountShielded, 2 for FullShielded).'
                   },
                   token: {
                     type: 'string',
@@ -866,7 +1012,7 @@ const defaultApiDocs = {
                   },
                   change_address: {
                     type: 'string',
-                    description: 'Optional address to send the change amount.'
+                    description: 'Optional address to send the change amount. It may be a legacy or a shielded address of the wallet. When the change is shielded (wallet-lib shields it when every output of its token is shielded, or when shielded inputs are spent), a legacy change address fails the transaction: pass a shielded one or leave it out.'
                   },
                 }
               },
@@ -1080,6 +1226,11 @@ const defaultApiDocs = {
                           type: 'string',
                           description: 'Data string of the data script output. Required if it\'s a data script output.'
                         },
+                        shielded: {
+                          type: 'integer',
+                          enum: [1, 2],
+                          description: 'Shielded output mode. 1 = AmountShielded (value hidden, token visible), 2 = FullShielded (value and token hidden). `address` must be a shielded address; the wallet derives the recipient\'s scan and spend pubkeys from it. The protocol needs at least 2 shielded outputs in a transaction: when only one is requested, the wallet adds a second one, by splitting it or by making the change shielded. Each shielded output pays an extra HTR fee (1 for AmountShielded, 2 for FullShielded).'
+                        },
                       }
                     },
                     description: 'Outputs to create the transaction.'
@@ -1120,6 +1271,14 @@ const defaultApiDocs = {
                         amount_bigger_than: {
                           type: 'integer',
                           description: 'Filter only utxos with value bigger than this. Optional query parameter when using type query.'
+                        },
+                        maximum_amount: {
+                          type: 'integer',
+                          description: 'Limit the total amount of the utxos the query selects. Optional query parameter when using type query.'
+                        },
+                        shielded: {
+                          type: 'boolean',
+                          description: 'Select from the wallet\'s shielded utxos instead of its transparent ones. Defaults to false. Optional query parameter when using type query.'
                         },
                       }
                     },
@@ -1464,6 +1623,10 @@ const defaultApiDocs = {
                     type: 'string',
                     description: '[P2PKH] The ECDSA signature in little endian, DER encoded in hex format.',
                   },
+                  shielded: {
+                    type: 'boolean',
+                    description: '[P2PKH] Set when the input spends a shielded output, i.e. its `addressPath` from `/wallet/tx-proposal/get-wallet-inputs` is on the shielded spend chain (`m/44\'/280\'/2\'/0/index`). The input data then carries the spend-chain public key instead of the legacy one at the same index. Defaults to false.',
+                  },
                   signatures: {
                     type: 'object',
                     description: '[P2SH] Each key will be the signer xpubkey as used on the multisig configuration, the value will be the signature (ECDSA little endian, DER encoded in hex format).',
@@ -1532,6 +1695,10 @@ const defaultApiDocs = {
                         token: {
                           type: 'string',
                           description: 'Token id of the output. If not sent, HTR will be chosen.'
+                        },
+                        shielded: {
+                          type: 'integer',
+                          description: 'Not supported: multisig wallets have no shielded keys, and a request with it answers 400.'
                         },
                       }
                     },
@@ -2911,7 +3078,7 @@ const defaultApiDocs = {
                       properties: {
                         address: {
                           type: 'string',
-                          description: 'Destination address of the output. Required if P2PKH or P2SH.'
+                          description: 'Destination address of the output. Required if P2PKH or P2SH. A shielded address given without `shielded` is paid transparently, to the P2PKH address of its spend key, so the amount is public.'
                         },
                         value: {
                           type: 'integer',
@@ -2932,6 +3099,11 @@ const defaultApiDocs = {
                         timelock: {
                           type: 'integer',
                           description: 'Timelock value for the output. Used only for P2PKH or P2SH.'
+                        },
+                        shielded: {
+                          type: 'integer',
+                          enum: [1, 2],
+                          description: 'Shielded output mode. 1 = AmountShielded (value hidden, token visible), 2 = FullShielded (value and token hidden). `address` must be a shielded address; the wallet derives the recipient\'s scan and spend pubkeys from it. The protocol needs at least 2 shielded outputs in a transaction: when only one is requested, the wallet adds a second one, by splitting it or by making the change shielded. Each shielded output pays an extra HTR fee (1 for AmountShielded, 2 for FullShielded).'
                         },
                       }
                     },
@@ -2974,6 +3146,14 @@ const defaultApiDocs = {
                           type: 'integer',
                           description: 'Filter only utxos with value bigger than this. Optional query parameter when using type query.'
                         },
+                        maximum_amount: {
+                          type: 'integer',
+                          description: 'Limit the total amount of the utxos the query selects. Optional query parameter when using type query.'
+                        },
+                        shielded: {
+                          type: 'boolean',
+                          description: 'Select from the wallet\'s shielded utxos instead of its transparent ones. Defaults to false. Optional query parameter when using type query.'
+                        },
                       }
                     },
                     description: 'Inputs to create the transaction.'
@@ -3000,7 +3180,7 @@ const defaultApiDocs = {
                   },
                   change_address: {
                     type: 'string',
-                    description: 'Optional address to send the change amount.'
+                    description: 'Optional address to send the change amount. It may be a legacy or a shielded address of the wallet. When the change is shielded (wallet-lib shields it when every output of its token is shielded, or when shielded inputs are spent), a legacy change address fails the transaction: pass a shielded one or leave it out.'
                   },
                 }
               },
@@ -3443,7 +3623,7 @@ const defaultApiDocs = {
         ],
         responses: {
           200: {
-            description: 'Return the transaction data',
+            description: 'Return the transaction data. Shielded outputs are listed in `shielded_outputs`, after the transparent `outputs`: the on-chain index of `shielded_outputs[i]` is `outputs.length + i`. For the wallet\'s own shielded outputs they carry the decoded `value` and `token`; the blinding factors that open them are never returned (see `/wallet/shielded/unblinding`).',
             content: {
               'application/json': {
                 examples: {
@@ -3523,7 +3703,7 @@ const defaultApiDocs = {
         ],
         responses: {
           200: {
-            description: 'Return the transaction history',
+            description: 'Return the transaction history. Shielded outputs are listed in `shielded_outputs`, after the transparent `outputs`: the on-chain index of `shielded_outputs[i]` is `outputs.length + i`. For the wallet\'s own shielded outputs they carry the decoded `value` and `token`; the blinding factors that open them are never returned (see `/wallet/shielded/unblinding`).',
             content: {
               'application/json': {
                 examples: {
@@ -3636,6 +3816,15 @@ const defaultApiDocs = {
             name: 'only_available_utxos',
             in: 'query',
             description: 'Get only available utxos, ignoring locked ones. Defaults to false.',
+            required: false,
+            schema: {
+              type: 'boolean',
+            },
+          },
+          {
+            name: 'shielded',
+            in: 'query',
+            description: 'List the wallet\'s shielded utxos instead of its transparent ones. Defaults to false. The `address` of a shielded utxo is the P2PKH address derived from the spend key of the shielded address it was paid to, not the shielded address itself.',
             required: false,
             schema: {
               type: 'boolean',
@@ -3788,7 +3977,7 @@ const defaultApiDocs = {
                 examples: {
                   success: {
                     summary: 'Success',
-                    value: { success: true, total_amount_received: 9299200, total_amount_sent: 6400, total_amount_available: 9292800, total_amount_locked: 0, token: '00', index: 0 },
+                    value: { success: true, total_amount_received: 9299200, total_amount_sent: 6400, total_amount_available: 9292800, total_amount_locked: 0, token: '00', index: 0, legacy: true },
                   },
                   'wallet-not-ready': {
                     summary: 'Wallet is not ready yet',

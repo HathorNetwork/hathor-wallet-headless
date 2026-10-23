@@ -36,6 +36,21 @@
       "globals": {
         "process.exit": false
       }
+    },
+
+    "@hathor/ct-crypto-node": {
+      "packages": {
+        "@hathor/ct-crypto-node>@hathor/ct-crypto-node-linux-arm64-musl": true,
+        "@hathor/ct-crypto-node>@hathor/ct-crypto-node-linux-x64-musl": true
+      }
+    },
+
+    "@hathor/ct-crypto-node>@hathor/ct-crypto-node-linux-arm64-musl": {
+      "native": true
+    },
+
+    "@hathor/ct-crypto-node>@hathor/ct-crypto-node-linux-x64-musl": {
+      "native": true
     }
   }
 }
