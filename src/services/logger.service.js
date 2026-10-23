@@ -76,7 +76,13 @@ function getLogger(req) {
  * @param {HathorWallet} wallet
  * @param {import('winston').Logger} logger
  */
-function setupWalletStateLogs(wallet, logger) {
+/**
+ * @param {import('@hathor/wallet-lib').HathorWallet} wallet
+ * @param {import('winston').Logger} logger
+ * @param {Object} [options]
+ * @param {boolean} [options.shieldedEnabled] Whether the wallet uses shielded outputs
+ */
+function setupWalletStateLogs(wallet, logger, { shieldedEnabled = false } = {}) {
   const times = {
     connecting: 0,
     syncing: 0,
@@ -107,13 +113,18 @@ function setupWalletStateLogs(wallet, logger) {
   wallet.conn.on('wallet-load-partial-update', data => {
     logger.debug(`Found ${data.addressesFound} addresses and ${data.historyLength} transactions`);
   });
-  // Emitted once per start and whenever the capability changes. A level below
-  // full is the only signal that shielded receives or spends are off.
+  // Emitted once per start and whenever the capability changes. With shielded
+  // outputs on, it is the only signal that shielded receives or spends are off
+  // (a level below full), or that some are missed (an incomplete history, or
+  // outputs that failed to decode). With them off, every wallet reports a level
+  // below full, so that is only informative.
   wallet.on('shielded-capability', capability => {
     const { level, reason, cause, canReceive, canSpend, historyComplete, undecoded } = capability;
+    const missesFunds = level !== 'full' || !historyComplete || undecoded.error > 0;
+    const logLevel = shieldedEnabled && missesFunds ? 'warn' : 'info';
     // The level goes in the message: winston reads a `level` metadata field as
     // the log level
-    logger[level === 'full' ? 'info' : 'warn'](`shielded_capability[${level}]`, {
+    logger[logLevel](`shielded_capability[${level}]`, {
       reason,
       cause,
       canReceive,

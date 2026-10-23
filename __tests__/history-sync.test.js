@@ -1,7 +1,12 @@
 import hathorLib from '@hathor/wallet-lib';
 import TestUtils from './test-utils';
 import settings from '../src/settings';
-import { initializedWallets, isShieldedCapable } from '../src/services/wallets.service';
+import {
+  initializedWallets,
+  isShieldedCapable,
+  isShieldedEnabled,
+  resetShieldedNetworkCheck,
+} from '../src/services/wallets.service';
 
 const walletId = 'stub_history_sync';
 // Read-only wallets have no shielded keys, so they keep the configured sync mode
@@ -165,20 +170,153 @@ describe('history sync', () => {
 });
 
 describe('isShieldedCapable', () => {
-  const provider = {};
+  const shieldedProvider = {};
+  const shielded = { shieldedEnabled: true, shieldedProvider };
 
-  it('should be true only for a single-signature seed wallet with a provider', () => {
-    expect(isShieldedCapable({ seed: 'words' }, provider)).toBe(true);
-    expect(isShieldedCapable({ seed: 'words', multisig: null }, provider)).toBe(true);
+  it('should be true only for a single-signature seed wallet with shielded outputs on', () => {
+    expect(isShieldedCapable({ seed: 'words' }, shielded)).toBe(true);
+    expect(isShieldedCapable({ seed: 'words', multisig: null }, shielded)).toBe(true);
+  });
+
+  it('should be false with shielded outputs off', () => {
+    expect(isShieldedCapable({ seed: 'words' }, { shieldedEnabled: false, shieldedProvider }))
+      .toBe(false);
   });
 
   it('should be false without the shielded crypto provider', () => {
-    expect(isShieldedCapable({ seed: 'words' }, null)).toBe(false);
+    expect(isShieldedCapable({ seed: 'words' }, { shieldedEnabled: true, shieldedProvider: null }))
+      .toBe(false);
   });
 
   it('should be false for wallets without shielded keys', () => {
-    expect(isShieldedCapable({ xpub: XPUBKEY }, provider)).toBe(false);
-    expect(isShieldedCapable({ seed: 'words', multisig: TestUtils.multisigData }, provider))
+    expect(isShieldedCapable({ xpub: XPUBKEY }, shielded)).toBe(false);
+    expect(isShieldedCapable({ seed: 'words', multisig: TestUtils.multisigData }, shielded))
       .toBe(false);
+  });
+});
+
+describe('isShieldedEnabled', () => {
+  let versionSpy;
+
+  beforeEach(() => {
+    resetShieldedNetworkCheck();
+    versionSpy = jest.spyOn(hathorLib.versionApi, 'asyncGetVersion');
+  });
+
+  afterEach(() => {
+    versionSpy.mockRestore();
+    resetShieldedNetworkCheck();
+  });
+
+  it('should follow the fullnode network when the config does not set it', async () => {
+    versionSpy.mockResolvedValueOnce({ network: 'testnet-shielded-outputs' });
+    expect(await isShieldedEnabled({ server: 'http://a/' })).toBe(true);
+    // Privnets are not in the list: one with shielded outputs sets the config
+    versionSpy.mockResolvedValueOnce({ network: 'privatenet' });
+    expect(await isShieldedEnabled({ server: 'http://b/' })).toBe(false);
+    versionSpy.mockResolvedValueOnce({ network: 'mainnet' });
+    expect(await isShieldedEnabled({ server: 'http://c/' })).toBe(false);
+  });
+
+  it('should follow the config without asking the fullnode', async () => {
+    expect(await isShieldedEnabled({ server: 'http://a/', enableShieldedOutputs: true })).toBe(true);
+    expect(await isShieldedEnabled({ server: 'http://a/', enableShieldedOutputs: false })).toBe(false);
+    expect(versionSpy).not.toHaveBeenCalled();
+  });
+
+  it('should ask once per fullnode, and again after a failed request', async () => {
+    versionSpy
+      .mockRejectedValueOnce(new Error('fullnode down'))
+      .mockResolvedValue({ network: 'testnet-shielded-outputs' });
+    const config = { server: 'http://a/' };
+
+    await expect(isShieldedEnabled(config)).rejects.toThrow('fullnode down');
+    expect(await isShieldedEnabled(config)).toBe(true);
+    expect(await isShieldedEnabled(config)).toBe(true);
+    expect(versionSpy).toHaveBeenCalledTimes(2);
+
+    // Another fullnode, e.g. after /reload-config changed the server
+    expect(await isShieldedEnabled({ server: 'http://b/' })).toBe(true);
+    expect(versionSpy).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe('shielded outputs switch on /start', () => {
+  let versionSpy;
+
+  beforeEach(() => {
+    settings._resetConfig();
+    resetShieldedNetworkCheck();
+    versionSpy = jest.spyOn(hathorLib.versionApi, 'asyncGetVersion');
+  });
+
+  afterEach(async () => {
+    await TestUtils.stopWallet({ walletId, pollInterval: 2000 });
+    versionSpy.mockRestore();
+    resetShieldedNetworkCheck();
+  });
+
+  /**
+   * Start a seed wallet with the default (xpub streaming) sync mode and the
+   * given enableShieldedOutputs (undefined: unset).
+   */
+  async function startSeedWallet(enableShieldedOutputs) {
+    const config = settings._getDefaultConfig();
+    delete config.history_sync_mode;
+    delete config.enableShieldedOutputs;
+    if (enableShieldedOutputs !== undefined) {
+      config.enableShieldedOutputs = enableShieldedOutputs;
+    }
+    settings._setConfig(config);
+    const response = await TestUtils.request
+      .post('/start')
+      .send({ seedKey: TestUtils.seedKey, 'wallet-id': walletId });
+    expect(response.body.success).toBe(true);
+    await TestUtils.waitReady({ walletId, retries: 10 });
+    return initializedWallets.get(walletId);
+  }
+
+  it('should be off when unset and the fullnode network has no shielded outputs', async () => {
+    versionSpy.mockResolvedValue({ network: 'mainnet' });
+    const wallet = await startSeedWallet(undefined);
+
+    // No provider, so the seed wallet keeps the configured sync mode
+    expect(wallet.storage.shieldedCryptoProvider).toBeUndefined();
+    expect(wallet.historySyncMode).toEqual(hathorLib.HistorySyncMode.XPUB_STREAM_WS);
+
+    const status = await TestUtils.request
+      .get('/wallet/status')
+      .set({ 'x-wallet-id': walletId });
+    expect(status.body.shielded).toMatchObject({ level: 'none', reason: 'no-provider' });
+
+    const address = await TestUtils.request
+      .get('/wallet/address')
+      .query({ legacy: false })
+      .set({ 'x-wallet-id': walletId });
+    expect(address.status).toBe(403);
+    expect(address.body.errorCode).toBe('shielded-no-provider');
+  });
+
+  it('should be on when unset and the fullnode network has shielded outputs', async () => {
+    versionSpy.mockResolvedValue({ network: 'testnet-shielded-outputs' });
+    const wallet = await startSeedWallet(undefined);
+    expect(wallet.storage.shieldedCryptoProvider).toBeDefined();
+    expect(wallet.historySyncMode).toEqual(hathorLib.HistorySyncMode.POLLING_HTTP_API);
+  });
+
+  it('should be off when the config says false, without asking the fullnode', async () => {
+    versionSpy.mockResolvedValue({ network: 'testnet-shielded-outputs' });
+    const wallet = await startSeedWallet(false);
+    expect(versionSpy).not.toHaveBeenCalled();
+    expect(wallet.storage.shieldedCryptoProvider).toBeUndefined();
+    expect(wallet.historySyncMode).toEqual(hathorLib.HistorySyncMode.XPUB_STREAM_WS);
+  });
+
+  it('should be on when the config says true, without asking the fullnode', async () => {
+    versionSpy.mockResolvedValue({ network: 'mainnet' });
+    const wallet = await startSeedWallet(true);
+    expect(versionSpy).not.toHaveBeenCalled();
+    expect(wallet.storage.shieldedCryptoProvider).toBeDefined();
+    expect(wallet.historySyncMode).toEqual(hathorLib.HistorySyncMode.POLLING_HTTP_API);
   });
 });

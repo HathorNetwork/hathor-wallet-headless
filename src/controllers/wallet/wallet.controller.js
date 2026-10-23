@@ -44,8 +44,9 @@ async function getStatus(req, res) {
     serverInfo: wallet.storage.version,
     // What the wallet can do with shielded outputs: the level (none, watch,
     // view or full), why it is below full, and whether it receives, spends and
-    // has its whole shielded history. A missing crypto provider shows up here
-    // as reason 'no-provider' instead of on the first shielded operation.
+    // has its whole shielded history. With shielded outputs off, or when
+    // ct-crypto-node didn't load, the wallet has no crypto provider: reason
+    // 'no-provider'.
     shielded: await wallet.getShieldedCapability(),
   };
 
