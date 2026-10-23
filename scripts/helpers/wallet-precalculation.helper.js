@@ -7,9 +7,8 @@
 
 import { promises as fs } from 'fs';
 import { addressUtils, walletUtils } from '@hathor/wallet-lib';
-import settings from '../../__tests__/integration/configuration/settings-fixture';
 
-const config = settings._getDefaultConfig();
+const config = { network: 'privatenet' };
 
 export const precalculationHelpers = {
   /**
