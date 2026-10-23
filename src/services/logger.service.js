@@ -116,11 +116,14 @@ function setupWalletStateLogs(wallet, logger, { shieldedEnabled = false } = {}) 
   // Emitted once per start and whenever the capability changes. With shielded
   // outputs on, it is the only signal that shielded receives or spends are off
   // (a level below full), or that some are missed (an incomplete history, or
-  // outputs that failed to decode). With them off, every wallet reports a level
-  // below full, so that is only informative.
+  // outputs that failed to decode). Wallets that can never hold shielded funds
+  // (multisig, read-only, hardware) are below full by design, and with shielded
+  // outputs off every wallet is: those are only informative.
   wallet.on('shielded-capability', capability => {
     const { level, reason, cause, canReceive, canSpend, historyComplete, undecoded } = capability;
-    const missesFunds = level !== 'full' || !historyComplete || undecoded.error > 0;
+    const structural = ['multisig', 'no-shielded-keys', 'hardware'].includes(reason);
+    const missesFunds = !structural
+      && (level !== 'full' || !historyComplete || undecoded.error > 0);
     const logLevel = shieldedEnabled && missesFunds ? 'warn' : 'info';
     // The level goes in the message: winston reads a `level` metadata field as
     // the log level

@@ -97,8 +97,8 @@ module.exports = {
   // testnet-shielded-outputs); set true to always turn them on (e.g. a privnet with shielded
   // outputs), or false to always turn them off. With them off, wallets don't load the shielded
   // crypto provider, don't derive shielded addresses and keep their history sync mode.
-  // In Docker, set HEADLESS_ENABLE_SHIELDED_OUTPUTS. On the command line use `false`, not `0`:
-  // `0` is read as unset.
+  // Use true or false: any other value is rejected. In Docker, set
+  // HEADLESS_ENABLE_SHIELDED_OUTPUTS (true/false, or 1/0).
   // enableShieldedOutputs: true,
 
   // Enabling this requires all requests to have the X-First-Address header

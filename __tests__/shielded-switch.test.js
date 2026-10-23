@@ -16,6 +16,27 @@ describe('reload of enableShieldedOutputs', () => {
     }
   });
 
+  it('should refuse a reload to a value that is not true, false or unset', async () => {
+    const oldConfig = settingsFixture._getDefaultConfig();
+    for (const enableShieldedOutputs of ['false', 0, 1]) {
+      const newConfig = { ...settingsFixture._getDefaultConfig(), enableShieldedOutputs };
+      // eslint-disable-next-line no-await-in-loop
+      const action = await settings._analizeConfig(oldConfig, newConfig);
+      expect(action.nonRecoverable).toBe(true);
+    }
+  });
+
+  it('should refuse to set up a config with an invalid value', async () => {
+    // As settings.test.js does: the config module is mocked before the first
+    // setupConfig() of the real settings module
+    jest.doMock('../src/config', () => ({
+      __esModule: true,
+      default: { ...settingsFixture._getDefaultConfig(), enableShieldedOutputs: 'false' },
+    }));
+    await expect(settings.setupConfig()).rejects.toThrow('Invalid enableShieldedOutputs');
+    jest.dontMock('../src/config');
+  });
+
   it('should not stop the wallets when it stays the same', async () => {
     const config = settingsFixture._getDefaultConfig();
     const action = await settings._analizeConfig(config, settingsFixture._getDefaultConfig());
@@ -56,6 +77,16 @@ describe('shielded capability log', () => {
     expect(logLevelFor(true, { level: 'watch', reason: 'locked' })).toBe('warn');
     expect(logLevelFor(true, { historyComplete: false })).toBe('warn');
     expect(logLevelFor(true, { undecoded: { txIds: ['aa'], locked: 0, unreadable: 0, error: 1 } }))
+      .toBe('warn');
+  });
+
+  it('should only inform with shielded outputs on for wallets that can never hold them', () => {
+    // Below full by design, with an incomplete shielded history too
+    for (const reason of ['multisig', 'no-shielded-keys', 'hardware']) {
+      expect(logLevelFor(true, { level: 'none', reason, historyComplete: false })).toBe('info');
+    }
+    // A seed wallet whose provider failed to load does miss funds
+    expect(logLevelFor(true, { level: 'none', reason: 'no-provider', historyComplete: false }))
       .toBe('warn');
   });
 
