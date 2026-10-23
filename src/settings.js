@@ -11,7 +11,10 @@ const {
   errors: hathorLibErrors,
 } = require('@hathor/wallet-lib');
 const errors = require('./errors');
-const { stopAllWallets, resetShieldedNetworkCheck } = require('./services/wallets.service');
+// Called through the module object: settings and wallets.service are in a
+// require cycle (through the logger), so destructuring could read them before
+// wallets.service has exported them
+const walletsService = require('./services/wallets.service');
 const { initHathorLib } = require('./helpers/wallet.helper');
 
 /**
@@ -121,8 +124,21 @@ async function setupConfig() {
     throw new Error('Cannot setup the configuration twice.');
   }
 
-  _config = await _importConfig();
+  const config = await _importConfig();
+  if (!_isValidEnableShieldedOutputs(config.enableShieldedOutputs)) {
+    throw new Error(`Invalid enableShieldedOutputs: ${config.enableShieldedOutputs}. Use true, false, or leave it unset.`);
+  }
+  _config = config;
   started = true;
+}
+
+/**
+ * enableShieldedOutputs is true, false or unset. Anything else (e.g. 'false'
+ * or 0 in a hand-written config.js) is rejected rather than read as unset,
+ * which could turn shielded outputs on.
+ */
+function _isValidEnableShieldedOutputs(value) {
+  return value === undefined || value === null || typeof value === 'boolean';
 }
 
 /**
@@ -137,7 +153,7 @@ async function _updateConfig(action, config) {
   }
 
   if (action.stopAllWallets) {
-    await stopAllWallets();
+    await walletsService.stopAllWallets();
   }
 
   if (action.reconfigLib) {
@@ -159,6 +175,12 @@ async function _analizeConfig(oldConfig, newConfig) {
     reconfigLib: false,
     nonRecoverable: false,
   };
+
+  // An invalid value would fail every wallet start with a generic error
+  if (!_isValidEnableShieldedOutputs(newConfig.enableShieldedOutputs)) {
+    action.nonRecoverable = true;
+    return action;
+  }
 
   // Checking changes in the fields:
   // http_post, http_bind_address, http_api_key, consoleLevel, httpLogFormat, enabled_plugins
@@ -286,7 +308,7 @@ async function reloadConfig() {
 
   // The next wallet start asks the fullnode whether it has shielded outputs
   // again: its network may have changed behind the same URL
-  resetShieldedNetworkCheck();
+  walletsService.resetShieldedNetworkCheck();
 
   // All checks have passed, settings the singleton
   _config = newConfig;

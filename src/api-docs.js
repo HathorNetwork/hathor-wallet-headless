@@ -929,7 +929,7 @@ const defaultApiDocs = {
           {
             name: 'legacy',
             in: 'query',
-            description: 'Which addresses to list. Defaults to `true`, the legacy P2PKH addresses. Pass `false` to list the wallet\'s shielded receive addresses (the 71-byte base58 form used as the destination of shielded outputs). A wallet that can\'t derive shielded addresses answers 403 with the same `errorCode` as `/wallet/address?legacy=false`: `shielded-no-provider` (shielded outputs off, or ct-crypto-node didn\'t load), `shielded-no-keys` (read-only, HSM or Fireblocks wallet), `shielded-multisig`.',
+            description: 'Which addresses to list. Defaults to `true`, the legacy P2PKH addresses. Pass `false` to list the wallet\'s shielded receive addresses (the 71-byte base58 form used as the destination of shielded outputs). A wallet that can\'t derive shielded addresses answers 403 with the same `errorCode` as `/wallet/address?legacy=false`: `shielded-no-provider` (shielded outputs off, or ct-crypto-node didn\'t load), `shielded-no-keys` (read-only, HSM or Fireblocks wallet), `shielded-multisig` or `shielded-locked`.',
             required: false,
             schema: {
               type: 'boolean',
