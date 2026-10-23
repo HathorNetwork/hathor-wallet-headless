@@ -45,6 +45,8 @@ const defaultConfig = {
   allowPassphrase: false,
   // The shielded audit-export suite reads GET /wallet/shielded/audit-keys
   allowShieldedAuditKeys: true,
+  // The integration privnet has shielded outputs, and privnets aren't in the list
+  enableShieldedOutputs: true,
   confirmFirstAddress: false,
   history_sync_mode: 'polling_http_api',
 };

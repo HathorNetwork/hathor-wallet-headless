@@ -256,7 +256,7 @@ const defaultApiDocs = {
                   historySyncMode: {
                     type: 'string',
                     enum: ['polling_http_api', 'xpub_stream_ws', 'manual_stream_ws'],
-                    description: 'History sync mode for the wallet to use. If not given the configured default will apply. A wallet that can hold shielded funds (a single-signature wallet started from a seed, when the shielded crypto provider is available) always uses polling_http_api, because only polling watches the addresses shielded outputs are paid to.',
+                    description: 'History sync mode for the wallet to use. If not given the configured default will apply. A wallet that can hold shielded funds (a single-signature wallet started from a seed, when shielded outputs are on) always uses polling_http_api, because only polling watches the addresses shielded outputs are paid to.',
                     default: 'xpub_stream_ws',
                   },
                 }
@@ -524,7 +524,7 @@ const defaultApiDocs = {
         ],
         responses: {
           200: {
-            description: 'A JSON with general wallet info. `shielded` is the wallet\'s shielded-output capability: `level` is `none` (no shielded keys, e.g. multisig, read-only, HSM or Fireblocks wallets), `watch`, `view` or `full`; `reason` and `cause` say why it is below `full`; `canReceive`, `canSpend` and `historyComplete` say whether the wallet sees its shielded receives, can spend its shielded outputs and has loaded its whole shielded history; `undecoded` counts the wallet\'s shielded outputs it holds but could not decode.',
+            description: 'A JSON with general wallet info. `shielded` is the wallet\'s shielded-output capability: `level` is `none` (no shielded keys, e.g. multisig, read-only, HSM or Fireblocks wallets), `watch`, `view` or `full`; `reason` and `cause` say why it is below `full`; `canReceive`, `canSpend` and `historyComplete` say whether the wallet sees its shielded receives, can spend its shielded outputs and has loaded its whole shielded history; `undecoded` counts the wallet\'s shielded outputs it holds but could not decode. When shielded outputs are off (the `enableShieldedOutputs` configuration, which by default turns them on only when the fullnode reports a network where they are active), or ct-crypto-node didn\'t load, the wallet has no shielded crypto provider: the level is `none` with reason `no-provider`.',
             content: {
               'application/json': {
                 examples: {
@@ -541,8 +541,12 @@ const defaultApiDocs = {
                     value: { statusCode: 2, statusMessage: 'Syncing', network: 'mainnet', serverUrl: 'https://node2.mainnet.hathor.network/v1a/', serverInfo: { version: '0.29.0', network: 'mainnet', min_weight: 14, min_tx_weight: 14, min_tx_weight_coefficient: 1.6, min_tx_weight_k: 100, token_deposit_percentage: 0.01 } }
                   },
                   ready: {
-                    summary: 'Wallet is ready',
-                    value: { statusCode: 3, statusMessage: 'Ready', network: 'mainnet', serverUrl: 'https://node2.mainnet.hathor.network/v1a/', serverInfo: { version: '0.29.0', network: 'mainnet', min_weight: 14, min_tx_weight: 14, min_tx_weight_coefficient: 1.6, min_tx_weight_k: 100, token_deposit_percentage: 0.01 }, shielded: { level: 'full', reason: null, cause: null, canReceive: true, canSpend: true, historyComplete: true, undecoded: { txIds: [], locked: 0, unreadable: 0, error: 0 } } }
+                    summary: 'Wallet is ready, with shielded outputs off',
+                    value: { statusCode: 3, statusMessage: 'Ready', network: 'mainnet', serverUrl: 'https://node2.mainnet.hathor.network/v1a/', serverInfo: { version: '0.29.0', network: 'mainnet', min_weight: 14, min_tx_weight: 14, min_tx_weight_coefficient: 1.6, min_tx_weight_k: 100, token_deposit_percentage: 0.01 }, shielded: { level: 'none', reason: 'no-provider', cause: null, canReceive: false, canSpend: false, historyComplete: false, undecoded: { txIds: [], locked: 0, unreadable: 0, error: 0 } } }
+                  },
+                  'ready-shielded': {
+                    summary: 'Wallet is ready, with shielded outputs on',
+                    value: { statusCode: 3, statusMessage: 'Ready', network: 'testnet', serverUrl: 'http://localhost:8080/v1a/', serverInfo: { version: '0.71.0', network: 'testnet-shielded-outputs', min_weight: 8, min_tx_weight: 8, min_tx_weight_coefficient: 0, min_tx_weight_k: 0, token_deposit_percentage: 0.01 }, shielded: { level: 'full', reason: null, cause: null, canReceive: true, canSpend: true, historyComplete: true, undecoded: { txIds: [], locked: 0, unreadable: 0, error: 0 } } }
                   },
                   'ready-without-shielded': {
                     summary: 'Wallet is ready, without shielded keys (e.g. read-only)',
@@ -754,7 +758,7 @@ const defaultApiDocs = {
             },
           },
           403: {
-            description: 'The wallet cannot derive shielded addresses (`legacy=false`). `errorCode` says why, e.g. `shielded-no-keys` (read-only, HSM or Fireblocks wallet), `shielded-multisig` or `shielded-locked`.',
+            description: 'The wallet cannot derive shielded addresses (`legacy=false`). `errorCode` says why, e.g. `shielded-no-provider` (shielded outputs are off, or ct-crypto-node didn\'t load), `shielded-no-keys` (read-only, HSM or Fireblocks wallet), `shielded-multisig` or `shielded-locked`.',
             content: {
               'application/json': {
                 examples: {

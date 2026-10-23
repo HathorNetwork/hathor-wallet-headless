@@ -65,6 +65,9 @@ const { initHathorLib } = require('./helpers/wallet.helper');
  * @property {number|null} [connectionTimeout] - Websocket connection timeout in ms.
  * @property {boolean} [allowPassphrase] - If we allow the use of passphrases
  * when starting a wallet.
+ * @property {boolean} [enableShieldedOutputs] - Whether the wallets use shielded
+ * outputs: true or false decides; unset, they are on when the fullnode reports a
+ * network where shielded outputs are active.
  * @property {boolean} [allowShieldedAuditKeys] - If we allow
  * GET /wallet/shielded/audit-keys to export the shielded scan private key.
  * @property {boolean} [confirmFirstAddress] - If true the user will have to
@@ -244,11 +247,12 @@ async function _analizeConfig(oldConfig, newConfig) {
     action.reconfigLib = true;
   }
 
-  // Checking for changes in tokenUid, gapLimit and connectionTimeout
+  // Checking for changes in tokenUid, gapLimit, connectionTimeout and enableShieldedOutputs
   if (
     oldConfig.tokenUid !== newConfig.tokenUid
     || oldConfig.gapLimit !== newConfig.gapLimit
     || oldConfig.connectionTimeout !== newConfig.connectionTimeout
+    || oldConfig.enableShieldedOutputs !== newConfig.enableShieldedOutputs
   ) {
     action.stopAllWallets = true;
   }
@@ -288,4 +292,6 @@ module.exports = {
   getConfig,
   reloadConfig,
   setupConfig,
+  // For tests
+  _analizeConfig,
 };

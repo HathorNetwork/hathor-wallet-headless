@@ -5,14 +5,81 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { Connection, HathorWallet, HistorySyncMode } = require('@hathor/wallet-lib');
+const { Connection, HathorWallet, HistorySyncMode, versionApi } = require('@hathor/wallet-lib');
+
+/**
+ * Networks, as the fullnode names them in GET /version, where shielded outputs
+ * are active. Privnets are not listed: their names vary and many run without
+ * shielded outputs, so a privnet that has them sets enableShieldedOutputs.
+ */
+const SHIELDED_NETWORKS = ['testnet-shielded-outputs'];
+
+/**
+ * The answer for one fullnode: { server, promise }. versionApi asks the
+ * fullnode wallet-lib is configured with, config.server, which /reload-config
+ * can change; a check for another server asks again.
+ */
+let shieldedNetworkCheck = null;
+
+/** The last decision logged, so each one is logged once. */
+let loggedShieldedDecision = null;
+
+function logShieldedDecision(enabled, source) {
+  const decision = `${enabled ? 'on' : 'off'} (${source})`;
+  if (decision !== loggedShieldedDecision) {
+    loggedShieldedDecision = decision;
+    buildAppLogger().info(`Shielded outputs are ${decision}`);
+  }
+}
+
+/**
+ * Whether the wallets use shielded outputs:
+ * - `enableShieldedOutputs: true` or `false` in the config decides;
+ * - unset, they are on when the fullnode reports a network in SHIELDED_NETWORKS.
+ *   The fullnode is asked once per server. A failed request is not kept, so
+ *   the next wallet start asks again, and that start fails.
+ *
+ * It has to be the fullnode's name: the `network` setting is `testnet` both on
+ * the shielded testnet and on the testnet without shielded outputs.
+ *
+ * @param {Object} config Application configuration
+ * @returns {Promise<boolean>}
+ */
+function isShieldedEnabled(config) {
+  if (typeof config.enableShieldedOutputs === 'boolean') {
+    logShieldedDecision(config.enableShieldedOutputs, 'enableShieldedOutputs');
+    return Promise.resolve(config.enableShieldedOutputs);
+  }
+  if (shieldedNetworkCheck?.server !== config.server) {
+    const check = {
+      server: config.server,
+      promise: versionApi.asyncGetVersion().then(info => {
+        const enabled = SHIELDED_NETWORKS.includes(info.network);
+        logShieldedDecision(enabled, `fullnode network ${sanitizeLogInput(info.network)}`);
+        return enabled;
+      }),
+    };
+    check.promise.catch(() => {
+      if (shieldedNetworkCheck === check) shieldedNetworkCheck = null;
+    });
+    shieldedNetworkCheck = check;
+  }
+  return shieldedNetworkCheck.promise;
+}
+
+/** Forget the fullnode's answer. For tests. */
+function resetShieldedNetworkCheck() {
+  shieldedNetworkCheck = null;
+  loggedShieldedDecision = null;
+}
 
 /**
  * Shielded crypto provider, loaded once per process from `@hathor/ct-crypto-node`,
- * a native addon with prebuilds per platform. If it fails to load (no prebuild
- * for the platform, ABI mismatch, blocked by LavaMoat), the provider stays unset:
- * wallets still work for transparent funds, the failure is logged, and
- * /wallet/status reports the shielded capability reason 'no-provider'.
+ * a native addon with prebuilds per platform, and only when shielded outputs are
+ * on. If it fails to load (no prebuild for the platform, ABI mismatch, blocked by
+ * LavaMoat), the failure is logged and the wallets run as with shielded outputs
+ * off: they work with transparent funds, and /wallet/status reports the shielded
+ * capability reason 'no-provider'.
  */
 let cachedShieldedProvider;
 let shieldedProviderInitTried = false;
@@ -36,17 +103,21 @@ function getShieldedCryptoProvider() {
   return cachedShieldedProvider;
 }
 /**
- * Whether a wallet can hold shielded funds. Only a single-signature wallet
- * started from a seed has the shielded scan and spend keys (read-only, HSM,
- * Fireblocks and multisig wallets have none), and only when the shielded
- * crypto provider loaded.
+ * Whether a wallet can hold shielded funds: shielded outputs are on, the
+ * shielded crypto provider loaded, and the wallet has the shielded scan and
+ * spend keys, which only a single-signature wallet started from a seed has
+ * (read-only, HSM, Fireblocks and multisig wallets have none).
  *
  * @param {Object} walletConfig Wallet configuration
- * @param {Object|null} shieldedProvider The loaded shielded crypto provider
+ * @param {Object} shielded
+ * @param {boolean} shielded.shieldedEnabled Whether shielded outputs are on (isShieldedEnabled)
+ * @param {Object|null} shielded.shieldedProvider The loaded shielded crypto provider
  * @returns {boolean}
  */
-function isShieldedCapable(walletConfig, shieldedProvider) {
-  return Boolean(shieldedProvider && walletConfig.seed && !walletConfig.multisig);
+function isShieldedCapable(walletConfig, { shieldedEnabled, shieldedProvider }) {
+  return Boolean(
+    shieldedEnabled && shieldedProvider && walletConfig.seed && !walletConfig.multisig
+  );
 }
 
 const { removeAllWalletProposals } = require('./atomic-swap.service');
@@ -144,16 +215,20 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
   // Set the lib logger to the be wallet logger
   hydratedWalletConfig.logger = libLogger;
 
+  // With shielded outputs off the provider is not set: the wallet has no
+  // shielded chain and works with transparent funds only
+  const shieldedEnabled = await isShieldedEnabled(config);
+
   const wallet = new HathorWallet(hydratedWalletConfig);
   // Wire the shielded crypto provider before starting the wallet (wallet-lib
   // does not detect it). If it failed to load, the provider is null and
   // shielded operations are unavailable, but the wallet still works for
   // transparent flows.
-  const shieldedProvider = getShieldedCryptoProvider();
+  const shieldedProvider = shieldedEnabled ? getShieldedCryptoProvider() : null;
   if (shieldedProvider) {
     wallet.setShieldedCryptoProvider(shieldedProvider);
   }
-  setupWalletStateLogs(wallet, logger);
+  setupWalletStateLogs(wallet, logger, { shieldedEnabled: Boolean(shieldedProvider) });
 
   // Will try to use the options.historySyncMode then config.history_sync_mode
   const configMode = {
@@ -180,7 +255,7 @@ async function startWallet(walletId, walletConfig, config, options = {}) {
   // to: under a streaming mode a shielded wallet reports canReceive=false and
   // never sees its shielded receives. Until wallet-lib has a shielded stream
   // sync, a wallet that can hold shielded funds always polls.
-  if (isShieldedCapable(hydratedWalletConfig, shieldedProvider)
+  if (isShieldedCapable(hydratedWalletConfig, { shieldedEnabled, shieldedProvider })
     && mode !== HistorySyncMode.POLLING_HTTP_API) {
     if (configMode) {
       appLogger.warn(`Wallet ${sanitizeLogInput(walletId)} can receive shielded outputs, which needs history sync mode ${HistorySyncMode.POLLING_HTTP_API}; ignoring the configured ${configMode}.`);
@@ -228,6 +303,8 @@ function isHsmWallet(walletId) {
 module.exports = {
   initializedWallets,
   isShieldedCapable,
+  isShieldedEnabled,
+  resetShieldedNetworkCheck,
   hsmWalletIds,
   isHsmWallet,
   stopWallet,

@@ -84,6 +84,7 @@ const config = {
   connectionTimeout: getIntParam('connection_timeout'),
   allowPassphrase: getBooleanParam('allow_passphrase'),
   allowShieldedAuditKeys: getBooleanParam('allow_shielded_audit_keys'),
+  enableShieldedOutputs: getBooleanParam('enable_shielded_outputs'),
   confirmFirstAddress: getBooleanParam('confirm_first_address'),
 
   // Plugin configuration

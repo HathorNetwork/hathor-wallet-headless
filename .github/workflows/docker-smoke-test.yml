@@ -33,6 +33,7 @@ jobs:
             -e HEADLESS_SERVER=https://node1.testnet.hathor.network/v1a/ \
             -e HEADLESS_SEED_DEFAULT="$SEED" \
             -e HEADLESS_API_KEY=ci_test_key \
+            -e HEADLESS_ENABLE_SHIELDED_OUTPUTS=true \
             hathor-wallet-headless
 
       - name: Wait for service to be ready

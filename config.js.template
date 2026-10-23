@@ -92,6 +92,15 @@ module.exports = {
   // if it's set to true in the config.js file
   allowShieldedAuditKeys: false,
 
+  // Whether the wallets use shielded outputs. Leave it unset to turn them on only when the
+  // connected fullnode reports a network where shielded outputs are active (today
+  // testnet-shielded-outputs); set true to always turn them on (e.g. a privnet with shielded
+  // outputs), or false to always turn them off. With them off, wallets don't load the shielded
+  // crypto provider, don't derive shielded addresses and keep their history sync mode.
+  // In Docker, set HEADLESS_ENABLE_SHIELDED_OUTPUTS. On the command line use `false`, not `0`:
+  // `0` is read as unset.
+  // enableShieldedOutputs: true,
+
   // Enabling this requires all requests to have the X-First-Address header
   // to confirm that the client is connected to the right wallet. The primary
   // purpose of this parameter is to avoid operational mistakes and loss of funds.
@@ -117,7 +126,7 @@ module.exports = {
   // Accepted values are: 'polling_http_api', 'xpub_stream_ws', 'manual_stream_ws'
   // If no value is configured the default of 'xpub_stream_ws' will be used
   // Wallets that can hold shielded funds (single-signature wallets started from a seed, when
-  // the shielded crypto provider is available) always use 'polling_http_api', because only
-  // polling watches the addresses shielded outputs are paid to.
+  // shielded outputs are on, see enableShieldedOutputs) always use 'polling_http_api', because
+  // only polling watches the addresses shielded outputs are paid to.
   // history_sync_mode: 'polling_http_api|xpub_stream_ws|manual_stream_ws'
 };
