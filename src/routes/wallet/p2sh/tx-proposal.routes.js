@@ -54,6 +54,16 @@ txProposalRouter.post(
       isString: true,
       optional: true,
     },
+    // Multisig wallets have no shielded keys, and this route builds transparent
+    // outputs only: refuse a shielded mode instead of ignoring it
+    'outputs.*.shielded': {
+      in: ['body'],
+      errorMessage: 'Shielded outputs are not supported on multisig transactions',
+      custom: {
+        options: () => false,
+      },
+      optional: true,
+    },
     inputs: {
       in: ['body'],
       errorMessage: 'Invalid inputs array',

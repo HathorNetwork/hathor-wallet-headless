@@ -24,6 +24,21 @@ describe('sign-message api', () => {
     expect(typeof response.body.signature).toBe('string');
   });
 
+  it('should not sign with a shielded address', async () => {
+    const shielded = await TestUtils.request
+      .get('/wallet/address')
+      .query({ index: 0, legacy: false })
+      .set({ 'x-wallet-id': walletId });
+    expect(shielded.status).toBe(200);
+
+    const response = await TestUtils.request
+      .post('/wallet/sign-message')
+      .send({ message: 'hello', address: shielded.body.address })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ success: false, error: 'shielded addresses cannot sign messages' });
+  });
+
   it('should surface a contextual error when signing throws', async () => {
     // The generic catch block can only be reached by an internally-thrown
     // error (key derivation / signing), which integration tests can't force.

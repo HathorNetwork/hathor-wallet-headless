@@ -19,6 +19,30 @@ describe('address-info api', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
     expect(response.body.index).toBe(0);
+    expect(response.body.legacy).toBe(true);
+  });
+
+  it('should say a shielded address is not on the legacy chain', async () => {
+    const shielded = await TestUtils.request
+      .get('/wallet/address')
+      .query({ index: 0, legacy: false })
+      .set({ 'x-wallet-id': walletId });
+
+    for (const path of ['/wallet/address-info', '/wallet/address-index']) {
+      // eslint-disable-next-line no-await-in-loop
+      const response = await TestUtils.request
+        .get(path)
+        .query({ address: shielded.body.address })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({ success: true, index: 0, legacy: false });
+    }
+
+    const legacy = await TestUtils.request
+      .get('/wallet/address-index')
+      .query({ address: 'WewDeXWyvHP7jJTs7tjLoQfoB72LLxJQqN' })
+      .set({ 'x-wallet-id': walletId });
+    expect(legacy.body).toEqual({ success: true, index: 0, legacy: true });
   });
 
   it('should return address-info for a custom token', async () => {

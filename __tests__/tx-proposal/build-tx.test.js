@@ -125,7 +125,8 @@ describe('create tx-proposal api', () => {
       .post('/wallet/tx-proposal')
       .send({
         outputs: [{ address: TestUtils.addresses[0], value: 1 }],
-        inputs: [{ type: 'query', shielded: 'yes' }],
+        // A string, even 'false', is refused: the filter must be a boolean
+        inputs: [{ type: 'query', shielded: 'false' }],
       })
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(400);

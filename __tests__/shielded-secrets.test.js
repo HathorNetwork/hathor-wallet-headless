@@ -52,6 +52,15 @@ describe('stripShieldedSecrets', () => {
     expect(stripped.tx_id).toBe(txId);
   });
 
+  it('drops fields it does not know, so a new wallet-lib field does not leak', () => {
+    const tx = shieldedHistoryTx();
+    tx.shielded_outputs[0].someFutureSecret = 'ff';
+    const stripped = stripShieldedSecrets(tx);
+    expect(Object.keys(stripped.shielded_outputs[0]).sort()).toEqual([
+      'commitment', 'decoded', 'mode', 'range_proof', 'script', 'token', 'value',
+    ]);
+  });
+
   it('does not modify the stored transaction', () => {
     const tx = shieldedHistoryTx();
     stripShieldedSecrets(tx);
