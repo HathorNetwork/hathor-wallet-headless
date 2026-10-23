@@ -14,7 +14,7 @@ const { friendlyWalletState, cantSendTxErrorMessage } = require('../../helpers/c
 const { mapTxReturn, prepareTxFunds, getTx, markUtxosSelectedAsInput, runSendTransaction } = require('../../helpers/tx.helper');
 const { stopWallet } = require('../../services/wallets.service');
 const { lockSendTx } = require('../../helpers/lock.helper');
-const { stripShieldedSecrets } = require('../../helpers/shielded.helper');
+const { stripShieldedSecrets, isLegacyAddress } = require('../../helpers/shielded.helper');
 const { DEFAULT_PIN } = require('../../constants');
 
 /**
@@ -109,7 +109,15 @@ async function getBalance(req, res) {
     if (isUtxoLocked(utxo)) bucket.locked += utxo.value;
     else bucket.available += utxo.value;
   }
-  res.send({ available, locked, transparent, shielded });
+  // The totals come from the buckets: the token metadata behind the totals
+  // above only unlocks a timelocked output on the next block, so between its
+  // timelock and that block the two would disagree
+  res.send({
+    available: transparent.available + shielded.available,
+    locked: transparent.locked + shielded.locked,
+    transparent,
+    shielded,
+  });
 }
 
 async function getAddress(req, res) {
@@ -157,7 +165,9 @@ async function getAddressIndex(req, res) {
     // Address does not belong to the wallet
     res.send({ success: false });
   } else {
-    res.send({ success: true, index });
+    // A shielded address shares its index with a legacy one: say which chain
+    // it is on, as the legacy parameter of /wallet/address
+    res.send({ success: true, index, legacy: await isLegacyAddress(wallet, address) });
   }
 }
 
@@ -177,7 +187,8 @@ async function getAddressInfo(req, res) {
     const result = await wallet.getAddressInfo(address, { token });
     res.send({
       success: true,
-      ...result
+      ...result,
+      legacy: await isLegacyAddress(wallet, address),
     });
   } catch (error) {
     if (error instanceof errors.AddressError) {
@@ -216,6 +227,13 @@ async function signMessage(req, res) {
   const { message, address_index: explicitIndex, address } = matchedData(req, { locations: ['body'] });
 
   try {
+    // signMessageWithAddress signs with the legacy key at the index: for a
+    // shielded address, that would sign with another address's key and link
+    // the two publicly
+    if (address != null && !await isLegacyAddress(wallet, address)) {
+      res.send({ success: false, error: 'shielded addresses cannot sign messages' });
+      return;
+    }
     let index = explicitIndex;
     if (index == null) {
       if (address == null) {

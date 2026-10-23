@@ -6,7 +6,7 @@
  */
 
 const { matchedData } = require('express-validator');
-const { shielded: walletLibShielded } = require('@hathor/wallet-lib');
+const { shielded: walletLibShielded, errors } = require('@hathor/wallet-lib');
 const { parametersValidation } = require('../../helpers/validations.helper');
 const { DEFAULT_PIN } = require('../../constants');
 const settings = require('../../settings');
@@ -39,9 +39,9 @@ const encodeUnblindingPayload = walletLibShielded.encodeShieldedUnblindingPayloa
  * Together these grant the shielded-outputs-audit tool full read
  * access to the wallet's shielded history — same key pair the mobile
  * "Export Privacy Keys" screen surfaces (see
- * hathor-wallet-mobile/src/screens/ExportPrivacyKeys.js). For wallets
- * created before shielded outputs were enabled (no shielded keys on
- * disk), responds with `success: false`.
+ * hathor-wallet-mobile/src/screens/ExportPrivacyKeys.js). A wallet without
+ * shielded keys (read-only, HSM or Fireblocks) gets a 403 with the
+ * capability reason.
  *
  * Sensitivity: the scan xpriv is bearer-equivalent for shielded
  * receive privacy, and it does not expire. The endpoint only answers when
@@ -60,17 +60,26 @@ async function exportShieldedAuditKeys(req, res) {
   try {
     const spendXpub = await wallet.storage.getSpendXPubKey();
     if (!spendXpub) {
-      res.send({
+      // Read-only, HSM and Fireblocks wallets have no shielded keys; the
+      // capability reason says why, as for the other shielded endpoints
+      const { reason } = await wallet.getShieldedCapability();
+      res.status(403).send({
         success: false,
-        error:
-          'This wallet has no shielded keys. They are only present on wallets '
-          + 'created after the shielded outputs feature was enabled.',
+        error: 'This wallet has no shielded keys.',
+        errorCode: 'shielded-no-keys',
+        reason,
       });
       return;
     }
     const scanXpriv = await wallet.storage.getScanXPrivKey(DEFAULT_PIN);
+    // The scan xpriv must not be kept by a proxy or client cache
+    res.set('Cache-Control', 'no-store');
     res.send({ success: true, spendXpub, scanXpriv });
   } catch (err) {
+    if (err instanceof errors.ShieldedKeyError) {
+      // e.g. a multisig wallet: ShieldedKeyErrorHandler answers 403 with its errorCode
+      throw err;
+    }
     res.send({ success: false, error: err instanceof Error ? err.message : String(err) });
   }
 }

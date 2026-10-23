@@ -253,7 +253,7 @@ const defaultApiDocs = {
                     type: 'number',
                     description: 'Stop loading addresses at this index. Only used when scanPolicy is set to \'index-limit\'. Defaults to policyStartIndex',
                   },
-                  historySyncMode: {
+                  history_sync_mode: {
                     type: 'string',
                     enum: ['polling_http_api', 'xpub_stream_ws', 'manual_stream_ws'],
                     description: 'History sync mode for the wallet to use. If not given the configured default will apply. A wallet that can hold shielded funds (a single-signature wallet started from a seed, when shielded outputs are on) always uses polling_http_api, because only polling watches the addresses shielded outputs are paid to.',
@@ -591,7 +591,7 @@ const defaultApiDocs = {
         ],
         responses: {
           200: {
-            description: 'Balance of tokens available and locked. To get the total, you must sum them up. When `split=true` is passed, the response additionally exposes per-bucket breakdowns under `transparent` and `shielded`.',
+            description: 'Balance of tokens available and locked. To get the total, you must sum them up. When `split=true` is passed, the response additionally exposes per-bucket breakdowns under `transparent` and `shielded`, and the totals are their sums. Between a timelock expiring and the next block, the totals then count that output as available while the default response still counts it as locked.',
             content: {
               'application/json': {
                 examples: {
@@ -627,7 +627,7 @@ const defaultApiDocs = {
       get: {
         operationId: 'exportShieldedAuditKeys',
         summary: 'Export the wallet\'s shielded audit-key pair',
-        description: 'Returns `spendXpub` (the spend-chain xpub — derive every shielded spend address / see incoming activity, but cannot spend) and `scanXpriv` (the scan-chain xpriv — decrypt every incoming shielded output addressed to the wallet). Together they grant full READ access to the wallet\'s shielded history; neither grants spend authority.\n\nSENSITIVITY: `scanXpriv` is a bearer-equivalent, durable read credential. A momentary compromise of the API key yields long-lived read access to all current AND future shielded receives, and that access SURVIVES rotating the API key. Only expose this endpoint in a controlled environment. It is disabled by default and answers 403 unless the `allowShieldedAuditKeys` configuration is set (`HEADLESS_ALLOW_SHIELDED_AUDIT_KEYS` in the Docker image). Wallets created before shielded outputs were enabled have no shielded keys and respond with `success: false`.',
+        description: 'Returns `spendXpub` (the spend-chain xpub — derive every shielded spend address / see incoming activity, but cannot spend) and `scanXpriv` (the scan-chain xpriv — decrypt every incoming shielded output addressed to the wallet). Together they grant full READ access to the wallet\'s shielded history; neither grants spend authority.\n\nSENSITIVITY: `scanXpriv` is a bearer-equivalent, durable read credential. A momentary compromise of the API key yields long-lived read access to all current AND future shielded receives, and that access SURVIVES rotating the API key. Only expose this endpoint in a controlled environment. It is disabled by default and answers 403 unless the `allowShieldedAuditKeys` configuration is set (`HEADLESS_ALLOW_SHIELDED_AUDIT_KEYS` in the Docker image). A wallet without shielded keys (read-only, HSM or Fireblocks) answers 403 with `errorCode` `shielded-no-keys` and the shielded capability `reason`, and a multisig wallet with `shielded-multisig`. The response is sent with `Cache-Control: no-store`.',
         parameters: [
           { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
@@ -641,23 +641,23 @@ const defaultApiDocs = {
                     summary: 'Success',
                     value: { success: true, spendXpub: 'xpub6...', scanXpriv: 'xprv9...' }
                   },
-                  'no-shielded-keys': {
-                    summary: 'Wallet has no shielded keys',
-                    value: { success: false, error: 'This wallet has no shielded keys. They are only present on wallets created after the shielded outputs feature was enabled.' }
-                  },
                   ...commonExamples.xWalletIdErrResponseExamples,
                 },
               },
             },
           },
           403: {
-            description: 'Exporting the audit keys is disabled by the configuration.',
+            description: 'Exporting the audit keys is disabled by the configuration, or the wallet has no shielded keys.',
             content: {
               'application/json': {
                 examples: {
                   disabled: {
                     summary: 'allowShieldedAuditKeys is not set',
                     value: { success: false, error: 'Exporting the shielded audit keys is disabled. To allow it, set allowShieldedAuditKeys in the configuration.' }
+                  },
+                  'no-shielded-keys': {
+                    summary: 'The wallet has no shielded keys',
+                    value: { success: false, error: 'This wallet has no shielded keys.', errorCode: 'shielded-no-keys', reason: 'no-shielded-keys' }
                   },
                 },
               },
@@ -791,13 +791,13 @@ const defaultApiDocs = {
         ],
         responses: {
           200: {
-            description: 'Return the index of the address.',
+            description: 'Return the index of the address. A shielded address shares its index with a legacy address: `legacy` says which chain it is on, as the `legacy` parameter of `/wallet/address`. It is `false` for a shielded address and for the spend-derived P2PKH address its shielded outputs are paid to.',
             content: {
               'application/json': {
                 examples: {
                   success: {
                     summary: 'Success',
-                    value: { index: 2, success: true },
+                    value: { index: 2, legacy: true, success: true },
                   },
                   error: {
                     summary: 'Address does not belong to the wallet',
@@ -819,7 +819,7 @@ const defaultApiDocs = {
       post: {
         operationId: 'signMessage',
         summary: 'Sign an arbitrary message with one of the wallet\'s address keys.',
-        description: 'Returns a Bitcoin-compatible signed-message signature (bitcore.Message). Useful for off-chain proofs of address ownership — e.g., the x402 payment protocol requires signing a server-issued challenge with the payer\'s key. Either `address_index` or `address` must be provided; if both are given, `address_index` wins.',
+        description: 'Returns a Bitcoin-compatible signed-message signature (bitcore.Message). Useful for off-chain proofs of address ownership — e.g., the x402 payment protocol requires signing a server-issued challenge with the payer\'s key. Either `address_index` or `address` must be provided; if both are given, `address_index` wins. The signing key is the legacy key at that index, so a shielded `address` (or the spend-derived P2PKH address of one) is refused: signing with it would link it to the legacy address.',
         parameters: [
           { $ref: '#/components/parameters/XWalletIdParameter' },
         ],
@@ -1695,6 +1695,10 @@ const defaultApiDocs = {
                         token: {
                           type: 'string',
                           description: 'Token id of the output. If not sent, HTR will be chosen.'
+                        },
+                        shielded: {
+                          type: 'integer',
+                          description: 'Not supported: multisig wallets have no shielded keys, and a request with it answers 400.'
                         },
                       }
                     },
@@ -3973,7 +3977,7 @@ const defaultApiDocs = {
                 examples: {
                   success: {
                     summary: 'Success',
-                    value: { success: true, total_amount_received: 9299200, total_amount_sent: 6400, total_amount_available: 9292800, total_amount_locked: 0, token: '00', index: 0 },
+                    value: { success: true, total_amount_received: 9299200, total_amount_sent: 6400, total_amount_available: 9292800, total_amount_locked: 0, token: '00', index: 0, legacy: true },
                   },
                   'wallet-not-ready': {
                     summary: 'Wallet is not ready yet',

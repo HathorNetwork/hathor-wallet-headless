@@ -1,5 +1,7 @@
+import { walletUtils } from '@hathor/wallet-lib';
 import { TestUtils } from './utils/test-utils-integration';
 import { WalletHelper } from './utils/wallet-helper';
+import { initializedWallets } from '../../src/services/wallets.service';
 
 /**
  * Integration coverage for the two audit-export endpoints surfaced in
@@ -66,6 +68,13 @@ describe('shielded audit-export endpoints', () => {
       // A bug that aliased one onto the other would let a recipient
       // recover spend authority from the audit-key bundle.
       expect(res.body.spendXpub).not.toBe(res.body.scanXpriv);
+
+      // They are this wallet's keys: the scan xpriv derives the record's scan
+      // xpub, and the spend xpub is the record's. The checks above would hold
+      // for any xpub/xprv pair, e.g. the spend xpriv exported by mistake.
+      const accessData = await initializedWallets.get(wallet.walletId).getAccessData();
+      expect(walletUtils.getXPubKeyFromXPrivKey(res.body.scanXpriv)).toBe(accessData.scanXpubkey);
+      expect(res.body.spendXpub).toBe(accessData.spendXpubkey);
     });
 
     it('returns the same keys on repeated calls (no entropy on each request)', async () => {

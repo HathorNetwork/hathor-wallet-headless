@@ -30,7 +30,8 @@ describe('send-tx api', () => {
     const response = await TestUtils.request
       .post('/wallet/send-tx')
       .send({
-        inputs: [{ type: 'query', shielded: 'yes' }],
+        // A string, even 'false', is refused: the filter must be a boolean
+        inputs: [{ type: 'query', shielded: 'false' }],
         outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
       })
       .set({ 'x-wallet-id': walletId });

@@ -1,3 +1,4 @@
+import { errors } from '@hathor/wallet-lib';
 import TestUtils from './test-utils';
 import settings from '../src/settings';
 
@@ -76,32 +77,58 @@ describe('shielded api', () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ success: true, spendXpub, scanXpriv });
+      // The scan xpriv must not be kept by a proxy or client cache
+      expect(res.headers['cache-control']).toBe('no-store');
       // PIN comes from headless's internal DEFAULT_PIN — the call site
       // must always pass a string (wallet-lib throws on undefined).
       expect(wallet.storage.getScanXPrivKey).toHaveBeenCalledTimes(1);
       expect(typeof wallet.storage.getScanXPrivKey.mock.calls[0][0]).toBe('string');
     });
 
-    it('responds with success=false when the wallet has no shielded keys', async () => {
-      // The pre-shielded-feature case: storage.getSpendXPubKey returns
-      // null/undefined and the controller short-circuits BEFORE asking
+    it('answers 403 with the capability reason when the wallet has no shielded keys', async () => {
+      // A read-only, HSM or Fireblocks wallet: storage.getSpendXPubKey
+      // returns undefined and the controller short-circuits BEFORE asking
       // for the scan xpriv (avoids surfacing a PIN-decrypt error for a
       // wallet that simply doesn't have these keys to export).
       const wallet = patchedWallet();
       jest.spyOn(wallet.storage, 'getSpendXPubKey').mockResolvedValue(undefined);
+      jest.spyOn(wallet, 'getShieldedCapability').mockResolvedValue({ level: 'none', reason: 'no-shielded-keys' });
       const scanSpy = jest.spyOn(wallet.storage, 'getScanXPrivKey');
 
       const res = await TestUtils.request
         .get('/wallet/shielded/audit-keys')
         .set({ 'x-wallet-id': walletId });
 
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(false);
-      expect(res.body.error).toMatch(/no shielded keys/i);
+      expect(res.status).toBe(403);
+      expect(res.body).toEqual({
+        success: false,
+        error: 'This wallet has no shielded keys.',
+        errorCode: 'shielded-no-keys',
+        reason: 'no-shielded-keys',
+      });
       // Critically: scan xpriv was NOT requested. A bug that flipped
       // this check would leak a confusing "PIN decryption failed"
       // message instead of the clean "wallet has no shielded keys" one.
       expect(scanSpy).not.toHaveBeenCalled();
+    });
+
+    it('answers a ShieldedKeyError like the other shielded endpoints', async () => {
+      // e.g. a multisig wallet, whose shielded key getters throw
+      const wallet = patchedWallet();
+      jest.spyOn(wallet.storage, 'getSpendXPubKey').mockRejectedValue(
+        new errors.ShieldedKeyError('shielded-multisig', 'A multisig wallet has no shielded keys.'),
+      );
+
+      const res = await TestUtils.request
+        .get('/wallet/shielded/audit-keys')
+        .set({ 'x-wallet-id': walletId });
+
+      expect(res.status).toBe(403);
+      expect(res.body).toEqual({
+        success: false,
+        error: 'A multisig wallet has no shielded keys.',
+        errorCode: 'shielded-multisig',
+      });
     });
 
     it('wraps wallet-lib errors as success=false instead of HTTP 500', async () => {

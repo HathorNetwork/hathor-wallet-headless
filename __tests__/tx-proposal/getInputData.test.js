@@ -150,6 +150,15 @@ describe('Get input-data api', () => {
     expect(response.body).toEqual({ success: true, inputData: legacy });
   });
 
+  it('should not accept a shielded flag that is not a boolean', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/tx-proposal/input-data')
+      .send({ index: 3, signature: 'cafecafe', shielded: 'true' })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+  });
+
   it('should not create the input data of a shielded input without shielded keys', async () => {
     // Multisig wallets have no shielded keys
     const response = await TestUtils.request
