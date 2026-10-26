@@ -14,6 +14,7 @@ const { friendlyWalletState, cantSendTxErrorMessage } = require('../../helpers/c
 const { mapTxReturn, prepareTxFunds, getTx, markUtxosSelectedAsInput, runSendTransaction } = require('../../helpers/tx.helper');
 const { stopWallet } = require('../../services/wallets.service');
 const { lockSendTx } = require('../../helpers/lock.helper');
+const { stripShieldedSecrets, isLegacyAddress } = require('../../helpers/shielded.helper');
 const { DEFAULT_PIN } = require('../../constants');
 
 /**
@@ -41,6 +42,12 @@ async function getStatus(req, res) {
     network: wallet.getNetwork(),
     serverUrl: wallet.getServerUrl(),
     serverInfo: wallet.storage.version,
+    // What the wallet can do with shielded outputs: the level (none, watch,
+    // view or full), why it is below full, and whether it receives, spends and
+    // has its whole shielded history. With shielded outputs off, or when
+    // ct-crypto-node didn't load, the wallet has no crypto provider: reason
+    // 'no-provider'.
+    shielded: await wallet.getShieldedCapability(),
   };
 
   if (await wallet.getWalletType() === WalletType.MULTISIG) {
@@ -65,8 +72,52 @@ async function getBalance(req, res) {
   const { wallet } = req;
   // Expects token uid
   const token = req.query.token || hathorLibConstants.NATIVE_TOKEN_UID;
-  const balanceObj = await wallet.getBalance(token);
-  res.send({ available: balanceObj[0].balance.unlocked, locked: balanceObj[0].balance.locked });
+
+  // Default shape (no `split` query): preserve the legacy single-bucket
+  // response byte-for-byte so existing clients are unaffected.
+  if (!req.query.split) {
+    const balanceObj = await wallet.getBalance(token);
+    const { unlocked: available, locked } = balanceObj[0].balance;
+    res.send({ available, locked });
+    return;
+  }
+
+  // Opt-in split. Walk owned UTXOs and partition by the shielded flag. Two
+  // things the previous naive walk got wrong, which made the buckets fail to
+  // reconcile with the top-level totals:
+  //   - lock status: IUtxo persists no `locked` field (lock is derived), so we
+  //     must compute it the same way the aggregated balance does — timelock vs
+  //     now, plus reward/height lock. This mirrors wallet.getUtxos()'s own
+  //     computation (we can't use getUtxos() directly here: it neither exposes
+  //     the shielded flag per UTXO nor filters by it).
+  //   - authority UTXOs: their `value` is the authority bitmask, not a token
+  //     amount, and getBalance() excludes them — so we must skip them too.
+  const nowTs = Math.floor(Date.now() / 1000);
+  const nowHeight = await wallet.storage.getCurrentHeight();
+  const rewardLock = wallet.storage.version?.reward_spend_min_blocks;
+  const isUtxoLocked = utxo => {
+    const timeLocked = Boolean(utxo.timelock) && nowTs < utxo.timelock;
+    return timeLocked || transactionUtils.isHeightLocked(utxo.height, nowHeight, rewardLock);
+  };
+
+  const shielded = { available: 0n, locked: 0n };
+  const transparent = { available: 0n, locked: 0n };
+  for await (const utxo of wallet.storage.getAllUtxos()) {
+    if (utxo.token !== token) continue;
+    if ((utxo.authorities ?? 0n) > 0n) continue;
+    const bucket = utxo.shielded ? shielded : transparent;
+    if (isUtxoLocked(utxo)) bucket.locked += utxo.value;
+    else bucket.available += utxo.value;
+  }
+  // The totals come from the buckets: the token metadata behind the totals
+  // above only unlocks a timelocked output on the next block, so between its
+  // timelock and that block the two would disagree
+  res.send({
+    available: transparent.available + shielded.available,
+    locked: transparent.locked + shielded.locked,
+    transparent,
+    shielded,
+  });
 }
 
 async function getAddress(req, res) {
@@ -80,13 +131,19 @@ async function getAddress(req, res) {
    */
   const { wallet } = req;
   const { index } = req.query;
+  // legacy defaults to true; pass false to get a shielded address
+  const legacy = req.query.legacy !== false;
   let address;
   if (index !== undefined) {
     // Because of isInt and toInt, it's safe to assume that index is now an integer >= 0
-    address = await wallet.getAddressAtIndex(index);
+    address = await wallet.getAddressAtIndex(index, { legacy });
   } else {
     const markAsUsed = req.query.mark_as_used || false;
-    const addressInfo = await wallet.getCurrentAddress({ markAsUsed });
+    // Thread the chain selection into getCurrentAddress too so that a bare
+    // `/wallet/address?legacy=false` (no index) returns the shielded
+    // chain's current address. Without `{ legacy }` here, both legacy and
+    // shielded callers would silently get the legacy current address.
+    const addressInfo = await wallet.getCurrentAddress({ markAsUsed }, { legacy });
     address = addressInfo.address;
   }
   res.send({ address });
@@ -108,7 +165,9 @@ async function getAddressIndex(req, res) {
     // Address does not belong to the wallet
     res.send({ success: false });
   } else {
-    res.send({ success: true, index });
+    // A shielded address shares its index with a legacy one: say which chain
+    // it is on, as the legacy parameter of /wallet/address
+    res.send({ success: true, index, legacy: await isLegacyAddress(wallet, address) });
   }
 }
 
@@ -128,7 +187,8 @@ async function getAddressInfo(req, res) {
     const result = await wallet.getAddressInfo(address, { token });
     res.send({
       success: true,
-      ...result
+      ...result,
+      legacy: await isLegacyAddress(wallet, address),
     });
   } catch (error) {
     if (error instanceof errors.AddressError) {
@@ -173,6 +233,14 @@ async function signMessage(req, res) {
         res.send({ success: false, error: 'one of address_index or address is required' });
         return;
       }
+      // signMessageWithAddress signs with the legacy key at the index: for a
+      // shielded address, that would sign with another address's key and link
+      // the two publicly. (With address_index given, the index wins and the
+      // legacy address is signed for, as documented.)
+      if (!await isLegacyAddress(wallet, address)) {
+        res.send({ success: false, error: 'shielded addresses cannot sign messages' });
+        return;
+      }
       index = await wallet.getAddressIndex(address);
       if (index == null) {
         res.send({ success: false, error: 'address does not belong to the wallet' });
@@ -195,24 +263,32 @@ async function signMessage(req, res) {
 }
 
 async function getAddresses(req, res) {
+  const validationResult = parametersValidation(req);
+  if (!validationResult.success) {
+    res.status(400).json(validationResult);
+    return;
+  }
   /**
    * @type {HathorWallet} wallet - Wallet object
    */
   const { wallet } = req;
-  // TODO Add pagination
+  // legacy defaults to true; pass false to list the wallet's
+  // user-facing shielded receive addresses (the 71-byte encoded
+  // form). Matches the `legacy` semantics on the singular
+  // `/wallet/address` endpoint. Chain-selection happens in wallet-lib
+  // (`HathorWallet.getAllAddresses` → `Storage.getAllAddresses` →
+  // `IStore.addressIter`); the headless just threads the param.
+  const legacy = req.query.legacy !== false;
+  if (!legacy) {
+    // wallet-lib lists no shielded addresses, without an error, when the
+    // wallet can't derive them (shielded outputs off, no shielded keys). Ask
+    // for the current one first, which throws the same ShieldedKeyError as
+    // /wallet/address?legacy=false, so both routes answer the same 403.
+    await wallet.getCurrentAddress({}, { legacy: false });
+  }
   const addresses = [];
-  const iterator = await wallet.getAllAddresses();
-
-  // TODO: Refactor with a `while`?
-  for (;;) {
-    const addressObj = await iterator.next();
-    const { value, done } = addressObj;
-
-    if (done) {
-      break;
-    }
-
-    addresses.push(value.address);
+  for await (const entry of wallet.getAllAddresses({ legacy })) {
+    addresses.push(entry.address);
   }
   res.send({ addresses });
 }
@@ -230,12 +306,12 @@ async function getTxHistory(req, res) {
   const { wallet } = req;
   const limit = req.query.limit || null;
   const history = await wallet.getFullHistory();
+  const values = Object.values(history);
   if (limit) {
-    const values = Object.values(history);
     const sortedValues = values.sort((a, b) => b.timestamp - a.timestamp);
-    res.send(sortedValues.slice(0, limit));
+    res.send(sortedValues.slice(0, limit).map(stripShieldedSecrets));
   } else {
-    res.send(Object.values(history));
+    res.send(values.map(stripShieldedSecrets));
   }
 }
 
@@ -252,7 +328,7 @@ async function getTransaction(req, res) {
   const { id } = req.query;
   const tx = await wallet.getTx(id);
   if (tx) {
-    res.send(tx);
+    res.send(stripShieldedSecrets(tx));
   } else {
     res.send({ success: false, error: `Wallet does not contain transaction with id ${id}` });
   }
@@ -328,7 +404,7 @@ async function simpleSendTx(req, res) {
   }
 
   const { wallet, logger } = req;
-  const { address, value, token } = req.body;
+  const { address, value, token, shielded } = req.body;
   let tokenId;
   if (token) {
     if (typeof token === 'string') {
@@ -346,11 +422,12 @@ async function simpleSendTx(req, res) {
       throw new Error('Change address is not from this wallet');
     }
 
+    // sendTransactionInstance takes no shielded mode for its output, so build
+    // the single output the way it does, with the mode when one is given
     /** @type {SendTransaction} */
-    const sendTransaction = await wallet.sendTransactionInstance(
-      address,
-      value,
-      { token: tokenId, changeAddress },
+    const sendTransaction = await wallet.sendManyOutputsSendTransaction(
+      [{ address, value, token: tokenId, ...(shielded ? { shielded } : {}) }],
+      { changeAddress },
     );
     const tx = await runSendTransaction(sendTransaction, unlock);
     res.send({ success: true, ...mapTxReturn(tx) });

@@ -37,6 +37,22 @@ describe('create tx-proposal api', () => {
       .toEqual(expect.arrayContaining(['WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau']));
   });
 
+  it('should not accept a shielded mode on the outputs', async () => {
+    for (const shielded of [1, 'banana']) {
+      const response = await TestUtils.request
+        .post('/wallet/p2sh/tx-proposal')
+        .send({
+          outputs: [
+            { address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1, shielded },
+            { address: 'wcUZ6J7t2B1s8bqRYiyuZAftcdCGRSiiau', value: 1 },
+          ],
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+    }
+  });
+
   it('should return 200 with a valid body selecting inputs', async () => {
     const response = await TestUtils.request
       .post('/wallet/p2sh/tx-proposal')

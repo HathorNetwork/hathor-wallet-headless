@@ -138,27 +138,32 @@ export class WalletHelper {
    * <b>This is the preferred way of starting wallets</b> on the Integration Tests,
    * performance-wise.
    * @param {WalletHelper[]} walletsArr Array of WalletHelpers
+   * @param {Object} [options]
+   * @param {string} [options.scanPolicy] Scan policy of the test's wallets, forwarded
+   *   to `TestUtils.startWallet`. POST /start uses gap-limit without it. Genesis
+   *   always uses gap-limit, so it can receive change at any index it picks.
    * @returns {Promise<void>}
    */
-  static async startMultipleWalletsForTest(walletsArr) {
-    // If the genesis wallet is not instantiated, start it. It should be always available
+  static async startMultipleWalletsForTest(walletsArr, options = {}) {
+    const { scanPolicy } = options;
     const { genesis } = WALLET_CONSTANTS;
     const isGenesisStarted = await TestUtils.isWalletReady(genesis.walletId);
     if (!isGenesisStarted) {
-      walletsArr.unshift(new WalletHelper(genesis.walletId, {
+      const genesisHelper = new WalletHelper(genesis.walletId, {
         words: genesis.words,
         preCalculatedAddresses: genesis.addresses,
-      }));
+      });
+      // Genesis always uses gap-limit (default). Don't apply the test's
+      // custom scanPolicy to it — the integration suite relies on genesis
+      // being able to receive change at arbitrary indices.
+      await TestUtils.startWallet(genesisHelper.walletData, { waitWalletReady: true });
     }
 
-    // First request each wallet to be started, with a small pause between each request
-    const walletsPendingReady = {};
     for (const wallet of walletsArr) {
-      await TestUtils.startWallet(wallet.walletData, { waitWalletReady: true });
-      walletsPendingReady[wallet.walletId] = wallet;
+      // eslint-disable-next-line no-await-in-loop
+      await TestUtils.startWallet(wallet.walletData, { waitWalletReady: true, scanPolicy });
     }
 
-    // Benchmark summary and finishing log
     const walletsBenchmark = WalletBenchmarkUtil.calculateSummary(walletsArr.map(w => w.walletId));
     TestUtils.log(`Finished multiple wallet initialization.`, walletsBenchmark);
   }
@@ -211,6 +216,15 @@ export class WalletHelper {
     const addressAt = await TestUtils.getAddressAt(this.#walletId, index);
     this.#addresses[index] = addressAt;
     return addressAt;
+  }
+
+  /**
+   * Returns a shielded address at the given index (scan_pubkey + spend_pubkey encoded).
+   * @param {number} index Address index
+   * @returns {Promise<string>} Shielded address string
+   */
+  async getShieldedAddressAt(index) {
+    return TestUtils.getShieldedAddressAt(this.#walletId, index);
   }
 
   /**

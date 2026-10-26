@@ -7,6 +7,7 @@
 
 const { EventEmitter } = require('events');
 const { transactionUtils } = require('@hathor/wallet-lib');
+const { stripShieldedSecrets } = require('../helpers/shielded.helper');
 
 const EVENTBUS_EVENT_NAME = 'message';
 
@@ -64,7 +65,9 @@ class HathorEvents extends EventEmitter {
       const data = {
         type,
         walletId,
-        data: tx,
+        // Plugins forward events to external services: never let the
+        // blinding factors of the wallet's shielded outputs go with them
+        data: stripShieldedSecrets(tx),
         balance: await transactionUtils.getTxBalance(tx, hwallet.storage),
       };
 
@@ -78,7 +81,9 @@ class HathorEvents extends EventEmitter {
       const data = {
         type,
         walletId,
-        data: tx,
+        // Plugins forward events to external services: never let the
+        // blinding factors of the wallet's shielded outputs go with them
+        data: stripShieldedSecrets(tx),
         balance: await transactionUtils.getTxBalance(tx, hwallet.storage),
       };
 

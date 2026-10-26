@@ -51,6 +51,32 @@
         "@dinamonetworks/hsm-dinamo>node-aes-cmac": true
       }
     },
+    "@hathor/ct-crypto-node": {
+      "builtin": {
+        "child_process.execSync": true,
+        "fs.readFileSync": true
+      },
+      "globals": {
+        "process.arch": true,
+        "process.config": true,
+        "process.env.NAPI_RS_ENFORCE_VERSION_CHECK": true,
+        "process.env.NAPI_RS_FORCE_WASI": true,
+        "process.env.NAPI_RS_NATIVE_LIBRARY_PATH": true,
+        "process.platform": true,
+        "process.report": true
+      },
+      "packages": {
+        "@hathor/ct-crypto-node>@hathor/ct-crypto-node-linux-arm64-musl": true,
+        "@hathor/ct-crypto-node>@hathor/ct-crypto-node-linux-x64-musl": true,
+        "@hathor/wallet-lib>@hathor/ct-crypto-provider": true
+      }
+    },
+    "@hathor/ct-crypto-node>@hathor/ct-crypto-node-linux-arm64-musl": {
+      "native": true
+    },
+    "@hathor/ct-crypto-node>@hathor/ct-crypto-node-linux-x64-musl": {
+      "native": true
+    },
     "@hathor/wallet-lib>@hathor/ct-crypto-provider": {
       "globals": {
         "Buffer.alloc": true
@@ -267,18 +293,18 @@
         "buffer.SlowBuffer.prototype.equal": true
       }
     },
-    "express>qs>side-channel>call-bind>call-bind-apply-helpers": {
+    "patch-package>json-stable-stringify>call-bind>call-bind-apply-helpers": {
       "packages": {
         "express>qs>side-channel>get-intrinsic>es-errors": true,
         "express>qs>side-channel>get-intrinsic>function-bind": true
       }
     },
-    "express>qs>side-channel>call-bind": {
+    "patch-package>json-stable-stringify>call-bind": {
       "packages": {
-        "express>qs>side-channel>call-bind>call-bind-apply-helpers": true,
-        "express>qs>side-channel>call-bind>es-define-property": true,
+        "patch-package>json-stable-stringify>call-bind>call-bind-apply-helpers": true,
+        "patch-package>json-stable-stringify>call-bind>es-define-property": true,
         "express>qs>side-channel>get-intrinsic": true,
-        "express>qs>side-channel>call-bind>set-function-length": true
+        "patch-package>json-stable-stringify>call-bind>set-function-length": true
       }
     },
     "yargs>cliui": {
@@ -375,9 +401,9 @@
         "morgan>debug>ms": true
       }
     },
-    "express>qs>side-channel>call-bind>set-function-length>define-data-property": {
+    "patch-package>json-stable-stringify>call-bind>set-function-length>define-data-property": {
       "packages": {
-        "express>qs>side-channel>call-bind>es-define-property": true,
+        "patch-package>json-stable-stringify>call-bind>es-define-property": true,
         "express>qs>side-channel>get-intrinsic>es-errors": true,
         "express>qs>side-channel>get-intrinsic>gopd": true
       }
@@ -419,7 +445,7 @@
     },
     "express>qs>side-channel>get-intrinsic>get-proto>dunder-proto": {
       "packages": {
-        "express>qs>side-channel>call-bind>call-bind-apply-helpers": true,
+        "patch-package>json-stable-stringify>call-bind>call-bind-apply-helpers": true,
         "express>qs>side-channel>get-intrinsic>gopd": true
       }
     },
@@ -596,8 +622,8 @@
         "WeakRef": true
       },
       "packages": {
-        "express>qs>side-channel>call-bind>call-bind-apply-helpers": true,
-        "express>qs>side-channel>call-bind>es-define-property": true,
+        "patch-package>json-stable-stringify>call-bind>call-bind-apply-helpers": true,
+        "patch-package>json-stable-stringify>call-bind>es-define-property": true,
         "express>qs>side-channel>get-intrinsic>es-errors": true,
         "express>qs>side-channel>get-intrinsic>es-object-atoms": true,
         "express>qs>side-channel>get-intrinsic>function-bind": true,
@@ -614,9 +640,9 @@
         "express>qs>side-channel>get-intrinsic>es-object-atoms": true
       }
     },
-    "express>qs>side-channel>call-bind>set-function-length>has-property-descriptors": {
+    "patch-package>json-stable-stringify>call-bind>set-function-length>has-property-descriptors": {
       "packages": {
-        "express>qs>side-channel>call-bind>es-define-property": true
+        "patch-package>json-stable-stringify>call-bind>es-define-property": true
       }
     },
     "@hathor/wallet-lib>bitcore-lib>elliptic>hash.js": {
@@ -1029,18 +1055,18 @@
         "express>send": true
       }
     },
-    "express>qs>side-channel>call-bind>set-function-length": {
+    "patch-package>json-stable-stringify>call-bind>set-function-length": {
       "packages": {
-        "express>qs>side-channel>call-bind>set-function-length>define-data-property": true,
+        "patch-package>json-stable-stringify>call-bind>set-function-length>define-data-property": true,
         "express>qs>side-channel>get-intrinsic>es-errors": true,
         "express>qs>side-channel>get-intrinsic": true,
         "express>qs>side-channel>get-intrinsic>gopd": true,
-        "express>qs>side-channel>call-bind>set-function-length>has-property-descriptors": true
+        "patch-package>json-stable-stringify>call-bind>set-function-length>has-property-descriptors": true
       }
     },
     "express>qs>side-channel": {
       "packages": {
-        "express>qs>side-channel>call-bind": true,
+        "patch-package>json-stable-stringify>call-bind": true,
         "express>qs>side-channel>get-intrinsic": true,
         "express>qs>side-channel>object-inspect": true
       }

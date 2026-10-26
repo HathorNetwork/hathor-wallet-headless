@@ -1,4 +1,5 @@
-import { walletUtils } from '@hathor/wallet-lib';
+import { transactionUtils, walletUtils } from '@hathor/wallet-lib';
+import { initializedWallets } from '../../src/services/wallets.service';
 import TestUtils from '../test-utils';
 import settings from '../../src/settings';
 
@@ -121,6 +122,51 @@ describe('Get input-data api', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toEqual('signature from unknown signer');
+  });
+
+  it('should create the input data of a shielded input with the spend key', async () => {
+    const accessData = await initializedWallets.get(walletId).getAccessData();
+    const expected = transactionUtils.createInputData(
+      Buffer.from('cafecafe', 'hex'),
+      walletUtils.getPublicKeyFromXpub(accessData.spendXpubkey, 3).toBuffer(),
+    ).toString('hex');
+    const legacy = transactionUtils.createInputData(
+      Buffer.from('cafecafe', 'hex'),
+      walletUtils.getPublicKeyFromXpub(accessData.xpubkey, 3).toBuffer(),
+    ).toString('hex');
+    expect(expected).not.toEqual(legacy);
+
+    let response = await TestUtils.request
+      .post('/wallet/tx-proposal/input-data')
+      .send({ index: 3, signature: 'cafecafe', shielded: true })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ success: true, inputData: expected });
+
+    response = await TestUtils.request
+      .post('/wallet/tx-proposal/input-data')
+      .send({ index: 3, signature: 'cafecafe', shielded: false })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.body).toEqual({ success: true, inputData: legacy });
+  });
+
+  it('should not accept a shielded flag that is not a boolean', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/tx-proposal/input-data')
+      .send({ index: 3, signature: 'cafecafe', shielded: 'true' })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+  });
+
+  it('should not create the input data of a shielded input without shielded keys', async () => {
+    // Multisig wallets have no shielded keys
+    const response = await TestUtils.request
+      .post('/wallet/tx-proposal/input-data')
+      .send({ index: 0, signature: 'cafecafe', shielded: true })
+      .set({ 'x-wallet-id': walletIdMultisig });
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ success: false, error: 'wallet has no shielded keys' });
   });
 
   it('should create p2pkh input data', async () => {

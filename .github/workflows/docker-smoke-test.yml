@@ -24,12 +24,16 @@ jobs:
 
       - name: Start container
         run: |
+          # A fresh seed has no history, so the wallet started below syncs quickly
+          SEED=$(docker run --rm --entrypoint node hathor-wallet-headless \
+            -e "console.log(require('@hathor/wallet-lib').walletUtils.generateWalletWords()); process.exit(0)")
           docker run -d --name headless-test \
             -p 8000:8000 \
             -e HEADLESS_NETWORK=testnet \
             -e HEADLESS_SERVER=https://node1.testnet.hathor.network/v1a/ \
-            -e HEADLESS_SEED_DEFAULT="abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about" \
+            -e HEADLESS_SEED_DEFAULT="$SEED" \
             -e HEADLESS_API_KEY=ci_test_key \
+            -e HEADLESS_ENABLE_SHIELDED_OUTPUTS=true \
             hathor-wallet-headless
 
       - name: Wait for service to be ready
@@ -50,6 +54,26 @@ jobs:
           RESPONSE=$(curl -s -H "X-API-KEY: ci_test_key" http://localhost:8000/wallet/status)
           echo "Response: $RESPONSE"
           echo "$RESPONSE" | grep -q "X-Wallet-Id"
+
+      # The shielded crypto provider is a native addon that LavaMoat must allow:
+      # if the policy blocks it, the wallet still starts, with shielded disabled
+      - name: Verify shielded support under LavaMoat
+        run: |
+          curl -sf -X POST -H "X-API-KEY: ci_test_key" -H "Content-Type: application/json" \
+            -d '{"wallet-id":"smoke","seedKey":"default"}' http://localhost:8000/start
+          for i in $(seq 1 60); do
+            RESPONSE=$(curl -s -H "X-API-KEY: ci_test_key" -H "X-Wallet-Id: smoke" http://localhost:8000/wallet/status)
+            if echo "$RESPONSE" | grep -q '"statusMessage":"Ready"'; then
+              break
+            fi
+            sleep 2
+          done
+          echo "Response: $RESPONSE"
+          if ! echo "$RESPONSE" | grep -q '"level":"full"'; then
+            echo "Shielded support is not available"
+            docker logs headless-test
+            exit 1
+          fi
 
       - name: Stop container
         if: always()
