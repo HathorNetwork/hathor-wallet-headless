@@ -115,6 +115,7 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
     // the validation middleware converts snake_case to camelCase
     maxFee, // max_fee
     contractPaysFees, // contract_pays_fees
+    changeAddress, // change_address
   } = req.body;
   const method = isInitialize ? 'initialize' : req.body.method;
 
@@ -125,13 +126,16 @@ async function executeNanoContractMethodHelper(req, res, isInitialize) {
     data.ncId = ncId;
   }
 
-  // Build options object for fee-based token support
+  // Build the transaction options object (fee-based token support and change address)
   const options = {};
   if (maxFee !== undefined) {
     options.maxFee = maxFee;
   }
   if (contractPaysFees !== undefined) {
     options.contractPaysFees = contractPaysFees;
+  }
+  if (changeAddress) {
+    options.changeAddress = changeAddress;
   }
 
   try {

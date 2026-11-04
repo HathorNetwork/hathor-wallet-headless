@@ -2,6 +2,7 @@ import {
   HathorWallet,
   helpersUtils,
   Network,
+  SendTransaction,
   transactionUtils,
 } from '@hathor/wallet-lib';
 import { NATIVE_TOKEN_UID } from '@hathor/wallet-lib/lib/constants';
@@ -119,6 +120,61 @@ describe('create tx-proposal api', () => {
     expect(response.status).toBe(400);
   });
 
+  it('should not accept a query input with an invalid shielded filter', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/tx-proposal')
+      .send({
+        outputs: [{ address: TestUtils.addresses[0], value: 1 }],
+        // A string, even 'false', is refused: the filter must be a boolean
+        inputs: [{ type: 'query', shielded: 'false' }],
+      })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(spyUtxos).not.toHaveBeenCalled();
+  });
+
+  it('should not accept an invalid shielded mode', async () => {
+    for (const shielded of [0, 3, 'full']) {
+      const response = await TestUtils.request
+        .post('/wallet/tx-proposal')
+        .send({ outputs: [{ address: TestUtils.addresses[0], value: 1, shielded }] })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+    }
+  });
+
+  it('should pass the shielded mode of an output to SendTransaction', async () => {
+    let proposedOutputs;
+    const spyPrepare = jest.spyOn(SendTransaction.prototype, 'prepareTxData')
+      .mockImplementation(async function captureOutputs() {
+        proposedOutputs = this.outputs;
+        throw new Error('stop after capturing the outputs');
+      });
+    try {
+      const response = await TestUtils.request
+        .post('/wallet/tx-proposal')
+        .send({
+          outputs: [
+            { address: TestUtils.addresses[0], value: 10, shielded: 1 },
+            { address: TestUtils.addresses[1], value: 20, shielded: 2 },
+            { address: TestUtils.addresses[2], value: 30 },
+          ],
+        })
+        .set({ 'x-wallet-id': walletId });
+      expect(response.body).toEqual({ success: false, error: 'stop after capturing the outputs' });
+    } finally {
+      spyPrepare.mockRestore();
+    }
+
+    expect(proposedOutputs).toEqual([
+      { address: TestUtils.addresses[0], value: 10n, token: NATIVE_TOKEN_UID, shieldedMode: 1 },
+      { address: TestUtils.addresses[1], value: 20n, token: NATIVE_TOKEN_UID, shieldedMode: 2 },
+      { address: TestUtils.addresses[2], value: 30n, token: NATIVE_TOKEN_UID },
+    ]);
+  });
+
   it('should fail if query return insufficient funds', async () => {
     spyUtxos.mockReturnValueOnce({
       total_amount_available: 10,
@@ -146,7 +202,6 @@ describe('create tx-proposal api', () => {
 
     // check spyUtxos with query options
     expect(spyUtxos).toHaveBeenCalledWith({
-      type: 'query',
       token: NATIVE_TOKEN_UID,
       only_available_utxos: true,
     });
@@ -329,22 +384,20 @@ describe('create tx-proposal api', () => {
 
     // check spyUtxos with query options
     expect(spyUtxos).toHaveBeenCalledWith({
-      type: 'query',
       max_utxos: 27,
       filter_address: TestUtils.addresses[2],
       amount_smaller_than: 20n,
       amount_bigger_than: 10n,
-      maximum_amount: 100n,
+      max_amount: 100n,
       token: NATIVE_TOKEN_UID,
       only_available_utxos: true,
     });
     expect(spyUtxos).toHaveBeenCalledWith({
-      type: 'query',
       max_utxos: 27,
       filter_address: TestUtils.addresses[2],
       amount_smaller_than: 20n,
       amount_bigger_than: 10n,
-      maximum_amount: 100n,
+      max_amount: 100n,
       token: TOKEN_UID,
       only_available_utxos: true,
     });
@@ -375,7 +428,6 @@ describe('create tx-proposal api', () => {
     });
 
     expect(spyUtxos).toHaveBeenCalledWith({
-      type: 'query',
       filter_address: TestUtils.addresses[4],
       token: NATIVE_TOKEN_UID,
       only_available_utxos: true,

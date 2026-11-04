@@ -26,6 +26,19 @@ describe('send-tx api', () => {
     expect(response.body.success).toBe(true);
   });
 
+  it('should not accept a query input with an invalid shielded filter', async () => {
+    const response = await TestUtils.request
+      .post('/wallet/send-tx')
+      .send({
+        // A string, even 'false', is refused: the filter must be a boolean
+        inputs: [{ type: 'query', shielded: 'false' }],
+        outputs: [{ address: 'WPynsVhyU6nP7RSZAkqfijEutC88KgAyFc', value: 1 }],
+      })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+  });
+
   it('should return 200 with selecting inputs by query with custom tokens', async () => {
     const response = await TestUtils.request
       .post('/wallet/send-tx')

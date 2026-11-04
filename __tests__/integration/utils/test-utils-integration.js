@@ -218,33 +218,30 @@ export class TestUtils {
    * @returns {Promise<{start:unknown,status:unknown}>}
    */
   static async startWallet(walletObj, options = {}) {
-    let response;
-
     WalletBenchmarkUtil.informWalletEvent(
       walletObj.walletId,
       WALLET_EVENTS.startRequest,
       { multisig: walletObj.multisig }
     );
 
-    // Request the Wallet start
-    if (walletObj.words) {
-      response = await request
-        .post('/start')
-        .send({
-          seed: walletObj.words,
-          'wallet-id': walletObj.walletId,
-          preCalculatedAddresses: walletObj.addresses
-        });
-    } else {
-      response = await request
-        .post('/start')
-        .send({
-          seedKey: walletObj.seedKey,
-          'wallet-id': walletObj.walletId,
-          multisig: walletObj.multisig || false,
-          preCalculatedAddresses: walletObj.addresses
-        });
+    // Request the Wallet start. POST /start uses the gap-limit policy unless
+    // options.scanPolicy asks for another one.
+    const startBody = walletObj.words
+      ? {
+        seed: walletObj.words,
+        'wallet-id': walletObj.walletId,
+        preCalculatedAddresses: walletObj.addresses,
+      }
+      : {
+        seedKey: walletObj.seedKey,
+        'wallet-id': walletObj.walletId,
+        multisig: walletObj.multisig || false,
+        preCalculatedAddresses: walletObj.addresses,
+      };
+    if (options.scanPolicy) {
+      startBody.scanPolicy = options.scanPolicy;
     }
+    const response = await request.post('/start').send(startBody);
     WalletBenchmarkUtil.informWalletEvent(
       walletObj.walletId,
       WALLET_EVENTS.startResponse,
@@ -330,10 +327,13 @@ export class TestUtils {
    * @see https://wallet-headless.docs.hathor.network/#/paths/~1wallet~1address/get
    * @returns {Promise<string>}
    */
-  static async getAddressAt(walletId, index, markAsUsed) {
+  static async getAddressAt(walletId, index, markAsUsed, options = {}) {
     const requestParams = { index };
     if (markAsUsed) {
       requestParams.mark_as_used = true;
+    }
+    if (options.legacy === false) {
+      requestParams.legacy = false;
     }
 
     const response = await TestUtils.request
@@ -342,6 +342,13 @@ export class TestUtils {
       .set(TestUtils.generateHeader(walletId));
 
     return response.body.address;
+  }
+
+  /**
+   * Gets a shielded address at a specific index.
+   */
+  static async getShieldedAddressAt(walletId, index) {
+    return TestUtils.getAddressAt(walletId, index, false, { legacy: false });
   }
 
   /**
@@ -872,6 +879,22 @@ export class TestUtils {
   }
 
   /**
+   * The HTR fee the shielded outputs of a transaction pay: 1 per AmountShielded
+   * and 2 per FullShielded output. wallet-lib decides some of those outputs
+   * itself (a shielded change, or the second half of a lone shielded output),
+   * so tests compute the fee from the transaction it built.
+   *
+   * @param {string} walletId A wallet that has the transaction in its history
+   * @param {string} txId
+   * @returns {Promise<number>}
+   */
+  static async getShieldedOutputsFee(walletId, txId) {
+    const tx = await TestUtils.getTransaction(walletId, txId);
+    return (tx.shielded_outputs || [])
+      .reduce((fee, output) => fee + (output.mode === 2 ? 2 : 1), 0);
+  }
+
+  /**
    * Waits until the transaction arrives in the wallet ws, or a timeout (optional)
    * is reached
    *
@@ -995,14 +1018,30 @@ export class TestUtils {
         continue;
       }
 
-      if (input.index > inputTx.outputs.length - 1) {
-        // Invalid output index
-        throw new Error('Try to get output in an index that doesn\'t exist.');
+      // Shielded outputs use a concatenated on-chain index — the i-th
+      // shielded output is at position (transparentCount + i). When a
+      // shielded input spends one of these, `input.index` can legitimately
+      // exceed `inputTx.outputs.length`. Resolve by trying transparent
+      // first, then falling back to shielded_outputs[index - transparentCount].
+      const transparentCount = inputTx.outputs.length;
+      if (input.index < transparentCount) {
+        const output = inputTx.outputs[input.index];
+        output.spent_by = tx.tx_id;
+        await wallet.storage.addTx(inputTx);
+        continue;
       }
 
-      const output = inputTx.outputs[input.index];
-      output.spent_by = tx.tx_id;
-      await wallet.storage.addTx(inputTx);
+      const shieldedOutputs = inputTx.shielded_outputs ?? [];
+      const shieldedIdx = input.index - transparentCount;
+      if (shieldedIdx < shieldedOutputs.length) {
+        shieldedOutputs[shieldedIdx].spent_by = tx.tx_id;
+        await wallet.storage.addTx(inputTx);
+        continue;
+      }
+
+      // Neither transparent nor shielded matches — this is the original
+      // error path (genuinely invalid index, not a shielded-aware miss).
+      throw new Error('Try to get output in an index that doesn\'t exist.');
     }
   }
 
