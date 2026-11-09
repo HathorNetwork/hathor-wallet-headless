@@ -6,23 +6,38 @@ on:
     branches:
       - master
 jobs:
+  # Each platform is built on a native runner. Building arm64 under QEMU
+  # emulation crashed with SIGILL during `npm install` on v0.42.0-rc.1.
+  # The build jobs push their image by digest only, without tags. The merge
+  # job then tags one multi-platform image from those digests.
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            arch: amd64
+            runner: ubuntu-24.04
+          - platform: linux/arm64
+            arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     steps:
     - name: Checkout
       # https://github.com/actions/checkout/releases/tag/v4.1.7
       uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
     - name: Prepare tags
       id: tags
+      env:
+        AWS_ECR_URL: ${{ secrets.AWS_ECR_URL }}
+      run: python3 scripts/github/docker.py
+    - name: Prepare image names
+      id: names
+      env:
+        TAGS: ${{ steps.tags.outputs.tags }}
+      # The repositories to push to: every tag with its `:tag` suffix removed
       run: |
-        export GITHUB_REF='${{ github.ref }}'
-        export GITHUB_SHA='${{ github.sha }}'
-        export AWS_ECR_URL='${{ secrets.AWS_ECR_URL }}'
-
-        python scripts/github/docker.py
-    - name: Set up QEMU
-      # https://github.com/docker/setup-qemu-action/releases/tag/v3.2.0
-      uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf
+        echo "names=$(echo "$TAGS" | tr ',' '\n' | sed -E 's/:[^:/]+$//' | sort -u | paste -sd, -)" >> "$GITHUB_OUTPUT"
     - name: Set up Docker Buildx
       # https://github.com/docker/setup-buildx-action/releases/tag/v3.6.1
       uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db
@@ -39,24 +54,115 @@ jobs:
           registry: ${{ secrets.AWS_ECR_URL}}
           username: ${{ secrets.AWS_ACCESS_KEY_ID }}
           password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    - name: Build and push
+    - name: Build and push by digest
+      id: build
       # https://github.com/docker/build-push-action/releases/tag/v6.15.0
       uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4
       with:
-        push: true
-        tags: ${{ steps.tags.outputs.tags }}
-        platforms: linux/amd64,linux/arm64
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-    - name: Build and push RabbitMQ image
+        platforms: ${{ matrix.platform }}
+        outputs: type=image,"name=${{ steps.names.outputs.names }}",push-by-digest=true,name-canonical=true,push=true
+        cache-from: type=gha,scope=docker-${{ matrix.arch }}
+        cache-to: type=gha,mode=max,scope=docker-${{ matrix.arch }}
+    - name: Build and push RabbitMQ image by digest
+      id: build-rabbitmq
       # https://github.com/docker/build-push-action/releases/tag/v6.15.0
       uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4
       if: steps.tags.outputs.rabbitmq_tags != ''
       with:
         build-args:
           ENABLE_RABBITMQ=true
-        push: true
-        tags: ${{ steps.tags.outputs.rabbitmq_tags }}
-        platforms: linux/amd64,linux/arm64
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        platforms: ${{ matrix.platform }}
+        outputs: type=image,"name=${{ steps.names.outputs.names }}",push-by-digest=true,name-canonical=true,push=true
+        cache-from: type=gha,scope=docker-${{ matrix.arch }}
+        cache-to: type=gha,mode=max,scope=docker-${{ matrix.arch }}
+    - name: Export digests
+      env:
+        DIGEST: ${{ steps.build.outputs.digest }}
+        RABBITMQ_DIGEST: ${{ steps.build-rabbitmq.outputs.digest }}
+      run: |
+        mkdir -p "$RUNNER_TEMP/digests/main" "$RUNNER_TEMP/digests/rabbitmq"
+        touch "$RUNNER_TEMP/digests/main/${DIGEST#sha256:}"
+        if [ -n "$RABBITMQ_DIGEST" ]; then
+          touch "$RUNNER_TEMP/digests/rabbitmq/${RABBITMQ_DIGEST#sha256:}"
+        fi
+    - name: Upload digests
+      # https://github.com/actions/upload-artifact/releases/tag/v4.3.6
+      uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+      with:
+        name: digests-${{ matrix.arch }}
+        path: ${{ runner.temp }}/digests
+        if-no-files-found: error
+        retention-days: 1
+        # A rerun of this job must be able to replace the artifact of the failed attempt
+        overwrite: true
+
+  merge:
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+    - name: Checkout
+      # https://github.com/actions/checkout/releases/tag/v4.1.7
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+    - name: Prepare tags
+      id: tags
+      env:
+        AWS_ECR_URL: ${{ secrets.AWS_ECR_URL }}
+      run: python3 scripts/github/docker.py
+    - name: Download digests
+      # https://github.com/actions/download-artifact/releases/tag/v4.1.8
+      uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
+      with:
+        path: ${{ runner.temp }}/digests
+        pattern: digests-*
+        merge-multiple: true
+    - name: Set up Docker Buildx
+      # https://github.com/docker/setup-buildx-action/releases/tag/v3.6.1
+      uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db
+    - name: Login to DockerHub
+      # https://github.com/docker/login-action/releases/tag/v3.3.0
+      uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Login to AWS ECR
+      # https://github.com/docker/login-action/releases/tag/v3.3.0
+      uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+      with:
+          registry: ${{ secrets.AWS_ECR_URL}}
+          username: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    - name: Create and push the multi-platform images
+      env:
+        TAGS: ${{ steps.tags.outputs.tags }}
+        RABBITMQ_TAGS: ${{ steps.tags.outputs.rabbitmq_tags }}
+      run: |
+        set -euo pipefail
+        # Tags one multi-platform image per repository, from the digests the
+        # build jobs pushed to that same repository
+        create_images() {
+          local tags="$1" dir="$2"
+          if [ -z "$tags" ]; then
+            return 0
+          fi
+          local digests
+          digests=$(ls "$dir")
+          if [ -z "$digests" ]; then
+            echo "No digests found in $dir"
+            exit 1
+          fi
+          for repo in $(echo "$tags" | tr ',' '\n' | sed -E 's/:[^:/]+$//' | sort -u); do
+            local args=()
+            for tag in $(echo "$tags" | tr ',' '\n'); do
+              if [ "${tag%:*}" = "$repo" ]; then
+                args+=(-t "$tag")
+              fi
+            done
+            for digest in $digests; do
+              args+=("$repo@sha256:$digest")
+            done
+            docker buildx imagetools create "${args[@]}"
+            docker buildx imagetools inspect "${args[1]}"
+          done
+        }
+        create_images "$TAGS" "$RUNNER_TEMP/digests/main"
+        create_images "$RABBITMQ_TAGS" "$RUNNER_TEMP/digests/rabbitmq"
