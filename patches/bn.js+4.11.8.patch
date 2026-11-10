@@ -1,0 +1,17 @@
+diff --git a/node_modules/bn.js/lib/bn.js b/node_modules/bn.js/lib/bn.js
+index b590145..6be7a40 100644
+--- a/node_modules/bn.js/lib/bn.js
++++ b/node_modules/bn.js/lib/bn.js
+@@ -1,6 +1,12 @@
+ (function (module, exports) {
+   'use strict';
+ 
++  // Under LavaMoat (SES Compartments) every lookup of a global like `Math` is a
++  // slow dynamic scope lookup. comb10MulTo alone calls Math.imul 400 times per
++  // multiplication, which makes BIP32 derivation ~22x slower. A local binding
++  // to the same object resolves lexically. See HathorNetwork/ops-tools#1617.
++  var Math = globalThis.Math;
++
+   // Utils
+   function assert (val, msg) {
+     if (!val) throw new Error(msg || 'Assertion failed');

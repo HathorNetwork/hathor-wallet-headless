@@ -370,19 +370,21 @@ describe('utxo-consolidation routes', () => {
       .post('/wallet/utxo-consolidation')
       .send({
         destination_address: destinationAddress,
-        amount_bigger_than: 30,
+        amount_bigger_than: 10,
         maximum_amount: 100,
         filter_address: addr0
       })
       .set({ 'x-wallet-id': wallet1.walletId });
     const consolidateTx = utxoResponse.body;
 
-    // Evaluating results. Only possible combination is [40, 50]
+    // Evaluating results. The filtered UTXOs [20, 30, 40, 50] sum to 140, so the cap
+    // must apply: consolidation picks the smallest first and 50 no longer fits.
     expect(consolidateTx.total_amount).toBe(90);
-    expect(consolidateTx.total_utxos_consolidated).toBe(2);
+    expect(consolidateTx.total_utxos_consolidated).toBe(3);
     expect(consolidateTx.utxos).toEqual(expect.arrayContaining([
+      expect.objectContaining({ amount: 20 }),
+      expect.objectContaining({ amount: 30 }),
       expect.objectContaining({ amount: 40 }),
-      expect.objectContaining({ amount: 50 }),
     ]));
 
     await TestUtils.waitForTxReceived(wallet1.walletId, consolidateTx.txId);

@@ -106,6 +106,23 @@ async function getUtxosToFillTx(wallet, sumOutputs, options) {
 }
 
 /**
+ * The filters a query input may set, by API name, and the getUtxos option each
+ * one sets. Anything else in the query is ignored, so a request only reaches
+ * the getUtxos options the API documents.
+ */
+const QUERY_INPUT_FILTERS = {
+  max_utxos: 'max_utxos',
+  filter_address: 'filter_address',
+  amount_smaller_than: 'amount_smaller_than',
+  amount_bigger_than: 'amount_bigger_than',
+  // The lib renamed this option max_amount; the API keeps the old name
+  maximum_amount: 'max_amount',
+  // getUtxos selects transparent utxos by default and only shielded ones with
+  // shielded=true
+  shielded: 'shielded',
+};
+
+/**
  * @typedef PreparedTxErrorResponse
  * When a request to prepare a transaction fails the response
  * will contain information on what went wrong.
@@ -173,7 +190,12 @@ async function prepareTxFunds(wallet, outputs, inputs, defaultToken = NATIVE_TOK
 
   if (inputs.length > 0) {
     if (inputs[0].type === 'query') {
-      const query = inputs[0];
+      const query = {};
+      for (const [name, option] of Object.entries(QUERY_INPUT_FILTERS)) {
+        if (inputs[0][name] !== undefined) {
+          query[option] = inputs[0][name];
+        }
+      }
 
       // query processing
 

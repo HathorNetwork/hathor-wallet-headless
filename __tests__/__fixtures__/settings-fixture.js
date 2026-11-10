@@ -21,6 +21,8 @@ const defaultConfig = {
   gapLimit: null,
   confirmFirstAddress: null,
   history_sync_mode: 'polling_http_api',
+  // The stub fullnode reports testnet-foxtrot, which has no shielded outputs
+  enableShieldedOutputs: true,
 };
 
 let config = cloneDeep(defaultConfig);

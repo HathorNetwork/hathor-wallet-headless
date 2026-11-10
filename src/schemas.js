@@ -275,6 +275,18 @@ export const txBuildSchema = {
       options: value => /^(00|[0-9a-fA-F]{64})$/.test(value),
     },
   },
+  'outputs.*.shielded': {
+    in: ['body'],
+    errorMessage: 'Invalid shielded mode',
+    isInt: {
+      options: {
+        min: 1,
+        max: 2,
+      },
+    },
+    toInt: true,
+    optional: true,
+  },
   'outputs.*': {
     in: ['body'],
     isObject: true,
@@ -395,6 +407,14 @@ export const queryInputSchema = {
       options: bigIntSanitizer,
     },
   },
+  'inputs.*.shielded': {
+    in: ['body'],
+    errorMessage: 'Invalid shielded',
+    isBoolean: {
+      options: { strict: true },
+    },
+    optional: true,
+  },
 };
 
 export const txHexInputDataSchema = {
@@ -443,6 +463,14 @@ export const p2pkhSignature = {
     custom: {
       options: value => /^[0-9a-fA-F]+$/.test(value)
     },
+  },
+  shielded: {
+    in: ['body'],
+    errorMessage: 'Invalid shielded',
+    isBoolean: {
+      options: { strict: true },
+    },
+    optional: true,
   },
   type: {
     customSanitizer: {
@@ -546,21 +574,35 @@ export const nanoContractData = z.object({
 export const nanoContractOptions = z.object({
   max_fee: bigIntCoercibleSchema.pipe(z.bigint().nonnegative()).optional(),
   contract_pays_fees: z.boolean().optional().default(false),
+  change_address: z.string().optional(),
 }).transform(data => ({
   maxFee: data.max_fee,
   contractPaysFees: data.contract_pays_fees,
+  changeAddress: data.change_address,
 }));
+
+// The wallet-lib ignores the transaction change address when creating a token
+// with a nano header, so we reject it instead of silently dropping it.
+const rejectChangeAddressWithCreateToken = data => !(
+  data.changeAddress && data.create_token_options
+);
+const rejectChangeAddressWithCreateTokenParams = {
+  message: 'not supported with create_token_options, use create_token_options.change_address instead',
+  path: ['change_address'],
+};
 
 export const nanoContractCreateData = z.object({
   blueprint_id: z.string(),
   address: z.string(),
-}).merge(nanoContractData).merge(nanoCreateTokenOptions).and(nanoContractOptions);
+}).merge(nanoContractData).merge(nanoCreateTokenOptions).and(nanoContractOptions)
+  .refine(rejectChangeAddressWithCreateToken, rejectChangeAddressWithCreateTokenParams);
 
 export const nanoContractExecuteData = z.object({
   nc_id: z.string(),
   method: z.string(),
   address: z.string(),
-}).merge(nanoContractData).merge(nanoCreateTokenOptions).and(nanoContractOptions);
+}).merge(nanoContractData).merge(nanoCreateTokenOptions).and(nanoContractOptions)
+  .refine(rejectChangeAddressWithCreateToken, rejectChangeAddressWithCreateTokenParams);
 
 export function bigIntSanitizer(value) {
   try {

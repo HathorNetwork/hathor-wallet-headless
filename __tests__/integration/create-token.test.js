@@ -206,10 +206,9 @@ describe('create token', () => {
     const amount = 2n ** 63n; // This is the maximum output value
     const depositAmount = tokensUtils.getDepositAmount(amount);
 
-    // The deposit amount contains a slight precision loss, but this is expected and compatible with
-    // the full node, in Python. See the docstring in the `getDepositAmount` function in the
-    // wallet-lib for more info.
-    expect(depositAmount).toStrictEqual(92233720368547760n);
+    // The deposit is 1% of 2^63 rounded up, using exact integer math:
+    // ceil(9223372036854775808 / 100) = 92233720368547759.
+    expect(depositAmount).toStrictEqual(92233720368547759n);
 
     await largeWallet1.injectFunds(depositAmount.toString());
     wallet1balance = await largeWallet1.getBalance();

@@ -269,33 +269,26 @@ describe('utxo-filter routes', () => {
     ]);
     const utxosObj = filteredResponse.body;
 
-    // Validating filtered response
-    expect(utxosObj.utxos).toHaveProperty('length', 2);
-    expect(utxosObj.total_amount_available).toBe(900);
+    // Validating unfiltered response: the TKA is spread over these UTXOs
+    const unfilteredObj = unfilteredResponse.body;
+    expect(unfilteredObj.total_utxos_available).toBe(6);
+    expect(unfilteredObj.utxos.map(utxo => utxo.amount).sort((a, b) => a - b))
+      .toStrictEqual([10, 20, 30, 40, 50, 850]);
+    expect(unfilteredObj.utxos).toEqual(expect.arrayContaining([
+      expect.objectContaining({ address: addr0, amount: 850, locked: false }),
+      expect.objectContaining({ address: transactions.tx50.address, amount: 50, locked: false }),
+    ]));
+
+    // Validating filtered response. The filter returns the first UTXOs in the wallet storage
+    // order, which is an implementation detail of the lib, so we compare against the
+    // unfiltered response instead of expecting specific UTXOs.
+    const expectedUtxos = unfilteredObj.utxos.slice(0, 2);
+    expect(utxosObj.utxos).toStrictEqual(expectedUtxos);
+    expect(utxosObj.total_amount_available)
+      .toBe(expectedUtxos.reduce((sum, utxo) => sum + utxo.amount, 0));
     expect(utxosObj.total_utxos_available).toBe(2);
     expect(utxosObj.total_amount_locked).toBe(0);
     expect(utxosObj.total_utxos_locked).toBe(0);
-
-    // Validating unfiltered response
-    const unfilteredObj = unfilteredResponse.body;
-    expect(unfilteredObj.total_utxos_available).toBeGreaterThan(utxosObj.total_utxos_available);
-    for (const utxoIndex in utxosObj.utxos) {
-      // We expect the results to be in the same order
-      expect(unfilteredObj.utxos[utxoIndex]).toStrictEqual(utxosObj.utxos[utxoIndex]);
-    }
-
-    expect(utxosObj.utxos).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        address: addr0,
-        amount: 850,
-        locked: false,
-      }),
-      expect.objectContaining({
-        address: transactions.tx50.address,
-        amount: 50,
-        locked: false,
-      }),
-    ]));
   });
 
   it('should return results for specific addresses', async () => {
@@ -371,25 +364,36 @@ describe('utxo-filter routes', () => {
   });
 
   it('should return correct results for maximum_amount', async () => {
-    const utxoResponse = await TestUtils.request
-      .get('/wallet/utxo-filter')
-      .query({
-        token: tokenA.uid,
-        maximum_amount: 100
-      })
-      .set({ 'x-wallet-id': wallet2.walletId });
+    const [utxoResponse, unfilteredResponse] = await Promise.all([
+      TestUtils.request
+        .get('/wallet/utxo-filter')
+        .query({
+          token: tokenA.uid,
+          maximum_amount: 100
+        })
+        .set({ 'x-wallet-id': wallet2.walletId }),
+      TestUtils.request
+        .get('/wallet/utxo-filter')
+        .query({ token: tokenA.uid })
+        .set({ 'x-wallet-id': wallet2.walletId }),
+    ]);
     const tkaUtxos = utxoResponse.body;
 
-    expect(tkaUtxos.total_amount_available).toBe(100);
-    expect(tkaUtxos.total_utxos_available).toBe(3);
-    expect(tkaUtxos.utxos).toHaveProperty('length', 3);
+    // The filter walks the UTXOs in the same order as a normal query, skipping any UTXO that
+    // would take the sum over the maximum amount.
+    let expectedSum = 0;
+    const expectedUtxos = unfilteredResponse.body.utxos.filter(utxo => {
+      if (expectedSum + utxo.amount > 100) {
+        return false;
+      }
+      expectedSum += utxo.amount;
+      return true;
+    });
 
-    // We expect these UTXOs to be in the same order as a normal query.
-    expect(tkaUtxos.utxos).toEqual(expect.arrayContaining([
-      expect.objectContaining({ tx_id: transactions.tx50.hash }),
-      expect.objectContaining({ tx_id: transactions.tx40.hash }),
-      expect.objectContaining({ tx_id: transactions.tx10.hash }),
-    ]));
+    expect(tkaUtxos.utxos).toStrictEqual(expectedUtxos);
+    expect(tkaUtxos.total_amount_available).toBe(expectedSum);
+    expect(tkaUtxos.total_amount_available).toBeLessThanOrEqual(100);
+    expect(tkaUtxos.total_utxos_available).toBe(expectedUtxos.length);
   });
 
   it('should return correct results for maximum_amount and bigger_than', async () => {
