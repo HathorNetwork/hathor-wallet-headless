@@ -60,12 +60,20 @@ describe('balance routes', () => {
   });
 
   it('should return some locked balance for the miner wallet', async () => {
+    /*
+     * The wallet learns the network height only from the fullnode's dashboard metrics, sent
+     * every second, and decides whether a reward is locked when it processes the block. A
+     * wallet that syncs its history before the first metrics arrive counts no reward as locked
+     * until the next block. So we wait for a block mined after the miner wallet started.
+     */
+    await TestUtils.waitNewBlock();
+
     const balanceResult = await TestUtils.request
       .get('/wallet/balance')
       .set({ 'x-wallet-id': minerWallet.walletId });
 
     /*
-     * According to the REWARD_SPEND_MIN_BLOCKS variable in the ./configuration/privnet.py file
+     * According to the REWARD_SPEND_MIN_BLOCKS variable in the ./configuration/privnet.yml file
      * the miner rewards are locked for exactly one block. Since we have only one miner reward
      * address, this value should be always 6400 or greater.
      *
