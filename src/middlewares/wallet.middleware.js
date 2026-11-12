@@ -6,7 +6,7 @@
  */
 
 const { HathorWallet } = require('@hathor/wallet-lib');
-const friendlyWalletState = require('../helpers/constants');
+const { friendlyWalletState } = require('../helpers/constants');
 const { initializedWallets, isHsmWallet, hsmWalletIds } = require('../services/wallets.service');
 const settings = require('../settings');
 
@@ -26,7 +26,8 @@ async function walletMiddleware(req, res, next) {
       success: false,
       message,
       statusCode: state,
-      statusMessage: (state ? friendlyWalletState[state] : ''),
+      // CLOSED is state 0, so only a missing state has no message
+      statusMessage: (state === undefined ? '' : friendlyWalletState[state]),
     });
   };
 

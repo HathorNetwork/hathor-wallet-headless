@@ -43,6 +43,8 @@ describe('addresses api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
+    expect(response.body.statusCode).toBe(HathorWallet.SYNCING);
+    expect(response.body.statusMessage).toBe('Syncing');
   });
 
   it('should not stop a wallet that is CONNECTING', async () => {
@@ -67,5 +69,36 @@ describe('addresses api', () => {
       .set({ 'x-wallet-id': walletId });
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(false);
+    expect(response.body.statusCode).toBe(HathorWallet.CLOSED);
+    expect(response.body.statusMessage).toBe('Closed');
+  });
+
+  it('should name the wallet state when another route finds it not ready', async () => {
+    /** @type {HathorWallet} */
+    const wallet = initializedWallets.get(walletId);
+    wallet.setState(HathorWallet.SYNCING);
+
+    const response = await TestUtils.request
+      .get('/wallet/balance')
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual({
+      success: false,
+      message: 'Wallet is not ready.',
+      statusCode: HathorWallet.SYNCING,
+      statusMessage: 'Syncing',
+    });
+  });
+
+  it('should send an empty state message when the wallet id is unknown', async () => {
+    const response = await TestUtils.request
+      .get('/wallet/balance')
+      .set({ 'x-wallet-id': 'stub_stop_unknown' });
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual({
+      success: false,
+      message: 'Invalid wallet id parameter.',
+      statusMessage: '',
+    });
   });
 });
