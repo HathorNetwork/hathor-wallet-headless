@@ -103,7 +103,7 @@ describe('address-info routes', () => {
     expect(results.total_amount_received).toBeGreaterThan(0);
 
     /*
-     * According to the REWARD_SPEND_MIN_BLOCKS variable in the ./configuration/privnet.py file
+     * According to the REWARD_SPEND_MIN_BLOCKS variable in the ./configuration/privnet.yml file
      * the miner rewards are locked for exactly one block. Since we have only one miner reward
      * address, this value should be always 6400 or greater.
      *
