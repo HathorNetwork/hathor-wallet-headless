@@ -5,6 +5,10 @@ on:
       - v*
     branches:
       - master
+# The jobs only read the repository. The registries take their own secrets, and
+# the cache and the digest artifacts use the runner's token, not this one.
+permissions:
+  contents: read
 jobs:
   # Each platform is built on a native runner. Building arm64 under QEMU
   # emulation crashed with SIGILL during `npm install` on v0.42.0-rc.1.
@@ -26,6 +30,9 @@ jobs:
     - name: Checkout
       # https://github.com/actions/checkout/releases/tag/v4.1.7
       uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      with:
+        # No step runs git after the checkout, so the token is not kept on disk
+        persist-credentials: false
     - name: Prepare tags
       id: tags
       env:
@@ -103,6 +110,9 @@ jobs:
     - name: Checkout
       # https://github.com/actions/checkout/releases/tag/v4.1.7
       uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      with:
+        # No step runs git after the checkout, so the token is not kept on disk
+        persist-credentials: false
     - name: Prepare tags
       id: tags
       env:
