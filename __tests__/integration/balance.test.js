@@ -1,7 +1,8 @@
-import { getRandomInt } from './utils/core.util';
+import { delay, getRandomInt } from './utils/core.util';
 import { TestUtils } from './utils/test-utils-integration';
 import { WALLET_CONSTANTS } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
+import testConfig from './configuration/test.config';
 
 describe('balance routes', () => {
   /** @type WalletHelper */
@@ -60,18 +61,45 @@ describe('balance routes', () => {
   });
 
   it('should return some locked balance for the miner wallet', async () => {
-    const balanceResult = await TestUtils.request
-      .get('/wallet/balance')
-      .set({ 'x-wallet-id': minerWallet.walletId });
-
     /*
-     * According to the REWARD_SPEND_MIN_BLOCKS variable in the ./configuration/privnet.py file
+     * According to the REWARD_SPEND_MIN_BLOCKS variable in the ./configuration/privnet.yml file
      * the miner rewards are locked for exactly one block. Since we have only one miner reward
-     * address, this value should be always 6400 or greater.
+     * address, the newest reward of 6400 is locked once the wallet knows the network height.
      *
      * Should another miner reward address be included later, this assertion must be recalculated.
      */
-    expect(balanceResult.body.locked).toBeGreaterThanOrEqual(6400);
+    const minLocked = 6400;
+
+    /*
+     * TODO(HathorNetwork/hathor-wallet-lib#1212): once the wallet-lib release with that fix is in
+     * use, read the balance once and assert, as before. The poll below would hide a regression.
+     *
+     * The wallet learns the network height only from the fullnode's dashboard metrics, sent
+     * every second, and decides whether a reward is locked when it processes the block. A
+     * wallet that syncs its history, or gets a block, before the first metrics arrive counts
+     * that reward as unlocked. So we read the balance until the wallet has processed a block
+     * with the height known, which takes at most the next block or two.
+     */
+    const getMinerBalance = () => TestUtils.request
+      .get('/wallet/balance')
+      .set({ 'x-wallet-id': minerWallet.walletId });
+    // The env value is a string, so it must be converted before the addition
+    const timeout = Number(testConfig.waitNewBlockTimeout);
+    const deadline = Date.now() + timeout;
+    let balanceResult = await getMinerBalance();
+    while (balanceResult.body.locked < minLocked && Date.now() < deadline) {
+      await delay(1000);
+      balanceResult = await getMinerBalance();
+    }
+    if (!(balanceResult.body.locked >= minLocked)) {
+      TestUtils.log(
+        `Miner locked balance below ${minLocked} after polling for up to ${timeout} ms`,
+        { balance: balanceResult.body },
+        'warn'
+      );
+    }
+
+    expect(balanceResult.body.locked).toBeGreaterThanOrEqual(minLocked);
   });
 
   it('should return correct balance for a custom token (empty)', async () => {
