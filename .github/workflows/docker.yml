@@ -9,6 +9,12 @@ on:
 # the cache and the digest artifacts use the runner's token, not this one.
 permissions:
   contents: read
+# One run per ref at a time, so an older run of a ref cannot move its tags
+# (`master`, the staging tag) after a newer one. A queued run gives way to a
+# newer run of the same ref; a running one is never cancelled.
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   # Each platform is built on a native runner. Building arm64 under QEMU
   # emulation crashed with SIGILL during `npm install` on v0.42.0-rc.1.
@@ -69,7 +75,9 @@ jobs:
         platforms: ${{ matrix.platform }}
         outputs: type=image,"name=${{ steps.names.outputs.names }}",push-by-digest=true,name-canonical=true,push=true
         cache-from: type=gha,scope=docker-${{ matrix.arch }}
-        cache-to: type=gha,mode=max,scope=docker-${{ matrix.arch }}
+        # Only branch builds save the cache. No other ref can read a tag's cache,
+        # and the merge job would wait for the upload.
+        cache-to: ${{ github.ref_type == 'branch' && format('type=gha,mode=max,scope=docker-{0}', matrix.arch) || '' }}
     - name: Build and push RabbitMQ image by digest
       id: build-rabbitmq
       # https://github.com/docker/build-push-action/releases/tag/v6.15.0
@@ -80,13 +88,17 @@ jobs:
           ENABLE_RABBITMQ=true
         platforms: ${{ matrix.platform }}
         outputs: type=image,"name=${{ steps.names.outputs.names }}",push-by-digest=true,name-canonical=true,push=true
+        # This step runs only on release tags, which save no cache (see above)
         cache-from: type=gha,scope=docker-${{ matrix.arch }}
-        cache-to: type=gha,mode=max,scope=docker-${{ matrix.arch }}
     - name: Export digests
       env:
         DIGEST: ${{ steps.build.outputs.digest }}
         RABBITMQ_DIGEST: ${{ steps.build-rabbitmq.outputs.digest }}
       run: |
+        if [ -z "$DIGEST" ]; then
+          echo "The build step returned no image digest"
+          exit 1
+        fi
         mkdir -p "$RUNNER_TEMP/digests/main" "$RUNNER_TEMP/digests/rabbitmq"
         touch "$RUNNER_TEMP/digests/main/${DIGEST#sha256:}"
         if [ -n "$RABBITMQ_DIGEST" ]; then
@@ -119,8 +131,8 @@ jobs:
         AWS_ECR_URL: ${{ secrets.AWS_ECR_URL }}
       run: python3 scripts/github/docker.py
     - name: Download digests
-      # https://github.com/actions/download-artifact/releases/tag/v4.1.8
-      uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
+      # https://github.com/actions/download-artifact/releases/tag/v8.0.2
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
       with:
         path: ${{ runner.temp }}/digests
         pattern: digests-*
@@ -147,8 +159,28 @@ jobs:
         RABBITMQ_TAGS: ${{ steps.tags.outputs.rabbitmq_tags }}
       run: |
         set -euo pipefail
+        # Each image needs one digest per platform of the build matrix
+        platforms=2
+
+        # Fails unless an image has one digest per platform. Every image is
+        # checked before any tag moves, so a missing platform cannot publish a
+        # single-platform image or half a release.
+        check_digests() {
+          local tags="$1" dir="$2"
+          if [ -z "$tags" ]; then
+            return 0
+          fi
+          local digests
+          digests=$(ls "$dir" 2>/dev/null || true)
+          if [ "$(echo "$digests" | wc -w)" -ne "$platforms" ]; then
+            echo "Expected $platforms platform digests in $dir, found: ${digests:-none}"
+            exit 1
+          fi
+        }
+
         # Tags one multi-platform image per repository, from the digests the
         # build jobs pushed to that same repository
+        published=()
         create_images() {
           local tags="$1" dir="$2"
           if [ -z "$tags" ]; then
@@ -156,10 +188,6 @@ jobs:
           fi
           local digests
           digests=$(ls "$dir")
-          if [ -z "$digests" ]; then
-            echo "No digests found in $dir"
-            exit 1
-          fi
           for repo in $(echo "$tags" | tr ',' '\n' | sed -E 's/:[^:/]+$//' | sort -u); do
             local args=()
             for tag in $(echo "$tags" | tr ',' '\n'); do
@@ -171,8 +199,16 @@ jobs:
               args+=("$repo@sha256:$digest")
             done
             docker buildx imagetools create "${args[@]}"
-            docker buildx imagetools inspect "${args[1]}"
+            published+=("${args[1]}")
           done
         }
+
+        check_digests "$TAGS" "$RUNNER_TEMP/digests/main"
+        check_digests "$RABBITMQ_TAGS" "$RUNNER_TEMP/digests/rabbitmq"
         create_images "$TAGS" "$RUNNER_TEMP/digests/main"
         create_images "$RABBITMQ_TAGS" "$RUNNER_TEMP/digests/rabbitmq"
+        # A report only: every tag is in place by now, so a failed read must not
+        # fail the job
+        for image in "${published[@]}"; do
+          docker buildx imagetools inspect "$image" || echo "::warning::Could not inspect $image"
+        done
