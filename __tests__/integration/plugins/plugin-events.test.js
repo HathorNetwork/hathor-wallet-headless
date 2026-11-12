@@ -27,8 +27,11 @@ describe('test the plugin event handler', () => {
     loadedPlugin.init(notificationBus);
 
     try {
-      // Initialize an empty wallet
-      wallet1 = WalletHelper.getPrecalculatedWallet(pluginWalletId);
+      /*
+       * Initialize an empty wallet, without pre-calculated addresses: these tests check the
+       * events of the wallet's own address discovery, which injected addresses would skip.
+       */
+      wallet1 = new WalletHelper(pluginWalletId);
       await WalletHelper.startMultipleWalletsForTest([wallet1]);
     } catch (err) {
       TestUtils.logError(err.stack);
