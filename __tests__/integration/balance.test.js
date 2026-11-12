@@ -1,4 +1,4 @@
-import { getRandomInt } from './utils/core.util';
+import { delay, getRandomInt } from './utils/core.util';
 import { TestUtils } from './utils/test-utils-integration';
 import { WALLET_CONSTANTS } from './configuration/test-constants';
 import { WalletHelper } from './utils/wallet-helper';
@@ -63,14 +63,19 @@ describe('balance routes', () => {
     /*
      * The wallet learns the network height only from the fullnode's dashboard metrics, sent
      * every second, and decides whether a reward is locked when it processes the block. A
-     * wallet that syncs its history before the first metrics arrive counts no reward as locked
-     * until the next block. So we wait for a block mined after the miner wallet started.
+     * wallet that syncs its history, or gets a block, before the first metrics arrive counts
+     * that reward as unlocked. So we read the balance until the wallet has processed a block
+     * with the height known, which takes at most the next block or two.
      */
-    await TestUtils.waitNewBlock();
-
-    const balanceResult = await TestUtils.request
+    const getMinerBalance = () => TestUtils.request
       .get('/wallet/balance')
       .set({ 'x-wallet-id': minerWallet.walletId });
+    const deadline = Date.now() + 60000;
+    let balanceResult = await getMinerBalance();
+    while (balanceResult.body.locked < 6400 && Date.now() < deadline) {
+      await delay(1000);
+      balanceResult = await getMinerBalance();
+    }
 
     /*
      * According to the REWARD_SPEND_MIN_BLOCKS variable in the ./configuration/privnet.yml file
