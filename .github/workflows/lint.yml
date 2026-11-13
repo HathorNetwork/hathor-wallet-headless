@@ -13,6 +13,8 @@ on:
       - release-candidate
       - release
 
+# No job uses the GitHub Actions cache, so none can read or write it
+cache-mode: none
 jobs:
   test:
     runs-on: ubuntu-latest

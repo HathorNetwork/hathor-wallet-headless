@@ -17,6 +17,8 @@ env:
   TEST_WALLET_START_TIMEOUT: '180000'
   TEST_WAIT_NEW_BLOCK_TIMEOUT: ${{ vars.TEST_WAIT_NEW_BLOCK_TIMEOUT }}
 
+# No job uses the GitHub Actions cache, so none can read or write it
+cache-mode: none
 jobs:
   itest:
     runs-on: ubuntu-latest

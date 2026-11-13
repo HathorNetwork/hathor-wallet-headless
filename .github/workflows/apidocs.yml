@@ -5,6 +5,8 @@ on:
       - master
       - release-candidate
       - release
+# No job uses the GitHub Actions cache, so none can read or write it
+cache-mode: none
 jobs:
   lint:
     runs-on: ubuntu-latest
