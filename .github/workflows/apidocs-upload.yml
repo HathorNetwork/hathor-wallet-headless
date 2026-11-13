@@ -5,6 +5,8 @@ on:
     tags:
       - 'v*'
 
+# No job uses the GitHub Actions cache, so none can read or write it
+cache-mode: none
 jobs:
 
   # First check if this version is a valid public release
