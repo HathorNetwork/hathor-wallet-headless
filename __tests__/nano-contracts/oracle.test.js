@@ -31,13 +31,25 @@ describe('oracle apis', () => {
   it('should return 200 with a valid body for oracle signed result', async () => {
     const response = await TestUtils.request
       .get('/wallet/nano-contracts/oracle-signed-result')
-      .query({ oracle_data: '123456', contract_id: 'cafecafe', result: '1x0', type: 'str' })
+      .query({ oracle_data: '123456', contract_id: 'cafecafe'.repeat(8), result: '1x0', type: 'str' })
       .set({ 'x-wallet-id': walletId });
     // Will return the fixture data from the http request
     expect(response.status).toBe(200);
     expect(response.body.signedResult.signature).toBe('123456');
     expect(response.body.signedResult.value).toBe('1x0');
     expect(response.body.signedResult.type).toBe('str');
+  });
+
+  it('should refuse an oracle signed result for a contract id that is not 64 hex characters', async () => {
+    const response = await TestUtils.request
+      .get('/wallet/nano-contracts/oracle-signed-result')
+      .query({ oracle_data: '123456', contract_id: 'cafecafe', result: '1x0', type: 'str' })
+      .set({ 'x-wallet-id': walletId });
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual({
+      success: false,
+      error: 'Invalid nano contract id: expected 64 hex characters.',
+    });
   });
 
   it('should fail without required parameter for oracle signed result', async () => {
